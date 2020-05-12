@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "507659974524",
+    "firebase_url": "https://milebuddy-47bb7.firebaseio.com",
+    "project_id": "milebuddy-47bb7",
+    "storage_bucket": "milebuddy-47bb7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:507659974524:android:c2e00dc055afef56bdd6f9",
+        "android_client_info": {
+          "package_name": "com.fimbleenterprises.medimileage"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "507659974524-509e2vvkibdhpt8oabj3jdc987fe34be.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fimbleenterprises.medimileage",
+            "certificate_hash": "ac9433e784dc3f5e643cf897d0ab5198bf0fe609"
+          }
+        },
+        {
+          "client_id": "507659974524-5ql89ni2204s6oekt9svmakfj8khunla.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwOX0s0Ud3sycGBtz_JZdjhCybBjwWKYM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "507659974524-5ql89ni2204s6oekt9svmakfj8khunla.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

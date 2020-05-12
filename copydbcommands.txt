@@ -1,0 +1,12 @@
+run-as com.fimbleenterprises.medimileage
+cd /data/data/com.fimbleenterprises.medimileage/databases
+
+chmod 777 mileagetracking.db
+chmod 777 mileagetracking.db-shm
+chmod 777 mileagetracking.db-wal
+
+cp mileagetracking.db /mnt/sdcard/ > stdout
+cp mileagetracking.db-shm /mnt/sdcard/
+cp mileagetracking.db-wal /mnt/sdcard/
+
+SQLiteDatabase: /data/user/0/com.fimbleenterprises.medimileage/databases/mileagetracking.db

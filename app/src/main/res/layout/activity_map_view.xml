@@ -1,0 +1,477 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/LinearLayout_MapMaster"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginTop="1dp"
+    android:background="#EE7420"
+    android:orientation="vertical"
+    tools:mContext=".Activity_MapView" >
+
+	<RelativeLayout
+		android:id="@+id/layout_SpeedDistanceDataPanel"
+		android:layout_width="match_parent"
+		android:layout_height="410dp"
+		android:layout_marginLeft="2dp"
+		android:layout_marginTop="2dp"
+		android:layout_marginRight="2dp"
+		android:layout_marginBottom="2dp"
+		android:layout_weight=".72"
+		android:background="#EEEEEE">
+
+		<TextView
+			android:id="@+id/textView_TripName"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_alignParentTop="true"
+			android:layout_centerHorizontal="true"
+			android:layout_marginTop="3dp"
+			android:fontFamily="casual"
+			android:text="TRIP NAME"
+			android:textAppearance="?android:attr/textAppearanceLarge"
+			android:textColor="#656565" />
+
+		<TableLayout
+			android:id="@+id/TableLayout_StartStop"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_below="@+id/textView_TripName"
+			android:layout_alignParentLeft="true"
+			android:layout_alignParentRight="true"
+			android:layout_marginTop="1dp"
+			android:paddingTop="2dp"
+			android:paddingBottom="2dp">
+
+			<TableRow
+				android:id="@+id/tableRow3"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content">
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/TextView_distance_lbl"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:fontFamily="casual"
+                        android:text="Distance:"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="#000000"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+				</FrameLayout>
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/TextView_distance"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:fontFamily="casual"
+                        android:text="55 miles"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="#606060"
+                        android:textSize="13sp" />
+
+				</FrameLayout>
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/TextView_topSpeed_lbl"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:fontFamily="casual"
+                        android:text="Top speed:"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="#000000"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+				</FrameLayout>
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/TextView_topSpeed"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:fontFamily="casual"
+                        android:text="55 mph"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="#606060"
+                        android:textSize="13sp" />
+				</FrameLayout>
+			</TableRow>
+
+			<TableRow
+				android:id="@+id/tableRow4"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content">
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/TextView_duration_lbl"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:fontFamily="casual"
+                        android:text="Duration:"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="#000000"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+				</FrameLayout>
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/TextView_duration"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:fontFamily="casual"
+                        android:text="19 mins"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="#606060"
+                        android:textSize="13sp" />
+				</FrameLayout>
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/TextView_avgSpeed_lbl"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:fontFamily="casual"
+                        android:text="Avg speed:"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="#000000"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+				</FrameLayout>
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/TextView_avgSpeed"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:fontFamily="casual"
+                        android:text="55 mph"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="#606060"
+                        android:textSize="13sp" />
+				</FrameLayout>
+			</TableRow>
+
+			<TableRow
+				android:id="@+id/tableRow1"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content">
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+					<TextView
+						android:id="@+id/TextView_WasTravelling"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:gravity="right"
+						android:text="Top speed:"
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textSize="13sp"
+						android:textStyle="bold"
+						android:visibility="gone" />
+				</FrameLayout>
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+					<TextView
+						android:id="@+id/TextView_TopSpeed"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:text="Waiting for GPS..."
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textSize="15sp"
+						android:visibility="gone" />
+				</FrameLayout>
+			</TableRow>
+
+			<TableRow
+				android:id="@+id/tableRow2"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content">
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/TextView_dateTaken_lbl"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:fontFamily="casual"
+                        android:text="Date:"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="#000000"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+				</FrameLayout>
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/TextView_date"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:fontFamily="casual"
+                        android:text="12/12/12"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="#606060"
+                        android:textSize="13sp" />
+
+				</FrameLayout>
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/TextView_submitted_lbl"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:fontFamily="casual"
+                        android:text="Amount:"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="#000000"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+				</FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/TextView_reimbursement"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:fontFamily="casual"
+                        android:text="Yes"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="#606060"
+                        android:textSize="13sp" />
+                </FrameLayout>
+			</TableRow>
+		</TableLayout>
+	</RelativeLayout>
+    
+    <RelativeLayout
+        android:id="@+id/layout_MapView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight=".28" >
+
+		<ProgressBar
+			android:id="@+id/progressBar"
+			style="?android:attr/progressBarStyle"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_centerInParent="true" />
+
+		<fragment
+			android:id="@+id/map"
+			class="com.google.android.gms.maps.SupportMapFragment"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:layout_marginLeft="2dp"
+			android:layout_marginRight="2dp"
+			android:layout_marginBottom="2dp" />
+
+		<LinearLayout
+			android:id="@+id/LinearLayout_google_shell"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_alignParentTop="true"
+			android:layout_marginLeft="5dp"
+			android:layout_marginTop="5dp"
+			android:layout_marginRight="5dp"
+			android:background="#00FFFFFF"
+			android:clickable="true"
+			android:visibility="visible"
+			android:weightSum="1.0">
+
+			<LinearLayout
+				android:id="@+id/LinearLayout_google_contents"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_alignParentTop="true"
+				android:layout_margin="1dp"
+				android:background="#00FFFFFF"
+				android:weightSum="1.0">
+
+				<ToggleButton
+					android:id="@+id/toggleButton_MapOverlay_ShowHideGoogle"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:background="@drawable/btn_glass_gray_black_border_toggle"
+					android:checked="false"
+					android:contentDescription="blah blah blah"
+					android:drawableLeft="@drawable/google_map_logo_64x64"
+					android:drawablePadding="0dp"
+					android:paddingLeft="12dp"
+					android:paddingTop="5dp"
+					android:paddingBottom="5dp"
+					android:textColor="#717171"
+					android:textOff=" "
+					android:textOn=" "
+					android:textSize="14sp" />
+
+				<TableLayout
+					android:id="@+id/tableLayout_Stats2"
+					android:layout_width="fill_parent"
+					android:layout_height="fill_parent"
+					android:layout_below="@+id/textView_TripName"
+					android:layout_alignParentLeft="true"
+					android:layout_alignParentRight="true"
+					android:layout_marginTop="1dp"
+					android:gravity="center_vertical"
+					android:paddingTop="2dp"
+					android:paddingBottom="2dp">
+
+					<TableRow
+						android:id="@+id/tableRowIcon"
+						android:layout_width="wrap_content"
+						android:layout_height="match_parent">
+
+						<!-- <FrameLayout
+			                android:layout_height="match_parent"
+			                android:layout_width="0dp"
+			                android:layout_weight=".5">
+		
+				            <TextView
+				                android:id="@+id/TextView_google_distance_lbl"
+				                android:layout_width="match_parent"
+				                android:layout_height="match_parent"
+				                android:layout_marginLeft="5dp"
+				                android:layout_marginRight="5dp"
+				                android:messageAlignment="fill_vertical"
+				                android:text="Google&apos;s route:"
+				                android:textAppearance="?android:attr/textAppearanceSmall"
+				                android:textColor="#FFFFFF"
+				                android:textSize="18sp"
+				                android:textStyle="bold" />
+		
+			            </FrameLayout> -->
+						<FrameLayout
+							android:layout_width="0dp"
+							android:layout_height="match_parent"
+							android:layout_weight=".5">
+
+							<TextView
+								android:id="@+id/TextView_google_distance_value"
+								android:layout_width="match_parent"
+								android:layout_height="match_parent"
+								android:layout_marginLeft="5dp"
+								android:layout_marginRight="5dp"
+								android:gravity="fill_vertical"
+								android:text="55 miles"
+								android:textAppearance="?android:attr/textAppearanceSmall"
+								android:textColor="#FFFFFF"
+								android:textSize="18sp"
+								tools:visibility="gone" />
+
+						</FrameLayout>
+					</TableRow>
+
+					<TableRow
+						android:id="@+id/tableRowGoogleStats"
+						android:layout_width="wrap_content"
+						android:layout_height="match_parent">
+
+						<FrameLayout
+							android:layout_width="0dp"
+							android:layout_height="match_parent"
+							android:layout_weight=".33">
+
+						</FrameLayout>
+
+						<FrameLayout
+							android:layout_width="0dp"
+							android:layout_height="match_parent"
+							android:layout_weight=".66"></FrameLayout>
+					</TableRow>
+				</TableLayout>
+			</LinearLayout>
+		</LinearLayout>
+    </RelativeLayout>
+    
+</LinearLayout>

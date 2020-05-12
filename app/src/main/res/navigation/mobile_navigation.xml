@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/nav_home">
+
+    <fragment
+        android:id="@+id/nav_home"
+        android:name="com.fimbleenterprises.medimileage.ui.mileage.MileageFragment"
+        android:label="@string/menu_home"
+        tools:layout="@layout/fragment_mileage">
+
+        <action
+            android:id="@+id/action_HomeFragment_to_HomeSecondFragment"
+            app:destination="@id/nav_authentication" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_authentication"
+        android:name="com.fimbleenterprises.medimileage.ui.authentication.AuthenticationFragment"
+        android:label="@string/menu_authentication"
+        tools:layout="@layout/fragment_authentication">
+
+        <action
+            android:id="@+id/action_HomeSecondFragment_to_HomeFragment"
+            app:destination="@id/nav_home" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_settings"
+        android:name="com.fimbleenterprises.medimileage.ui.settings.mileage.SettingsActivity$SettingsFragment"
+        android:label="Settings">
+
+        <action
+            android:id="@+id/action_HomeFragment_to_SettingsFragment"
+            app:destination="@id/nav_settings" />
+    </fragment>
+</navigation>
