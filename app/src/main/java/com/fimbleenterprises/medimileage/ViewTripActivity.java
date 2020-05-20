@@ -75,6 +75,11 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
     boolean firstLoad = true;
     Context context;
 
+    interface DrawCompleteListener {
+        void onFinished();
+        void onFailed(String msg);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,6 +95,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
         options = new MySettingsHelper(this);
 
         if (getIntent().hasExtra(CLICKED_TRIP)){
+            Log.i(TAG, "onCreate Getting intent...");
             clickedTrip = getIntent().getParcelableExtra(CLICKED_TRIP);
             Log.i(TAG, "onNewIntent Received a trip");
         }
@@ -145,7 +151,6 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
             if (!mapIsCentered()) {
                 drawRoute(tripEntries);
                 moveCameraToShowMarkers(false, null, CAMERA_PADDING);
-                return true;
             }
 
             if (toggleShowHideGoogle.isChecked()) {
@@ -196,20 +201,28 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
             public void doWork() {
                 moveCameraToShowUSA(true);
 
-                if (tripEntries.size() == 0) {
-                    MySqlDatasource ds = new MySqlDatasource();
-                    tripEntries = ds.getAllTripEntries(clickedTrip.getTripcode());
-                }
-
                 if (tripEntries.size() > 0) {
-                    Log.i(TAG, "onRetrieved Ready to move map to show route.");
+                    Log.i(TAG, "Drawing route...");
                     drawRoute(tripEntries);
                     moveCameraToShowMarkers(true, 550, CAMERA_PADDING);
                     showGooglePoly(toggleShowHideGoogle.isChecked());
                     populateDetails(clickedTrip);
+                    Log.i(TAG, "onFinished route finished");
                 } else {
-                    Toast.makeText(context, "No entries found for trip", Toast.LENGTH_SHORT).show();
-                    finish();
+                    getTripEntries(new DrawCompleteListener() {
+                        @Override
+                        public void onFinished() {
+                            drawRoute(tripEntries);
+                            moveCameraToShowMarkers(true, 550, CAMERA_PADDING);
+                            showGooglePoly(toggleShowHideGoogle.isChecked());
+                            populateDetails(clickedTrip);
+                        }
+
+                        @Override
+                        public void onFailed(String msg) {
+
+                        }
+                    });
                 }
             }
 
@@ -218,6 +231,36 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
 
             }
         });
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    void getTripEntries(final DrawCompleteListener listener) {
+
+        final MyProgressDialog dialog = new MyProgressDialog(context, "Loading trip...");
+
+         new AsyncTask<String, String, String>() {
+                @Override
+                protected void onPreExecute() {
+                    super.onPreExecute();
+                    dialog.show();
+                }
+
+                @Override
+                protected String doInBackground(String... strings) {
+                    MySqlDatasource ds = new MySqlDatasource();
+                    Log.i(TAG, "doWork Getting trip entries...");
+                    tripEntries = ds.getAllTripEntries(clickedTrip.getTripcode());
+                    Log.i(TAG, "doWork Trip entries retrieved.");
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(String s) {
+                    super.onPostExecute(s);
+                    listener.onFinished();
+                    dialog.dismiss();
+                }
+            }.execute(null, null, null);
     }
 
     @SuppressLint("SetTextI18n")
@@ -278,9 +321,10 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
 
     }
 
-    void drawRoute(ArrayList<TripEntry> entries) {
+    @SuppressLint("StaticFieldLeak")
+    void drawRoute(final ArrayList<TripEntry> entries) {
         // Add start and end markers
-        Bitmap pin = Helpers.Bitmaps.getBitmapFromResource(this, R.drawable.facility_map_pin_4);
+        Bitmap pin = Helpers.Bitmaps.getBitmapFromResource(context, R.drawable.facility_map_pin_4);
 
         MarkerOptions startMarker = new MarkerOptions();
         LatLng startPos = entries.get(0).getLatLng();

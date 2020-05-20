@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="5dp"
+    tools:context=".ui.mileage.MileageFragment">
+
+    <LinearLayout
+        android:id="@+id/ll_top"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/btn_glass_orange_border_white"
+        android:orientation="vertical"
+        tools:visibility="invisible">
+
+        <TextView
+            android:id="@+id/txtName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="5dp"
+            android:fontFamily="@font/casual"
+            android:gravity="left"
+            android:text="Name"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="#454545"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TableLayout
+            android:id="@+id/tableLayout_1"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp">
+
+            <TableRow
+                android:id="@+id/tableRow_0"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/textView_1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:fontFamily="@font/casual"
+                        android:gravity="left"
+                        android:text="Last Month"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="#454545"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/textView_2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:fontFamily="@font/casual"
+                        android:text="This Month"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="#454545"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+                </FrameLayout>
+            </TableRow>
+
+
+            <TableRow
+                android:id="@+id/tableRow_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/txtTripCountLastMonth"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:fontFamily="@font/casual"
+                        android:gravity="left"
+                        android:text="0 trips"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="#454545"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/txtTripCountThisMonth"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:fontFamily="@font/casual"
+                        android:gravity="left"
+                        android:text="0 trips"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="#454545"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </FrameLayout>
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/tableRow_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/txtReimbursementLastMonth"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:fontFamily="@font/casual"
+                        android:text="$0.00"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="#454545"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/txtReimbursementThisMonth"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:fontFamily="@font/casual"
+                        android:text="$0.00"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="#454545"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+                </FrameLayout>
+            </TableRow>
+
+        </TableLayout>
+
+
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        android:id="@+id/rvUserTrips"
+        style="@style/recyclerview_style"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/ll_top"
+        android:layout_marginTop="10dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:outlineProvider="background"
+        android:padding="3dp">
+
+    </androidx.recyclerview.widget.RecyclerView>
+
+</RelativeLayout>

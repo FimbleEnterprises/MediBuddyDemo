@@ -8,39 +8,31 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.graphics.Typeface;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.text.Spannable;
 import android.text.SpannableString;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.TextAppearanceSpan;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.Menu;
 import android.view.SubMenu;
-import android.view.View;
-import android.widget.HorizontalScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.ui.settings.mileage.SettingsActivity;
 import com.google.android.material.navigation.NavigationView;
+import com.loopj.android.http.AsyncHttpResponseHandler;
 
-import java.io.File;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.navigation.NavController;
@@ -51,8 +43,9 @@ import androidx.navigation.ui.NavigationUI;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.preference.AndroidResources;
+import cz.msebera.android.httpclient.Header;
 
+import static com.fimbleenterprises.medimileage.QueryFactory.*;
 import static com.fimbleenterprises.medimileage.ui.mileage.MileageFragment.PERMISSION_UPDATE;
 
 public class MainActivity extends AppCompatActivity {
@@ -70,8 +63,10 @@ public class MainActivity extends AppCompatActivity {
     NavController navController;
     FragmentManager fragmentManager;
     Activity activity;
-
+    DrawerLayout drawer;
     ArrayList<String>myStack = new ArrayList();
+    ArrayList<MileageUser> users = new ArrayList<>();
+    NavigationView navigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,14 +85,14 @@ public class MainActivity extends AppCompatActivity {
         Helpers.Files.makeAppDirectory();
         Helpers.Files.makeBackupDirectory();
 
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.nav_view);
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
+        drawer = findViewById(R.id.drawer_layout);
+
+        navigationView = findViewById(R.id.nav_view);
         mAppBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.nav_home, R.id.nav_authentication)
                 .setDrawerLayout(drawer)
                 .build();
+
 
         TextView txtVersion = navigationView.getHeaderView(0).findViewById(R.id.textViewVersion);
         txtVersion.setText("Version " + Helpers.Application.getAppVersion(this));
@@ -119,6 +114,37 @@ public class MainActivity extends AppCompatActivity {
                 for (int i = 0; i < myStack.size(); i++) {
                     Log.i(TAG, "Backstack pos" + i + " = " + myStack.get(i));
                 }
+            }
+        });
+
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                if (item.getTitle().equals("Retry")) {
+                    Log.i(TAG, "onNavigationItemSelected Retrying user populate...");
+                    drawer.closeDrawer(navigationView);
+                    Menu m = navigationView.getMenu();
+                    SubMenu subMenu = m.getItem(2).getSubMenu();
+                    subMenu.getItem(0).setTitle("Loading...");
+                    getDistinctUsersWithTrips();
+                } else if (item.getTitle().equals("Loading...")) {
+                    return false;
+                } else if (item.getTitle().equals("Settings")) {
+                    Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+                    startActivityForResult(intent, 0);
+                } else {
+                    try {
+                        Log.i(TAG, "onNavigationItemSelected index:" + item.getItemId());
+                        Log.i(TAG, "onNavigationItemSelected fullname:" + users.get(item.getItemId()).fullname);
+                        drawer.closeDrawer(navigationView);
+                        Intent intent = new Intent(getApplicationContext(), UserTripsActivity.class);
+                        intent.putExtra(UserTripsActivity.MILEAGE_USER, users.get(item.getItemId()));
+                        startActivity(intent);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                return false;
             }
         });
 
@@ -176,6 +202,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},PERMISSION_UPDATE);
         }
+
+        getDistinctUsersWithTrips();
     }
 
     @Override
@@ -404,6 +432,75 @@ public class MainActivity extends AppCompatActivity {
             public void onError(String msg) {
                 myProgressDialog.dismiss();
                 Log.i(TAG, "onError " + msg);
+            }
+        });
+    }
+
+    protected void getDistinctUsersWithTrips() {
+        QueryFactory factory = new QueryFactory("msus_fulltrip");
+        factory.addColumn("ownerid");
+
+        LinkEntity linkEntity = new LinkEntity("systemuser", "systemuserid", "owninguser", "a_79740df757a5e81180e8005056a36b9b");
+        linkEntity.addColumn(new EntityColumn("territoryid"));
+        linkEntity.addColumn(new EntityColumn("address1_stateorprovince"));
+        linkEntity.addColumn(new EntityColumn("new_many_user_to_salesregion"));
+        linkEntity.addColumn(new EntityColumn("internalemailaddress"));
+        linkEntity.addColumn(new EntityColumn("positionid"));
+        linkEntity.addColumn(new EntityColumn("msus_medibuddy_managed_territories"));
+        linkEntity.addColumn(new EntityColumn("parentsystemuserid"));
+        linkEntity.addColumn(new EntityColumn("jobtitle"));
+        linkEntity.addColumn(new EntityColumn("msus_ismanager"));
+        linkEntity.addColumn(new EntityColumn("fullname"));
+        linkEntity.addColumn(new EntityColumn("businessunitid"));
+        linkEntity.addColumn(new EntityColumn("address1_composite"));
+        factory.addLinkEntity(linkEntity);
+
+        Filter.FilterCondition condition1 = new Filter.FilterCondition("msus_dt_tripdate",
+                Filter.Operator.THIS_MONTH);
+        Filter filter = new Filter(Filter.FilterType.OR, condition1);
+        Filter.FilterCondition condition2 = new Filter.FilterCondition("msus_dt_tripdate",
+                Filter.Operator.LAST_MONTH);
+        filter.addCondition(condition2);
+        factory.setFilter(filter);
+
+        factory.isDistinct(true);
+
+        factory.addSortClause(new QueryFactory.SortClause("ownerid", false, QueryFactory.SortClause.ClausePosition.ONE));
+        String query = factory.construct();
+
+        Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
+        Requests.Argument argument = new Requests.Argument("query", query);
+        request.arguments.add(argument);
+
+        Crm crm = new Crm();
+        crm.makeCrmRequest(this, request, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                Log.i(TAG, "onSuccess: StatusCode: " + statusCode);
+
+                try {
+                    JSONObject json = new JSONObject(new String(responseBody));
+                    JSONArray array = json.getJSONArray("value");
+                    users = MileageUser.makeMany(array);
+                    Menu m = navigationView.getMenu();
+                    SubMenu subMenu = m.getItem(2).getSubMenu();
+                    subMenu.removeItem(subMenu.getItem(0).getItemId());
+
+                    for (int i = 0; i < users.size(); i++) {
+                        MileageUser user = users.get(i);
+                        subMenu.add(0, i, i, user.fullname);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                Log.w(TAG, "onFailure: " + error.getMessage());
+                Menu m = navigationView.getMenu();
+                SubMenu subMenu = m.getItem(2).getSubMenu();
+                subMenu.getItem(0).setTitle("Retry");
             }
         });
     }

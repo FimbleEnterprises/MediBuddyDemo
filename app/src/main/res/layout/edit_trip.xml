@@ -110,7 +110,6 @@
 				</FrameLayout>
 			</TableRow>
 
-
 			<TableRow
 				android:id="@+id/tableRow_2a"
 				android:layout_width="wrap_content"

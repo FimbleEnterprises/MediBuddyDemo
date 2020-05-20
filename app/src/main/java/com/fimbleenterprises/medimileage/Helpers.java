@@ -914,6 +914,13 @@ public class Helpers {
             return i1;
         }
 
+        public static boolean isEven(int number) {
+            if ((number % 2) == 0) {
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 
     public static class Notify {

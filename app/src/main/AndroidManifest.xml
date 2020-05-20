@@ -56,6 +56,12 @@
             android:configChanges="orientation|keyboardHidden"
             android:label="Add Manual Trip" />
         <activity
+            android:name=".UserTripsActivity"
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:label="Trips" />
+        <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait"

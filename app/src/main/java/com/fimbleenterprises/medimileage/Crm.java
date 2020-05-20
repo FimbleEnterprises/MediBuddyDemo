@@ -16,16 +16,15 @@ import cz.msebera.android.httpclient.entity.StringEntity;
 public class Crm {
     private static final String TAG = "Crm";
     private static final String BASE_URL = "https://mediproxyrestapi.azurewebsites.net/api/crm/PerformCrmAction/";
-    // public static final String BASE_URL = "http://192.168.1.11:44341/";
+    // public static final String BASE_URL = "http://192.168.1.9:44341/";
     private static AsyncHttpClient client = new AsyncHttpClient();
-
 
     public Crm() {
 
     }
 
     public RequestHandle makeCrmRequest(Context context, com.fimbleenterprises.medimileage.Requests.Request request,
-                                        final AsyncHttpResponseHandler responseHandler) throws UnsupportedEncodingException {
+                                        final AsyncHttpResponseHandler responseHandler) {
 
         String argString = "";
         for (Requests.Argument arg : request.arguments) {
@@ -34,7 +33,13 @@ public class Crm {
 
         Log.i(TAG, "makeCrmRequest: Request function: " + request.function + " Request arguments: " + argString);
 
-        StringEntity entity = new StringEntity(request.toJson());
+        StringEntity entity = null;
+        try {
+            entity = new StringEntity(request.toJson());
+        } catch (Exception e) {
+            e.printStackTrace();
+            responseHandler.onFailure(0, null, null, e);
+        }
 
         return client.post(context, BASE_URL, entity, "application/json",
             new AsyncHttpResponseHandler() {

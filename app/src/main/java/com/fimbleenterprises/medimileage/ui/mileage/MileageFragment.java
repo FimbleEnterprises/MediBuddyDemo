@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.LocationListener;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -94,9 +95,10 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     private static final String TAG = "MileageFragment";
     private MileageViewModel mileageViewModel;
     BroadcastReceiver locReceiver;
-    TripListRecyclerAdapter adapter;
     MySqlDatasource datasource;
+    TripListRecyclerAdapter adapter;
     ArrayList<FullTrip> allTrips = new ArrayList<>();
+    RecyclerView recyclerView;
     public static int SERVICE_ID = 200;
     IntentFilter locFilter = new IntentFilter(MyLocationService.LOCATION_EVENT);
     public static final int DEFAULT_FONT_COLOR = -1979711488;
@@ -118,7 +120,6 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     TextView txtDuration;
     ToggleButton toggleEditButton;
     Button btnDeleteTrips;
-    RecyclerView recyclerView;
     ImageView gifview;
     Button btnAddManualTrip;
     Button btnCreateReceipt;
@@ -967,17 +968,17 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+
                 String response = new String(responseBody);
 
-                ArrayList<FullTrip> serverTrips = FullTrip.createTripsFromCrmJson(response);
-                for (FullTrip serverTrip : serverTrips) {
-                    Log.i(TAG, "onSuccess Updating local trip with server trip...");
-                    updateLocalTrip(serverTrip);
-                }
-                populateTripList();
-
-                Log.i(TAG, "onSuccess Local trips were synced");
-                dialog.dismiss();
+                updateLocalTrips(response, new LocalTripsUpdatedListener() {
+                    @Override
+                    public void onFinished() {
+                        populateTripList();
+                        Log.i(TAG, "onSuccess Local trips were synced");
+                        dialog.dismiss();
+                    }
+                });
             }
 
             @Override
@@ -1006,6 +1007,15 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         serverTrip.save();
         Log.i(TAG, "updateLocalTrip Local trip was created.");
         return true;
+    }
+
+    void updateLocalTrips(String crmResponse, LocalTripsUpdatedListener listener) {
+        ArrayList<FullTrip> serverTrips = FullTrip.createTripsFromCrmJson(crmResponse);
+        for (FullTrip serverTrip : serverTrips) {
+            Log.i(TAG, "onSuccess Updating local trip with server trip...");
+            updateLocalTrip(serverTrip);
+            listener.onFinished();
+        }
     }
 
     public void confirmSubmittedTrips() throws UnsupportedEncodingException {
@@ -1088,50 +1098,45 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         final MyProgressDialog dialog = new MyProgressDialog(getContext(), "Checking if trip is already submitted...", MyProgressDialog.PROGRESS_TYPE);
         dialog.show();
 
-        try {
-            crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                    String result = new String(responseBody);
-                    try {
-                        if (!new JSONObject(result).getJSONArray("value").isNull(0)) {
-                            String guid = new JSONObject(result).getJSONArray("value")
-                                    .getJSONObject(0).getString("msus_fulltripid");
-                            clickedTrip.setTripGuid(guid);
-                            clickedTrip.setIsSubmitted(true);
-                            clickedTrip.save();
-                            populateTripList();
-                            Toast.makeText(getContext(), "Trip was updated", Toast.LENGTH_SHORT).show();
-                            dialog.dismiss();
-                        } else {
-                            try {
-                                dialog.dismiss();
-                                submitTrip(clickedTrip);
-                            } catch (Exception e) {
-                                dialog.dismiss();
-                                Toast.makeText(getContext(), "Failed to submit trip", Toast.LENGTH_SHORT).show();
-                                e.printStackTrace();
-                            }
-                        }
-                    } catch (JSONException e) {
+        crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                String result = new String(responseBody);
+                try {
+                    if (!new JSONObject(result).getJSONArray("value").isNull(0)) {
+                        String guid = new JSONObject(result).getJSONArray("value")
+                                .getJSONObject(0).getString("msus_fulltripid");
+                        clickedTrip.setTripGuid(guid);
+                        clickedTrip.setIsSubmitted(true);
+                        clickedTrip.save();
+                        populateTripList();
+                        Toast.makeText(getContext(), "Trip was updated", Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
-                        e.printStackTrace();
+                    } else {
+                        try {
+                            dialog.dismiss();
+                            submitTrip(clickedTrip);
+                        } catch (Exception e) {
+                            dialog.dismiss();
+                            Toast.makeText(getContext(), "Failed to submit trip", Toast.LENGTH_SHORT).show();
+                            e.printStackTrace();
+                        }
                     }
-
-                    Log.i(TAG, "onSuccess " + result);
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                    Log.w(TAG, "onFailure: " + error.getMessage());
-                    Toast.makeText(getContext(), "Failed to verify this trip's existance", Toast.LENGTH_SHORT).show();
+                } catch (JSONException e) {
                     dialog.dismiss();
+                    e.printStackTrace();
                 }
-            });
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            dialog.dismiss();
-        }
+
+                Log.i(TAG, "onSuccess " + result);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                Log.w(TAG, "onFailure: " + error.getMessage());
+                Toast.makeText(getContext(), "Failed to verify this trip's existance", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            }
+        });
     }
 
     public void submitTrip(final FullTrip clickedTrip) throws UnsupportedEncodingException {
@@ -1141,6 +1146,8 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
         final MyProgressDialog dialog = new MyProgressDialog(getContext(), "Submitting trip...", MyProgressDialog.PROGRESS_TYPE);
         dialog.show();
+
+        Log.i(TAG, "submitTrip JSON LENGTH: " + clickedTrip.tripEntriesJson.length());
 
         crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
             @Override
@@ -1550,6 +1557,10 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             }
         });
     }*/
+
+    interface LocalTripsUpdatedListener {
+        void onFinished();
+    }
 
 }
 

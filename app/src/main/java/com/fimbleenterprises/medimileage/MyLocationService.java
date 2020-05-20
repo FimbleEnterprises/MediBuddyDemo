@@ -142,17 +142,22 @@ public class MyLocationService extends Service implements LocationListener {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.e(TAG, "onStartCommand");
         super.onStartCommand(intent, flags, startId);
-        sendStartBroadcast();
-        user = MediUser.getMe(this);
 
-        if (intent.getStringExtra(TRIP_PRENAME) != null) {
-            prenameTrip = intent.getStringExtra(TRIP_PRENAME);
+        try {
+            sendStartBroadcast();
+            user = MediUser.getMe(this);
+
+            if (intent.getStringExtra(TRIP_PRENAME) != null) {
+                prenameTrip = intent.getStringExtra(TRIP_PRENAME);
+            }
+
+            fullTrip = new FullTrip(System.currentTimeMillis(), user.domainname, user.systemuserid, user.email);
+            datasource = new MySqlDatasource(getApplicationContext());
+            startInForeground();
+            isMovingChecker(StartStop.START);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        fullTrip = new FullTrip(System.currentTimeMillis(), user.domainname, user.systemuserid, user.email);
-        datasource = new MySqlDatasource(getApplicationContext());
-        startInForeground();
-        isMovingChecker(StartStop.START);
 
         return START_STICKY;
     }
@@ -316,7 +321,7 @@ public class MyLocationService extends Service implements LocationListener {
 
         if (user != null) {
             fullTrip.setGu_username(user.domainname);
-            fullTrip.setGuid(user.systemuserid);
+            fullTrip.setOwnerid(user.systemuserid);
             fullTrip.setEmail(user.email);
             fullTrip.setDateTime(DateTime.now());
             fullTrip.setDistance(0);
@@ -464,10 +469,14 @@ public class MyLocationService extends Service implements LocationListener {
     }
 
     void sendUpdateBroadcast(Location location) {
-        Intent intent = new Intent(LOCATION_EVENT);
-        LocationContainer container = new LocationContainer(location, fullTrip, currentTripEntry);
-        intent.putExtra(LOCATION_CHANGED, container);
-        sendBroadcast(intent);
+        try {
+            Intent intent = new Intent(LOCATION_EVENT);
+            LocationContainer container = new LocationContainer(location, fullTrip, currentTripEntry);
+            intent.putExtra(LOCATION_CHANGED, container);
+            sendBroadcast(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void sendStartBroadcast() {
@@ -731,7 +740,11 @@ public class MyLocationService extends Service implements LocationListener {
         }
 
         sendUpdateBroadcast(location);
-        updateNotification();
+        try {
+            updateNotification();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         mLastLocation.set(location);
         isMoving = true;
         Log.i(TAG, "onLocationChanged Updated lastLocation");

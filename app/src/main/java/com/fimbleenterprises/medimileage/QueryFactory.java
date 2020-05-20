@@ -14,6 +14,7 @@ public class QueryFactory {
     ArrayList<LinkEntity> linkEntities = new ArrayList<>();
     ArrayList<SortClause> sortClauses = new ArrayList<>();
     Filter filter;
+    private boolean distinct = false;
 
     public QueryFactory(String entity) {
         entityName = entity;
@@ -67,6 +68,11 @@ public class QueryFactory {
         }
     }
 
+    public void isDistinct(boolean isDistinct) {
+        this.distinct = isDistinct;
+        setEntity(this.entityName);
+    }
+
     public String construct() {
         String columnsString = "";
         String orderClausesString = "";
@@ -103,18 +109,7 @@ public class QueryFactory {
         this.entityName = entity;
 
         preamble = "/api/data/v8.2/" + ENTITY_NAMES.getPluralEntityName(entity)
-                + "?fetchXml=%3Cfetch%20version%3D%221.0%22%20output-format%3D%22xml-platform%22%20mapping%3D%22logical%22%20distinct%3D%22false%22%3E%3Centity%20name%3D%22" + entity + "%22%3E";
-    }
-
-    /**
-     * Sets the entity and the preamble of the future URL.  Crm can have some wierd ass pluralizations for the entities and the preamble needs the plural version.
-     * @param entity The entity logical name to query
-     * @param pluralEntityName The plural version of the entity logical name (according to AX).
-     */
-    private void setEntity(String entity, String pluralEntityName) {
-        this.entityName = entity;
-
-        preamble = "/api/data/v8.2/" + pluralEntityName + "?fetchXml=%3Cfetch%20version%3D%221.0%22%20output-format%3D%22xml-platform%22%20mapping%3D%22logical%22%20distinct%3D%22false%22%3E%3Centity%20name%3D%22" + entity + "%22%3E";
+                + "?fetchXml=%3Cfetch%20version%3D%221.0%22%20output-format%3D%22xml-platform%22%20mapping%3D%22logical%22%20distinct%3D%22" + Boolean.toString(distinct) + "%22%3E%3Centity%20name%3D%22" + entity + "%22%3E";
     }
 
     public void addLinkEntity(LinkEntity linkEntity) {
@@ -350,9 +345,8 @@ public class QueryFactory {
                     return "and";
                 case OR:
                     return "or";
-                default:
-                    return "and";
             }
+            return "and";
         }
 
         public static class Operator {
@@ -367,6 +361,7 @@ public class QueryFactory {
             public static final String TODAY = "today";
             public static final String THIS_WEEK = "this-week";
             public static final String THIS_MONTH = "this-month";
+            public static final String LAST_MONTH = "last-month";
             public static final String THIS_YEAR = "this-year";
             public static final String CONTAINS = "like";
             public static final String NOT_CONTAINS = "not-like";

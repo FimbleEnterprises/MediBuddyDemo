@@ -33,6 +33,7 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
     TextView textView;
 
 
+
     // data is passed into the constructor
     public TripListRecyclerAdapter(Context context, ArrayList<FullTrip> data) {
         this.mInflater = LayoutInflater.from(context);

@@ -244,7 +244,7 @@ public class MySqlDatasource {
         fullTrip.setEmail(cursor.getString(getColumnIndex(COLUMN_EMAIL, cursor)));
         fullTrip.setGu_username(cursor.getString(getColumnIndex(COLUMN_GU_USERNAME, cursor)));
         fullTrip.setObjective(cursor.getString(getColumnIndex(COLUMN_OBJECTIVE, cursor)));
-        fullTrip.setGuid(cursor.getString(getColumnIndex(COLUMN_GUID, cursor)));
+        fullTrip.setOwnerid(cursor.getString(getColumnIndex(COLUMN_GUID, cursor)));
         fullTrip.isSubmitted = cursor.getInt(getColumnIndex(COLUMN_IS_SUBMITTED, cursor));
         fullTrip.edited = cursor.getInt(getColumnIndex(COLUMN_EDITED, cursor));
         fullTrip.isManualTrip = cursor.getInt(getColumnIndex(COLUMN_IS_MANUAL, cursor));
@@ -383,7 +383,7 @@ public class MySqlDatasource {
             values.put(COLUMN_EMAIL, trip.getEmail());
             values.put(COLUMN_GU_USERNAME, trip.getGu_username());
             values.put(COLUMN_OBJECTIVE, trip.getObjective());
-            values.put(COLUMN_GUID, trip.getGuid());
+            values.put(COLUMN_GUID, trip.getOwnerid());
             values.put(COLUMN_IS_SUBMITTED, trip.isSubmitted);
             values.put(COLUMN_IS_MANUAL, trip.isManualTrip);
             values.put(COLUMN_EDITED, trip.edited);
@@ -574,7 +574,7 @@ public class MySqlDatasource {
             values.put(COLUMN_EMAIL, trip.getEmail());
             values.put(COLUMN_GU_USERNAME, trip.getGu_username());
             values.put(COLUMN_OBJECTIVE, trip.getObjective());
-            values.put(COLUMN_GUID, trip.getGuid());
+            values.put(COLUMN_GUID, trip.getOwnerid());
             values.put(COLUMN_IS_SUBMITTED, trip.isSubmitted);
             values.put(COLUMN_IS_MANUAL, trip.isManualTrip);
             values.put(COLUMN_EDITED, trip.edited);
@@ -612,7 +612,7 @@ public class MySqlDatasource {
             values.put(COLUMN_EMAIL, trip.getEmail());
             values.put(COLUMN_GU_USERNAME, trip.getGu_username());
             values.put(COLUMN_OBJECTIVE, trip.getObjective());
-            values.put(COLUMN_GUID, trip.getGuid());
+            values.put(COLUMN_GUID, trip.getOwnerid());
             values.put(COLUMN_IS_SUBMITTED, trip.isSubmitted);
             values.put(COLUMN_IS_MANUAL, trip.isManualTrip);
             values.put(COLUMN_EDITED, trip.edited);

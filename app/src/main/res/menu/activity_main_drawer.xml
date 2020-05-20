@@ -3,18 +3,33 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
 
-    <group android:checkableBehavior="single">
+    <group android:checkableBehavior="single"
+        android:menuCategory="container" android:id="@+id/top">
+
         <item
             android:id="@+id/nav_home"
             android:icon="@drawable/house_icon_black_36x"
             android:title="@string/menu_home" />
-        <item
+        <!--<item
             android:id="@+id/nav_authentication"
             android:icon="@drawable/exit"
-            android:title="@string/menu_authentication" />
+            android:title="@string/menu_authentication" />-->
         <item
             android:id="@+id/nav_settings"
             android:icon="@drawable/settings_36x36"
             android:title="Settings" />
+
+        <item
+            android:id="@+id/nav_user_trips"
+            android:icon="@drawable/settings_36x36"
+            android:menuCategory="container"
+            android:enabled="true"
+            android:title="Users">
+
+            <menu>
+                <item android:id="@+id/menu_loadingUsers" android:title="Loading..."/>
+            </menu>
+
+        </item>
     </group>
 </menu>

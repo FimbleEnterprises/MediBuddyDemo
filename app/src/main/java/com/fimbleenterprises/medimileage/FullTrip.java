@@ -28,7 +28,7 @@ public class FullTrip implements Parcelable {
     private long milis;
     public int edited = 0;
     private String gu_username;
-    private String guid;
+    private String ownerid;
     public int isManualTrip = 0;
     public int isSubmitted = 0;
     public boolean isChecked = false;
@@ -56,14 +56,14 @@ public class FullTrip implements Parcelable {
 
     }
 
-    public FullTrip(long tripcode, String gu_username, String guid, String email) {
+    public FullTrip(long tripcode, String gu_username, String ownerid, String email) {
         this.tripcode = tripcode;
         this.gu_username = gu_username;
-        this.guid = guid;
+        this.ownerid = ownerid;
         this.email = email;
     }
 
-    public static ArrayList<FullTrip> createTripsFromCrmJson(String crmJson) {
+    public static ArrayList<FullTrip> createTripsFromCrmJson(String crmJson, boolean skipEntryParsing) {
 
         ArrayList<FullTrip> trips = new ArrayList<>();
 
@@ -134,6 +134,13 @@ public class FullTrip implements Parcelable {
                     e.printStackTrace();
                 }
                 try {
+                    if (!json.isNull("_ownerid_value")) {
+                        trip.ownerid = (json.getString("_ownerid_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
                     if (!json.isNull("msus_name")) {
                         trip.title = (json.getString("msus_name"));
                     }
@@ -148,7 +155,9 @@ public class FullTrip implements Parcelable {
                     e.printStackTrace();
                 }
 
-                trip.tripEntries = TripEntry.parseCrmTripEntries(trip.tripEntriesJson);
+                if (! skipEntryParsing) {
+                    trip.tripEntries = TripEntry.parseCrmTripEntries(trip.tripEntriesJson);
+                }
                 trips.add(trip);
             }
         } catch (Exception e) {
@@ -158,9 +167,44 @@ public class FullTrip implements Parcelable {
         return trips;
     }
 
+    public static ArrayList<FullTrip> createTripsFromCrmJson(String crmJson) {
+        return createTripsFromCrmJson(crmJson, false);
+    }
+
     private String toGson() {
         Gson gson = new Gson();
         return gson.toJson(this);
+    }
+
+    public String getSafeTripEntriesJson() {
+
+        if (tripEntriesJson.length() > 1048576) {
+            while (tripEntriesJson.length() > 1048576) {
+                Log.d(TAG, "getSafeTripEntriesJson JSON IS TOO LONG! (" + tripEntriesJson.length() + ")");
+                reduceJson(tripEntriesJson);
+                Log.d(TAG, "getSafeTripEntriesJson JSON reduced to:" + tripEntriesJson.length());
+            }
+            Log.d(TAG, "getSafeTripEntriesJson Returning JSON @ length: " + tripEntriesJson.length());
+            return tripEntriesJson;
+        } else {
+            return tripEntriesJson;
+        }
+    }
+
+    private void reduceJson(String data) {
+        int oSize = tripEntriesJson.length();
+        Gson gson = new Gson();
+        ArrayList<TripEntry> entries = gson.fromJson(tripEntriesJson, ArrayList.class);
+        ArrayList<TripEntry> newList = new ArrayList<>();
+        for (int i = 0; i < entries.size(); i++) {
+            if (Helpers.Numbers.isEven(i)) {
+                newList.add(entries.get(i));
+            }
+        }
+        String newJson = gson.toJson(newList);
+        int nSize = newJson.length();
+        Log.i(TAG, "getSafeTripEntriesJson oSize=" + oSize + " nSize=" + nSize);
+        tripEntriesJson = newJson;
     }
 
     public Request packageForCrm() {
@@ -178,7 +222,7 @@ public class FullTrip implements Parcelable {
             container.entityFields.add(new EntityField("msus_trip_duration", Float.toString(this.getDurationInMinutes())));
             container.entityFields.add(new EntityField("msus_is_manual", Boolean.toString(this.getIsManualTrip())));
             container.entityFields.add(new EntityField("msus_edited", Boolean.toString(this.getIsEdited())));
-            container.entityFields.add(new EntityField("msus_trip_entries_json", this.tripEntriesJson));
+            container.entityFields.add(new EntityField("msus_trip_entries_json", getSafeTripEntriesJson()));
             container.entityFields.add(new EntityField("msus_is_submitted", Boolean.toString(true)));
 
             Request request = new Request();
@@ -437,12 +481,12 @@ public class FullTrip implements Parcelable {
         this.gu_username = gu_username;
     }
 
-    public String getGuid() {
-        return guid;
+    public String getOwnerid() {
+        return ownerid;
     }
 
-    public void setGuid(String guid) {
-        this.guid = guid;
+    public void setOwnerid(String ownerid) {
+        this.ownerid = ownerid;
     }
 
     @Override
@@ -460,7 +504,7 @@ public class FullTrip implements Parcelable {
         milis = in.readLong();
         edited = in.readInt();
         gu_username = in.readString();
-        guid = in.readString();
+        ownerid = in.readString();
         isManualTrip = in.readInt();
         if (in.readByte() == 0x01) {
             tripEntries = new ArrayList<TripEntry>();
@@ -486,7 +530,7 @@ public class FullTrip implements Parcelable {
         dest.writeLong(milis);
         dest.writeInt(edited);
         dest.writeString(gu_username);
-        dest.writeString(guid);
+        dest.writeString(ownerid);
         dest.writeInt(isManualTrip);
         if (tripEntries == null) {
             dest.writeByte((byte) (0x00));
