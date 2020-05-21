@@ -294,13 +294,14 @@
                             android:layout_height="55dp"
                             android:layout_gravity="right|center_horizontal"
                             android:background="#00FFFFFF"
-                            android:fontFamily="casual"
+                            android:fontFamily="@font/calculator"
                             android:gravity="center_horizontal|center_vertical"
                             android:text="$0.00"
                             android:textColor="#021ED1"
-                            android:textSize="18sp"
-                            android:textStyle="bold|italic"
-                            android:translationZ="90dp" />
+                            android:textSize="30sp"
+                            android:textStyle="bold"
+                            android:translationZ="90dp"
+                            android:typeface="sans" />
                     </FrameLayout>
                 </TableRow>
             </TableLayout>

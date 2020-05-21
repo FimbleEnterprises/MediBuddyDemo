@@ -18,6 +18,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.Menu;
 import android.view.SubMenu;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -148,6 +149,29 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        drawer.addDrawerListener(new DrawerLayout.DrawerListener() {
+
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {
+                //Called when a drawer's position changes.
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                getDistinctUsersWithTrips();
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                // Called when a drawer has settled in a completely closed state.
+            }
+
+            @Override
+            public void onDrawerStateChanged(int newState) {
+                // Called when the drawer motion state changes. The new state will be one of STATE_IDLE, STATE_DRAGGING or STATE_SETTLING.
+            }
+        });
+
         // Initialize the broadcast receiver
         locFilter.addAction(MyLocationService.STOP_TRIP_ACTION);
         locReceiver = new BroadcastReceiver() {
@@ -202,8 +226,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},PERMISSION_UPDATE);
         }
-
-        getDistinctUsersWithTrips();
     }
 
     @Override
@@ -439,7 +461,6 @@ public class MainActivity extends AppCompatActivity {
     protected void getDistinctUsersWithTrips() {
         QueryFactory factory = new QueryFactory("msus_fulltrip");
         factory.addColumn("ownerid");
-
         LinkEntity linkEntity = new LinkEntity("systemuser", "systemuserid", "owninguser", "a_79740df757a5e81180e8005056a36b9b");
         linkEntity.addColumn(new EntityColumn("territoryid"));
         linkEntity.addColumn(new EntityColumn("address1_stateorprovince"));
@@ -453,6 +474,9 @@ public class MainActivity extends AppCompatActivity {
         linkEntity.addColumn(new EntityColumn("fullname"));
         linkEntity.addColumn(new EntityColumn("businessunitid"));
         linkEntity.addColumn(new EntityColumn("address1_composite"));
+        linkEntity.addColumn(new EntityColumn("msus_last_lon"));
+        linkEntity.addColumn(new EntityColumn("msus_last_lat"));
+        linkEntity.addColumn(new EntityColumn("msus_last_loc_timestamp"));
         factory.addLinkEntity(linkEntity);
 
         Filter.FilterCondition condition1 = new Filter.FilterCondition("msus_dt_tripdate",
@@ -488,10 +512,22 @@ public class MainActivity extends AppCompatActivity {
 
                     for (int i = 0; i < users.size(); i++) {
                         MileageUser user = users.get(i);
-                        subMenu.add(0, i, i, user.fullname);
+                        if (user.isDriving()) {
+                            subMenu.add(0, i, i, user.fullname + " (driving now)");
+                        } else {
+                            subMenu.add(0, i, i, user.fullname);
+                        }
                     }
+
+                    if(users.size() == 0) {
+                        subMenu.getItem(0).setTitle("Retry");
+                    }
+
                 } catch (Exception e) {
                     e.printStackTrace();
+                    Menu m = navigationView.getMenu();
+                    SubMenu subMenu = m.getItem(2).getSubMenu();
+                    subMenu.getItem(0).setTitle("Retry");
                 }
             }
 
@@ -503,6 +539,12 @@ public class MainActivity extends AppCompatActivity {
                 subMenu.getItem(0).setTitle("Retry");
             }
         });
+
+        Menu m = navigationView.getMenu();
+        SubMenu subMenu = m.getItem(2).getSubMenu();
+        subMenu.clear();
+        subMenu.add("Loading...");
+        subMenu.getItem(0).setTitle("Loading...");
     }
 
 /*    @RequiresApi(api = Build.VERSION_CODES.O)

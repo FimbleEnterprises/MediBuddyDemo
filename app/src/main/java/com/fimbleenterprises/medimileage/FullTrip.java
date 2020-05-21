@@ -37,6 +37,7 @@ public class FullTrip implements Parcelable {
     private float reimbursementRate;
     public String tripEntriesJson;
     public String tripGuid;
+    public int userStoppedTrip = 0;
 
     public static class TripEntries extends ArrayList<TripEntry> {
         public TripEntries(FullTrip trip) {
@@ -224,6 +225,7 @@ public class FullTrip implements Parcelable {
             container.entityFields.add(new EntityField("msus_edited", Boolean.toString(this.getIsEdited())));
             container.entityFields.add(new EntityField("msus_trip_entries_json", getSafeTripEntriesJson()));
             container.entityFields.add(new EntityField("msus_is_submitted", Boolean.toString(true)));
+            container.entityFields.add(new EntityField("msus_user_stopped_trip", Boolean.toString(getUserStoppedTrip())));
 
             Request request = new Request();
             request.function = Request.Function.CREATE.name();
@@ -285,6 +287,14 @@ public class FullTrip implements Parcelable {
 
     public boolean getIsManualTrip() {
         return this.isManualTrip == 1;
+    }
+
+    public boolean getUserStoppedTrip() {
+        return this.userStoppedTrip == 1;
+    }
+
+    public void setUserStoppedTrip(boolean val) {
+        this.userStoppedTrip = (val ? 1 : 0);
     }
 
     public String getTitle() {
@@ -506,6 +516,7 @@ public class FullTrip implements Parcelable {
         gu_username = in.readString();
         ownerid = in.readString();
         isManualTrip = in.readInt();
+        userStoppedTrip = in.readInt();
         if (in.readByte() == 0x01) {
             tripEntries = new ArrayList<TripEntry>();
             in.readList(tripEntries, TripEntry.class.getClassLoader());
@@ -532,6 +543,7 @@ public class FullTrip implements Parcelable {
         dest.writeString(gu_username);
         dest.writeString(ownerid);
         dest.writeInt(isManualTrip);
+        dest.writeInt(userStoppedTrip);
         if (tripEntries == null) {
             dest.writeByte((byte) (0x00));
         } else {

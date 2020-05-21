@@ -23,13 +23,21 @@ import android.os.PowerManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.fimbleenterprises.medimileage.QueryFactory.Filter;
+import com.fimbleenterprises.medimileage.QueryFactory.Filter.FilterCondition;
+import com.fimbleenterprises.medimileage.QueryFactory.Filter.FilterType;
+import com.fimbleenterprises.medimileage.QueryFactory.Filter.Operator;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationSettingsRequest;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.gson.Gson;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -48,6 +56,7 @@ import androidx.core.app.NotificationCompat;
 import cz.msebera.android.httpclient.Header;
 
 public class MyLocationService extends Service implements LocationListener {
+    public static final String USER_STOPPED = "USER_STOPPED";
     private static final String TAG = "MyLocationService";
 
     public static final int REQ_CODE = 6744;
@@ -104,7 +113,11 @@ public class MyLocationService extends Service implements LocationListener {
     public static ArrayList<TripEntry> tripEntries = new ArrayList<>();
     public static MediUser user;
     public String prenameTrip = null;
-    private long lastLocationChangedTimeInMilis;
+    private long lastLocationChangedTimeInMilis = 0;
+    public static final int MINUTES_BETWEEN_REALTIME_UPDATES = 5;
+    public static long lastRealtimeUpdateMillis = 0;
+    public static boolean isUpdatingRealtimeLoc = false;
+    public static boolean userStoppedTrip = false;
 
     public MyLocationService() {
         Log.d(TAG, "MyLocationService Empty constructor");
@@ -142,6 +155,8 @@ public class MyLocationService extends Service implements LocationListener {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.e(TAG, "onStartCommand");
         super.onStartCommand(intent, flags, startId);
+
+
 
         try {
             sendStartBroadcast();
@@ -189,8 +204,27 @@ public class MyLocationService extends Service implements LocationListener {
     }
 
     @Override
+    public boolean onUnbind(Intent intent) {
+        return super.onUnbind(intent);
+    }
+
+    @Override
+    public void onRebind(Intent intent) {
+        super.onRebind(intent);
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
+    }
+
+
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
+
+        fullTrip.setUserStoppedTrip(userStoppedTrip);
 
         sendStoppingBroadcast();
 
@@ -566,8 +600,8 @@ public class MyLocationService extends Service implements LocationListener {
             throws UnsupportedEncodingException {
         QueryFactory factory = new QueryFactory("businessunit");
         factory.addColumn("msus_mileage_reimbursement_rate");
-        QueryFactory.Filter.FilterCondition condition = new QueryFactory.Filter.FilterCondition("businessunitid", QueryFactory.Filter.Operator.EQUALS, "8B31B2C2-E519-E711-80D2-005056A36B9B");
-        factory.setFilter(new QueryFactory.Filter(QueryFactory.Filter.FilterType.AND, condition));
+        FilterCondition condition = new FilterCondition("businessunitid", Operator.EQUALS, "8B31B2C2-E519-E711-80D2-005056A36B9B");
+        factory.setFilter(new Filter(FilterType.AND, condition));
         String query = factory.construct();
         Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
         request.arguments.add(new Requests.Argument(null, query));
@@ -676,6 +710,57 @@ public class MyLocationService extends Service implements LocationListener {
                 tripEntries.size() == 0;
     }
 
+    public void updateRealtimeLocationInCrm(LatLng latLng) {
+        try {
+
+            if (isUpdatingRealtimeLoc) {
+                Log.i(TAG, "updateRealtimeLocationInCrm Is being updated already.");
+                return;
+            }
+
+            final long nowMilis = DateTime.now(DateTimeZone.UTC).getMillis();
+            long gap = nowMilis - lastRealtimeUpdateMillis;
+
+            if (Helpers.DatesAndTimes.convertMilisToMinutes(gap) < MINUTES_BETWEEN_REALTIME_UPDATES) {
+                return;
+            }
+
+            Containers.EntityContainer container = new Containers.EntityContainer();
+            container.entityFields.add(new Containers.EntityField("msus_last_loc_timestamp", LocalDateTime.now().toString()));
+            container.entityFields.add(new Containers.EntityField("msus_last_lon", Double.toString(latLng.longitude)));
+            container.entityFields.add(new Containers.EntityField("msus_last_lat", Double.toString(latLng.latitude)));
+
+            Requests.Request request = new Requests.Request(Requests.Request.Function.UPDATE);
+            request.function = Requests.Request.Function.UPDATE.name();
+            request.arguments.add(new Requests.Argument("systemuserid", MediUser.getMe().systemuserid));
+            request.arguments.add(new Requests.Argument("entity", "systemuser"));
+            request.arguments.add(new Requests.Argument("container", container.toJson()));
+            request.arguments.add(new Requests.Argument("as_userid", MediUser.getMe().systemuserid));
+
+            Crm crm = new Crm();
+            crm.makeCrmRequest(this, request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    Log.i(TAG, "onSuccess Successfully updated user's location");
+                    lastRealtimeUpdateMillis = nowMilis;
+                    isUpdatingRealtimeLoc = false;
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    Log.i(TAG, "onFailure Failed to update user's location");
+                    isUpdatingRealtimeLoc = false;
+                }
+            });
+
+            isUpdatingRealtimeLoc = true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            isUpdatingRealtimeLoc = false;
+        }
+    }
+
     @Override
     public void onLocationChanged(Location location) {
         Log.e(TAG, "onLocationChanged: " + location);
@@ -699,6 +784,8 @@ public class MyLocationService extends Service implements LocationListener {
             Log.w(TAG, "onLocationChanged: Distance: " + location.distanceTo(mLastLocation));
             return;
         }
+
+        updateRealtimeLocationInCrm(new LatLng(location.getLatitude(), location.getLongitude()));
 
         // Set the trip's total distance
         float dist = location.distanceTo(mLastLocation);
@@ -766,9 +853,190 @@ public class MyLocationService extends Service implements LocationListener {
     }
 
 
-    
-
-
+/*
+switch (value.Function.ToLower()) {
+					case USER_CAN_GET_PROXY:
+						string username = (string)value.Arguments[0].value;
+						string password = (string)value.Arguments[1].value;
+						result = JsonConvert.SerializeObject(Crm.CRMworker.UserCanGetProxy(username, password));
+						object obj = JsonConvert.DeserializeObject<object>(result);
+						response = Request.CreateResponse(HttpStatusCode.OK, obj);
+						return response;
+					case GET:
+						result = MyCrm.Content.Retrieve((string)value.Arguments[0].value);
+						obj = JsonConvert.DeserializeObject<object>(result);
+						response = Request.CreateResponse(HttpStatusCode.OK, obj);
+						return response;
+					case CREATE:
+						string entityName = (string)value.Arguments[0].value;
+						string asUserid = (string)value.Arguments[1].value;
+						EntityContainer container = JsonConvert.DeserializeObject<EntityContainer>(
+							(string)value.Arguments[2].value);
+						result = JsonConvert.SerializeObject(MyCrm.Content.CreateEntity(entityName, asUserid, container));
+						obj = JsonConvert.DeserializeObject<object>(result);
+						response = Request.CreateResponse(HttpStatusCode.OK, obj);
+						return response;
+					case CREATE_MANY:
+						entityName = (string)value.Arguments[0].value;
+						asUserid = (string)value.Arguments[1].value;
+						EntityContainers containers = JsonConvert.DeserializeObject<EntityContainers>(
+							(string)value.Arguments[2].value);
+						result = JsonConvert.SerializeObject(MyCrm.Content.CreateEntities(entityName, asUserid, containers));
+						obj = JsonConvert.DeserializeObject<object>(result);
+						response = Request.CreateResponse(HttpStatusCode.OK, obj);
+						return response;
+					case UPDATE:
+						string guid = (string)value.Arguments[0].value;
+						entityName = (string)value.Arguments[1].value;
+						container = JsonConvert.DeserializeObject<EntityContainer>((string)value.Arguments[2].value);
+						asUserid = (string)value.Arguments[3].value;
+						result = JsonConvert.SerializeObject(MyCrm.Content.UpdateEntity(guid, entityName, container, asUserid));
+						obj = JsonConvert.DeserializeObject<object>(result);
+						response = Request.CreateResponse(HttpStatusCode.OK, obj);
+						return response;
+					case UPDATE_MANY:
+						guid = (string)value.Arguments[0].value;
+						entityName = (string)value.Arguments[1].value;
+						containers = JsonConvert.DeserializeObject<EntityContainers>((string)value.Arguments[2].value);
+						asUserid = (string)value.Arguments[3].value;
+						result = JsonConvert.SerializeObject(MyCrm.Content.UpdateEntities(guid, entityName, containers, asUserid));
+						obj = JsonConvert.DeserializeObject<object>(result);
+						response = Request.CreateResponse(HttpStatusCode.OK, obj);
+						return response;
+					case UPSERT:
+						if (value.Arguments[0].value != null) {
+							guid = value.Arguments[0].value.ToString();
+						} else {
+							guid = null;
+						}
+						entityName = (string)value.Arguments[1].value;
+						container = JsonConvert.DeserializeObject<EntityContainer>((string)value.Arguments[2].value);
+						asUserid = (string)value.Arguments[3].value;
+						result = JsonConvert.SerializeObject(MyCrm.Content.UpsertEntity(entityName, container, asUserid, guid));
+						obj = JsonConvert.DeserializeObject<object>(result);
+						response = Request.CreateResponse(HttpStatusCode.OK, obj);
+						return response;
+					case UPSERT_MANY:
+						if (value.Arguments[0].value != null) {
+							guid = value.Arguments[0].value.ToString();
+						} else {
+							guid = null;
+						}
+						entityName = (string)value.Arguments[1].value;
+						containers = JsonConvert.DeserializeObject<EntityContainers>((string)value.Arguments[2].value);
+						asUserid = (string)value.Arguments[3].value;
+						result = JsonConvert.SerializeObject(MyCrm.Content.UpsertEntities(entityName, containers, asUserid, guid));
+						obj = JsonConvert.DeserializeObject<object>(result);
+						response = Request.CreateResponse(HttpStatusCode.OK, obj);
+						return response;
+					case ASSIGN:
+						entityName = (string)value.Arguments[0].value;
+						string entityid = (string)value.Arguments[1].value;
+						string userid = (string)value.Arguments[2].value;
+						asUserid = (string)value.Arguments[3].value;
+						result = JsonConvert.SerializeObject(MyCrm.Content.AssignEntity(entityName, entityid, userid, asUserid));
+						obj = JsonConvert.DeserializeObject<object>(result);
+						response = Request.CreateResponse(HttpStatusCode.OK, obj);
+						return response;
+					case ASSIGN_MANY:
+						entityName = (string)value.Arguments[0].value;
+						List<string> ids = (List<string>)value.Arguments[1].value;
+						userid = (string)value.Arguments[2].value;
+						asUserid = (string)value.Arguments[3].value;
+						result = JsonConvert.SerializeObject(MyCrm.Content.AssignEntities(entityName, ids, userid, asUserid));
+						obj = JsonConvert.DeserializeObject<object>(result);
+						response = Request.CreateResponse(HttpStatusCode.OK, obj);
+						return response;
+					case ASSOCIATE:
+						string relationshipschema = (string)value.Arguments[0].value;
+						string targetentityname = (string)value.Arguments[1].value;
+						string sourceentityname = (string)value.Arguments[2].value;
+						Guid sourceid = new Guid((string)value.Arguments[3].value);
+						Guid targetid = new Guid((string)value.Arguments[4].value);
+						result = JsonConvert.SerializeObject(MyCrm.Content.AssociateEntity(relationshipschema, targetentityname, sourceentityname
+							, targetid, sourceid));
+						obj = JsonConvert.DeserializeObject<object>(result);
+						response = Request.CreateResponse(HttpStatusCode.OK, obj);
+						return response;
+					case ASSOCIATE_MANY:
+						relationshipschema = (string)value.Arguments[0].value;
+						targetentityname = (string)value.Arguments[1].value;
+						sourceentityname = (string)value.Arguments[2].value;
+						List<string> sourceidstrings = (List<string>)value.Arguments[3].value;
+						List<Guid> guids = new List<Guid>();
+						foreach (string id in sourceidstrings) {
+							guids.Add(new Guid(id));
+						}
+						targetid = new Guid((string)value.Arguments[4].value);
+						result = JsonConvert.SerializeObject(MyCrm.Content.AssociateEntities(relationshipschema, targetentityname, sourceentityname
+							, targetid, guids));
+						obj = JsonConvert.DeserializeObject<object>(result);
+						response = Request.CreateResponse(HttpStatusCode.OK, obj);
+						return response;
+					case DELETE:
+						entityName = (string)value.Arguments[0].value;
+						entityid = (string)value.Arguments[1].value;
+						asUserid = (string)value.Arguments[2].value;
+						result = JsonConvert.SerializeObject(MyCrm.Content.DeleteEntity(entityName, entityid, asUserid));
+						obj = JsonConvert.DeserializeObject<object>(result);
+						response = Request.CreateResponse(HttpStatusCode.OK, obj);
+						return response;
+					case DELETE_MANY:
+						entityName = (string)value.Arguments[0].value;
+						List<string> entityids = (List<string>)value.Arguments[1].value;
+						asUserid = (string)value.Arguments[2].value;
+						result = JsonConvert.SerializeObject(MyCrm.Content.DeleteManyWithResult(entityName, entityids, asUserid));
+						obj = JsonConvert.DeserializeObject<object>(result);
+						response = Request.CreateResponse(HttpStatusCode.OK, obj);
+						return response;
+					case DISSASSOCIATE:
+						relationshipschema = (string)value.Arguments[0].value;
+						targetentityname = (string)value.Arguments[1].value;
+						sourceentityname = (string)value.Arguments[2].value;
+						string sid = (string)value.Arguments[4].value;
+						targetid = new Guid((string)value.Arguments[4].value);
+						result = JsonConvert.SerializeObject(MyCrm.Content.DisAssociateEntity(relationshipschema, targetentityname, sourceentityname
+							, targetid, sid));
+						obj = JsonConvert.DeserializeObject<object>(result);
+						response = Request.CreateResponse(HttpStatusCode.OK, obj);
+						return response;
+					case DISSASSOCIATE_MANY:
+						relationshipschema = (string)value.Arguments[0].value;
+						targetentityname = (string)value.Arguments[1].value;
+						sourceentityname = (string)value.Arguments[2].value;
+						sourceidstrings = (List<string>)value.Arguments[3].value;
+						guids = new List<Guid>();
+						foreach (string id in sourceidstrings) {
+							guids.Add(new Guid(id));
+						}
+						targetid = new Guid((string)value.Arguments[4].value);
+						result = JsonConvert.SerializeObject(MyCrm.Content.DisAssociateEntities(relationshipschema, targetentityname, sourceentityname
+							, targetid, guids));
+						obj = JsonConvert.DeserializeObject<object>(result);
+						response = Request.CreateResponse(HttpStatusCode.OK, obj);
+						return response;
+					case SET_STATE:
+						entityName = (string)value.Arguments[0].value;
+						sid = (string)value.Arguments[1].value;
+						int newstate = (int)value.Arguments[2].value;
+						int newstatus = (int)value.Arguments[3].value;
+						asUserid = (string)value.Arguments[4].value;
+						result = JsonConvert.SerializeObject(MyCrm.Content.SetState(entityName, sid, newstate, newstatus, asUserid));
+						obj = JsonConvert.DeserializeObject<object>(result);
+						response = Request.CreateResponse(HttpStatusCode.OK, obj);
+						return response;
+					case SET_STATE_MANY:
+						entityName = (string)value.Arguments[0].value;
+						ids = (List<string>)value.Arguments[1].value;
+						newstate = (int)value.Arguments[2].value;
+						newstatus = (int)value.Arguments[3].value;
+						asUserid = (string)value.Arguments[4].value;
+						result = JsonConvert.SerializeObject(MyCrm.Content.SetStateOnMultiple(entityName, ids, newstate, newstatus, asUserid));
+						obj = JsonConvert.DeserializeObject<object>(result);
+						response = Request.CreateResponse(HttpStatusCode.OK, obj);
+						return response;
+				}
+*/
 
 
 

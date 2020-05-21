@@ -250,6 +250,7 @@ public class MySqlDatasource {
         fullTrip.isManualTrip = cursor.getInt(getColumnIndex(COLUMN_IS_MANUAL, cursor));
         fullTrip.setReimbursementRate(cursor.getFloat(getColumnIndex(COLUMN_RATE, cursor)));
         fullTrip.setTripGuid(cursor.getString(getColumnIndex(COLUMN_TRIP_GUID, cursor)));
+        fullTrip.userStoppedTrip = cursor.getInt(getColumnIndex(COLUMN_USER_STOPPED_TRIP, cursor));
         return fullTrip;
     }
 
@@ -313,42 +314,6 @@ public class MySqlDatasource {
         return trips;
     }
 
-    /**
-     * Asyncronous trip getter
-     * @param callback
-     */
-    public void getTrips(int monthNum, int year, final MyInterfaces.GetTripsCallback callback) {
-        try {
-            ArrayList<FullTrip> trips = getTrips(monthNum, year);
-            if (trips != null) {
-                callback.onSuccess(trips);
-            } else {
-                callback.onFailure("No trips found");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            callback.onFailure(e.getMessage());
-        }
-    }
-
-    /**
-     * Asyncronous trip getter
-     * @param callback
-     */
-    public void getTrips(final MyInterfaces.GetTripsCallback callback) {
-        try {
-            ArrayList<FullTrip> trips = getTrips();
-            if (trips != null) {
-                callback.onSuccess(trips);
-            } else {
-                callback.onFailure("No trips found");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            callback.onFailure(e.getMessage());
-        }
-    }
-
     public String[] getTripNames() {
 
         int index = 0;
@@ -389,6 +354,7 @@ public class MySqlDatasource {
             values.put(COLUMN_EDITED, trip.edited);
             values.put(COLUMN_RATE, trip.getReimbursementRate());
             values.put(COLUMN_TRIP_GUID, trip.getTripGuid());
+            values.put(COLUMN_USER_STOPPED_TRIP, trip.userStoppedTrip);
 
             String whereClause = COLUMN_TRIPCODE + " = ?";
             String[] whereArgs = {String.valueOf(trip.getTripcode())};
@@ -580,6 +546,7 @@ public class MySqlDatasource {
             values.put(COLUMN_EDITED, trip.edited);
             values.put(COLUMN_RATE, trip.getReimbursementRate());
             values.put(COLUMN_TRIP_GUID, trip.getTripGuid());
+            values.put(COLUMN_USER_STOPPED_TRIP, trip.userStoppedTrip);
 
             result = (database.insert(TABLE_FULL_TRIP, null, values) > 0);
             Log.i(TAG, "createFullTrip Created.  Will do entries now.");
@@ -618,6 +585,7 @@ public class MySqlDatasource {
             values.put(COLUMN_EDITED, trip.edited);
             values.put(COLUMN_RATE, trip.getReimbursementRate());
             values.put(COLUMN_TRIP_GUID, trip.getTripGuid());
+            values.put(COLUMN_USER_STOPPED_TRIP, trip.userStoppedTrip);
 
             result = (database.insert(TABLE_FULL_TRIP, null, values) > 0);
             Log.i(TAG, "createFullTrip Created.  Will do entries now.");

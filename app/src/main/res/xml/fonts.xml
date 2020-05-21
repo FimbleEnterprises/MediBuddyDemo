@@ -4,18 +4,10 @@
     <!-- Some Font. Can be referenced with 'someFont' or 'aspergit' -->
     <family>
         <nameset>
-            <name>deepo</name>
+            <name>calculator</name>
         </nameset>
         <fileset>
-            <file>deepo.otf</file>
-        </fileset>
-    </family>
-    <family>
-        <nameset>
-            <name>porcelain</name>
-        </nameset>
-        <fileset>
-            <file>porcelain.ttf</file>
+            <file>calculator.ttf</file>
         </fileset>
     </family>
     <family>

@@ -3,6 +3,9 @@ package com.fimbleenterprises.medimileage;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.android.gms.maps.model.LatLng;
+
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,6 +26,9 @@ public class MileageUser implements Parcelable {
     public String positionid;
     public String managed_territories;
     public String address;
+    public double realtime_lon;
+    public double realtime_lat;
+    DateTime lastRealtime;
 
     public MileageUser() {
 
@@ -32,6 +38,27 @@ public class MileageUser implements Parcelable {
         try {
             if (!json.isNull("_ownerid_value")) {
                 this.ownerid = (json.getString("_ownerid_value"));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        try {
+            if (!json.isNull("a_79740df757a5e81180e8005056a36b9b_msus_last_lon")) {
+                this.realtime_lon = (Double.parseDouble(json.getString("a_79740df757a5e81180e8005056a36b9b_msus_last_lon")));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        try {
+            if (!json.isNull("a_79740df757a5e81180e8005056a36b9b_msus_last_lat")) {
+                this.realtime_lat = (Double.parseDouble(json.getString("a_79740df757a5e81180e8005056a36b9b_msus_last_lat")));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        try {
+            if (!json.isNull("a_79740df757a5e81180e8005056a36b9b_msus_last_loc_timestamp")) {
+                this.lastRealtime = (new DateTime(json.getString("a_79740df757a5e81180e8005056a36b9b_msus_last_loc_timestamp")));
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -98,6 +125,22 @@ public class MileageUser implements Parcelable {
             }
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+    }
+
+    public boolean isDriving() {
+        try {
+            if (lastRealtime == null) {
+                return false;
+            } else {
+                long nowMillies = DateTime.now().getMillis();
+                long lastRealtimeMillies = lastRealtime.getMillis();
+                long gap = nowMillies - lastRealtimeMillies;
+                return Helpers.DatesAndTimes.convertMilisToMinutes(gap) <= 5;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
     }
 

@@ -54,6 +54,7 @@ import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.LocationContainer;
 import com.fimbleenterprises.medimileage.MediUser;
 import com.fimbleenterprises.medimileage.MonthYearPickerDialog;
+import com.fimbleenterprises.medimileage.MyAnimatedNumberTextView;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.MyLocationService;
 import com.fimbleenterprises.medimileage.MyProgressDialog;
@@ -127,6 +128,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     MySpeedoGauge gauge;
     Runnable tripDurationRunner;
     Handler tripDurationHandler = new Handler();
+    double lastMtdValue;
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -504,10 +506,12 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                             new MyYesNoDialog.YesNoListener() {
                                 @Override
                                 public void onYes() {
+                                    MyLocationService.userStoppedTrip = true;
                                     getContext().stopService(new Intent(getContext(), MyLocationService.class));
                                 }
                                 @Override public void onNo() {} });
                 } else {
+                    MyLocationService.userStoppedTrip = true;
                     getContext().stopService(new Intent(getContext(), MyLocationService.class));
                 }
             } else {
@@ -869,7 +873,14 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 mtdTotal += trip.calculateReimbursement();
             }
         }
-        txtMtd.setText(Helpers.Numbers.convertToCurrency(mtdTotal));
+
+        if (lastMtdValue > 0) {
+            MyAnimatedNumberTextView animatedNumberTextView = new MyAnimatedNumberTextView(getContext(), txtMtd);
+            animatedNumberTextView.setNewValue(mtdTotal, lastMtdValue);
+        } else {
+            txtMtd.setText(Helpers.Numbers.convertToCurrency(mtdTotal));
+        }
+        lastMtdValue = mtdTotal;
 
         manageDefaultImage();
 
