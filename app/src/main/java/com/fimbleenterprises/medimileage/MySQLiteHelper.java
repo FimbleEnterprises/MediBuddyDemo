@@ -43,7 +43,9 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     public static final String COLUMN_IS_MANUAL = "ismanual";
     public static final String COLUMN_RATE = "rate";
     public static final String COLUMN_TRIP_GUID = "tripguid";
+    public static final String COLUMN_USER_STARTED_TRIP = "userstartedtrip";
     public static final String COLUMN_USER_STOPPED_TRIP = "userstoppedtrip";
+    public static final String COLUMN_TRIP_MINDER_KILLED = "tripminderkilled";
 
     public static final String TABLE_CURRENT_LOCATIONS = "currentlocations";
     public static final String COLUMN_CURRENT_LOCATIONS_ID = "_id";
@@ -109,6 +111,9 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         COLUMN_GU_USERNAME,
         COLUMN_GUID,
         COLUMN_RATE,
+        COLUMN_USER_STOPPED_TRIP,
+        COLUMN_USER_STARTED_TRIP,
+        COLUMN_TRIP_MINDER_KILLED,
         COLUMN_TRIP_GUID
     };
 
@@ -184,6 +189,8 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
             COLUMN_RATE + " integer" + ", " +
             COLUMN_IS_SUBMITTED + " integer" + ", " +
             COLUMN_USER_STOPPED_TRIP + " integer" + ", " +
+            COLUMN_USER_STARTED_TRIP + " integer" + ", " +
+            COLUMN_TRIP_MINDER_KILLED + " integer" + ", " +
             COLUMN_TRIP_GUID + " text" + ", " +
             COLUMN_GUID + " text);";
 
@@ -357,6 +364,8 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         addColumnIfMissing(TABLE_FULL_TRIP, COLUMN_RATE, TYPE_TEXT, db);
         addColumnIfMissing(TABLE_FULL_TRIP, COLUMN_TRIP_GUID, TYPE_TEXT, db);
         addColumnIfMissing(TABLE_FULL_TRIP, COLUMN_USER_STOPPED_TRIP, TYPE_INTEGER, db);
+        addColumnIfMissing(TABLE_FULL_TRIP, COLUMN_USER_STARTED_TRIP, TYPE_INTEGER, db);
+        addColumnIfMissing(TABLE_FULL_TRIP, COLUMN_TRIP_MINDER_KILLED, TYPE_INTEGER, db);
         
         // Users table
         addColumnIfMissing(TABLE_USERS, COLUMN_ID, TYPE_INTEGER, db);

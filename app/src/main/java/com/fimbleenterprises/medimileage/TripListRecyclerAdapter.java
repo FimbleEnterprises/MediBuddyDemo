@@ -2,6 +2,7 @@ package com.fimbleenterprises.medimileage;
 
 import android.content.Context;
 import android.graphics.Typeface;
+import android.media.Image;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,6 +27,7 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
     public ArrayList<FullTrip> mData;
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
+    MySettingsHelper options;
     public boolean isInEditMode = false;
     MileageFragment mileageFragment;
     Context context;
@@ -39,6 +41,7 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
         this.context = context;
+        this.options = new MySettingsHelper(context);
     }
 
     // data is passed into the constructor
@@ -47,13 +50,14 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
         this.mData = data;
         this.context = context;
         this.mileageFragment = callingFrag;
+        this.options = new MySettingsHelper(context);
     }
 
     // inflates the row layout from xml when needed
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = mInflater.inflate(R.layout.triplist_row, parent, false);
-        textView = (TextView) view.findViewById(R.id.textView_FullTripRowMainText);
+        textView = view.findViewById(R.id.textView_FullTripRowMainText);
         originalTypeface = textView.getTypeface();
         return new ViewHolder(view);
     }
@@ -95,6 +99,8 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
             holder.txtMainText.setTypeface(originalTypeface, Typeface.BOLD);
             holder.chkbxSelectTrip.setVisibility(View.GONE);
             holder.layout.setBackground(null);
+            holder.imgUserStarted.setVisibility(View.GONE);
+            holder.imgUserStopped.setVisibility(View.GONE);
         } else {
             holder.txtMainText.setTypeface(originalTypeface);
             ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) holder.layout.getLayoutParams();
@@ -102,7 +108,17 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
             layoutParams.topMargin = 6;
             holder.layout.setLayoutParams(layoutParams);
             holder.layout.setBackgroundResource(R.drawable.btn_glass_gray_black_border);
-
+            if (options.getDebugMode()) {
+                holder.imgUserStarted.setVisibility(View.VISIBLE);
+                holder.imgUserStopped.setVisibility(View.VISIBLE);
+                holder.imgUserStarted.setImageResource((trip.getUserStartedTrip())
+                        ? R.drawable.green_dot_32x32 : R.drawable.red_dot_32x32);
+                holder.imgUserStopped.setImageResource((trip.getUserStoppedTrip())
+                        ? R.drawable.green_dot_32x32 : R.drawable.red_dot_32x32);
+            } else {
+                holder.imgUserStarted.setVisibility(View.GONE);
+                holder.imgUserStopped.setVisibility(View.GONE);
+            }
             holder.txtMainText.setText(trip.getTitle() + " - " + Helpers.DatesAndTimes.getPrettyDate(trip.getDateTime()));
             holder.chkbxSelectTrip.setVisibility((isInEditMode) ? View.VISIBLE : View.INVISIBLE);
             // holder.txtMainText.setTypeface(null, Typeface.NORMAL);
@@ -132,7 +148,8 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
         ImageView imgSubmitStatus;
         TextView txtMainText;
         TextView txtSubtext;
-        TextView txtTripId;
+        ImageView imgUserStarted;
+        ImageView imgUserStopped;
         TextView txtManual;
         TextView txtEdited;
         CheckBox chkbxSelectTrip;
@@ -145,7 +162,8 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
             imgSubmitStatus = itemView.findViewById(R.id.imageView_FullTripRowLeftIcon);
             txtMainText = itemView.findViewById(R.id.textView_FullTripRowMainText);
             txtSubtext = itemView.findViewById(R.id.textView_FullTripRowSubtext);
-            txtTripId = itemView.findViewById(R.id.textView_TripId);
+            imgUserStarted = itemView.findViewById(R.id.imageView_started);
+            imgUserStopped = itemView.findViewById(R.id.imageView_stopped);
             txtManual = itemView.findViewById(R.id.txtManual);
             txtEdited = itemView.findViewById(R.id.txtEdited);
             chkbxSelectTrip = itemView.findViewById(R.id.checkBox_selectTrip);

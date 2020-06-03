@@ -10,7 +10,7 @@
             android:theme="@style/AppTheme"
             app:key="NAME_TRIP_ON_START"
             android:fontFamily="casual"
-            app:defaultValue="true"
+            app:defaultValue="false"
             android:summary="Allows you to name your trips before they are started."
             app:title="Name Trips" />
 
@@ -18,7 +18,7 @@
             android:foreground="#000000"
             android:theme="@style/AppTheme"
             app:key="SUBMIT_ON_END"
-            app:defaultValue="false"
+            app:defaultValue="true"
             android:fontFamily="casual"
             android:summary="Automatically submit trips upon stopping them."
             app:title="Auto Submit" />
@@ -27,7 +27,7 @@
             android:foreground="#000000"
             android:theme="@style/AppTheme"
             app:key="CONFIRM_END"
-            app:defaultValue="true"
+            app:defaultValue="false"
             android:fontFamily="casual"
             android:summary="Asks you to confirm whether or not you want to end the currently running trip."
             app:title="Confirm ending a trip" />
@@ -47,7 +47,7 @@
             android:theme="@style/AppTheme"
             app:key="TRIP_MINDER_INTERVAL"
             android:fontFamily="casual"
-            app:defaultValue="150000"
+            app:defaultValue="1200000"
             android:title="Trip Minder interval (minutes)"
             android:summary="The length of time between new location updates indicating a forgotten trip."
             android:entries="@array/trip_minder_intervals"
@@ -109,6 +109,14 @@
             android:fontFamily="casual"
             app:defaultValue="true"
             app:title="Automatically check for updates" />
+
+        <SwitchPreference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
+            app:key="DEBUG_MODE"
+            android:fontFamily="casual"
+            app:defaultValue="false"
+            app:title="Debug mode" />
 
     </PreferenceCategory>
 

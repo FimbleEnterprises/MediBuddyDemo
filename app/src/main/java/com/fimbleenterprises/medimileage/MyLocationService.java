@@ -75,6 +75,7 @@ public class MyLocationService extends Service implements LocationListener {
     public static final String TRIP_PRENAME = "TRIP_PRENAME";
 
     public static final int MINIMUM_METERS_FOR_DB_ENTRY = 33;
+    public static final String USER_STARTED_TRIP_FLAG = "USER_STARTED_TRIP_FLAG";
     public static final int NOTIFICATION_ID = 1;
     public static final String NOTIFICATION_TAG = "MILEAGE_NOTIFICATION_TAG";
     public static final String NOTIFICATION_CHANNEL = "MILEAGE_NOTIFICATION_CHANNEL";
@@ -118,6 +119,7 @@ public class MyLocationService extends Service implements LocationListener {
     public static long lastRealtimeUpdateMillis = 0;
     public static boolean isUpdatingRealtimeLoc = false;
     public static boolean userStoppedTrip = false;
+    public static boolean userStartedTrip = false;
 
     public MyLocationService() {
         Log.d(TAG, "MyLocationService Empty constructor");
@@ -156,7 +158,9 @@ public class MyLocationService extends Service implements LocationListener {
         Log.e(TAG, "onStartCommand");
         super.onStartCommand(intent, flags, startId);
 
-
+        if (intent != null && intent.getBooleanExtra(USER_STARTED_TRIP_FLAG, false)) {
+            userStartedTrip = true;
+        }
 
         try {
             sendStartBroadcast();
@@ -167,6 +171,7 @@ public class MyLocationService extends Service implements LocationListener {
             }
 
             fullTrip = new FullTrip(System.currentTimeMillis(), user.domainname, user.systemuserid, user.email);
+
             datasource = new MySqlDatasource(getApplicationContext());
             startInForeground();
             isMovingChecker(StartStop.START);
@@ -187,7 +192,7 @@ public class MyLocationService extends Service implements LocationListener {
         getWakelock();
 
         Notification notification = getNotification("Trip is starting",
-                "Speed 0\nDistance: 0 miles", NotificationManager.IMPORTANCE_HIGH);
+                "Speed 0\nDistance: 0 miles", NotificationManager.IMPORTANCE_LOW);
 
         initializeNewTrip();
 
@@ -362,6 +367,7 @@ public class MyLocationService extends Service implements LocationListener {
             fullTrip.setMilis(milis);
             fullTrip.setTripcode(milis);
             fullTrip.setReimbursementRate(options.getReimbursementRate());
+            fullTrip.setUserStartedTrip(userStartedTrip);
 
             if (datasource.createNewTrip(fullTrip)) {
                 Log.i(TAG, "initializeNewTrip New trip created and added to the database");
@@ -391,7 +397,7 @@ public class MyLocationService extends Service implements LocationListener {
                 "Distance: " + Helpers.Geo.convertMetersToMiles(fullTrip.getDistance(), 2) + " miles\n" +
                 "Speed: " + currentTripEntry.getSpeedInMph(true);
 
-        Notification notification = getNotification(title, contentText, NotificationManager.IMPORTANCE_HIGH);
+        Notification notification = getNotification(title, contentText, NotificationManager.IMPORTANCE_LOW);
         mNotificationManager.notify(NOTIFICATION_ID, notification);
     }
 

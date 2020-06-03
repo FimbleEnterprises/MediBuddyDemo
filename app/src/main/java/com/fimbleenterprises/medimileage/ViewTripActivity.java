@@ -2,7 +2,6 @@ package com.fimbleenterprises.medimileage;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
@@ -22,6 +21,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.gson.Gson;
+import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -30,6 +31,7 @@ import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TableLayout;
@@ -37,6 +39,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.w3c.dom.Document;
 
 import java.util.ArrayList;
@@ -48,6 +52,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
     boolean cameraIsMoving = false;
     private static final String TAG = "ViewTripActivity";
     public static final String CLICKED_TRIP = "CLICKED_TRIP";
+    public static final String TRIP_ENTRIES = "TRIP_ENTRIES";
     ArrayList<Marker> mapMarkers = new ArrayList<>();
     ToggleButton toggleShowHideGoogle;
     FullTrip clickedTrip;
@@ -66,6 +71,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
     TextView txtTopSpeed;
     TextView txtAvgSpeed;
     TextView txtReimbursement;
+    ImageButton btnCycleMapType;
     ProgressBar progressBar;
     // TextView txt_GoogleDistanceLabel;
     LinearLayout linearLayoutMaster;
@@ -74,6 +80,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
     LatLng defaultPosition;
     boolean firstLoad = true;
     Context context;
+    int curMapType = GoogleMap.MAP_TYPE_NORMAL;
 
     interface DrawCompleteListener {
         void onFinished();
@@ -93,11 +100,20 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
 
         context = this;
         options = new MySettingsHelper(this);
+        curMapType = options.getMapMode();
+
 
         if (getIntent().hasExtra(CLICKED_TRIP)){
-            Log.i(TAG, "onCreate Getting intent...");
             clickedTrip = getIntent().getParcelableExtra(CLICKED_TRIP);
             Log.i(TAG, "onNewIntent Received a trip");
+            if (getIntent().hasExtra(TRIP_ENTRIES)) {
+                Log.i(TAG, "onNewIntent Found trip entries passed in an intent.  Gon' use em!");
+                tripEntries = getIntent().getParcelableArrayListExtra(TRIP_ENTRIES);
+                Log.i(TAG, "onNewIntent " + tripEntries.size() + " entries were used from the intent extra!");
+            }
+        } else {
+            Toast.makeText(context, "No trip data found", Toast.LENGTH_SHORT).show();
+            finish();
         }
 
         googleDataExpanded = findViewById(R.id.tableLayout_Stats2);
@@ -121,6 +137,15 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
         linearLayout_Contents = findViewById(R.id.LinearLayout_google_contents);
         linearLayout_Shell = findViewById(R.id.LinearLayout_google_shell);
         progressBar = findViewById(R.id.progressBar);
+        btnCycleMapType = findViewById(R.id.imgbtn_toggleMap);
+        btnCycleMapType.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mapIsReady) {
+                    cycleMapType();
+                }
+            }
+        });
         progressBar.setVisibility(View.VISIBLE);
 
         // this.txt_GoogleDistanceLabel = (TextView) findViewById(R.id.TextView_google_distance_lbl);
@@ -135,13 +160,30 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
         });
     }
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        if (intent.hasExtra(CLICKED_TRIP)){
-            clickedTrip = intent.getParcelableExtra(CLICKED_TRIP);
-            Log.i(TAG, "onNewIntent Received a trip");
+    public void cycleMapType() {
+        if (curMapType == 4) {
+            curMapType = 1;
+        } else {
+            curMapType += 1;
         }
+        map.setMapType(curMapType);
+        options.setMapMode(curMapType);
+
+        switch (curMapType) {
+            case GoogleMap.MAP_TYPE_HYBRID:
+                Toast.makeText(context, "Hybrid map", Toast.LENGTH_SHORT).show();
+                break;
+            case GoogleMap.MAP_TYPE_NORMAL:
+                Toast.makeText(context, "Normal map", Toast.LENGTH_SHORT).show();
+                break;
+            case GoogleMap.MAP_TYPE_SATELLITE:
+                Toast.makeText(context, "Satellite map", Toast.LENGTH_SHORT).show();
+                break;
+            case GoogleMap.MAP_TYPE_TERRAIN:
+                Toast.makeText(context, "Terrain map", Toast.LENGTH_SHORT).show();
+                break;
+        }
+
     }
 
     @Override
@@ -150,7 +192,12 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             if (!mapIsCentered()) {
                 drawRoute(tripEntries);
-                moveCameraToShowMarkers(false, null, CAMERA_PADDING);
+                if (mapIsCentered()) {
+                    finish();
+                } else {
+                    moveCameraToShowMarkers(false, null, CAMERA_PADDING);
+                    return true;
+                }
             }
 
             if (toggleShowHideGoogle.isChecked()) {
@@ -175,6 +222,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
 
         this.map = googleMap;
         this.mapIsReady = true;
+        this.map.setMapType(curMapType);
 
         this.map.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
             @Override
@@ -190,7 +238,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
             public void onCameraIdle() {
                 cameraIsMoving = false;
                 Log.i(TAG, "onCameraIdle Camera is idle.");
-                if (defaultPosition == null & firstLoad == false) {
+                if (defaultPosition == null & !firstLoad) {
                     defaultPosition = map.getCameraPosition().target;
                 }
             }
@@ -236,31 +284,31 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
     @SuppressLint("StaticFieldLeak")
     void getTripEntries(final DrawCompleteListener listener) {
 
-        final MyProgressDialog dialog = new MyProgressDialog(context, "Loading trip...");
+    final MyProgressDialog dialog = new MyProgressDialog(context, "Loading trip...");
 
-         new AsyncTask<String, String, String>() {
-                @Override
-                protected void onPreExecute() {
-                    super.onPreExecute();
-                    dialog.show();
-                }
+        new AsyncTask<String, String, String>() {
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+                dialog.show();
+            }
 
-                @Override
-                protected String doInBackground(String... strings) {
-                    MySqlDatasource ds = new MySqlDatasource();
-                    Log.i(TAG, "doWork Getting trip entries...");
-                    tripEntries = ds.getAllTripEntries(clickedTrip.getTripcode());
-                    Log.i(TAG, "doWork Trip entries retrieved.");
-                    return null;
-                }
+            @Override
+            protected String doInBackground(String... strings) {
+                MySqlDatasource ds = new MySqlDatasource();
+                Log.i(TAG, "doWork Getting trip entries...");
+                tripEntries = ds.getAllTripEntries(clickedTrip.getTripcode());
+                Log.i(TAG, "doWork Trip entries retrieved.");
+                return null;
+            }
 
-                @Override
-                protected void onPostExecute(String s) {
-                    super.onPostExecute(s);
-                    listener.onFinished();
-                    dialog.dismiss();
-                }
-            }.execute(null, null, null);
+            @Override
+            protected void onPostExecute(String s) {
+                super.onPostExecute(s);
+                listener.onFinished();
+                dialog.dismiss();
+            }
+        }.execute(null, null, null);
     }
 
     @SuppressLint("SetTextI18n")
@@ -356,7 +404,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
         sMarker.showInfoWindow();
         eMarker.showInfoWindow();
     }
-
+    
     private void moveCameraToShowUSA(boolean animate) {
 
         Log.d(TAG, "Moving the camera to my location");
@@ -413,6 +461,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
                 }else {
                     map.moveCamera(cu);
                 }
+                defaultPosition = map.getCameraPosition().target;
             } catch (Exception e) {
                 finish();
                 e.printStackTrace();

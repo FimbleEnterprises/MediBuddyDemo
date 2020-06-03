@@ -121,7 +121,7 @@ public class Requests {
 
         @Override
         public String toString() {
-            return "Argument: " + name + " Value is null: " + (value == null);
+            return "Argument: " + name + " | Value: + " + value.toString();
         }
     }
 }

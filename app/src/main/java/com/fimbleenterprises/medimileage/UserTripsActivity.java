@@ -12,10 +12,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.QueryFactory.Filter;
+import com.google.gson.Gson;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.joda.time.DateTime;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -109,10 +111,15 @@ public class UserTripsActivity extends Activity implements TripListRecyclerAdapt
         final MyProgressDialog dialog = new MyProgressDialog(this,"Getting trip details...");
         dialog.show();
 
+        Log.i(TAG, "onItemClick Getting trip details for tripcode: " + clickedTrip.getTripcode());
+
+
         QueryFactory queryFactory = new QueryFactory("msus_fulltrip");
         queryFactory.addColumn("msus_trip_entries_json");
-        Filter.FilterCondition condition = new Filter.FilterCondition("msus_tripcode", Filter.Operator.EQUALS, Long.toString(clickedTrip.getTripcode()));
+        Filter.FilterCondition condition = new Filter.FilterCondition("msus_tripcode",
+                Filter.Operator.EQUALS, Long.toString(clickedTrip.getTripcode()));
         Filter filter = new Filter(Filter.FilterType.AND, condition);
+        queryFactory.setFilter(filter);
         String query = queryFactory.construct();
 
         Request request = new Request(Requests.Request.Function.GET);
@@ -123,11 +130,23 @@ public class UserTripsActivity extends Activity implements TripListRecyclerAdapt
         crm.makeCrmRequest(this, request, new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                clickedTrip.tripEntriesJson = new String(responseBody);
-                Intent intent = new Intent(context, ViewTripActivity.class);
-                intent.putExtra(ViewTripActivity.CLICKED_TRIP, clickedTrip);
-                startActivity(intent);
-                dialog.dismiss();
+
+
+                try {
+                    String responseStr = new String(responseBody);
+                    JSONArray array = new JSONObject(responseStr).getJSONArray("value");
+                    ArrayList<TripEntry> entries = TripEntry.parseCrmTripEntries(array.getJSONObject(0).getString("msus_trip_entries_json"));
+
+                    Intent intent = new Intent(context, ViewTripActivity.class);
+                    intent.putExtra(ViewTripActivity.CLICKED_TRIP, clickedTrip);
+                    if (entries != null && entries.size() > 0) {
+                        intent.putExtra(ViewTripActivity.TRIP_ENTRIES, entries);
+                    }
+                    startActivity(intent);
+                    dialog.dismiss();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override

@@ -114,6 +114,18 @@ public class Activity_ManualTrip extends FragmentActivity implements OnMapReadyC
 
         sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         mViewPager = (MyViewPager) findViewById(R.id.main_pager_yo);
+        mViewPager.onRealPageChangedListener = new MyViewPager.OnRealPageChangedListener() {
+            @Override
+            public void onPageActuallyFuckingChanged(int pageIndex) {
+                if (pageIndex == 4) {
+                    btnNext.setText("Save");
+                    btnNext.setBackgroundResource(R.drawable.btn_glass);
+                } else {
+                    btnNext.setText("Next");
+                    btnNext.setBackgroundResource(R.drawable.btn_glass_gray);
+                }
+            }
+        };
         mPagerStrip = (PagerTitleStrip) findViewById(R.id.pager_title_strip);
         mViewPager.setAdapter(sectionsPagerAdapter);
         mViewPager.setOffscreenPageLimit(0);
@@ -127,6 +139,8 @@ public class Activity_ManualTrip extends FragmentActivity implements OnMapReadyC
                 Log.i(TAG, "onScrollChange Page: " + mViewPager.currentPosition);
             }
         });
+
+
 
         fragMgr = getSupportFragmentManager();
 
@@ -148,6 +162,11 @@ public class Activity_ManualTrip extends FragmentActivity implements OnMapReadyC
             public void onClick(View v) {
                 int curPos = mViewPager.currentPosition;
 
+                if (btnNext.getText().toString().toLowerCase().equals("save")) {
+                    saveTrip();
+                    return;
+                }
+
                 if (curPos == 1 && fromLatLng == null) {
                     Toast.makeText(context, "Please add a starting position", Toast.LENGTH_SHORT).show();
                     return;
@@ -158,7 +177,7 @@ public class Activity_ManualTrip extends FragmentActivity implements OnMapReadyC
                 }
 
                 Log.i(TAG, "curPos: " + curPos);
-                if (mViewPager.currentPosition != 5) {
+                if (mViewPager.currentPosition != 4) {
                     mViewPager.setCurrentItem(curPos + 1, true);
                 }
             }
@@ -273,7 +292,7 @@ public class Activity_ManualTrip extends FragmentActivity implements OnMapReadyC
                 args.putInt(Frag_Distance.ARG_SECTION_NUMBER, position + 1);
                 fragment.setArguments(args);
                 return fragment;
-            }
+            }/*
 
             if (position == 5) {
                 Fragment fragment = new Frag_Submit();
@@ -282,15 +301,13 @@ public class Activity_ManualTrip extends FragmentActivity implements OnMapReadyC
                 fragment.setArguments(args);
                 return fragment;
             }
-
+*/
             return null;
         }
 
-
-
         @Override
         public int getCount() {
-            return 6;
+            return 5;
         }
 
         @Override
@@ -306,11 +323,70 @@ public class Activity_ManualTrip extends FragmentActivity implements OnMapReadyC
                 case 3:
                     return "Date";
                 case 4:
-                    return "Distance";
+                    return "Distance";/*
                 case 5:
-                    return "Submit";
+                    return "Submit";*/
             }
             return null;
+        }
+    }
+
+    private void saveTrip() {
+
+        if (options.getReimbursementRate() == 0) {
+
+        }
+
+        try {
+            // Instantiate a datasource
+            MySqlDatasource ds = new MySqlDatasource();
+            MediUser user = MediUser.getMe();
+            FullTrip fullTrip = new FullTrip(date.getDateSelectedAsDateTime().getMillis(),user.domainname, user.systemuserid, user.email);
+
+            fullTrip.setTitle(title.getText().toString());
+            fullTrip.setDateTime(date.getDateSelectedAsDateTime());
+            fullTrip.setMilis(fullTrip.getTripcode());
+            float distmiles = Float.parseFloat(distance.getText().toString());
+            float dist = Helpers.Geo.convertMilesToMeters(distmiles, 2);
+            fullTrip.setDistance(dist);
+            fullTrip.setIsManualTrip(true);
+            fullTrip.setReimbursementRate((float) options.getReimbursementRate());
+
+            ds.createNewTrip(fullTrip);
+
+            Location lastLoc = null;
+            for (LatLng latLng : polyline.getPoints()) {
+
+                Location location = new Location("gps");
+                location.setLatitude(latLng.latitude);
+                location.setLongitude(latLng.longitude);
+
+                if (lastLoc == null) {
+                    lastLoc = location;
+                }
+
+                TripEntry entry = new TripEntry();
+                entry.setLatitude(location.getLatitude());
+                entry.setLongitude(location.getLongitude());
+                entry.setTripcode(fullTrip.getTripcode());
+                entry.setGuid(user.systemuserid);
+                entry.setDateTime(date.getDateSelectedAsDateTime());
+                entry.setMilis(entry.getDateTime().getMillis());
+                entry.setDistance(location.distanceTo(lastLoc));
+                entry.setSpeed(0);
+                ds.appendTrip(entry);
+
+                lastLoc = location;
+
+            }
+
+            setResult(Activity.RESULT_OK);
+            finish();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            setResult(Activity.RESULT_CANCELED);
+            finish();
         }
     }
 
@@ -460,7 +536,7 @@ public class Activity_ManualTrip extends FragmentActivity implements OnMapReadyC
 
     }
 
-    public static class Frag_Submit extends Fragment {
+/*    public static class Frag_Submit extends Fragment {
         public static final String ARG_SECTION_NUMBER = "section_number";
         private View rootView;
         Button btnSubmit;
@@ -573,10 +649,8 @@ public class Activity_ManualTrip extends FragmentActivity implements OnMapReadyC
                 getActivity().setResult(Activity.RESULT_CANCELED);
                 getActivity().finish();
             }
-
-
         }
-    }
+    }*/
 
     void showProgress(boolean value, String msg) {
         if (pDialog == null) {

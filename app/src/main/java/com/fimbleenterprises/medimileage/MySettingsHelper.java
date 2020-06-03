@@ -5,6 +5,8 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import com.google.android.gms.maps.GoogleMap;
+
 import java.io.File;
 
 public class MySettingsHelper {
@@ -28,6 +30,8 @@ public class MySettingsHelper {
     public static final String UPDATE_VERSION = "UPDATE_VERSION";
     public static final String UPDATE_CHANGELOG = "UPDATE_CHANGELOG";
     public static final String NAME_TRIP_ON_START = "NAME_TRIP_ON_START";
+    public static final String DEBUG_MODE = "DEBUG_MODE";
+    public static final String MAP_MODE = "MAP_MODE";
 
     Context context;
     SharedPreferences prefs;
@@ -131,6 +135,14 @@ public class MySettingsHelper {
         prefs.edit().putBoolean(TRIP_MINDER, val).commit();
     }
 
+    public void setMapMode(int mapMode) {
+        prefs.edit().putInt(MAP_MODE, mapMode).commit();
+    }
+
+    public int getMapMode() {
+        return prefs.getInt(MAP_MODE, 1);
+    }
+
     public int getTripMinderIntervalMillis() {
         String val = prefs.getString(TRIP_MINDER_INTERVAL, "150000");
         return (Integer.parseInt(val));
@@ -141,7 +153,7 @@ public class MySettingsHelper {
     }
 
     public boolean getConfirmTripEnd() {
-        return prefs.getBoolean(CONFIRM_END, true);
+        return prefs.getBoolean(CONFIRM_END, false);
     }
 
     public void setConfirmTripEnd(boolean val) {
@@ -210,11 +222,19 @@ public class MySettingsHelper {
     }
 
     public boolean getNameTripOnStart() {
-        return prefs.getBoolean(NAME_TRIP_ON_START, true);
+        return prefs.getBoolean(NAME_TRIP_ON_START, false);
     }
 
     public void setNameTripOnStart(boolean val) {
         prefs.edit().putBoolean(NAME_TRIP_ON_START, val).commit();
+    }
+
+    public void setDebugMode(boolean val) {
+        prefs.edit().putBoolean(DEBUG_MODE, val).commit();
+    }
+
+    public boolean getDebugMode() {
+        return prefs.getBoolean(DEBUG_MODE, false);
     }
 }
 

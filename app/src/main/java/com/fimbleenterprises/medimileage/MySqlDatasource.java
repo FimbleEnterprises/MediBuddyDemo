@@ -251,6 +251,8 @@ public class MySqlDatasource {
         fullTrip.setReimbursementRate(cursor.getFloat(getColumnIndex(COLUMN_RATE, cursor)));
         fullTrip.setTripGuid(cursor.getString(getColumnIndex(COLUMN_TRIP_GUID, cursor)));
         fullTrip.userStoppedTrip = cursor.getInt(getColumnIndex(COLUMN_USER_STOPPED_TRIP, cursor));
+        fullTrip.userStartedTrip = cursor.getInt(getColumnIndex(COLUMN_USER_STARTED_TRIP, cursor));
+        fullTrip.tripMinderKilled = cursor.getInt(getColumnIndex(COLUMN_TRIP_MINDER_KILLED, cursor));
         return fullTrip;
     }
 
@@ -355,6 +357,8 @@ public class MySqlDatasource {
             values.put(COLUMN_RATE, trip.getReimbursementRate());
             values.put(COLUMN_TRIP_GUID, trip.getTripGuid());
             values.put(COLUMN_USER_STOPPED_TRIP, trip.userStoppedTrip);
+            values.put(COLUMN_USER_STARTED_TRIP, trip.userStartedTrip);
+            values.put(COLUMN_TRIP_MINDER_KILLED, trip.tripMinderKilled);
 
             String whereClause = COLUMN_TRIPCODE + " = ?";
             String[] whereArgs = {String.valueOf(trip.getTripcode())};
@@ -547,6 +551,8 @@ public class MySqlDatasource {
             values.put(COLUMN_RATE, trip.getReimbursementRate());
             values.put(COLUMN_TRIP_GUID, trip.getTripGuid());
             values.put(COLUMN_USER_STOPPED_TRIP, trip.userStoppedTrip);
+            values.put(COLUMN_USER_STARTED_TRIP, trip.userStartedTrip);
+            values.put(COLUMN_TRIP_MINDER_KILLED, trip.tripMinderKilled);
 
             result = (database.insert(TABLE_FULL_TRIP, null, values) > 0);
             Log.i(TAG, "createFullTrip Created.  Will do entries now.");
@@ -586,6 +592,8 @@ public class MySqlDatasource {
             values.put(COLUMN_RATE, trip.getReimbursementRate());
             values.put(COLUMN_TRIP_GUID, trip.getTripGuid());
             values.put(COLUMN_USER_STOPPED_TRIP, trip.userStoppedTrip);
+            values.put(COLUMN_USER_STARTED_TRIP, trip.userStartedTrip);
+            values.put(COLUMN_TRIP_MINDER_KILLED, trip.tripMinderKilled);
 
             result = (database.insert(TABLE_FULL_TRIP, null, values) > 0);
             Log.i(TAG, "createFullTrip Created.  Will do entries now.");

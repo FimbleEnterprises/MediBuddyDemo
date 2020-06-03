@@ -26,6 +26,8 @@ import com.fimbleenterprises.medimileage.ui.settings.mileage.SettingsActivity;
 import com.google.android.material.navigation.NavigationView;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
+import org.joda.time.DateTime;
+import org.joda.time.LocalDateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -226,6 +228,22 @@ public class MainActivity extends AppCompatActivity {
         } else {
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},PERMISSION_UPDATE);
         }
+
+        new DelayedWorker(15000, new DelayedWorker.DelayedJob() {
+            @Override
+            public void doWork() {
+                try {
+                    updateUserOptionsWithCrm();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onComplete(Object object) {
+                Log.i(TAG, "onComplete Updated user's settings in CRM.");
+            }
+        });
     }
 
     @Override
@@ -400,6 +418,39 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         return NavigationUI.navigateUp(navController, mAppBarConfiguration)
                 || super.onSupportNavigateUp();
+    }
+    
+    public void updateUserOptionsWithCrm() {
+        Containers.EntityContainer container = new Containers.EntityContainer();
+        container.entityFields.add(new Containers.EntityField("msus_name_trips", Boolean.toString(options.getNameTripOnStart())));
+        container.entityFields.add(new Containers.EntityField("msus_auto_submit", Boolean.toString(options.getAutosubmitOnTripEnd())));
+        container.entityFields.add(new Containers.EntityField("msus_auto_check_updates", Boolean.toString(options.getCheckForUpdates())));
+        container.entityFields.add(new Containers.EntityField("msus_confirm_end_trip", Boolean.toString(options.getConfirmTripEnd())));
+        container.entityFields.add(new Containers.EntityField("msus_debug_mode", Boolean.toString(options.getDebugMode())));
+        container.entityFields.add(new Containers.EntityField("msus_use_trip_minder", Boolean.toString(options.getTripEndReminder())));
+        container.entityFields.add(new Containers.EntityField("msus_trip_minder_value",
+                Helpers.DatesAndTimes.convertMilisToMinutes(options.getTripMinderIntervalMillis()) + " mins"));
+        container.entityFields.add(new Containers.EntityField("msus_last_used_milebuddy", LocalDateTime.now().toString()));
+
+        Requests.Request request = new Requests.Request(Requests.Request.Function.UPDATE);
+        request.function = Requests.Request.Function.UPDATE.name();
+        request.arguments.add(new Requests.Argument("systemuserid", MediUser.getMe().systemuserid));
+        request.arguments.add(new Requests.Argument("entity", "systemuser"));
+        request.arguments.add(new Requests.Argument("container", container.toJson()));
+        request.arguments.add(new Requests.Argument("as_userid", MediUser.getMe().systemuserid));
+        
+        Crm crm = new Crm();
+        crm.makeCrmRequest(this, request, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                Log.i(TAG, "onSuccess Successfully udated user's settings");
+            }
+        
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                Log.i(TAG, "onFailure Failed to update user's settings");
+            }
+        });
     }
 
     public boolean checkLocationPermission() {

@@ -15,6 +15,7 @@
     <application
         android:name=".MyApp"
         android:allowBackup="true"
+        android:requestLegacyExternalStorage="true"
         android:icon="@drawable/milebuddy_gif_icon_fullsize"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/car2_static_round_tparent_icon"

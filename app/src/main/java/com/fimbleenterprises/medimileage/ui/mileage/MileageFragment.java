@@ -547,6 +547,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 // Start the actual service
                 Intent intent = new Intent(getContext(), MyLocationService.class);
                 intent.putExtra(MyLocationService.TRIP_PRENAME, tripname);
+                intent.putExtra(MyLocationService.USER_STARTED_TRIP_FLAG, true);
                 getContext().startForegroundService(intent);
                 Log.d(TAG, "startMyLocService Sent start request...");
                 startTripDurationRunner();
@@ -870,7 +871,9 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         float mtdTotal = 0;
         for (FullTrip trip : allTrips) {
             if (trip.getIsSubmitted()) {
-                mtdTotal += trip.calculateReimbursement();
+                if (trip.getDateTime().getMonthOfYear() == DateTime.now().getMonthOfYear()) {
+                    mtdTotal += trip.calculateReimbursement();
+                }
             }
         }
 

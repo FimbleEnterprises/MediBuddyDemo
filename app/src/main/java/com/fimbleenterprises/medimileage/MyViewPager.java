@@ -21,6 +21,11 @@ public class MyViewPager extends ViewPager {
     MyInterfaces.TripPageCallback tripPageCallback;
     public int currentPosition;
     private int pageCount = -1;
+    OnRealPageChangedListener onRealPageChangedListener;
+
+    public interface OnRealPageChangedListener {
+        void onPageActuallyFuckingChanged(int pageIndex);
+    }
 
     public MyViewPager(Context context, MyInterfaces.TripPageCallback tripPageCallback) {
         super(context);
@@ -93,6 +98,9 @@ public class MyViewPager extends ViewPager {
         super.onPageScrolled(position, offset, offsetPixels);
         Log.i(TAG, "onPageScrolled " + position);
         currentPosition = position;
+        if (onRealPageChangedListener != null) {
+            onRealPageChangedListener.onPageActuallyFuckingChanged(currentPosition);
+        }
     }
 
     /**
