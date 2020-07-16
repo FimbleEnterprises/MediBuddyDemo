@@ -32,7 +32,6 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationSettingsRequest;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.google.gson.Gson;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.joda.time.DateTime;
@@ -95,6 +94,7 @@ public class MyLocationService extends Service implements LocationListener {
 
     private LocationManager mLocationManager;
     private NotificationManager mNotificationManager;
+    public static Notification notification;
 
     final Handler notMovingHandler = new Handler();
     Runnable notMovingRunner;
@@ -175,6 +175,7 @@ public class MyLocationService extends Service implements LocationListener {
             datasource = new MySqlDatasource(getApplicationContext());
             startInForeground();
             isMovingChecker(StartStop.START);
+            updateAddresses(7000);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -233,6 +234,7 @@ public class MyLocationService extends Service implements LocationListener {
 
         sendStoppingBroadcast();
 
+        // Commit the trip to the local database
         datasource.updateFulltrip(fullTrip);
 
         Log.e(TAG, "onDestroy");
@@ -251,8 +253,10 @@ public class MyLocationService extends Service implements LocationListener {
         }
 
         releaseWakelock();
+
         NotificationManager mgr = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
         mgr.cancel(NOTIFICATION_ID);
+        mgr.cancelAll();
 
         isRunning = false;
 
@@ -447,11 +451,12 @@ public class MyLocationService extends Service implements LocationListener {
             mBuilder.setChannelId(channelId);
         }
 
-        Notification notification = mBuilder.build();
+        Notification notif = mBuilder.build();
 
-        notification.flags = Notification.FLAG_ONGOING_EVENT;
+        notif.flags = Notification.FLAG_ONGOING_EVENT;
+        notification = notif;
 
-        return notification;
+        return notif;
     }
 
     Notification getTripStillRunningNotification() {
@@ -517,6 +522,68 @@ public class MyLocationService extends Service implements LocationListener {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void updateAddresses(int delayInMillis) {
+
+        // Get account addresses from CRM or local database
+        if (AccountAddresses.getSavedActAddys() == null || options.getShouldUpdateActAddys()) {
+            new DelayedWorker(delayInMillis, new DelayedWorker.DelayedJob() {
+                @Override
+                public void doWork() {
+                    if (!MyLocationService.isRunning) {
+                        Log.w(TAG, "UpdateAccountsDoWork: Trip is not running.  Will not update accounts.");
+                        return;
+                    }
+                    AccountAddresses.getFromCrm(getApplicationContext(), new MyInterfaces.GetAccountsListener() {
+                        @Override
+                        public void onSuccess(AccountAddresses accounts) {
+                            Log.i(TAG, "onSuccess Got accounts!");
+                            accounts.save();
+                        }
+
+                        @Override
+                        public void onFailure(String msg) {
+                            Log.w(TAG, "onFailure: " + msg);
+                        }
+                    });
+                }
+
+                @Override
+                public void onComplete(Object object) {
+
+                }
+            });
+        }
+
+        // Get user addresses from CRM or local database
+        if (UserAddresses.getSavedUserAddys() == null || options.getShouldUpdateUserAddys()) {
+            new DelayedWorker(delayInMillis, new DelayedWorker.DelayedJob() {
+                @Override
+                public void doWork() {
+                    if (UserAddresses.getSavedUserAddys() == null) {
+                        UserAddresses.getAllUserAddysFromCrm(getApplicationContext(), new MyInterfaces.GetUserAddysListener() {
+                            @Override
+                            public void onSuccess(UserAddresses addresses) {
+                                Log.i(TAG, "onSuccess Received: " + addresses.addresses.size() + " addresses");
+                                addresses.save();
+                            }
+
+                            @Override
+                            public void onFailure(String msg) {
+
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onComplete(Object object) {
+
+                }
+            });
+        }
+
     }
 
     public void sendStartBroadcast() {

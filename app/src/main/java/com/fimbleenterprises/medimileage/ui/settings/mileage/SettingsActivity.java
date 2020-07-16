@@ -14,15 +14,19 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Toast;
 
+import com.fimbleenterprises.medimileage.AccountAddresses;
 import com.fimbleenterprises.medimileage.AdapterDbBackups;
 import com.fimbleenterprises.medimileage.Helpers;
+import com.fimbleenterprises.medimileage.MileBuddyUpdate;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.MyLocationService;
+import com.fimbleenterprises.medimileage.MyProgressDialog;
 import com.fimbleenterprises.medimileage.MySettingsHelper;
 import com.fimbleenterprises.medimileage.MySqlDatasource;
 import com.fimbleenterprises.medimileage.MyYesNoDialog;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.RestoreDbActivity;
+import com.fimbleenterprises.medimileage.UserAddresses;
 
 import org.joda.time.DateTime;
 
@@ -60,6 +64,9 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String DELETE_ALL_BACKUPS = "DELETE_ALL_BACKUPS";
     public static final String DELETE_ALL_TRIP_DATA = "DELETE_ALL_TRIP_DATA";
     public static final String DELETE_EMPTY_TRIP_DATA = "DELETE_EMPTY_TRIP_DATA";
+    public static final String UPDATE_USER_ADDYS = "updateUserAddys";
+    public static final String UPDATE_ACT_ADDYS = "updateActAddys";
+    public static final String DELETE_LOCAL_UPDATES = "DELETE_LOCAL_UPDATES";
     public static final String SUBMIT_ON_END = "SUBMIT_ON_END";
     public static final String TRIP_MINDER = "TRIP_MINDER";
     public static final String TRIP_MINDER_INTERVAL = "TRIP_MINDER_INTERVAL";
@@ -107,8 +114,9 @@ public class SettingsActivity extends AppCompatActivity {
             Preference prefDeleteAllBackups;
             Preference prefDeleteAllMileageData;
             Preference prefDeleteEmptyTrips;
-            Preference prefAutoSubmit;
-            DropDownPreference tripMinderInterval;
+            Preference prefUpdateUserAddys;
+            Preference prefUpdateActAddys;
+            Preference prefDeleteAllLocalUpdates;
 
             prefBackupDb = findPreference(BACKUP_DB_KEY);
             prefBackupDb.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
@@ -132,6 +140,58 @@ public class SettingsActivity extends AppCompatActivity {
                     } else {
                         requestStoragePermission(REQ_PERMISSION_RESTORE);
                     }
+                    return false;
+                }
+            });
+
+            prefUpdateUserAddys = findPreference(UPDATE_USER_ADDYS);
+            prefUpdateUserAddys.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    final MyProgressDialog dialog = new MyProgressDialog(getContext(), "Updating user addresses...");
+                    dialog.show();
+                    UserAddresses.getAllUserAddysFromCrm(getContext(), new MyInterfaces.GetUserAddysListener() {
+                        @Override
+                        public void onSuccess(UserAddresses addresses) {
+                            Log.i(TAG, "onSuccess Got accounts!");
+                            addresses.save();
+                            dialog.dismiss();
+                            Toast.makeText(getContext(), "User addresses were updated.", Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void onFailure(String msg) {
+                            Log.w(TAG, "onFailure: " + msg);
+                            dialog.dismiss();
+                            Toast.makeText(getContext(), "Failed to update addresses", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    return false;
+                }
+            });
+
+            prefUpdateActAddys = findPreference(UPDATE_ACT_ADDYS);
+            prefUpdateActAddys.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    final MyProgressDialog dialog = new MyProgressDialog(getContext(), "Updating account addresses...");
+                    dialog.show();
+                    AccountAddresses.getFromCrm(getContext(), new MyInterfaces.GetAccountsListener() {
+                        @Override
+                        public void onSuccess(AccountAddresses accounts) {
+                            Log.i(TAG, "onSuccess Got accounts!");
+                            accounts.save();
+                            dialog.dismiss();
+                            Toast.makeText(getContext(), "Account addresses were updated.", Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void onFailure(String msg) {
+                            Log.w(TAG, "onFailure: " + msg);
+                            dialog.dismiss();
+                            Toast.makeText(getContext(), "Failed to update addresses", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                     return false;
                 }
             });
@@ -218,6 +278,25 @@ public class SettingsActivity extends AppCompatActivity {
                         }
                     });
                 return false;
+                }
+            });
+
+            prefDeleteAllLocalUpdates = findPreference(DELETE_LOCAL_UPDATES);
+            prefDeleteAllLocalUpdates.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    if (checkStoragePermission()) {
+                        try {
+                            MileBuddyUpdate.deleteAllLocallyAvailableUpdates();
+                            Toast.makeText(getContext(), "Deleted local backups", Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) {
+                            Toast.makeText(getContext(), "Failed to delete local backups!\n"
+                                    + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        requestStoragePermission(REQ_PERMISSION_RESTORE);
+                    }
+                    return false;
                 }
             });
 

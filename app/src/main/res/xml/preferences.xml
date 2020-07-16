@@ -55,6 +55,28 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        android:title="Addresses"
+        android:fontFamily="casual">
+
+        <Preference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
+            app:key="updateUserAddys"
+            app:summary="Updates all user addresses"
+            android:fontFamily="casual"
+            app:title="Update user addresses" />
+
+        <Preference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
+            app:key="updateActAddys"
+            app:summary="Updates all account addresses"
+            android:fontFamily="casual"
+            app:title="Update account addresses" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
         android:title="Database"
         android:fontFamily="casual">
 
@@ -62,6 +84,7 @@
             android:foreground="#000000"
             app:key="backupdb"
             app:summary="Backs up the mileage database."
+            app:isPreferenceVisible="false"
             android:fontFamily="casual"
             app:title="Backup database" />
 
@@ -71,6 +94,7 @@
             app:key="restoredb"
             app:summary="Restores a mileage database backup."
             android:fontFamily="casual"
+            app:isPreferenceVisible="false"
             app:title="Restore database" />
 
         <Preference
@@ -79,6 +103,7 @@
             app:key="DELETE_ALL_BACKUPS"
             app:summary="Deletes all mileage database backup."
             android:fontFamily="casual"
+            app:isPreferenceVisible="false"
             app:title="Delete all databases" />
 
         <Preference
@@ -87,6 +112,7 @@
             app:key="DELETE_ALL_TRIP_DATA"
             app:summary="Deletes all mileage data."
             android:fontFamily="casual"
+            app:isPreferenceVisible="true"
             app:title="Delete all mileage" />
 
         <Preference
@@ -94,6 +120,7 @@
             android:theme="@style/AppTheme"
             app:key="DELETE_EMPTY_TRIP_DATA"
             android:fontFamily="casual"
+            app:isPreferenceVisible="true"
             app:summary="Deletes all trips shorter than two miles."
             app:title="Delete empty trips" />
     </PreferenceCategory>
@@ -101,6 +128,15 @@
     <PreferenceCategory
         android:title="Other"
         android:fontFamily="casual">
+
+        <Preference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
+            app:key="DELETE_LOCAL_UPDATES"
+            android:fontFamily="casual"
+            app:isPreferenceVisible="true"
+            app:summary="Removes any locally saved update files."
+            app:title="Delete local updates" />
 
         <SwitchPreference
             android:foreground="#000000"

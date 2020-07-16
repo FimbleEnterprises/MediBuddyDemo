@@ -11,10 +11,10 @@
             android:id="@+id/nav_home"
             android:icon="@drawable/house_icon_black_36x"
             android:title="@string/menu_home" />
-        <!--<item
-            android:id="@+id/nav_authentication"
-            android:icon="@drawable/exit"
-            android:title="@string/menu_authentication" />-->
+        <item
+            android:id="@+id/nav_stats"
+            android:icon="@drawable/stats"
+            android:title="@string/menu_stats" />
         <item
             android:id="@+id/nav_settings"
             android:icon="@drawable/settings_36x36"

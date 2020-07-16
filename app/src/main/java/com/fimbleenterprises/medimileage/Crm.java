@@ -16,6 +16,7 @@ import cz.msebera.android.httpclient.entity.StringEntity;
 public class Crm {
     private static final String TAG = "Crm";
     private static final String BASE_URL = "https://mediproxyrestapi.azurewebsites.net/api/crm/PerformCrmAction/";
+    private static final String FCM_URL = "https://mediproxyrestapi.azurewebsites.net/api/crm/Fcm/";
     // public static final String BASE_URL = "http://192.168.1.9:44341/";
     private static AsyncHttpClient client = new AsyncHttpClient();
 

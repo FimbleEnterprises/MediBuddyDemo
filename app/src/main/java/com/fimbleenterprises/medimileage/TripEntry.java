@@ -98,14 +98,13 @@ public class TripEntry implements Parcelable {
                     e.printStackTrace();
                 }
                 entries.add(tripEntry);
-                Log.i(TAG, "parseCrmtripEntryEntries ");
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
 
-        Log.i(TAG, "parseCrmTripEntries ");
+        Log.i(TAG, "parseCrmTripEntries : " + entries.size() + " entries were added.");
 
         return entries;
     }

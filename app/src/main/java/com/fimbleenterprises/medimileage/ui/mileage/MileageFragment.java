@@ -2,6 +2,7 @@ package com.fimbleenterprises.medimileage.ui.mileage;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -12,13 +13,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.location.LocationListener;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.provider.Settings;
+import android.text.Html;
+import android.text.Spanned;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -86,12 +89,15 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.fimbleenterprises.medimileage.MyLocationService.NOTIFICATION_ID;
+
 public class MileageFragment extends Fragment implements TripListRecyclerAdapter.ItemClickListener
 {
     public static final int PERMISSION_MAKE_RECEIPT = 0;
     public static final int PERMISSION_START_TRIP = 1;
     public static final int PERMISSION_MAKE_TRIP = 2;
     public static final int PERMISSION_UPDATE = 3;
+    public static final int PERMISSION_FLOATY = 4;
 
     private static final String TAG = "MileageFragment";
     private MileageViewModel mileageViewModel;
@@ -221,9 +227,48 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         btnAddManualTrip.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!checkLocationPermission()) {
-                    requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}
-                            , PERMISSION_MAKE_TRIP);
+
+                // Check permission and request if not present
+                if (checkLocationPermission() == LOCATION_PERM_RESULT.NONE) {
+
+                    boolean showRational = shouldShowRequestPermissionRationale(
+                            Manifest.permission.ACCESS_FINE_LOCATION);
+                    if (!showRational) {
+                        final Dialog dialog = new Dialog(getActivity());
+                        final Context c = getActivity();
+                        dialog.setContentView(R.layout.generic_app_dialog);
+                        TextView txtMain = dialog.findViewById(R.id.txtMainText);
+                        txtMain.setText("You restrictive sunovabitch!  " +
+                                "You need to allow MileBuddy access to your device's location.\n\n" +
+                                "How else can we do this whole mileage tracking thing?!");
+                        Button btnOkay = dialog.findViewById(R.id.btnOkay);
+                        btnOkay.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                openAppSettings();
+                                dialog.dismiss();
+                            }
+                        });
+                        dialog.setTitle("Permissions");
+                        dialog.setCancelable(true);
+                        dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+                            @Override
+                            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                                    dialog.dismiss();
+                                    return true;
+                                } else {
+                                    openAppSettings();
+                                    dialog.dismiss();
+                                    return true;
+                                }
+                            }
+                        });
+                        dialog.show();
+                    } else {
+                        requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}
+                                , PERMISSION_MAKE_TRIP);
+                    }
                     return;
                 } else {
                     Intent intent = new Intent(getContext(), Activity_ManualTrip.class);
@@ -442,6 +487,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 Toast.makeText(getContext(), "Failed to delete empty trips\n" + message, Toast.LENGTH_SHORT).show();
             }
         });
+
     }
 
     void startTripDurationRunner() {
@@ -468,9 +514,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case PERMISSION_START_TRIP:
-                if (checkLocationPermission()) {
-                    startStopTrip();
-                }
+                startStopTrip();
                 break;
 
             case PERMISSION_MAKE_RECEIPT:
@@ -480,14 +524,11 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 break;
 
             case PERMISSION_MAKE_TRIP:
-                if (checkLocationPermission()) {
+                if (checkLocationPermission() != LOCATION_PERM_RESULT.NONE) {
                     Intent intent = new Intent(getContext(), Activity_ManualTrip.class);
                     startActivityForResult(intent, 0);
                 }
-            case PERMISSION_UPDATE:
-                if (checkStoragePermission()) {
-                    // checkForUpdate();
-                }
+
         }
     }
 
@@ -526,35 +567,93 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 }
             } else {
 
-                String[] permissions;
-                if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
-                    permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_BACKGROUND_LOCATION};
-                } else {
-                    permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION};
-                }
-
                 // Check permission and request if not present
-                if (!checkLocationPermission()) {
-                    requestPermissions(permissions, PERMISSION_START_TRIP);
-                    return;
+
+                if (validateLocPermissions()) {
+
+                    // Set up the visuals
+                    tripStatusContainer.setVisibility(View.VISIBLE);
+                    showGif(true);
+
+                    // Start the actual service
+                    Intent intent = new Intent(getContext(), MyLocationService.class);
+                    intent.putExtra(MyLocationService.TRIP_PRENAME, tripname);
+                    intent.putExtra(MyLocationService.USER_STARTED_TRIP_FLAG, true);
+                    getContext().startForegroundService(intent);
+                    Log.d(TAG, "startMyLocService Sent start request...");
+                    startTripDurationRunner();
                 }
-
-                // Set up the visuals
-                tripStatusContainer.setVisibility(View.VISIBLE);
-                showGif(true);
-
-                // Start the actual service
-                Intent intent = new Intent(getContext(), MyLocationService.class);
-                intent.putExtra(MyLocationService.TRIP_PRENAME, tripname);
-                intent.putExtra(MyLocationService.USER_STARTED_TRIP_FLAG, true);
-                getContext().startForegroundService(intent);
-                Log.d(TAG, "startMyLocService Sent start request...");
-                startTripDurationRunner();
             }
         }
 
         populateTripList();
+
+    }
+
+    public boolean validateLocPermissions() {
+        String[] permissions;
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
+            permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_BACKGROUND_LOCATION};
+        } else {
+            permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION};
+        }
+
+        if (checkLocationPermission() != LOCATION_PERM_RESULT.FULL) {
+
+            boolean showRational = shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION);
+            if (!showRational) {
+                final Dialog dialog = new Dialog(getActivity());
+                final Context c = getActivity();
+                dialog.setContentView(R.layout.generic_app_dialog);
+                TextView txtMain = dialog.findViewById(R.id.txtMainText);
+                txtMain.setText("You restrictive sunovabitch!  " +
+                        "You need to allow MileBuddy access to your device's location.\n\n" +
+                        "How else can we do this whole mileage tracking thing?!");
+                Button btnOkay = dialog.findViewById(R.id.btnOkay);
+                btnOkay.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        openAppSettings();
+                        dialog.dismiss();
+                    }
+                });
+                dialog.setTitle("Permissions");
+                dialog.setCancelable(true);
+                dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+                    @Override
+                    public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                        if (keyCode == KeyEvent.KEYCODE_BACK) {
+                            dialog.dismiss();
+                            return true;
+                        } else {
+                            openAppSettings();
+                            dialog.dismiss();
+                            return true;
+                        }
+                    }
+                });
+                dialog.show();
+            } else {
+                requestPermissions(permissions, PERMISSION_START_TRIP);
+            }
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    public void openAppSettings() {
+
+        Uri packageUri = Uri.fromParts( "package", getActivity().getPackageName(), null );
+
+        Intent applicationDetailsSettingsIntent = new Intent();
+
+        applicationDetailsSettingsIntent.setAction( Settings.ACTION_APPLICATION_DETAILS_SETTINGS );
+        applicationDetailsSettingsIntent.setData( packageUri );
+        applicationDetailsSettingsIntent.addFlags( Intent.FLAG_ACTIVITY_NEW_TASK );
+
+        getActivity().startActivity( applicationDetailsSettingsIntent );
 
     }
 
@@ -778,13 +877,18 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
         allTrips = new ArrayList<>();
         ArrayList<FullTrip> tempList = new ArrayList<>();
+        Log.i(TAG, "populateTripList Getting trips from database...");
         tempList = datasource.getTrips();
+        Log.i(TAG, "populateTripList Trips retrieved from database");
 
+        Log.i(TAG, "populateTripList Adding trips to the master list...");
         for (FullTrip trip : tempList) {
             if (!trip.getIsRunning()) {
                 allTrips.add(trip);
             }
         }
+
+        Log.i(TAG, "populateTripList Added: " + allTrips.size() + " trips to the master list.");
 
         ArrayList<FullTrip> triplist = new ArrayList<>();
 
@@ -799,6 +903,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         int todayWeekOfYear = Helpers.DatesAndTimes.returnWeekOfYear(DateTime.now());
         int todayMonthOfYear = Helpers.DatesAndTimes.returnMonthOfYear(DateTime.now());
 
+        Log.i(TAG, "populateTripList: Preparing the dividers and trips...");
         for (int i = 0; i < (allTrips.size()); i++) {
             int tripDayOfYear = Helpers.DatesAndTimes.returnDayOfYear(allTrips.get(i).getDateTime());
             int tripWeekOfYear = Helpers.DatesAndTimes.returnWeekOfYear(allTrips.get(i).getDateTime());
@@ -862,16 +967,23 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             triplist.add(allTrips.get(i));
         }
 
+        Log.i(TAG, "populateTripList Finished preparing the dividers and trips.");
+
         // Since the new arraylist now has headers it will throw off the original array's indexes
         allTrips = triplist;
         adapter = new TripListRecyclerAdapter(getContext(), triplist, this);
         adapter.setClickListener(this);
         recyclerView.setAdapter(adapter);
 
+        // Tally the MTD reimbursement
         float mtdTotal = 0;
         for (FullTrip trip : allTrips) {
+            // Only submitted trips
             if (trip.getIsSubmitted()) {
-                if (trip.getDateTime().getMonthOfYear() == DateTime.now().getMonthOfYear()) {
+                // Only tally this month's trips
+                int thisMonth = DateTime.now().getMonthOfYear();
+                int thisYear = DateTime.now().getYear();
+                if (trip.getDateTime().getMonthOfYear() == thisMonth && trip.getDateTime().getYear() == thisYear) {
                     mtdTotal += trip.calculateReimbursement();
                 }
             }
@@ -887,13 +999,16 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
         manageDefaultImage();
 
+        Log.i(TAG, "populateTripList Deleting empty trips from the database.");
         datasource.deleteEmptyTrips(true, new MyInterfaces.TripDeleteCallback() {
             @Override
             public void onSuccess(int entriesDeleted) {
+                Log.i(TAG, "onSuccess Deleted " + entriesDeleted + " empty trips.");
                 manageDefaultImage();
             }
             @Override
             public void onFailure(String message) {
+                Log.i(TAG, "onFailure Failed to delete empty trips\n" + message);
                 manageDefaultImage();
             }
         });
@@ -912,7 +1027,11 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
     }
 
-    public boolean checkLocationPermission() {
+    public enum LOCATION_PERM_RESULT {
+        FULL, PARTIAL, NONE
+    }
+
+    public LOCATION_PERM_RESULT checkLocationPermission() {
         boolean result = true;
         String permission = "android.permission.ACCESS_FINE_LOCATION";
         String bgPermission = "android.permission.ACCESS_BACKGROUND_LOCATION";
@@ -920,9 +1039,20 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         int res2 = getActivity().checkCallingOrSelfPermission(bgPermission);
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            return (res1 == PackageManager.PERMISSION_GRANTED && res2 == PackageManager.PERMISSION_GRANTED);
+            if (res1 == PackageManager.PERMISSION_GRANTED && res2 == PackageManager.PERMISSION_GRANTED) {
+                return LOCATION_PERM_RESULT.FULL;
+            } else if (res1 == PackageManager.PERMISSION_GRANTED && res2 != PackageManager.PERMISSION_GRANTED ||
+                    res2 == PackageManager.PERMISSION_GRANTED && res1 != PackageManager.PERMISSION_GRANTED) {
+                return LOCATION_PERM_RESULT.PARTIAL;
+            } else {
+                return LOCATION_PERM_RESULT.NONE;
+            }
         } else {
-            return (res1 == PackageManager.PERMISSION_GRANTED);
+            if (res1 == PackageManager.PERMISSION_GRANTED) {
+                return LOCATION_PERM_RESULT.FULL;
+            } else {
+                return LOCATION_PERM_RESULT.NONE;
+            }
         }
     }
 
@@ -934,7 +1064,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
     public void syncTrips() throws UnsupportedEncodingException {
 
-        final MyProgressDialog dialog = new MyProgressDialog(getContext(), "Syncing trip list...",
+        final MyProgressDialog dialog = new MyProgressDialog(getContext(), "Getting submitted trips from server...",
                 MyProgressDialog.PROGRESS_TYPE);
         dialog.show();
 
@@ -953,6 +1083,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         factory.addColumn("msus_fulltripid");
         factory.addColumn("msus_trip_entries_json");
         factory.addColumn("msus_is_submitted");
+        factory.addColumn("ownerid");
 
         DateTime now = DateTime.now();
         int lastDayOfMonth = now.plusMonths(1).minusDays(1).getDayOfMonth();
@@ -961,13 +1092,15 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
         Filter filter = new Filter(Filter.FilterType.AND);
 
-        Filter.FilterCondition condition1 = new Filter.FilterCondition("msus_tripcode", Filter.Operator.GREATER_THAN_OR_EQUAL_TO, Long.toString(startMillis));
-        Filter.FilterCondition condition2 = new Filter.FilterCondition("msus_tripcode", Filter.Operator.LESS_THAN_OR_EQUAL_TO, Long.toString(endMillis));
-        Filter.FilterCondition condition3 = new Filter.FilterCondition("ownerid", Filter.Operator.EQUALS, MediUser.getMe().systemuserid);
+        Filter.FilterCondition condition1 = new Filter.FilterCondition("msus_dt_tripdate",
+                Filter.Operator.LAST_X_MONTHS, "2");
+        Filter.FilterCondition condition2 = new Filter.FilterCondition("ownerid",
+                Filter.Operator.EQUALS, MediUser.getMe().systemuserid);
 
         filter.addCondition(condition1);
         filter.addCondition(condition2);
-        filter.addCondition(condition3);
+
+        factory.setFilter(filter);
 
         QueryFactory.SortClause sortby = new QueryFactory.SortClause("msus_tripcode", false, QueryFactory.SortClause.ClausePosition.ONE);
         factory.addSortClause(sortby);
@@ -980,19 +1113,53 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         request.arguments.add(new Requests.Argument("query", query));
 
         crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+            @SuppressLint("StaticFieldLeak")
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
 
-                String response = new String(responseBody);
+                final String response = new String(responseBody);
 
-                updateLocalTrips(response, new LocalTripsUpdatedListener() {
+                Log.i(TAG, "onSuccess Sync returned: " + response);
+
+                new AsyncTask<String, String, String>() {
+                        @Override
+                        protected void onPreExecute() {
+                            super.onPreExecute();
+                        }
+
+                        @Override
+                        protected String doInBackground(String... strings) {
+                            ArrayList<FullTrip> serverTrips = FullTrip.createTripsFromCrmJson(response);
+                            int totalTrips = serverTrips.size();
+                            int i = 1;
+                            for (FullTrip serverTrip : serverTrips) {
+                                Log.i(TAG, "onSuccess Updating local trip with server trip...");
+                                publishProgress(Integer.toString(i), Integer.toString(totalTrips), null);
+                                updateLocalTrip(serverTrip);
+                                i++;
+                            }
+                            return null;
+                        }
+
                     @Override
-                    public void onFinished() {
-                        populateTripList();
-                        Log.i(TAG, "onSuccess Local trips were synced");
-                        dialog.dismiss();
+                    protected void onProgressUpdate(String... values) {
+                        int curVal = Integer.parseInt(values[0]);
+                        int totalVal = Integer.parseInt(values[1]);
+                        dialog.setContentText("Updating local trip " + curVal + " of " + totalVal);
+                        if (curVal == totalVal - 1) {
+                            dialog.setContentText("Redrawing the list.  Stand by...");
+                        }
+                        super.onProgressUpdate(values);
                     }
-                });
+
+                    @Override
+                        protected void onPostExecute(String s) {
+                            super.onPostExecute(s);
+                            Log.i(TAG, "onSuccess Local trips were synced");
+                            populateTripList();
+                            dialog.dismiss();
+                        }
+                    }.execute(null, null, null);
             }
 
             @Override
@@ -1021,15 +1188,6 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         serverTrip.save();
         Log.i(TAG, "updateLocalTrip Local trip was created.");
         return true;
-    }
-
-    void updateLocalTrips(String crmResponse, LocalTripsUpdatedListener listener) {
-        ArrayList<FullTrip> serverTrips = FullTrip.createTripsFromCrmJson(crmResponse);
-        for (FullTrip serverTrip : serverTrips) {
-            Log.i(TAG, "onSuccess Updating local trip with server trip...");
-            updateLocalTrip(serverTrip);
-            listener.onFinished();
-        }
     }
 
     public void confirmSubmittedTrips() throws UnsupportedEncodingException {
@@ -1326,7 +1484,6 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                             @Override
                             public void onYes() {
                                 if (datasource.deleteFulltrip(clickedTrip.getTripcode(), true)) {
-                                    populateTripList();
                                     Toast.makeText(getContext(), "Deleted trip.", Toast.LENGTH_SHORT).show();
                                     populateTripList();
                                     dialog.dismiss();
@@ -1460,10 +1617,10 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
     public File makeReceiptFile(int monthNum, int year) {
         MySqlDatasource ds = new MySqlDatasource();
-        List<FullTrip> allTrips = ds.getTrips(monthNum, year);
+        List<FullTrip> allTrips = ds.getTrips(monthNum, year, true);
         String fName = "mileage_receipt_month_" + DateTime.now().getMonthOfYear() + "_year_" +
                 DateTime.now().getYear() + ".txt";
-        File path = new File(Environment.getExternalStorageDirectory().getPath(), fName);
+        File path = new File(Helpers.Files.getAppDirectory(), fName);
 
         float total = 0f;
         float tripAmt = 0f;
@@ -1506,27 +1663,24 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     }
 
     @SuppressLint("NewApi")
-    public void showReceiptMonthPicker() {
-        MonthYearPickerDialog pd = new MonthYearPickerDialog();
-        pd.setListener(new DatePickerDialog.OnDateSetListener() {
+    private void showReceiptMonthPicker() {
+        MonthYearPickerDialog mpd = new MonthYearPickerDialog();
+        mpd.setListener(new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
                 confirmReceipt(month, year);
             }
         });
-        pd.show(getFragmentManager(), "MonthYearPickerDialog");
+        mpd.show(getParentFragmentManager(), "MonthYearPickerDialog");
     }
 
-    public void confirmReceipt(final int month, final int year) {
+    private void confirmReceipt(final int month, final int year) {
         MySqlDatasource mileage = new MySqlDatasource();
         List<FullTrip> tripsThisMonth = mileage.getTrips(month, year);
         int subbed = 0;
-        int unsubbed = 0;
         for (FullTrip t : tripsThisMonth) {
             if (t.getIsSubmitted()) {
                 subbed += 1;
-            } else {
-                unsubbed += 1;
             }
         }
 
@@ -1539,38 +1693,6 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             doActualReceipt(month, year);
         }
     }
-
-    /*public void checkForUpdate() {
-        new DelayedWorker(1000, new DelayedWorker.DelayedJob() {
-            @Override
-            public void doWork() {
-                // Toast.makeText(getContext(), "Checking for update...", Toast.LENGTH_SHORT).show();
-                MileBuddyUpdater updater = new MileBuddyUpdater(getContext());
-                updater.checkForUpdate(new MileBuddyUpdater.UpdateCheckListener() {
-                    @Override
-                    public void onAvailable(MileBuddyUpdate updateObject) {
-                        Log.i(TAG, "onAvailable Update is available ver: " + updateObject.version);
-                        Toast.makeText(getContext(), updateObject.version + " is available!", Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onNotAvailable() {
-                        Log.i(TAG, "onNotAvailable Update not available");
-                    }
-
-                    @Override
-                    public void onError(String msg) {
-                        Log.i(TAG, "onError " + msg);
-                    }
-                });
-            }
-
-            @Override
-            public void onComplete(Object object) {
-
-            }
-        });
-    }*/
 
     interface LocalTripsUpdatedListener {
         void onFinished();

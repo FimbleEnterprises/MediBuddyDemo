@@ -87,11 +87,17 @@ public class RestoreDbActivity extends AppCompatActivity {
     void populate() {
         final ArrayList<String> filenames = new ArrayList<>();
 
-        for (File file : Helpers.Files.getBackupDirectory().listFiles()) {
-            if (file.getName().endsWith(".db")) {
-                filenames.add(file.getName());
-                backups.add(file);
+        try {
+            for (File file : Helpers.Files.getBackupDirectory().listFiles()) {
+                if (file.getName().endsWith(".db")) {
+                    filenames.add(file.getName());
+                    backups.add(file);
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(context, "Failed to locate backup directory!", Toast.LENGTH_SHORT).show();
+            finish();
         }
 
         RecyclerView recyclerView = findViewById(R.id.backup_list);

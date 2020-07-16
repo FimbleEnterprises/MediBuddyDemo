@@ -152,7 +152,100 @@ public class MySqlDatasource {
         }
     }
 
-    /** Pass null to add nothing to the top of the list **/
+    public boolean updateAccounts(AccountAddresses accounts) {
+
+        boolean result = true;
+        try {
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_ACTS_GSON, accounts.toGson());
+
+            return database.update(TABLE_MY_ACCOUNTS, values, null, null) > 0;
+
+        } catch (SQLException e) {
+            result = false;
+            e.printStackTrace();
+        }
+        Log.i(TAG, "updateAccounts " + result);
+        return result;
+    }
+
+    public boolean createAccounts(AccountAddresses accounts) {
+        try {
+
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_ACTS_GSON, accounts.toGson());
+
+            // Returns the id of the childView just added or -1 if something went wrong
+            long insertId = database.insert(TABLE_MY_ACCOUNTS, null, values);
+            Log.i(TAG, "createAccounts " + (insertId > -1));
+            return insertId > -1;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean updateUserAddys(UserAddresses addresses) {
+
+        boolean result = true;
+        try {
+            /*
+            COLUMN_ID + " integer primary key autoincrement, " +
+            COLUMN_JSON + " text, " +
+            COLUMN_SYSTEMUSERID + " text, " +
+            COLUMN_IS_ME + " integer);";    // Database creation sql statement
+             */
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_ADDY_GSON, addresses.toGson());
+
+            return database.update(TABLE_ADDYS, values, null, null) > 0;
+
+        } catch (SQLException e) {
+            result = false;
+            e.printStackTrace();
+        }
+        Log.i(TAG, "updateAccounts " + result);
+        return result;
+    }
+
+    public boolean createUserAddys(UserAddresses addresses) {
+        try {
+
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_ADDY_GSON, addresses.toGson());
+
+            // Returns the id of the childView just added or -1 if something went wrong
+            long insertId = database.insert(TABLE_ADDYS, null, values);
+            Log.i(TAG, "createAccounts " + (insertId > -1));
+            return insertId > -1;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public UserAddresses getUserAddys() {
+
+        String sql = COLUMN_ADDY_GSON;
+
+        Cursor cursor = database.rawQuery("SELECT " + sql + " FROM " + TABLE_ADDYS, null);
+        UserAddresses addresses = null;
+        cursor.moveToFirst();
+        if (cursor.getCount() > 0) {
+            String gson = cursor.getString(getColumnIndex(COLUMN_ADDY_GSON, cursor));
+            addresses = UserAddresses.fromGson(gson);
+            if (addresses != null) {
+                Log.i(TAG, "getAct Found " + addresses.addresses.size() + " addresses.");
+            }
+        } else {
+            Log.w(TAG, "getUser: User does not exist.");
+            return null;
+        }
+        // Make sure to close the cursor
+        cursor.close();
+        return addresses;
+    }
+
     public MediUser getMe() {
 
         String sql = COLUMN_JSON + "," +
@@ -175,6 +268,29 @@ public class MySqlDatasource {
         cursor.close();
         return user;
     }
+
+    public AccountAddresses getAccounts() {
+
+        String sql = COLUMN_ACTS_GSON;
+
+        Cursor cursor = database.rawQuery("SELECT " + sql + " FROM " + TABLE_MY_ACCOUNTS, null);
+        AccountAddresses accounts = null;
+        cursor.moveToFirst();
+        if (cursor.getCount() > 0) {
+            String gson = cursor.getString(getColumnIndex(COLUMN_ACTS_GSON, cursor));
+            accounts = AccountAddresses.fromGson(gson);
+            if (accounts != null) {
+                Log.i(TAG, "getAct Found " + accounts.addresses.size() + " accounts: ");
+            }
+        } else {
+            Log.w(TAG, "getUser: User does not exist.");
+            return null;
+        }
+        // Make sure to close the cursor
+        cursor.close();
+        return accounts;
+    }
+    /** Pass null to add nothing to the top of the list **/
 
     /** Pass null to add nothing to the top of the list **/
     public MediUser getUser(String userid) {
@@ -296,12 +412,20 @@ public class MySqlDatasource {
     }
 
     public ArrayList<FullTrip> getTrips(int monthNum, int year) {
+        return getTrips(monthNum, year, false);
+    }
+
+    public ArrayList<FullTrip> getTrips(int monthNum, int year, boolean isSubmitted) {
         ArrayList<FullTrip> trips = new ArrayList<>();
 
         String sql = "" +
                 "SELECT * " +
                 "FROM fulltrips " +
                 "ORDER BY tripcode desc";
+
+        if (isSubmitted) {
+            sql = sql.replace("FROM fulltrips ", "FROM fulltrips WHERE " + COLUMN_IS_SUBMITTED + " = 1 ");
+        }
 
         Cursor c = database.rawQuery(sql, null);
 

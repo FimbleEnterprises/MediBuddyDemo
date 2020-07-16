@@ -47,6 +47,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Field;
+import java.math.RoundingMode;
 import java.nio.channels.FileChannel;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -897,6 +898,24 @@ public class Helpers {
             return Integer.parseInt(subStrLng);
         }
 
+        public static double formatAsTwoDecimalPointNumber(double number, RoundingMode roundingMode) {
+            DecimalFormat df2 = new DecimalFormat("#.##");
+            df2.setRoundingMode(roundingMode);
+            return Double.parseDouble(df2.format(number));
+        }
+
+        public static double formatAsOneDecimalPointNumber(double number, RoundingMode roundingMode) {
+            DecimalFormat df2 = new DecimalFormat("#.#");
+            df2.setRoundingMode(roundingMode);
+            return Double.parseDouble(df2.format(number));
+        }
+
+        public static int formatAsZeroDecimalPointNumber(double number, RoundingMode roundingMode) {
+            DecimalFormat df2 = new DecimalFormat("#");
+            df2.setRoundingMode(roundingMode);
+            return Integer.parseInt(df2.format(number));
+        }
+
         public static String convertToCurrency(double amount) {
             NumberFormat nf = NumberFormat.getCurrencyInstance();
             return nf.format(amount);
@@ -1421,7 +1440,10 @@ public class Helpers {
         }// END deleteDirectory()
 
         public static void makeAppDirectory() {
-            File dir = new File(Environment.getExternalStorageDirectory(), "MileBuddy");
+
+            Context context = MyApp.getAppContext();
+
+            File dir = new File(context.getExternalFilesDir(null), "MileBuddy");
 
             if (!dir.exists() || !dir.isDirectory()) {
                 Log.i(TAG, "makeAppDirectory: " + dir.mkdirs());
@@ -1431,8 +1453,10 @@ public class Helpers {
         }
 
         public static void makeBackupDirectory() {
-            File dir = new File(Environment.getExternalStorageDirectory()
-                    + File.separator + "MileBuddy" + File.separator + "Backups");
+
+            Context context = MyApp.getAppContext();
+
+            File dir = new File(getAppDirectory().getPath(), "Backups");
 
             if (!dir.exists() || !dir.isDirectory()) {
                 Log.i(TAG, "makeBackupDirectory: " + dir.mkdirs());;
@@ -1442,18 +1466,22 @@ public class Helpers {
         }
 
         public static File getAppDirectory() {
-            makeAppDirectory();
-            File file = new File(Environment.getExternalStorageDirectory(), "MileBuddy");
-            Log.i(TAG, "getAppDirectory: " + file.getAbsolutePath());
-            return file;
+                makeAppDirectory();
+                Context context = MyApp.getAppContext();
+                File dir = new File(context.getExternalFilesDir(null), "MileBuddy");
+                Log.i(TAG, "getAppDirectory: " + dir.getAbsolutePath());
+                return dir;
+        }
+
+        public static File getAppDownloadDirectory() {
+            return new File(MyApp.getAppContext().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString());
         }
 
         public static File getBackupDirectory() {
             makeAppDirectory();
-            File file = new File(Environment.getExternalStorageDirectory()
-                    + File.separator + "MileBuddy" + File.separator + "Backups");
-            Log.i(TAG, "getBackupDirectory: " + file.getAbsolutePath());
-            return file;
+            File dir = new File(getAppDirectory(), "Backups");
+            Log.i(TAG, "getBackupDirectory: " + dir.getAbsolutePath());
+            return dir;
         }
     }
 

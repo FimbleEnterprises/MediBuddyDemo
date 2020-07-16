@@ -359,10 +359,17 @@ public class QueryFactory {
             public static final String ON_OR_AFTER = "on-or-after";
             public static final String ON_OR_BEFORE = "on-or-before";
             public static final String TODAY = "today";
+            public static final String YESTERDAY = "yesterday";
+            public static final String LAST_X_DAys = "last-x-days";
             public static final String THIS_WEEK = "this-week";
+            public static final String LAST_WEEK = "last-week";
+            public static final String LAST_X_WEEKS = "last-x-weeks";
             public static final String THIS_MONTH = "this-month";
             public static final String LAST_MONTH = "last-month";
+            public static final String LAST_X_MONTHS = "last-x-months";
             public static final String THIS_YEAR = "this-year";
+            public static final String LAST_YEAR = "last-year";
+            public static final String LAST_X_YEARS = "last-x-years";
             public static final String CONTAINS = "like";
             public static final String NOT_CONTAINS = "not-like";
             public static final String CONTAINS_DATA = "not-null";

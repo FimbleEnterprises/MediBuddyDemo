@@ -51,13 +51,15 @@ import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.PagerTitleStrip;
 import cn.pedant.SweetAlert.SweetAlertDialog;
 
-public class Activity_ManualTrip extends FragmentActivity implements OnMapReadyCallback
+public class Activity_ManualTrip extends AppCompatActivity implements OnMapReadyCallback
 {
 
     public static AutocompleteSupportFragment autoCompleteFrag_From;
@@ -119,7 +121,7 @@ public class Activity_ManualTrip extends FragmentActivity implements OnMapReadyC
             public void onPageActuallyFuckingChanged(int pageIndex) {
                 if (pageIndex == 4) {
                     btnNext.setText("Save");
-                    btnNext.setBackgroundResource(R.drawable.btn_glass);
+                    btnNext.setBackgroundResource(R.drawable.btn_glass_gray_orange_border);
                 } else {
                     btnNext.setText("Next");
                     btnNext.setBackgroundResource(R.drawable.btn_glass_gray);
@@ -209,6 +211,17 @@ public class Activity_ManualTrip extends FragmentActivity implements OnMapReadyC
             }
         }
 
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return super.onSupportNavigateUp();
     }
 
     @Override

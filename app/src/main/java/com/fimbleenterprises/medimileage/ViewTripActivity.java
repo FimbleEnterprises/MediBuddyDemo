@@ -21,12 +21,10 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.gson.Gson;
-import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
 import android.util.Log;
 import android.view.KeyEvent;
@@ -39,11 +37,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.w3c.dom.Document;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -81,6 +79,8 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
     boolean firstLoad = true;
     Context context;
     int curMapType = GoogleMap.MAP_TYPE_NORMAL;
+    ArrayList<MyMapMarker> myMapMarkers = new ArrayList<>();
+    MyInfoWindowAdapter infoWindowAdapter;
 
     interface DrawCompleteListener {
         void onFinished();
@@ -91,8 +91,8 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map_view);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        /*Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);*/
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -109,6 +109,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
             if (getIntent().hasExtra(TRIP_ENTRIES)) {
                 Log.i(TAG, "onNewIntent Found trip entries passed in an intent.  Gon' use em!");
                 tripEntries = getIntent().getParcelableArrayListExtra(TRIP_ENTRIES);
+                clickedTrip.tripEntries = tripEntries;
                 Log.i(TAG, "onNewIntent " + tripEntries.size() + " entries were used from the intent extra!");
             }
         } else {
@@ -120,7 +121,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
         googleDataExpanded.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (googlePoly.isVisible()) {
+                if (googlePoly != null && googlePoly.isVisible()) {
                     showGooglePoly(false);
                 }
             }
@@ -156,8 +157,20 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
             public void onClick(View view) {
                 showGooglePoly(toggleShowHideGoogle.isChecked());
                 Log.i(TAG, "onClick google button clicked.");
+
             }
-        });
+        });// Create the navigation up button
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return super.onSupportNavigateUp();
     }
 
     public void cycleMapType() {
@@ -244,6 +257,9 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
             }
         });
 
+        infoWindowAdapter = new MyInfoWindowAdapter(this);
+        this.map.setInfoWindowAdapter(infoWindowAdapter);
+
         new DelayedWorker(500, 0, new DelayedWorker.DelayedJob() {
             @Override
             public void doWork() {
@@ -255,6 +271,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
                     moveCameraToShowMarkers(true, 550, CAMERA_PADDING);
                     showGooglePoly(toggleShowHideGoogle.isChecked());
                     populateDetails(clickedTrip);
+                    populateAllAddresses();
                     Log.i(TAG, "onFinished route finished");
                 } else {
                     getTripEntries(new DrawCompleteListener() {
@@ -264,6 +281,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
                             moveCameraToShowMarkers(true, 550, CAMERA_PADDING);
                             showGooglePoly(toggleShowHideGoogle.isChecked());
                             populateDetails(clickedTrip);
+                            populateAllAddresses();
                         }
 
                         @Override
@@ -279,6 +297,98 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
 
             }
         });
+    }
+
+    void populateAllAddresses() {
+        try {
+            myMapMarkers = new ArrayList<>();
+            UserAddresses userAddresses = UserAddresses.getSavedUserAddys();
+            final AccountAddresses accountAddresses = AccountAddresses.getSavedActAddys();
+            Collections.sort(accountAddresses.addresses, new Comparator<AccountAddresses.AccountAddress>() {
+                @Override
+                public int compare(AccountAddresses.AccountAddress p1, AccountAddresses.AccountAddress p2) {
+                    // return p1.age+"".compareTo(p2.age+""); //sort by age
+                    return p1.accountname.compareTo(p2.accountname); // if you want to short by name
+                }
+            });
+
+            if (userAddresses != null && ! options.getShouldUpdateUserAddys()) {
+                for (UserAddresses.UserAddress addy : userAddresses.addresses) {
+                    Bitmap pin = Helpers.Bitmaps.getBitmapFromResource(context, R.drawable.house_icon_black_48x);
+                    MarkerOptions marker = new MarkerOptions();
+                    LatLng position = new LatLng(addy.latitude, addy.longitude);
+                    marker.position(position);
+                    marker.title(addy.fullname + "'s home");
+                    marker.icon(BitmapDescriptorFactory.fromBitmap(pin));
+
+                    MyMapMarker myMapMarker = new MyMapMarker(addy);
+                    myMapMarker.marker = map.addMarker(marker);
+                    myMapMarkers.add(myMapMarker);
+                }
+                infoWindowAdapter.setMyMapMarkers(myMapMarkers);
+            } else {
+                UserAddresses.getAllUserAddysFromCrm(context, new MyInterfaces.GetUserAddysListener() {
+                    @Override
+                    public void onSuccess(UserAddresses addresses) {
+                        addresses.save();
+                        Toast.makeText(context, "User addresses were saved locally.", Toast.LENGTH_SHORT).show();
+                        infoWindowAdapter.setMyMapMarkers(myMapMarkers);
+                    }
+
+                    @Override
+                    public void onFailure(String msg) {
+                        Toast.makeText(context, "Failed to obtain user addresses.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            if (accountAddresses != null && ! options.getShouldUpdateActAddys()) {
+                for (AccountAddresses.AccountAddress addy : accountAddresses.addresses) {
+                    Bitmap pin = Helpers.Bitmaps.getBitmapFromResource(context, R.drawable.maps_hospital_32x37);
+                    MarkerOptions marker = new MarkerOptions();
+                    LatLng position = new LatLng(addy.latitude, addy.longitude);
+                    marker.position(position);
+                    marker.title(addy.accountname);
+                    marker.icon(BitmapDescriptorFactory.fromBitmap(pin));
+
+                    MyMapMarker myMapMarker = new MyMapMarker(addy);
+                    myMapMarker.name = addy.accountname;
+                    myMapMarker.marker = map.addMarker(marker);
+                    myMapMarkers.add(myMapMarker);
+                }
+                infoWindowAdapter.setMyMapMarkers(myMapMarkers);
+            } else {
+                AccountAddresses.getFromCrm(this, new MyInterfaces.GetAccountsListener() {
+                    @Override
+                    public void onSuccess(AccountAddresses accounts) {
+                        Log.i(TAG, "onSuccess Obtained " + accounts.addresses.size() + " act addresses from CRM");
+                        accounts.save();
+                        Toast.makeText(context, "Account addresses were updated and saved.", Toast.LENGTH_SHORT).show();
+                        for (AccountAddresses.AccountAddress addy : accounts.addresses) {
+                            Bitmap pin = Helpers.Bitmaps.getBitmapFromResource(context, R.drawable.maps_hospital_32x37);
+                            MarkerOptions marker = new MarkerOptions();
+                            LatLng position = new LatLng(addy.latitude, addy.longitude);
+                            marker.position(position);
+                            marker.title(addy.accountname);
+                            marker.icon(BitmapDescriptorFactory.fromBitmap(pin));
+
+                            MyMapMarker myMapMarker = new MyMapMarker(addy);
+                            myMapMarker.name = addy.accountname;
+                            myMapMarker.marker = map.addMarker(marker);
+                            myMapMarkers.add(myMapMarker);
+                        }
+                        infoWindowAdapter.setMyMapMarkers(myMapMarkers);
+                    }
+
+                    @Override
+                    public void onFailure(String msg) {
+                        Toast.makeText(context, "Failed to update account addressess", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @SuppressLint("StaticFieldLeak")

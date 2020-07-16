@@ -1,8 +1,11 @@
 package com.fimbleenterprises.medimileage;
 
 import android.content.Context;
+import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
+import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -10,11 +13,15 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import cz.msebera.android.httpclient.Header;
+
 public class MediUser {
 
     // USed to cache the user object representing the actual user so we don't have to build
     // a user from a saved JSON string from preferences.
     //private static Obj_MediUser currentUser;
+
+    private static final String TAG = "MediUser";
 
     public String etag;
     public String territoryname;
@@ -26,6 +33,9 @@ public class MediUser {
     public String managerid;
     public String email;
     public String fullname;
+    public String address;
+    public double latitude;
+    public double longitude;
     public String title;
     public String domainname;
     public String mobilephone;
@@ -91,6 +101,20 @@ public class MediUser {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+               try {
+                   if (!json.isNull("address1_latitude")) {
+                       this.latitude = (json.getDouble("address1_latitude"));
+                   }
+               } catch (JSONException e) {
+                   e.printStackTrace();
+               }
+               try {
+                   if (!json.isNull("address1_longitude")) {
+                       this.longitude = (json.getDouble("address1_longitude"));
+                   }
+               } catch (JSONException e) {
+                   e.printStackTrace();
+               }
                 try {
                     if (!json.isNull("_parentsystemuserid_valueFormattedValue")) {
                         this.managername = (json.getString("_parentsystemuserid_valueFormattedValue"));
@@ -98,6 +122,13 @@ public class MediUser {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+               try {
+                   if (!json.isNull("address1_composite")) {
+                       this.address = (json.getString("address1_composite"));
+                   }
+               } catch (JSONException e) {
+                   e.printStackTrace();
+               }
                 try {
                     if (!json.isNull("_parentsystemuserid_value")) {
                         this.managerid = (json.getString("_parentsystemuserid_value"));
@@ -193,6 +224,14 @@ public class MediUser {
 
     public static MediUser fromGson(String gson) {
         return new Gson().fromJson(gson, MediUser.class);
+    }
+
+    public boolean hasAddress() {
+        return address != null;
+    }
+
+    public boolean hasGeoLoc() {
+        return (latitude != 0d && longitude != 0d);
     }
 
     public String toGson() {

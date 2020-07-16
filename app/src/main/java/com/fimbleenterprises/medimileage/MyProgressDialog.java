@@ -3,8 +3,6 @@ package com.fimbleenterprises.medimileage;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Typeface;
-import android.graphics.fonts.Font;
-import android.graphics.fonts.SystemFonts;
 import android.os.Build;
 import android.util.Log;
 import android.util.TypedValue;
@@ -20,6 +18,7 @@ import cn.pedant.SweetAlert.SweetAlertDialog;
  */
 
 public class MyProgressDialog extends SweetAlertDialog implements DialogInterface.OnShowListener {
+
     private static final String TAG = "MyProgressDialog";
 
     public MyProgressDialog(Context context) {

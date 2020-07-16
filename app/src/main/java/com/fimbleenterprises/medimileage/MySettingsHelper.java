@@ -2,12 +2,21 @@ package com.fimbleenterprises.medimileage;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.gson.Gson;
+import com.google.gson.internal.$Gson$Preconditions;
+
+import org.joda.time.DateTime;
+import org.joda.time.Days;
+import org.json.JSONObject;
 
 import java.io.File;
+
+import androidx.annotation.Nullable;
 
 public class MySettingsHelper {
 
@@ -25,13 +34,13 @@ public class MySettingsHelper {
     public static final String TRIP_MINDER_INTERVAL = "TRIP_MINDER_INTERVAL";
     public static final String CONFIRM_END = "CONFIRM_END";
     public static final String CHECK_FOR_UPDATES = "CHECK_FOR_UPDATES";
-    public static final String UPDATE_AVAILABLE = "UPDATE_AVAILABLE";
-    public static final String UPDATE_FILENAME = "UPDATE_FILENAME";
-    public static final String UPDATE_VERSION = "UPDATE_VERSION";
-    public static final String UPDATE_CHANGELOG = "UPDATE_CHANGELOG";
     public static final String NAME_TRIP_ON_START = "NAME_TRIP_ON_START";
     public static final String DEBUG_MODE = "DEBUG_MODE";
     public static final String MAP_MODE = "MAP_MODE";
+    public static final String MILEBUDDY_UPDATE_JSON = "MILEBUDDY_UPDATE_JSON";
+    public static final String FCM_TOKEN = "FCM_TOKEN";
+    public static final String LAST_UPDATED_ACT_ADDYS = "LAST_UPDATED_ACT_ADDYS";
+    public static final String LAST_UPDATED_USER_ADDYS = "LAST_UPDATED_USER_ADDYS";
 
     Context context;
     SharedPreferences prefs;
@@ -39,6 +48,48 @@ public class MySettingsHelper {
     public MySettingsHelper(Context context) {
         this.context = context;
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
+    }
+
+    public SharedPreferences getSharedPrefs() {
+        return prefs;
+    }
+
+    public boolean getShouldUpdateUserAddys() {
+        try {
+            DateTime now = DateTime.now();
+            DateTime lastUpdated = new DateTime(prefs.getString(LAST_UPDATED_USER_ADDYS, null));
+            return Days.daysBetween(lastUpdated, now).getDays() >= UserAddresses.ADDYS_VALID_FOR_X_DAYS;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return true;
+        }
+    }
+
+    public boolean getShouldUpdateActAddys() {
+        try {
+            DateTime now = DateTime.now();
+            DateTime lastUpdated = new DateTime(prefs.getString(LAST_UPDATED_ACT_ADDYS, null));
+            return Days.daysBetween(lastUpdated, now).getDays() >= AccountAddresses.ADDYS_VALID_FOR_X_DAYS;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return true;
+        }
+    }
+
+    public void updateLastUpdatedUserAddys() {
+        prefs.edit().putString(LAST_UPDATED_USER_ADDYS, DateTime.now().toString()).commit();
+    }
+
+    public void updateLastUpdatedActAddys() {
+        prefs.edit().putString(LAST_UPDATED_ACT_ADDYS, DateTime.now().toString()).commit();
+    }
+
+    public String getFcmToken() {
+        return prefs.getString(FCM_TOKEN, null);
+    }
+
+    public void setFcmToken(String token) {
+        prefs.edit().putString(FCM_TOKEN, token).commit();
     }
 
     public String getDbPath() {
@@ -168,57 +219,75 @@ public class MySettingsHelper {
         prefs.edit().putBoolean(CHECK_FOR_UPDATES, val).commit();
     }
 
-    public boolean updateIsAvailable() {
-        return prefs.getBoolean(UPDATE_AVAILABLE, false);
-    }
+    /**
+     * Checks if the preferences has a saved update populated on a previous update check.  It also
+     * checks if the file has already been downloaded and exists.  If either is false it clears the
+     * preferences with respect to the update entirely.
+     * @return True if update information is saved into preferences and the file has already been
+     * downloaded and exists.
+     */
+    public boolean updateIsAvailableLocally() {
 
-    public void updateIsAvailable(boolean val) {
-        prefs.edit().putBoolean(UPDATE_AVAILABLE, val).commit();
-    }
+        MileBuddyUpdate update = null;
 
-    public File getUpdateFile() {
-        try {
-            File file = new File(prefs.getString(UPDATE_FILENAME, null));
-            if (file.exists()) {
-                Log.i(TAG, "getUpdateFile:" + file.getAbsolutePath());
-                return file;
-            } else {
-                Log.i(TAG, "getUpdateFile: Does not exist");
-                return null;
+        String val = prefs.getString(MILEBUDDY_UPDATE_JSON, null);
+        if (val != null) {
+            try {
+                JSONObject json = new JSONObject(prefs.getString(MILEBUDDY_UPDATE_JSON, null));
+                if (json != null) {
+                    update = new MileBuddyUpdate(json);
+                }
+            } catch (Exception e) {
+                Log.w(TAG, "updateIsAvailableLocally: Failed checking for a local update!");
+                e.printStackTrace();
             }
+        }
+
+        if (update == null) {
+            Log.w(TAG, "updateIsAvailableLocally: No local update was found on the device.");
+            clearMileBuddyUpdate();
+            return false;
+        } else if (update.version > Helpers.Application.getAppVersion(MyApp.getAppContext())) {
+            Log.i(TAG, "updateIsAvailableLocally Preferences says a local update is available.  " +
+                    "Checking if the actual file exists...");
+            File file = new File(Helpers.Files.getAppDownloadDirectory().getPath(), update.version + ".apk");
+            if (file.exists()) {
+                Log.i(TAG, "updateIsAvailableLocally File is available!");
+                return true;
+            } else {
+                Log.w(TAG, "updateIsAvailableLocally: File does not exist!  Clearing preferences " +
+                        "of an available local update!");
+                clearMileBuddyUpdate();
+                return false;
+            }
+        } else {
+            Log.w(TAG, "updateIsAvailableLocally: No local update was found.  Clearing all things " +
+                    "update related.  Update will be downloaded if available next time it is checked.");
+            clearMileBuddyUpdate();
+            return false;
+        }
+    }
+
+    public MileBuddyUpdate getMileBuddyUpdate() {
+        MileBuddyUpdate update = null;
+        try {
+            update = new MileBuddyUpdate(new JSONObject(prefs.getString(MILEBUDDY_UPDATE_JSON, null)));
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+        }
+        return update;
+    }
+
+    public void setMilebuddyUpdate(String update) {
+        if (update == null) {
+            prefs.edit().remove(MILEBUDDY_UPDATE_JSON).commit();
+        } else {
+            prefs.edit().putString(MILEBUDDY_UPDATE_JSON, update).commit();
         }
     }
 
-    public void setUpdateFile(File file) {
-        if (file == null) {
-            prefs.edit().putString(UPDATE_FILENAME, null).commit();
-            Log.i(TAG, "setUpdateFile: null");
-            return;
-        }
-
-        prefs.edit().putString(UPDATE_FILENAME, file.getAbsolutePath()).commit();
-        Log.i(TAG, "setUpdateFile:" + file.getAbsolutePath());
-    }
-
-    public float getUpdateVersion() {
-        Log.i(TAG, "getUpdateVersion " + prefs.getFloat(UPDATE_VERSION, 1.0f));
-        return prefs.getFloat(UPDATE_VERSION, 1.0f);
-    }
-
-    public void setUpdateVersion(float version) {
-        prefs.edit().putFloat(UPDATE_VERSION, version).commit();
-        Log.i(TAG, "getUpdateVersion " + version);
-    }
-
-    public void setUpdateChangelog(String changelog) {
-        prefs.edit().putString(UPDATE_CHANGELOG, changelog).commit();
-    }
-
-    public String getUpdateChangelog() {
-        return prefs.getString(UPDATE_CHANGELOG, null);
+    public void clearMileBuddyUpdate() {
+        prefs.edit().remove(MILEBUDDY_UPDATE_JSON).commit();
     }
 
     public boolean getNameTripOnStart() {

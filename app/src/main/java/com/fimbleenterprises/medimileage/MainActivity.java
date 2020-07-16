@@ -1,8 +1,8 @@
 package com.fimbleenterprises.medimileage;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -23,16 +23,19 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.ui.settings.mileage.SettingsActivity;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
-import org.joda.time.DateTime;
-import org.joda.time.LocalDateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Objects;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -58,19 +61,18 @@ public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
     MySettingsHelper options;
-    MyLocationService service;
-    public static int SERVICE_ID = 200;
     IntentFilter locFilter = new IntentFilter(MyLocationService.LOCATION_EVENT);
     BroadcastReceiver locReceiver;
-    private NotificationManager mNotificationManager;
     NavController navController;
     FragmentManager fragmentManager;
     Activity activity;
     DrawerLayout drawer;
-    ArrayList<String>myStack = new ArrayList();
+    ArrayList<String> myStack = new ArrayList<>();
     ArrayList<MileageUser> users = new ArrayList<>();
     NavigationView navigationView;
+    MyFirebaseMessagingService fcmService;
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -98,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         TextView txtVersion = navigationView.getHeaderView(0).findViewById(R.id.textViewVersion);
-        txtVersion.setText("Version " + Helpers.Application.getAppVersion(this));
+        txtVersion.setText(getString(R.string.version) + Helpers.Application.getAppVersion(this));
 
         navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
@@ -107,9 +109,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDestinationChanged(@NonNull NavController controller, @NonNull NavDestination destination, @Nullable Bundle arguments) {
                 Log.i(TAG, "onDestinationChanged " + destination.getLabel());
+                assert destination.getLabel() != null;
                 String dest = destination.getLabel().toString();
                 if (isInStack(dest)) {
-                    myStack.remove(getPosInStack(dest));
                     myStack.add(0, dest);
                 } else {
                     myStack.add(dest);
@@ -123,18 +125,20 @@ public class MainActivity extends AppCompatActivity {
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                if (item.getTitle().equals("Retry")) {
+                if (item.getTitle().equals(getString(R.string.retry))) {
                     Log.i(TAG, "onNavigationItemSelected Retrying user populate...");
                     drawer.closeDrawer(navigationView);
                     Menu m = navigationView.getMenu();
-                    SubMenu subMenu = m.getItem(2).getSubMenu();
-                    subMenu.getItem(0).setTitle("Loading...");
+                    SubMenu subMenu = m.getItem(3).getSubMenu();
+                    subMenu.getItem(0).setTitle(getString(R.string.loading));
                     getDistinctUsersWithTrips();
-                } else if (item.getTitle().equals("Loading...")) {
+                } else if (item.getTitle().equals(getString(R.string.loading))) {
                     return false;
                 } else if (item.getTitle().equals("Settings")) {
                     Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
                     startActivityForResult(intent, 0);
+                } else if (item.getTitle().toString().toLowerCase().equals("stats")) {
+                    startActivity(new Intent(activity, AggregateStatsActivity.class));
                 } else {
                     try {
                         Log.i(TAG, "onNavigationItemSelected index:" + item.getItemId());
@@ -154,17 +158,17 @@ public class MainActivity extends AppCompatActivity {
         drawer.addDrawerListener(new DrawerLayout.DrawerListener() {
 
             @Override
-            public void onDrawerSlide(View drawerView, float slideOffset) {
+            public void onDrawerSlide(@NonNull View drawerView, float slideOffset) {
                 //Called when a drawer's position changes.
             }
 
             @Override
-            public void onDrawerOpened(View drawerView) {
+            public void onDrawerOpened(@NonNull View drawerView) {
                 getDistinctUsersWithTrips();
             }
 
             @Override
-            public void onDrawerClosed(View drawerView) {
+            public void onDrawerClosed(@NonNull View drawerView) {
                 // Called when a drawer has settled in a completely closed state.
             }
 
@@ -181,19 +185,16 @@ public class MainActivity extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
                 if (intent != null) {
                     if (intent.getParcelableExtra(MyLocationService.LOCATION_CHANGED) != null) {
-                        LocationContainer update = intent.getParcelableExtra(MyLocationService.LOCATION_CHANGED);
+                        // LocationContainer update = intent.getParcelableExtra(MyLocationService.LOCATION_CHANGED);
                         Log.d(TAG, "onReceive Location broadcast received!");
                     }
                 }
             }
         };
 
-        mNotificationManager =
-                (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
-
-        if ( MediUser.getMe() == null || ! options.hasCachedCredentials()) {
+        if ( MediUser.getMe(this) == null || ! options.hasCachedCredentials()) {
             navController.navigate(R.id.action_HomeFragment_to_HomeSecondFragment);
-            Toast.makeText(this, "You must login", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.must_login), Toast.LENGTH_SHORT).show();
         }
 
         try {
@@ -229,32 +230,22 @@ public class MainActivity extends AppCompatActivity {
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},PERMISSION_UPDATE);
         }
 
-        new DelayedWorker(15000, new DelayedWorker.DelayedJob() {
-            @Override
-            public void doWork() {
-                try {
-                    updateUserOptionsWithCrm();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+        try {
+            // Requests the device's FCM token when instantiated and saves it to preferences.
+            fcmService = new MyFirebaseMessagingService(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-            @Override
-            public void onComplete(Object object) {
-                Log.i(TAG, "onComplete Updated user's settings in CRM.");
-            }
-        });
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        Bundle bundle = getIntent().getExtras();
-
         if (getIntent() != null && getIntent().getAction() != null
                 && getIntent().getAction().equals(MyLocationService.STOP_TRIP_ACTION)) {
             stopService(new Intent(this, MyLocationService.class));
-            Toast.makeText(this, "Stopping trip...", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.stopping_trip), Toast.LENGTH_SHORT).show();
         }
 
         registerReceiver(locReceiver, locFilter);
@@ -270,10 +261,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            int backstackcount = fragmentManager.getPrimaryNavigationFragment().getChildFragmentManager().getBackStackEntryCount();
-            for (int i = 0; i < backstackcount; i++) {
-                FragmentManager.BackStackEntry entry = fragmentManager.getPrimaryNavigationFragment().getChildFragmentManager().getBackStackEntryAt(i);
-            }
+            int backstackcount = Objects.requireNonNull(fragmentManager.getPrimaryNavigationFragment()).getChildFragmentManager().getBackStackEntryCount();
 
             try {
                 if (myStack.get(1).equals("Login")) {
@@ -283,7 +271,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.i(TAG, "onKeyDown Popped backstack entry");
                     }
                 }
-            } catch (Exception e) {}
+            } catch (Exception ignored) {}
         }
 
         return super.onKeyDown(keyCode, event);
@@ -296,15 +284,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return false;
-    }
-
-    int getPosInStack(String name) {
-        for (int i = 0; i < myStack.size(); i++) {
-            if (myStack.get(i).equals(name)) {
-                return i;
-            }
-        }
-        return -1;
     }
 
     @Override
@@ -322,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.w(TAG, "onReceive: RECEIVED STOP REQUEST AT ACTIVITY!");
                 Log.w(TAG, "onReceive: RECEIVED STOP REQUEST AT ACTIVITY!");
                 Log.w(TAG, "onReceive: RECEIVED STOP REQUEST AT ACTIVITY!");
-            } else if (intent.getBooleanExtra(MyLocationService.WARN_USER, false) == true) {
+            } else if (intent.getBooleanExtra(MyLocationService.WARN_USER, false)) {
                 MyLocationService.userHasBeenWarned = false;
             }
         }
@@ -349,9 +328,9 @@ public class MainActivity extends AppCompatActivity {
         MenuItem login = menu.findItem(R.id.action_loginlogout);
 
         if (options.hasCachedCredentials()) {
-            login.setTitle("Logout");
+            login.setTitle(getString(R.string.logout));
         } else {
-            login.setTitle("Login");
+            login.setTitle(R.string.login);
         }
 
         Typeface typeface = getResources().getFont(R.font.casual);
@@ -385,7 +364,6 @@ public class MainActivity extends AppCompatActivity {
                 break;
 
             case R.id.action_loginlogout :
-                Fragment f = getSupportFragmentManager().findFragmentById(R.id.frag_authenticate);
                 if(options.authenticateFragIsVisible()) {
                     Log.i(TAG, "onOptionsItemSelected Already on login fragment.");
                     return true;
@@ -419,45 +397,6 @@ public class MainActivity extends AppCompatActivity {
         return NavigationUI.navigateUp(navController, mAppBarConfiguration)
                 || super.onSupportNavigateUp();
     }
-    
-    public void updateUserOptionsWithCrm() {
-        Containers.EntityContainer container = new Containers.EntityContainer();
-        container.entityFields.add(new Containers.EntityField("msus_name_trips", Boolean.toString(options.getNameTripOnStart())));
-        container.entityFields.add(new Containers.EntityField("msus_auto_submit", Boolean.toString(options.getAutosubmitOnTripEnd())));
-        container.entityFields.add(new Containers.EntityField("msus_auto_check_updates", Boolean.toString(options.getCheckForUpdates())));
-        container.entityFields.add(new Containers.EntityField("msus_confirm_end_trip", Boolean.toString(options.getConfirmTripEnd())));
-        container.entityFields.add(new Containers.EntityField("msus_debug_mode", Boolean.toString(options.getDebugMode())));
-        container.entityFields.add(new Containers.EntityField("msus_use_trip_minder", Boolean.toString(options.getTripEndReminder())));
-        container.entityFields.add(new Containers.EntityField("msus_trip_minder_value",
-                Helpers.DatesAndTimes.convertMilisToMinutes(options.getTripMinderIntervalMillis()) + " mins"));
-        container.entityFields.add(new Containers.EntityField("msus_last_used_milebuddy", LocalDateTime.now().toString()));
-
-        Requests.Request request = new Requests.Request(Requests.Request.Function.UPDATE);
-        request.function = Requests.Request.Function.UPDATE.name();
-        request.arguments.add(new Requests.Argument("systemuserid", MediUser.getMe().systemuserid));
-        request.arguments.add(new Requests.Argument("entity", "systemuser"));
-        request.arguments.add(new Requests.Argument("container", container.toJson()));
-        request.arguments.add(new Requests.Argument("as_userid", MediUser.getMe().systemuserid));
-        
-        Crm crm = new Crm();
-        crm.makeCrmRequest(this, request, new AsyncHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                Log.i(TAG, "onSuccess Successfully udated user's settings");
-            }
-        
-            @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                Log.i(TAG, "onFailure Failed to update user's settings");
-            }
-        });
-    }
-
-    public boolean checkLocationPermission() {
-        String permission = "android.permission.ACCESS_FINE_LOCATION";
-        int res = this.checkCallingOrSelfPermission(permission);
-        return (res == PackageManager.PERMISSION_GRANTED);
-    }
 
     public boolean checkStoragePermission() {
         String permission = Manifest.permission.WRITE_EXTERNAL_STORAGE;
@@ -468,13 +407,12 @@ public class MainActivity extends AppCompatActivity {
     public void checkForUpdate(final boolean silently) {
 
         // If an update has been previously downloaded prompt the user to install it
-        if (options.updateIsAvailable()) {
-            if (options.getUpdateVersion() > Helpers.Application.getAppVersion(getApplicationContext())) {
-                if (options.getUpdateFile() != null && options.getUpdateFile().exists()) {
-                    Log.i(TAG, "checkForUpdate There is a saved update available on the device!");
-                    UpdateDownloader.install(true, this);
-                    return;
-                }
+        if (options.updateIsAvailableLocally()) {
+            MileBuddyUpdate mileBuddyUpdate = options.getMileBuddyUpdate();
+            if (mileBuddyUpdate.version > Helpers.Application.getAppVersion(getApplicationContext())) {
+                UpdateDownloader.install(true, this, options.getMileBuddyUpdate());
+                Log.i(TAG, "checkForUpdate Update is available and ready to be installed.");
+                return;
             }
         }
 
@@ -490,14 +428,19 @@ public class MainActivity extends AppCompatActivity {
         updater.checkForUpdate(new MileBuddyUpdater.UpdateCheckListener() {
             @Override
             public void onAvailable(MileBuddyUpdate updateObject) {
+
                 Log.i(TAG, "onAvailable Update is available ver: " + updateObject.version);
                 myProgressDialog.dismiss();
+                options.setMilebuddyUpdate(updateObject.json);
                 new UpdateDownloader(activity, updateObject, silently).run();
             }
 
             @Override
             public void onNotAvailable() {
                 myProgressDialog.dismiss();
+                if (! silently) {
+                    Toast.makeText(activity, getString(R.string.lastest_version), Toast.LENGTH_SHORT).show();
+                }
                 Log.i(TAG, "onNotAvailable Update not available");
             }
 
@@ -558,7 +501,7 @@ public class MainActivity extends AppCompatActivity {
                     JSONArray array = json.getJSONArray("value");
                     users = MileageUser.makeMany(array);
                     Menu m = navigationView.getMenu();
-                    SubMenu subMenu = m.getItem(2).getSubMenu();
+                    SubMenu subMenu = m.getItem(3).getSubMenu();
                     subMenu.removeItem(subMenu.getItem(0).getItemId());
 
                     for (int i = 0; i < users.size(); i++) {
@@ -569,16 +512,8 @@ public class MainActivity extends AppCompatActivity {
                             subMenu.add(0, i, i, user.fullname);
                         }
                     }
-
-                    if(users.size() == 0) {
-                        subMenu.getItem(0).setTitle("Retry");
-                    }
-
                 } catch (Exception e) {
                     e.printStackTrace();
-                    Menu m = navigationView.getMenu();
-                    SubMenu subMenu = m.getItem(2).getSubMenu();
-                    subMenu.getItem(0).setTitle("Retry");
                 }
             }
 
@@ -586,13 +521,13 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
                 Log.w(TAG, "onFailure: " + error.getMessage());
                 Menu m = navigationView.getMenu();
-                SubMenu subMenu = m.getItem(2).getSubMenu();
+                SubMenu subMenu = m.getItem(3).getSubMenu();
                 subMenu.getItem(0).setTitle("Retry");
             }
         });
 
         Menu m = navigationView.getMenu();
-        SubMenu subMenu = m.getItem(2).getSubMenu();
+        SubMenu subMenu = m.getItem(3).getSubMenu();
         subMenu.clear();
         subMenu.add("Loading...");
         subMenu.getItem(0).setTitle("Loading...");

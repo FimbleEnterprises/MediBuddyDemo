@@ -23,7 +23,7 @@ public class MileBuddyUpdater {
     private static final String TAG = "MileBuddyUpdater";
 
     private Context context;
-    private float appVersion;
+    private double appVersion;
 
     public interface UpdateCheckListener {
         public void onAvailable(MileBuddyUpdate updateObject);
@@ -36,7 +36,7 @@ public class MileBuddyUpdater {
 
         try {
             PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-            this.appVersion = Float.parseFloat(pInfo.versionName);
+            this.appVersion = Double.parseDouble(pInfo.versionName);
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }

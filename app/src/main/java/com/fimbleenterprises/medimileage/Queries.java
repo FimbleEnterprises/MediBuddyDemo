@@ -62,6 +62,9 @@ public class Queries {
         query.addColumn("territoryid");
         query.addColumn("employeeid");
         query.addColumn("photourl");
+        query.addColumn("address1_composite");
+        query.addColumn("address1_latitude");
+        query.addColumn("address1_longitude");
         query.addColumn("msus_medibuddy_managed_territories");
         query.addColumn("msus_push_onallorders");
         query.addColumn("msus_push_onorder");

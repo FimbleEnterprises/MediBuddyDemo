@@ -48,4 +48,17 @@
 
     <string name="title_activity_restore_db">Restore Database</string>
     <string name="action_update">Check for update</string>
+
+    <string name="title_activity_aggregate_stats">AggregateStats</string>
+    <string name="menu_stats">Stats</string>
+    <string name="lastest_version">You are running the most recent version</string>
+    <string name="logout">Logout</string>
+    <string name="login">Login</string>
+    <string name="stopping_trip">Stopping trip...</string>
+    <string name="must_login">You must login</string>
+    <string name="loading">Loading...</string>
+    <string name="retry">Retry</string>
+    <string name="version">"Version "</string>
+
+
 </resources>

@@ -13,6 +13,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.math.RoundingMode;
 import java.util.ArrayList;
 
 import static com.fimbleenterprises.medimileage.Containers.*;
@@ -32,7 +33,7 @@ public class FullTrip implements Parcelable {
     public int isManualTrip = 0;
     public int isSubmitted = 0;
     public boolean isChecked = false;
-    private ArrayList<TripEntry> tripEntries = new ArrayList<>();
+    public ArrayList<TripEntry> tripEntries = new ArrayList<>();
     public boolean isSeparator = false;
     private float reimbursementRate;
     public String tripEntriesJson;
@@ -44,7 +45,8 @@ public class FullTrip implements Parcelable {
     public static class TripEntries extends ArrayList<TripEntry> {
         public TripEntries(FullTrip trip) {
             MySqlDatasource ds = new MySqlDatasource();
-            ArrayList<TripEntry> entries = ds.getAllTripEntries(trip.tripcode);
+            ArrayList<TripEntry> entries = new ArrayList<>();
+            entries = ds.getAllTripEntries(trip.tripcode);
             for (TripEntry entry : entries) {
                 this.add(entry);
             }
@@ -251,6 +253,7 @@ public class FullTrip implements Parcelable {
             container.entityFields.add(new EntityField("msus_user_stopped_trip", Boolean.toString(getUserStoppedTrip())));
             container.entityFields.add(new EntityField("msus_user_started_trip", Boolean.toString(getUserStartedTrip())));
             container.entityFields.add(new EntityField("msus_trip_minder_killed", Boolean.toString(getTripMinderKilledTrip())));
+            container.entityFields.add(new EntityField("msus_avg_speed", Float.toString(getAvgSpeedInMph())));
 
             Request request = new Request();
             request.function = Request.Function.CREATE.name();
@@ -259,7 +262,6 @@ public class FullTrip implements Parcelable {
             request.arguments.add(new Requests.Argument("container", container.toJson()));
 
             return request;
-
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -280,12 +282,15 @@ public class FullTrip implements Parcelable {
     }
 
     public String calculatePrettyReimbursement() {
-        return Helpers.Numbers.convertToCurrency((float) (getReimbursementRate() * getDistanceInMiles()));
+        float reimbursement = Math.round(getReimbursementRate() * getDistanceInMiles());
+        return Helpers.Numbers.convertToCurrency(reimbursement);
     }
 
     public float calculateReimbursement() {
-        String strReimbursement = Helpers.Numbers.convertToCurrency(getReimbursementRate()
-                * getDistanceInMiles()).replace("$","").replace(",","");
+        float reimbursement = Math.round(getReimbursementRate() * getDistanceInMiles());
+
+        String strReimbursement = Helpers.Numbers.convertToCurrency(reimbursement)
+                .replace("$","").replace(",","");
         return Float.parseFloat(strReimbursement);
     }
 
@@ -479,7 +484,12 @@ public class FullTrip implements Parcelable {
     }
 
     public float getDistanceInMiles() {
-        return Helpers.Geo.convertMetersToMiles(getDistance(),2);
+        return getDistanceInMiles(RoundingMode.UP);
+    }
+
+    public float getDistanceInMiles(RoundingMode roundingMode) {
+        return (float) Helpers.Numbers.formatAsZeroDecimalPointNumber(
+                Helpers.Geo.convertMetersToMiles(getDistance(),2), roundingMode);
     }
 
     /**

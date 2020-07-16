@@ -14,7 +14,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 
     private final static String TAG = "MySQLiteHelper.";
     public static final String DATABASE_NAME = "mileagetracking.db";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 10;
     private MySettingsHelper options;
 
     public static final String TABLE_FULL_TRIP = "fulltrips";
@@ -47,6 +47,26 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     public static final String COLUMN_USER_STOPPED_TRIP = "userstoppedtrip";
     public static final String COLUMN_TRIP_MINDER_KILLED = "tripminderkilled";
 
+    public static final String TABLE_ADDYS = "useraddresses";
+    public static final String COLUMN_ADDY_ADDRESS = "address";
+    public static final String COLUMN_ADDY_USERID = "userid";
+    public static final String COLUMN_ADDY_FULLNAME = "fullname";
+    public static final String COLUMN_ADDY_PHONE = "phone";
+    public static final String COLUMN_ADDY_TERRITORY = "territory";
+    public static final String COLUMN_ADDY_GSON = "gson";
+
+    public static final String TABLE_MY_ACCOUNTS = "myaccounts";
+    public static final String COLUMN_ACT_NAME = "accountname";
+    public static final String COLUMN_ACT_GUID = "accountguid";
+    public static final String COLUMN_ACT_NUMBER = "accountnumber";
+    public static final String COLUMN_ACT_ADDY1_COMPOSITE = "address1composit";
+    public static final String COLUMN_ACT_LATITUDE = "address1Latitude";
+    public static final String COLUMN_ACT_LONGITUDE = "address1Longitude";
+    public static final String COLUMN_ACT_TERRITORY = "territory";
+    public static final String COLUMN_ACT_TERRITORYID = "territoryid";
+    public static final String COLUMN_ACT_SALESREPID = "salesrepid";
+    public static final String COLUMN_ACT_RELATIONSHIP = "relationship";
+
     public static final String TABLE_CURRENT_LOCATIONS = "currentlocations";
     public static final String COLUMN_CURRENT_LOCATIONS_ID = "_id";
     public static final String COLUMN_CURRENT_LOCATIONS_LAT = "lat";
@@ -71,6 +91,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     public static final String TABLE_USERS = "users";
     public static final String COLUMN_JSON = "json";
     public static final String COLUMN_SYSTEMUSERID = "systemuserid";
+    public static final String COLUMN_ACTS_GSON = "gson";
     public static final String COLUMN_IS_ME = "isme";
 
     // Settings table
@@ -89,6 +110,34 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         COLUMN_LATITUDE,
         COLUMN_TRIPCODE,
         COLUMN_MILIS,
+    };
+
+    public static final String[] ALL_MYACCOUNTS_COLUMNS = {
+
+            COLUMN_ID,
+            COLUMN_GUID,
+            COLUMN_ACT_NAME,
+            COLUMN_ACT_NUMBER,
+            COLUMN_ACT_ADDY1_COMPOSITE,
+            COLUMN_ACT_LATITUDE,
+            COLUMN_ACT_LONGITUDE,
+            COLUMN_ACT_TERRITORY,
+            COLUMN_ACT_TERRITORYID,
+            COLUMN_ACTS_GSON,
+            COLUMN_ACT_RELATIONSHIP,
+            COLUMN_ACT_SALESREPID
+
+    };
+
+    public static final String[] ALL_USERADDYS_TABLE = {
+
+            COLUMN_ID,
+            COLUMN_ADDY_ADDRESS,
+            COLUMN_ADDY_PHONE,
+            COLUMN_ADDY_USERID,
+            COLUMN_ADDY_TERRITORY,
+            COLUMN_ADDY_GSON,
+            COLUMN_ADDY_FULLNAME
     };
 
     public static final String[] ALL_FULLTRIP_COLUMNS = {
@@ -148,11 +197,36 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
             COLUMN_SETTING_BOOL_VALUE + " integer);";    // Database creation sql statement
 
     // Database creation sql statement
+    private static final String MY_ACCOUNTS_TABLE_CREATE = "create table " + TABLE_MY_ACCOUNTS + "(" +
+            COLUMN_ID + " integer primary key autoincrement, " +
+            COLUMN_ACT_GUID + " real, " +
+            COLUMN_ACT_NAME + " text, " +
+            COLUMN_ACT_NUMBER + " text, " +
+            COLUMN_ACT_ADDY1_COMPOSITE + " text, " +
+            COLUMN_ACT_LATITUDE + " real, " +
+            COLUMN_ACT_LONGITUDE + " real, " +
+            COLUMN_ACT_TERRITORY + " text, " +
+            COLUMN_ACTS_GSON + " text, " +
+            COLUMN_ACT_RELATIONSHIP + " text, " +
+            COLUMN_ACT_TERRITORYID + " text);";   // Database creation sql statement
+
+    // Database creation sql statement
     private static final String USER_TABLE_CREATE = "create table " + TABLE_USERS + "(" +
             COLUMN_ID + " integer primary key autoincrement, " +
             COLUMN_JSON + " text, " +
             COLUMN_SYSTEMUSERID + " text, " +
+            COLUMN_ACTS_GSON + " text, " +
             COLUMN_IS_ME + " integer);";    // Database creation sql statement
+
+    // Database creation sql statement
+    private static final String ADDYS_TABLE_CREATE = "create table " + TABLE_ADDYS + "(" +
+            COLUMN_ID + " integer primary key autoincrement, " +
+            COLUMN_ADDY_FULLNAME + " text, " +
+            COLUMN_ADDY_TERRITORY + " text, " +
+            COLUMN_ADDY_USERID + " text, " +
+            COLUMN_ADDY_ADDRESS + " text, " +
+            COLUMN_ADDY_PHONE + " text, " +
+            COLUMN_ADDY_GSON + " text);";    // Database creation sql statement
 
     private static final String TRIP_ENTRIES_TABLE_CREATE = "create table " + TABLE_TRIP_ENTRIES + "(" +
             COLUMN_ID + " integer primary key autoincrement, " +
@@ -321,6 +395,20 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
             } else {
                 Log.d(TAG + "onOpen", "The settings table exists.  No need to create it.");
             }
+
+            if (! this.tableExists(TABLE_MY_ACCOUNTS, db)) {
+                Log.e(TAG + "onOpen", "The accounts table does not exist.  Will try to create it now.");
+                createTable(db, MY_ACCOUNTS_TABLE_CREATE, TABLE_MY_ACCOUNTS);
+            } else {
+                Log.d(TAG + "onOpen", "The accounts table exists.  No need to create it.");
+            }
+
+            if (! this.tableExists(TABLE_ADDYS, db)) {
+                Log.e(TAG + "onOpen", "The user addresses table does not exist.  Will try to create it now.");
+                createTable(db, ADDYS_TABLE_CREATE, TABLE_ADDYS);
+            } else {
+                Log.d(TAG + "onOpen", "The user addresses table exists.  No need to create it.");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -371,7 +459,17 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         addColumnIfMissing(TABLE_USERS, COLUMN_ID, TYPE_INTEGER, db);
         addColumnIfMissing(TABLE_USERS, COLUMN_JSON, TYPE_TEXT, db);
         addColumnIfMissing(TABLE_USERS, COLUMN_SYSTEMUSERID, TYPE_TEXT, db);
+        addColumnIfMissing(TABLE_USERS, COLUMN_ACTS_GSON, TYPE_TEXT, db);
         addColumnIfMissing(TABLE_USERS, COLUMN_IS_ME, TYPE_INTEGER, db);
+
+        // User addresses table
+        addColumnIfMissing(TABLE_ADDYS, COLUMN_ID, TYPE_INTEGER, db);
+        addColumnIfMissing(TABLE_ADDYS, COLUMN_ADDY_FULLNAME, TYPE_TEXT, db);
+        addColumnIfMissing(TABLE_ADDYS, COLUMN_ADDY_ADDRESS, TYPE_TEXT, db);
+        addColumnIfMissing(TABLE_ADDYS, COLUMN_ADDY_GSON, TYPE_TEXT, db);
+        addColumnIfMissing(TABLE_ADDYS, COLUMN_ADDY_PHONE, TYPE_INTEGER, db);
+        addColumnIfMissing(TABLE_ADDYS, COLUMN_ADDY_TERRITORY, TYPE_INTEGER, db);
+        addColumnIfMissing(TABLE_ADDYS, COLUMN_ADDY_USERID, TYPE_INTEGER, db);
 
         // Settings table
         addColumnIfMissing(TABLE_SETTINGS, COLUMN_ID, TYPE_INTEGER, db);
@@ -379,6 +477,18 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         addColumnIfMissing(TABLE_SETTINGS, COLUMN_SETTING_BOOL_VALUE, TYPE_INTEGER, db);
         addColumnIfMissing(TABLE_SETTINGS, COLUMN_SETTING_INT_VALUE, TYPE_INTEGER, db);
         addColumnIfMissing(TABLE_SETTINGS, COLUMN_SETTING_STRING_VALUE, TYPE_TEXT, db);
+
+        // Accounts table
+        addColumnIfMissing(TABLE_MY_ACCOUNTS, COLUMN_ACT_NAME, TYPE_TEXT, db);
+        addColumnIfMissing(TABLE_MY_ACCOUNTS, COLUMN_ACT_NUMBER, TYPE_TEXT, db);
+        addColumnIfMissing(TABLE_MY_ACCOUNTS, COLUMN_ACT_ADDY1_COMPOSITE, TYPE_INTEGER, db);
+        addColumnIfMissing(TABLE_MY_ACCOUNTS, COLUMN_ACT_LATITUDE, TYPE_REAL, db);
+        addColumnIfMissing(TABLE_MY_ACCOUNTS, COLUMN_ACT_LONGITUDE, TYPE_REAL, db);
+        addColumnIfMissing(TABLE_MY_ACCOUNTS, COLUMN_ACT_TERRITORY, TYPE_TEXT, db);
+        addColumnIfMissing(TABLE_MY_ACCOUNTS, COLUMN_ACT_TERRITORYID, TYPE_TEXT, db);
+        addColumnIfMissing(TABLE_MY_ACCOUNTS, COLUMN_ACT_GUID, TYPE_TEXT, db);
+        addColumnIfMissing(TABLE_MY_ACCOUNTS, COLUMN_ACTS_GSON, TYPE_TEXT, db);
+        addColumnIfMissing(TABLE_MY_ACCOUNTS, COLUMN_ACT_RELATIONSHIP, TYPE_TEXT, db);
         
     }
 

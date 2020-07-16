@@ -23,11 +23,13 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import cz.msebera.android.httpclient.Header;
 import com.fimbleenterprises.medimileage.Requests.*;
 
-public class UserTripsActivity extends Activity implements TripListRecyclerAdapter.ItemClickListener {
+public class UserTripsActivity extends AppCompatActivity implements TripListRecyclerAdapter.ItemClickListener {
 
     MySettingsHelper options;
     public static final String MILEAGE_USER = "USERID_INTENT";
@@ -48,6 +50,8 @@ public class UserTripsActivity extends Activity implements TripListRecyclerAdapt
     TextView txtMtdCount;
     TextView txtMtdCountLastMonth;
     TextView txtName;
+    TextView txtRate;
+    TextView txtRateLastMonth;
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -82,9 +86,22 @@ public class UserTripsActivity extends Activity implements TripListRecyclerAdapt
         txtMtdLastMonth = findViewById(R.id.txtReimbursementLastMonth);
         txtMtdCount = findViewById(R.id.txtTripCountThisMonth);
         txtMtdCountLastMonth = findViewById(R.id.txtTripCountLastMonth);
+        txtRate = findViewById(R.id.txtReimbursementRateThisMonth);
+        txtRateLastMonth = findViewById(R.id.txtReimbursementRateLastMonth);
         userInfoContainer.setVisibility(View.INVISIBLE);
 
-        getAllMtdTrips();
+        getAllMtdTrips();// Create the navigation up button
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return super.onSupportNavigateUp();
     }
 
     @Override
@@ -136,7 +153,7 @@ public class UserTripsActivity extends Activity implements TripListRecyclerAdapt
                     String responseStr = new String(responseBody);
                     JSONArray array = new JSONObject(responseStr).getJSONArray("value");
                     ArrayList<TripEntry> entries = TripEntry.parseCrmTripEntries(array.getJSONObject(0).getString("msus_trip_entries_json"));
-
+                    // clickedTrip.setTrip=
                     Intent intent = new Intent(context, ViewTripActivity.class);
                     intent.putExtra(ViewTripActivity.CLICKED_TRIP, clickedTrip);
                     if (entries != null && entries.size() > 0) {
@@ -246,6 +263,8 @@ public class UserTripsActivity extends Activity implements TripListRecyclerAdapt
         float lastMonthTotal = 0f;
         int tripCount = 0;
         int tripCountLastMonth = 0;
+        float rate = 0f;
+        float rateLastMonth = 0f;
 
         for (FullTrip trip : allTrips) {
             DateTime tripDate = trip.getDateTime();
@@ -256,19 +275,23 @@ public class UserTripsActivity extends Activity implements TripListRecyclerAdapt
             if (tripDate.getMonthOfYear() == thisMonth) {
                 mtdTotal += trip.calculateReimbursement();
                 tripCount += 1;
+                rate = trip.getReimbursementRate();
             } else if (tripDate.getMonthOfYear() == lastMonth) {
                 lastMonthTotal += trip.calculateReimbursement();
                 tripCountLastMonth += 1;
+                rateLastMonth = trip.getReimbursementRate();
             }
         }
 
 
         txtName.setText(user.fullname);
-        txtMtdCount.setText("" + tripCount);
-        txtMtdCountLastMonth.setText("" + tripCountLastMonth);
+        txtMtdCount.setText("" + tripCount + " trips");
+        txtMtdCountLastMonth.setText("" + tripCountLastMonth + " trips");
         txtMtd.setText(Helpers.Numbers.convertToCurrency(mtdTotal));
         txtMtdLastMonth.setText(Helpers.Numbers.convertToCurrency(lastMonthTotal));
         userInfoContainer.setVisibility(View.VISIBLE);
+        txtRate.setText("Rate: " + Helpers.Numbers.convertToCurrency((double) rate) + " / mile");
+        txtRateLastMonth.setText("Rate: " + Helpers.Numbers.convertToCurrency((double) rateLastMonth) + " / mile");
 
     }
 

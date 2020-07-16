@@ -1,7 +1,5 @@
 package com.fimbleenterprises.medimileage;
 
-import android.location.Location;
-
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
@@ -47,5 +45,15 @@ public class MyInterfaces {
 
     public interface AnimationEndedListener {
         public void onEnd();
+    }
+
+    public interface GetAccountsListener {
+        public void onSuccess(AccountAddresses accounts);
+        public void onFailure(String msg);
+    }
+
+    public interface GetUserAddysListener {
+        public void onSuccess(UserAddresses addresses);
+        public void onFailure(String msg);
     }
 }
