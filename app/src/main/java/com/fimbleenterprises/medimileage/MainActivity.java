@@ -433,6 +433,8 @@ public class MainActivity extends AppCompatActivity {
                 myProgressDialog.dismiss();
                 options.setMilebuddyUpdate(updateObject.json);
                 new UpdateDownloader(activity, updateObject, silently).run();
+                Toast.makeText(activity, "An update is available.  It will be downloaded in " +
+                        "the background for next time you start MileBuddy.", Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -447,6 +449,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onError(String msg) {
                 myProgressDialog.dismiss();
+                Toast.makeText(activity, "Failed to download new version\n"
+                        + msg, Toast.LENGTH_SHORT).show();
                 Log.i(TAG, "onError " + msg);
             }
         });
