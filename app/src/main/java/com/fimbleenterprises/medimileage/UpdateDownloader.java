@@ -349,6 +349,7 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
                 @Override
                 public void onClick(View view) {
                     dialog.dismiss();
+                    MileBuddyUpdate.deleteAllLocallyAvailableUpdates();
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         Uri contentUri = FileProvider.getUriForFile(activity,
@@ -381,6 +382,8 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
                 @Override
                 public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
                     if (keyCode == KeyEvent.KEYCODE_BACK) {
+                        dialog.dismiss();
+                        MileBuddyUpdate.deleteAllLocallyAvailableUpdates();
                         return true;
                     } else {
                         return false;
