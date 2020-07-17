@@ -282,12 +282,12 @@ public class FullTrip implements Parcelable {
     }
 
     public String calculatePrettyReimbursement() {
-        float reimbursement = Math.round(getReimbursementRate() * getDistanceInMiles());
+        float reimbursement = getReimbursementRate() * getDistanceInMiles();
         return Helpers.Numbers.convertToCurrency(reimbursement);
     }
 
     public float calculateReimbursement() {
-        float reimbursement = Math.round(getReimbursementRate() * getDistanceInMiles());
+        float reimbursement = getReimbursementRate() * getDistanceInMiles();
 
         String strReimbursement = Helpers.Numbers.convertToCurrency(reimbursement)
                 .replace("$","").replace(",","");

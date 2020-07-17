@@ -245,7 +245,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                         btnOkay.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
-                                openAppSettings();
+                                Helpers.Application.openAppSettings(getContext());
                                 dialog.dismiss();
                             }
                         });
@@ -258,7 +258,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                                     dialog.dismiss();
                                     return true;
                                 } else {
-                                    openAppSettings();
+                                    Helpers.Application.openAppSettings(getContext());
                                     dialog.dismiss();
                                     return true;
                                 }
@@ -514,6 +514,11 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case PERMISSION_START_TRIP:
+                if (checkLocationPermission() != LOCATION_PERM_RESULT.FULL) {
+                    Toast.makeText(getContext(), "Location permission must be: " +
+                            "\"Allow all the time\"", Toast.LENGTH_SHORT).show();
+                    break;
+                }
                 startStopTrip();
                 break;
 
@@ -602,7 +607,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         if (checkLocationPermission() != LOCATION_PERM_RESULT.FULL) {
 
             boolean showRational = shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION);
-            if (!showRational) {
+            if (showRational && checkLocationPermission() == LOCATION_PERM_RESULT.NONE) {
                 final Dialog dialog = new Dialog(getActivity());
                 final Context c = getActivity();
                 dialog.setContentView(R.layout.generic_app_dialog);
@@ -614,7 +619,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 btnOkay.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        openAppSettings();
+                        Helpers.Application.openAppSettings(getContext());
                         dialog.dismiss();
                     }
                 });
@@ -627,13 +632,14 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                             dialog.dismiss();
                             return true;
                         } else {
-                            openAppSettings();
+                            Helpers.Application.openAppSettings(getContext());
                             dialog.dismiss();
                             return true;
                         }
                     }
                 });
                 dialog.show();
+                requestPermissions(permissions, PERMISSION_START_TRIP);
             } else {
                 requestPermissions(permissions, PERMISSION_START_TRIP);
             }
@@ -641,20 +647,6 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         } else {
             return true;
         }
-    }
-
-    public void openAppSettings() {
-
-        Uri packageUri = Uri.fromParts( "package", getActivity().getPackageName(), null );
-
-        Intent applicationDetailsSettingsIntent = new Intent();
-
-        applicationDetailsSettingsIntent.setAction( Settings.ACTION_APPLICATION_DETAILS_SETTINGS );
-        applicationDetailsSettingsIntent.setData( packageUri );
-        applicationDetailsSettingsIntent.addFlags( Intent.FLAG_ACTIVITY_NEW_TASK );
-
-        getActivity().startActivity( applicationDetailsSettingsIntent );
-
     }
 
     void startStopTrip() {
@@ -991,11 +983,11 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
         if (lastMtdValue > 0) {
             MyAnimatedNumberTextView animatedNumberTextView = new MyAnimatedNumberTextView(getContext(), txtMtd);
-            animatedNumberTextView.setNewValue(mtdTotal, lastMtdValue);
+            animatedNumberTextView.setNewValue(Math.round(mtdTotal), lastMtdValue);
         } else {
-            txtMtd.setText(Helpers.Numbers.convertToCurrency(mtdTotal));
+            txtMtd.setText(Helpers.Numbers.convertToCurrency(Math.round(mtdTotal)));
         }
-        lastMtdValue = mtdTotal;
+        lastMtdValue = Math.round(mtdTotal);
 
         manageDefaultImage();
 
@@ -1646,7 +1638,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                     }
                 }
                 stringBuilder.append("\n\n Trips: " + tripCount);
-                stringBuilder.append("\n Reimbursement: " + Helpers.Numbers.convertToCurrency(total));
+                stringBuilder.append("\n Reimbursement: " + Helpers.Numbers.convertToCurrency(Math.round(total)));
 
                 stream.write(stringBuilder.toString().getBytes());
             } finally {

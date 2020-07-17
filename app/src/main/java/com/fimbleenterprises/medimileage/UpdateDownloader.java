@@ -343,7 +343,7 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
                 }
             });
             TextView txtChangeLog = dialog.findViewById(R.id.txtChangelog);
-            txtChangeLog.setText(options.getMileBuddyUpdate().changelog);
+            txtChangeLog.setText("Ver: " + options.getMileBuddyUpdate().version + "\n" + options.getMileBuddyUpdate().changelog);
             Button btnInstall = dialog.findViewById(R.id.btnInstall);
             btnInstall.setOnClickListener(new View.OnClickListener() {
                 @Override

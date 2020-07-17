@@ -363,6 +363,10 @@ public class MainActivity extends AppCompatActivity {
                 // navController.navigate(R.id.action_HomeFragment_to_SettingsFragment);
                 break;
 
+            case R.id.action_permissions :
+                Helpers.Application.openAppSettings(activity);
+                break;
+
             case R.id.action_loginlogout :
                 if(options.authenticateFragIsVisible()) {
                     Log.i(TAG, "onOptionsItemSelected Already on login fragment.");

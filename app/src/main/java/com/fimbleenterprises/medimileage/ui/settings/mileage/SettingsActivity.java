@@ -7,8 +7,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -67,6 +69,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String UPDATE_USER_ADDYS = "updateUserAddys";
     public static final String UPDATE_ACT_ADDYS = "updateActAddys";
     public static final String DELETE_LOCAL_UPDATES = "DELETE_LOCAL_UPDATES";
+    public static final String GOTO_PERMISSIONS = "GOTO_PERMISSIONS";
     public static final String SUBMIT_ON_END = "SUBMIT_ON_END";
     public static final String TRIP_MINDER = "TRIP_MINDER";
     public static final String TRIP_MINDER_INTERVAL = "TRIP_MINDER_INTERVAL";
@@ -117,6 +120,7 @@ public class SettingsActivity extends AppCompatActivity {
             Preference prefUpdateUserAddys;
             Preference prefUpdateActAddys;
             Preference prefDeleteAllLocalUpdates;
+            Preference prefGoToPermissions;
 
             prefBackupDb = findPreference(BACKUP_DB_KEY);
             prefBackupDb.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
@@ -247,6 +251,15 @@ public class SettingsActivity extends AppCompatActivity {
                                 }
                             });
                     return false;
+                }
+            });
+
+            prefGoToPermissions = findPreference(GOTO_PERMISSIONS);
+            prefGoToPermissions.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                Helpers.Application.openAppSettings(getContext());
+                return false;
                 }
             });
 

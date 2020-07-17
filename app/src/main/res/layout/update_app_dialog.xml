@@ -27,8 +27,14 @@
 		android:layout_height="wrap_content"
 		android:layout_below="@id/txtMainText"
 		android:layout_centerHorizontal="true"
-		android:layout_margin="2dp"
-		android:text="Changelog:" />
+		android:layout_margin="10dp"
+		android:layout_marginStart="5dp"
+		android:layout_marginTop="5dp"
+		android:layout_marginEnd="5dp"
+		android:layout_marginBottom="5dp"
+		android:fontFamily="@font/casual"
+		android:text="Changelog:"
+		android:textAlignment="center" />
 
 	<Button
 		android:id="@+id/btnInstall"

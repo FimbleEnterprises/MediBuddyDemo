@@ -22,6 +22,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
@@ -80,6 +81,20 @@ public class Helpers {
                 e.printStackTrace();
                 return 0;
             }
+        }
+
+        public static void openAppSettings(Context context) {
+
+            Uri packageUri = Uri.fromParts( "package", context.getPackageName(), null );
+
+            Intent applicationDetailsSettingsIntent = new Intent();
+
+            applicationDetailsSettingsIntent.setAction( Settings.ACTION_APPLICATION_DETAILS_SETTINGS );
+            applicationDetailsSettingsIntent.setData( packageUri );
+            applicationDetailsSettingsIntent.addFlags( Intent.FLAG_ACTIVITY_NEW_TASK );
+
+            context.startActivity( applicationDetailsSettingsIntent );
+
         }
     }
 
