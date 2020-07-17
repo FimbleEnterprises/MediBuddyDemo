@@ -103,14 +103,21 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
         curMapType = options.getMapMode();
 
 
-        if (getIntent().hasExtra(CLICKED_TRIP)){
+        if (getIntent().hasExtra(CLICKED_TRIP)) {
+
             clickedTrip = getIntent().getParcelableExtra(CLICKED_TRIP);
+
             Log.i(TAG, "onNewIntent Received a trip");
             if (getIntent().hasExtra(TRIP_ENTRIES)) {
+                Log.d(TAG, "onCreate: Changing theme for this activity!");
+                setTheme(R.style.AppThemeAlt);
+
                 Log.i(TAG, "onNewIntent Found trip entries passed in an intent.  Gon' use em!");
                 tripEntries = getIntent().getParcelableArrayListExtra(TRIP_ENTRIES);
                 clickedTrip.tripEntries = tripEntries;
                 Log.i(TAG, "onNewIntent " + tripEntries.size() + " entries were used from the intent extra!");
+            } else {
+                setTheme(R.style.AppTheme);
             }
         } else {
             Toast.makeText(context, "No trip data found", Toast.LENGTH_SHORT).show();
@@ -387,6 +394,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
                 });
             }
         } catch (Exception e) {
+
             e.printStackTrace();
         }
     }
