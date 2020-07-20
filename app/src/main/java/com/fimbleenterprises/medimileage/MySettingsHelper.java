@@ -41,6 +41,7 @@ public class MySettingsHelper {
     public static final String FCM_TOKEN = "FCM_TOKEN";
     public static final String LAST_UPDATED_ACT_ADDYS = "LAST_UPDATED_ACT_ADDYS";
     public static final String LAST_UPDATED_USER_ADDYS = "LAST_UPDATED_USER_ADDYS";
+    public static final String TRIP_CACHE_CODE = "TRIP_CACHE";
 
     Context context;
     SharedPreferences prefs;
