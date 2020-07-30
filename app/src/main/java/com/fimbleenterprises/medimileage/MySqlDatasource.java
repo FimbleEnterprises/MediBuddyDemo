@@ -8,6 +8,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
@@ -152,6 +154,104 @@ public class MySqlDatasource {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public boolean createTripCacheEntry(FullTrip trip) {
+        try {
+            ContentValues values = new ContentValues();
+
+            values.put(COLUMN_TRIP_CACHE_GSON, trip.toGson());
+            values.put(COLUMN_TRIP_CACHE_TRIPCODE, trip.getTripcode());
+
+            // Returns the id of the childView just added or -1 if something went wrong
+            long insertId = database.insert(TABLE_TRIP_CACHE, null, values);
+            Log.i(TAG, "createTripCacheEntry " + (insertId > -1));
+            return insertId > -1;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean deleteTripCacheEntry(String tripcode) {
+        boolean result;
+
+        String whereClause = COLUMN_TRIP_CACHE_TRIPCODE + " = ?";
+        String[] whereArgs = { tripcode };
+        result = (database.delete(TABLE_TRIP_CACHE, whereClause, whereArgs)) > 0;
+        Log.i(TAG, "deleteTripCacheEntry " + result);
+        return result;
+    }
+
+    public FullTrip getTripCacheEntry(String tripcode) {
+        boolean result;
+        FullTrip trip = null;
+
+        Cursor cursor = database.rawQuery(
+                "SELECT " + COLUMN_TRIP_CACHE_GSON + " " +
+                "FROM " + TABLE_TRIP_CACHE + " " +
+                "WHERE " + COLUMN_TRIP_CACHE_TRIPCODE + " = '" + tripcode + "'"
+                , null, null);
+
+        if (cursor.getCount() > 0) {
+            String gson = cursor.getString(getColumnIndex(COLUMN_TRIP_CACHE_GSON, cursor));
+            if (gson != null) {
+                Log.i(TAG, "getTripCacheEntry Found trip cache entry!");
+                trip = new Gson().fromJson(gson, FullTrip.class);
+            }
+        } else {
+            Log.w(TAG, "getUser: User does not exist.");
+            cursor.close();
+            return null;
+        }
+        // Make sure to close the cursor
+        cursor.close();
+        return trip;
+    }
+
+    public FullTrip getOldestTripCacheEntry() {
+        boolean result;
+        FullTrip trip = null;
+
+        Cursor cursor = database.rawQuery(
+                "SELECT " + COLUMN_TRIP_CACHE_GSON + " " +
+                        "FROM " + TABLE_TRIP_CACHE + " " +
+                        "ORDER BY " + COLUMN_TRIP_CACHE_ID + " desc"
+                , null, null);
+
+        if (cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            String gson = cursor.getString(getColumnIndex(COLUMN_TRIP_CACHE_GSON, cursor));
+            if (gson != null) {
+                Log.i(TAG, "getTripCacheEntry Found trip cache entry!");
+                trip = new Gson().fromJson(gson, FullTrip.class);
+            }
+        } else {
+            Log.w(TAG, "getUser: User does not exist.");
+            cursor.close();
+            return null;
+        }
+        // Make sure to close the cursor
+        cursor.close();
+        return trip;
+    }
+
+    public int countTripCacheEntries() {
+
+        Cursor cursor = database.rawQuery(
+                "SELECT COUNT(*) " +
+                        "FROM " + TABLE_TRIP_CACHE
+                , null, null);
+        cursor.close();
+        return cursor.getCount();
+    }
+
+    public boolean deleteAllTripCacheEntries() {
+        boolean result;
+
+        result = (database.delete(TABLE_TRIP_CACHE, null, null)) > 0;
+        Log.i(TAG, "deleteAllTripCacheEntries " + result);
+        return result;
     }
 
     public boolean updateAccounts(AccountAddresses accounts) {

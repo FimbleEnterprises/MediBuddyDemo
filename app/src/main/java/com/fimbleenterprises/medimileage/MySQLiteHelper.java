@@ -87,11 +87,6 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     public static final String COLUMN_CURRENT_LOCATIONS_USERFIELD9 = "userfield9";
     public static final String COLUMN_CURRENT_LOCATIONS_USERFIELD10 = "userfield10";
 
-    public static final String TABLE_TRIP_CACHE = "trip_cache";
-    public static final String COLUMN_TRIP_CACHE_ID = "_id";
-    public static final String COLUMN_TRIP_CACHE_TRIPCODE = "tripcode";
-    public static final String COLUMN_TRIP_CACHE_JSON = "json";
-
     // Users table
     public static final String TABLE_USERS = "users";
     public static final String COLUMN_JSON = "json";
@@ -116,14 +111,6 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         COLUMN_TRIPCODE,
         COLUMN_MILIS,
     };
-
-    public static final String[] ALL_TRIP_CACHE_COLUMNS = {
-
-            COLUMN_TRIP_CACHE_ID,
-            COLUMN_TRIP_CACHE_TRIPCODE,
-            COLUMN_TRIP_CACHE_JSON
-    };
-
 
     public static final String[] ALL_MYACCOUNTS_COLUMNS = {
 
@@ -208,12 +195,6 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
             COLUMN_SETTING_INT_VALUE + " integer, " +
             COLUMN_SETTING_STRING_VALUE + " text, " +
             COLUMN_SETTING_BOOL_VALUE + " integer);";    // Database creation sql statement
-
-    // Database creation sql statement
-    private static final String TRIP_CACHE_TABLE_CREATE = "create table " + TABLE_TRIP_CACHE + "(" +
-            COLUMN_ID + " integer primary key autoincrement, " +
-            COLUMN_TRIP_CACHE_JSON + " text, " +
-            COLUMN_TRIP_CACHE_TRIPCODE + " real);";    // Database creation sql statement
 
     // Database creation sql statement
     private static final String MY_ACCOUNTS_TABLE_CREATE = "create table " + TABLE_MY_ACCOUNTS + "(" +
@@ -428,13 +409,6 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
             } else {
                 Log.d(TAG + "onOpen", "The user addresses table exists.  No need to create it.");
             }
-
-            if (! this.tableExists(TABLE_TRIP_CACHE, db)) {
-                Log.e(TAG + "onOpen", "The trip cache table does not exist.  Will try to create it now.");
-                createTable(db, TRIP_CACHE_TABLE_CREATE, TABLE_TRIP_CACHE);
-            } else {
-                Log.d(TAG + "onOpen", "The user addresses table exists.  No need to create it.");
-            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -480,11 +454,6 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         addColumnIfMissing(TABLE_FULL_TRIP, COLUMN_USER_STOPPED_TRIP, TYPE_INTEGER, db);
         addColumnIfMissing(TABLE_FULL_TRIP, COLUMN_USER_STARTED_TRIP, TYPE_INTEGER, db);
         addColumnIfMissing(TABLE_FULL_TRIP, COLUMN_TRIP_MINDER_KILLED, TYPE_INTEGER, db);
-
-        // Trip cache table
-        addColumnIfMissing(TABLE_TRIP_CACHE, COLUMN_TRIP_CACHE_ID, TYPE_INTEGER, db);
-        addColumnIfMissing(TABLE_TRIP_CACHE, COLUMN_TRIP_CACHE_JSON, TYPE_TEXT, db);
-        addColumnIfMissing(TABLE_TRIP_CACHE, COLUMN_TRIP_CACHE_TRIPCODE, TYPE_REAL, db);
         
         // Users table
         addColumnIfMissing(TABLE_USERS, COLUMN_ID, TYPE_INTEGER, db);

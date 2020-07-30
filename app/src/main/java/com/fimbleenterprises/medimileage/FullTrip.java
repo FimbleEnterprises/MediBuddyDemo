@@ -197,7 +197,7 @@ public class FullTrip implements Parcelable {
         return createTripsFromCrmJson(crmJson, false);
     }
 
-    private String toGson() {
+    String toGson() {
         Gson gson = new Gson();
         return gson.toJson(this);
     }

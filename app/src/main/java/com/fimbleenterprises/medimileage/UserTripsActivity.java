@@ -125,6 +125,16 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
             return;
         }
 
+        MySqlDatasource ds = new MySqlDatasource(this);
+
+        if (ds.getTripCacheEntry(Long.toString(clickedTrip.getTripcode())) != null) {
+            Intent intent = new Intent(context, ViewTripActivity.class);
+            intent.putExtra(ViewTripActivity.CLICKED_TRIP, clickedTrip);
+            intent.putExtra(ViewTripActivity.TRIP_ENTRIES, clickedTrip.tripEntries);
+            startActivity(intent);
+            return;
+        }
+
         final MyProgressDialog dialog = new MyProgressDialog(this,"Getting trip details...");
         dialog.show();
 
@@ -160,6 +170,15 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
                         intent.putExtra(ViewTripActivity.TRIP_ENTRIES, entries);
                     }
                     startActivity(intent);
+
+                    MySqlDatasource ds = new MySqlDatasource(context);
+                    if (ds.countTripCacheEntries() > 4) {
+                        ds.deleteTripCacheEntry(Long.toString(ds.getOldestTripCacheEntry().getTripcode()));
+                        ds.createTripCacheEntry(clickedTrip);
+                    } else {
+                        ds.createTripCacheEntry(clickedTrip);
+                    }
+
                     dialog.dismiss();
                 } catch (Exception e) {
                     e.printStackTrace();

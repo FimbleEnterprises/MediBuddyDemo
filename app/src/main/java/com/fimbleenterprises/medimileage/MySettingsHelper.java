@@ -41,7 +41,6 @@ public class MySettingsHelper {
     public static final String FCM_TOKEN = "FCM_TOKEN";
     public static final String LAST_UPDATED_ACT_ADDYS = "LAST_UPDATED_ACT_ADDYS";
     public static final String LAST_UPDATED_USER_ADDYS = "LAST_UPDATED_USER_ADDYS";
-    public static final String IS_SHOWING_MTD_REIMBURSEMENT = "IS_SHOWING_MTD_REIMBURSEMENT";
 
     Context context;
     SharedPreferences prefs;
@@ -64,14 +63,6 @@ public class MySettingsHelper {
             e.printStackTrace();
             return true;
         }
-    }
-
-    public boolean isMtdShowingReimbursement() {
-        return prefs.getBoolean(IS_SHOWING_MTD_REIMBURSEMENT, true);
-    }
-
-    public void isMtdShowingReimbursement(boolean val) {
-        prefs.edit().putBoolean(IS_SHOWING_MTD_REIMBURSEMENT, val).commit();
     }
 
     public boolean getShouldUpdateActAddys() {
