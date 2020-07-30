@@ -14,6 +14,7 @@ public class MyAnimatedNumberTextView {
     int value;
     double finalVal;
     double originalVal;
+    public boolean isRunning = false;
 
     public MyAnimatedNumberTextView(Context context, TextView view) {
         this.context = context;
@@ -24,7 +25,7 @@ public class MyAnimatedNumberTextView {
         handler.removeCallbacks(runner);
     }
 
-    public void setNewValue(final double finalVal, final double startingVal) {
+    public void setNewValue(final double finalVal, final double startingVal, final boolean asCurrency) {
 
         this.finalVal = finalVal;
         target = (int) finalVal;
@@ -33,25 +34,40 @@ public class MyAnimatedNumberTextView {
         runner = new Runnable() {
             @Override
             public void run() {
+                isRunning = true;
                 try {
                     if (target < value) {
                         value -= 1;
                         if (Helpers.Numbers.isEven(value)) {
-                            view.setText(Helpers.Numbers.convertToCurrency(value));
+                            if (asCurrency) {
+                                view.setText(Helpers.Numbers.convertToCurrency(MyAnimatedNumberTextView.this.finalVal));
+                            } else {
+                                view.setText(Math.round(MyAnimatedNumberTextView.this.finalVal) + " mi");
+                            }
                         }
                         handler.postDelayed(this, 1);
                     } else if (target > value) {
                         value += 1;
                         if (Helpers.Numbers.isEven(value)) {
-                            view.setText(Helpers.Numbers.convertToCurrency(value));
+                            if (asCurrency) {
+                                view.setText(Helpers.Numbers.convertToCurrency(MyAnimatedNumberTextView.this.finalVal));
+                            } else {
+                                view.setText(Math.round(MyAnimatedNumberTextView.this.finalVal) + " mi");
+                            }
                         }
                         handler.postDelayed(this, 1);
                     } else {
                         handler.removeCallbacks(runner);
-                        view.setText(Helpers.Numbers.convertToCurrency(MyAnimatedNumberTextView.this.finalVal));
+                        if (asCurrency) {
+                            view.setText(Helpers.Numbers.convertToCurrency(MyAnimatedNumberTextView.this.finalVal));
+                        } else {
+                            view.setText(Math.round(MyAnimatedNumberTextView.this.finalVal) + " mi");
+                        }
+                        isRunning = false;
                         return;
                     }
                 } catch (Exception e) {
+                    isRunning = false;
                     e.printStackTrace();
                 }
             }

@@ -13,6 +13,8 @@ import org.joda.time.DateTime;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import okhttp3.Cache;
+
 import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_IS_ME;
 import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_JSON;
 import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_SYSTEMUSERID;
@@ -290,9 +292,7 @@ public class MySqlDatasource {
         cursor.close();
         return accounts;
     }
-    /** Pass null to add nothing to the top of the list **/
 
-    /** Pass null to add nothing to the top of the list **/
     public MediUser getUser(String userid) {
 
         String sql = COLUMN_JSON + "," +
@@ -452,6 +452,112 @@ public class MySqlDatasource {
             index++;
         }
         return titles;
+    }
+
+    public ArrayList<CachedTrip> getCachedTrips() {
+        Cursor c = database.query(TABLE_TRIP_CACHE, new String[] { COLUMN_TRIP_CACHE_ID, COLUMN_TRIP_CACHE_JSON, COLUMN_TRIP_CACHE_TRIPCODE }, null, null,
+                null, null, null);
+        ArrayList<CachedTrip> trips = new ArrayList<>();
+        while (c.moveToNext()) {
+            CachedTrip trip = new CachedTrip(c.getString(1));
+            trips.add(trip);
+        }
+        return trips;
+    }
+
+    public boolean deleteOldestCachedTrip() {
+        boolean result;
+        CachedTrip oldestTrip = getOldestCachedTrip();
+        String whereClause = COLUMN_TRIPCODE + " = ?";
+        String[] whereArgs = {String.valueOf(oldestTrip.tripcode)};
+        result = (database.delete(TABLE_TRIP_CACHE, whereClause, whereArgs)) > 0;
+        Log.i(TAG, "deleteOldestTrip " + result);
+        return result;
+    }
+
+    public boolean deleteCachedTrip(CachedTrip trip) {
+        boolean result;
+        String whereClause = COLUMN_TRIP_CACHE_TRIPCODE + " = ?";
+        String[] whereArgs = {String.valueOf(trip.tripcode)};
+        result = (database.delete(TABLE_TRIP_CACHE, whereClause, whereArgs)) > 0;
+        Log.i(TAG, "deleteCachedTrip " + result);
+        return result;
+    }
+
+    public boolean deleteCachedTrip(long tripcode) {
+        boolean result;
+        String whereClause = COLUMN_TRIP_CACHE_TRIPCODE + " = ?";
+        String[] whereArgs = {String.valueOf(tripcode)};
+        result = (database.delete(TABLE_TRIP_CACHE, whereClause, whereArgs)) > 0;
+        Log.i(TAG, "deleteCachedTrip " + result);
+        return result;
+    }
+
+    public CachedTrip getOldestCachedTrip() {
+
+        String sql = "" +
+                "SELECT " + COLUMN_TRIP_CACHE_JSON + " " +
+                "FROM " + TABLE_TRIP_CACHE + " " +
+                "ORDER BY " + COLUMN_TRIP_CACHE_TRIPCODE + " desc";
+
+        Cursor c = database.rawQuery(sql, null);
+
+        while (c.moveToNext()) {
+            CachedTrip trip = new CachedTrip(c.getString(0));
+            c.close();
+            return trip;
+        }
+
+        c.close();
+        return null;
+    }
+
+    public boolean createNewTrip(CachedTrip trip) {
+        boolean result = true;
+        try {
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_TRIP_CACHE_TRIPCODE, trip.tripcode);
+            values.put(COLUMN_TRIP_CACHE_JSON, trip.toGson());
+
+            result = (database.insert(TABLE_TRIP_CACHE, null, values) > 0);
+            Log.i(TAG, "createCachedTrip Created.");
+
+        } catch (SQLException e) {
+            result = false;
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    public CachedTrip getCachedTrip(long tripcode) {
+
+        String sql = "" +
+                "SELECT " + COLUMN_TRIP_CACHE_JSON + " " +
+                "FROM " + TABLE_TRIP_CACHE + " " +
+                "WHERE " + COLUMN_TRIP_CACHE_TRIPCODE + " = " + tripcode + ";";
+
+        Cursor c = database.rawQuery(sql, null);
+
+        while (c.moveToNext()) {
+            CachedTrip trip = new CachedTrip(c.getString(0));
+            c.close();
+            return trip;
+        }
+
+        c.close();
+        return null;
+    }
+
+    public int countCachedTrips() {
+
+        String sql = "" +
+                "SELECT " + COLUMN_TRIP_CACHE_JSON + " " +
+                "FROM " + TABLE_TRIP_CACHE + " " +
+                "ORDER BY " + COLUMN_TRIP_CACHE_TRIPCODE + " desc";
+
+        Cursor c = database.rawQuery(sql, null);
+
+        return c.getCount();
     }
 
     public boolean fullTripExists(long tripcode) {

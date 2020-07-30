@@ -289,7 +289,7 @@
                         android:background="#00FFFFFF">
 
                         <TextView
-                            android:id="@+id/txtMtdMoney"
+                            android:id="@+id/txtMtdValue"
                             android:layout_width="match_parent"
                             android:layout_height="55dp"
                             android:layout_gravity="right|center_horizontal"

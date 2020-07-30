@@ -35,6 +35,15 @@
         <SwitchPreference
             android:foreground="#000000"
             android:theme="@style/AppTheme"
+            app:key="IS_SHOWING_MTD_REIMBURSEMENT"
+            app:defaultValue="false"
+            android:fontFamily="casual"
+            android:summary="Show MTD total mileage or MTD total reimbursement value"
+            app:title="Show MTD reimbursement" />
+
+        <SwitchPreference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
             app:key="TRIP_MINDER"
             android:fontFamily="casual"
             app:defaultValue="true"

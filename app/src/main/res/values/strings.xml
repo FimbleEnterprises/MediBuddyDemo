@@ -60,6 +60,8 @@
     <string name="retry">Retry</string>
     <string name="version">"Version "</string>
     <string name="action_permissions">Adjust permissions...</string>
+    <string name="receipt_mail_body">MediBuddy generated mileage receipt.</string>
+    <string name="receipt_mail_subject_preamble">Mileage Receipt</string>
 
 
 </resources>

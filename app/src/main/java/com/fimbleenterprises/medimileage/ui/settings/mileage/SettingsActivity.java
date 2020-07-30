@@ -73,6 +73,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String SUBMIT_ON_END = "SUBMIT_ON_END";
     public static final String TRIP_MINDER = "TRIP_MINDER";
     public static final String TRIP_MINDER_INTERVAL = "TRIP_MINDER_INTERVAL";
+    public static final String IS_SHOWING_MTD_REIMBURSEMENT = "IS_SHOWING_MTD_REIMBURSEMENT";
 
     public static String DEFAULT_DATABASE_NAME = "mileagetracking.db";
     Context context;

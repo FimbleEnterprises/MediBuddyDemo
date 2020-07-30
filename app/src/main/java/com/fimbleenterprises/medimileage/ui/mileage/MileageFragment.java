@@ -2,7 +2,6 @@ package com.fimbleenterprises.medimileage.ui.mileage;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -17,11 +16,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
-import android.provider.Settings;
-import android.text.Html;
-import android.text.Spanned;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -89,8 +84,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.fimbleenterprises.medimileage.MyLocationService.NOTIFICATION_ID;
-
 public class MileageFragment extends Fragment implements TripListRecyclerAdapter.ItemClickListener
 {
     public static final int PERMISSION_MAKE_RECEIPT = 0;
@@ -98,6 +91,8 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     public static final int PERMISSION_MAKE_TRIP = 2;
     public static final int PERMISSION_UPDATE = 3;
     public static final int PERMISSION_FLOATY = 4;
+
+    public static final String REIMBURSEMENT_EMAIL = "receipts@concur.com";
 
     private static final String TAG = "MileageFragment";
     private MileageViewModel mileageViewModel;
@@ -127,7 +122,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     TextView txtDuration;
     ToggleButton toggleEditButton;
     Button btnDeleteTrips;
-    ImageView gifview;
+    ImageView gif_view;
     Button btnAddManualTrip;
     Button btnCreateReceipt;
     Button btnSync;
@@ -135,6 +130,8 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     Runnable tripDurationRunner;
     Handler tripDurationHandler = new Handler();
     double lastMtdValue;
+    private int lastMtdMilesValue = 0;
+    MyAnimatedNumberTextView animatedNumberTextView;
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -164,7 +161,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         locFilter.addAction(MyLocationService.NOT_MOVING);
 
         emptyTripList = root.findViewById(R.id.image_no_trips);
-        gifview = root.findViewById(R.id.gifview);
+        gif_view = root.findViewById(R.id.gifview);
         gauge = root.findViewById(R.id.speedo);
 
         tripStatusContainer = root.findViewById(R.id.tripStatusContainer);
@@ -173,7 +170,21 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         txtSpeed = root.findViewById(R.id.txtSpeed);
         txtDuration = root.findViewById(R.id.txtTime);
         txtReimbursement = root.findViewById(R.id.txtReimbursement);
-        txtMtd = root.findViewById(R.id.txtMtdMoney);
+
+        txtMtd = root.findViewById(R.id.txtMtdValue);
+        txtMtd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (!animatedNumberTextView.isRunning) {
+                    txtMtd.setText("---");
+                    boolean isReimbursement = options.isMtdShowingReimbursement();
+                    options.isMtdShowingReimbursement(!isReimbursement);
+                    lastMtdMilesValue = 1;
+                    lastMtdValue = 1;
+                    populateTripList();
+                }
+            }
+        });
         btnSync = root.findViewById(R.id.button_sync);
         btnSync.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -867,6 +878,8 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
         datasource = new MySqlDatasource(getContext());
 
+        txtMtd.setText("---");
+
         allTrips = new ArrayList<>();
         ArrayList<FullTrip> tempList = new ArrayList<>();
         Log.i(TAG, "populateTripList Getting trips from database...");
@@ -969,6 +982,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
         // Tally the MTD reimbursement
         float mtdTotal = 0;
+        float mtdMilesTotal = 0;
         for (FullTrip trip : allTrips) {
             // Only submitted trips
             if (trip.getIsSubmitted()) {
@@ -977,17 +991,28 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 int thisYear = DateTime.now().getYear();
                 if (trip.getDateTime().getMonthOfYear() == thisMonth && trip.getDateTime().getYear() == thisYear) {
                     mtdTotal += trip.calculateReimbursement();
+                    mtdMilesTotal += trip.getDistanceInMiles();
                 }
             }
         }
 
-        if (lastMtdValue > 0) {
-            MyAnimatedNumberTextView animatedNumberTextView = new MyAnimatedNumberTextView(getContext(), txtMtd);
-            animatedNumberTextView.setNewValue(Math.round(mtdTotal), lastMtdValue);
+        animatedNumberTextView = new MyAnimatedNumberTextView(getContext(), txtMtd);
+        if (options.isMtdShowingReimbursement()) {
+            if (lastMtdValue > 0) {
+                animatedNumberTextView.setNewValue(Math.round(mtdTotal), lastMtdValue, true);
+            } else {
+                txtMtd.setText(Helpers.Numbers.convertToCurrency(Math.round(mtdTotal)));
+            }
         } else {
-            txtMtd.setText(Helpers.Numbers.convertToCurrency(Math.round(mtdTotal)));
+            if (lastMtdMilesValue > 0) {
+                animatedNumberTextView.setNewValue(Math.round(mtdMilesTotal), lastMtdMilesValue, false);
+            } else {
+                txtMtd.setText(Helpers.Numbers.convertToCurrency(Math.round(mtdMilesTotal)));
+            }
         }
+
         lastMtdValue = Math.round(mtdTotal);
+        lastMtdMilesValue = Math.round(mtdMilesTotal);
 
         manageDefaultImage();
 
@@ -1598,9 +1623,9 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             MediUser me = MediUser.getMe();
             String[] recips = new String[2];
             recips[0] = me.email;
-            recips[1] = "receipts@concur.com";
-            Helpers.Email.sendEmail(recips, "MediBuddy generated mileage receipt.",
-                    "Mileage Receipt (" + month + "/" + year + ")"
+            recips[1] = REIMBURSEMENT_EMAIL;
+            Helpers.Email.sendEmail(recips, String.valueOf(R.string.receipt_mail_body),
+                    String.valueOf(R.string.receipt_mail_subject_preamble) + " (" + month + "/" + year + ")"
                     , getContext(), receipt, false);
         } else {
             Toast.makeText(getContext(), "No trips found for that month/year.", Toast.LENGTH_SHORT).show();
