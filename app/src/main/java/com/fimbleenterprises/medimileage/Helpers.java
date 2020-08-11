@@ -925,6 +925,12 @@ public class Helpers {
             return Double.parseDouble(df2.format(number));
         }
 
+        public static double formatAsOneDecimalPointNumber(double number) {
+            DecimalFormat df2 = new DecimalFormat("#.#");
+            // df2.setRoundingMode(roundingMode);
+            return Double.parseDouble(df2.format(number));
+        }
+
         public static int formatAsZeroDecimalPointNumber(double number, RoundingMode roundingMode) {
             DecimalFormat df2 = new DecimalFormat("#");
             df2.setRoundingMode(roundingMode);

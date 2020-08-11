@@ -484,7 +484,7 @@ public class FullTrip implements Parcelable {
     }
 
     public float getDistanceInMiles() {
-        return getDistanceInMiles(RoundingMode.UP);
+        return (float) Helpers.Geo.convertMetersToMiles(getDistance(),2);
     }
 
     public float getDistanceInMiles(RoundingMode roundingMode) {

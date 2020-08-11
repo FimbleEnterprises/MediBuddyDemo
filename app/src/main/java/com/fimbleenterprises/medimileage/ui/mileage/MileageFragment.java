@@ -106,9 +106,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     public static final int DEFAULT_FONT_COLOR = -1979711488;
     MySettingsHelper options;
     ImageView emptyTripList;
-
     boolean isStarting = true;
-
     public static View rootView;
     Dialog dialogTripOptions;
     RelativeLayout tripStatusContainer;
@@ -117,6 +115,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     TextView txtDistance;
     TextView txtReimbursement;
     TextView txtStatus;
+    TextView txtMilesTotal;
     TextView txtMtd;
     Button btnStartStop;
     TextView txtDuration;
@@ -130,7 +129,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     Runnable tripDurationRunner;
     Handler tripDurationHandler = new Handler();
     double lastMtdValue;
-    private int lastMtdMilesValue = 0;
+    private double lastMtdMilesValue = 0;
     MyAnimatedNumberTextView animatedNumberTextView;
 
     @Override
@@ -175,16 +174,40 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         txtMtd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (txtMilesTotal.getVisibility() != View.VISIBLE) {
+                    txtMilesTotal.setVisibility(View.VISIBLE);
+                    txtMtd.setVisibility(View.GONE);
+                } else {
+                    txtMtd.setVisibility(View.VISIBLE);
+                    txtMilesTotal.setVisibility(View.GONE);
+                }
                 if (!animatedNumberTextView.isRunning) {
                     txtMtd.setText("---");
-                    boolean isReimbursement = options.isMtdShowingReimbursement();
-                    options.isMtdShowingReimbursement(!isReimbursement);
-                    lastMtdMilesValue = 1;
                     lastMtdValue = 1;
                     populateTripList();
                 }
             }
         });
+
+        txtMilesTotal = root.findViewById(R.id.txtMilesTotal);
+        txtMilesTotal.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (txtMilesTotal.getVisibility() != View.VISIBLE) {
+                    txtMilesTotal.setVisibility(View.VISIBLE);
+                    txtMtd.setVisibility(View.GONE);
+                } else {
+                    txtMtd.setVisibility(View.VISIBLE);
+                    txtMilesTotal.setVisibility(View.GONE);
+                }
+                if (!animatedNumberTextView.isRunning) {
+                    txtMtd.setText("---");
+                    lastMtdValue = 1;
+                    populateTripList();
+                }
+            }
+        });
+
         btnSync = root.findViewById(R.id.button_sync);
         btnSync.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -879,6 +902,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         datasource = new MySqlDatasource(getContext());
 
         txtMtd.setText("---");
+        txtMilesTotal.setText("---");
 
         allTrips = new ArrayList<>();
         ArrayList<FullTrip> tempList = new ArrayList<>();
@@ -924,7 +948,6 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                     addedTodayHeader = true;
                     Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Today' - This will not be added again!");
                 }
-
                 // Trip was yesterday
             } else if (tripDayOfYear == (todayDayOfYear - 1)) {
                 if (addedYesterdayHeader == false) {
@@ -997,22 +1020,16 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         }
 
         animatedNumberTextView = new MyAnimatedNumberTextView(getContext(), txtMtd);
-        if (options.isMtdShowingReimbursement()) {
-            if (lastMtdValue > 0) {
-                animatedNumberTextView.setNewValue(Math.round(mtdTotal), lastMtdValue, true);
-            } else {
-                txtMtd.setText(Helpers.Numbers.convertToCurrency(Math.round(mtdTotal)));
-            }
+        if (lastMtdValue > 0) {
+            animatedNumberTextView.setNewValue(Math.round(mtdTotal), lastMtdValue, true);
         } else {
-            if (lastMtdMilesValue > 0) {
-                animatedNumberTextView.setNewValue(Math.round(mtdMilesTotal), lastMtdMilesValue, false);
-            } else {
-                txtMtd.setText(Helpers.Numbers.convertToCurrency(Math.round(mtdMilesTotal)));
-            }
+            txtMtd.setText(Helpers.Numbers.convertToCurrency(mtdTotal));
         }
 
         lastMtdValue = Math.round(mtdTotal);
-        lastMtdMilesValue = Math.round(mtdMilesTotal);
+        lastMtdMilesValue = Helpers.Numbers.formatAsOneDecimalPointNumber(mtdMilesTotal);
+
+        txtMilesTotal.setText(lastMtdMilesValue + " mi");
 
         manageDefaultImage();
 

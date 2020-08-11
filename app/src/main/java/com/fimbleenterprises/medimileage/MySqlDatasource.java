@@ -156,7 +156,7 @@ public class MySqlDatasource {
         }
     }
 
-    public boolean createTripCacheEntry(FullTrip trip) {
+    /*public boolean createTripCacheEntry(FullTrip trip) {
         try {
             ContentValues values = new ContentValues();
 
@@ -252,7 +252,7 @@ public class MySqlDatasource {
         result = (database.delete(TABLE_TRIP_CACHE, null, null)) > 0;
         Log.i(TAG, "deleteAllTripCacheEntries " + result);
         return result;
-    }
+    }*/
 
     public boolean updateAccounts(AccountAddresses accounts) {
 
@@ -554,7 +554,7 @@ public class MySqlDatasource {
         return titles;
     }
 
-    public ArrayList<CachedTrip> getCachedTrips() {
+    /*public ArrayList<CachedTrip> getCachedTrips() {
         Cursor c = database.query(TABLE_TRIP_CACHE, new String[] { COLUMN_TRIP_CACHE_ID, COLUMN_TRIP_CACHE_JSON, COLUMN_TRIP_CACHE_TRIPCODE }, null, null,
                 null, null, null);
         ArrayList<CachedTrip> trips = new ArrayList<>();
@@ -658,7 +658,7 @@ public class MySqlDatasource {
         Cursor c = database.rawQuery(sql, null);
 
         return c.getCount();
-    }
+    }*/
 
     public boolean fullTripExists(long tripcode) {
         boolean result;
