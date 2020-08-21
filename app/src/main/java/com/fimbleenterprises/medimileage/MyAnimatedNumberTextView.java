@@ -2,6 +2,8 @@ package com.fimbleenterprises.medimileage;
 
 import android.content.Context;
 import android.os.Handler;
+import android.text.SpannableString;
+import android.text.style.UnderlineSpan;
 import android.widget.TextView;
 
 public class MyAnimatedNumberTextView {

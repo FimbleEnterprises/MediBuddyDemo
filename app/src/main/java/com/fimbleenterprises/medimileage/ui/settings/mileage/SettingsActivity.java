@@ -369,12 +369,12 @@ public class SettingsActivity extends AppCompatActivity {
                 // File sd = Environment.getExternalStorageDirectory();
                 SQLiteDatabase database = new MySqlDatasource().getDatabase();
 
-                if (Helpers.Files.getBackupDirectory().canWrite()) {
+                if (Helpers.Files.getAppDirectory().canWrite()) {
                     Log.d("TAG", "DatabaseHandler: can write in sd");
                     String currentDBPath = database.getPath();
                     String copieDBPath = System.currentTimeMillis() + ".db";
                     File currentDB = new File(currentDBPath);
-                    File copieDB = new File(Helpers.Files.getBackupDirectory(), copieDBPath);
+                    File copieDB = new File(Helpers.Files.getAppDirectory(), copieDBPath);
                     if (currentDB.exists()) {
                         Log.d("TAG", "DatabaseHandler: DB exist");
                         @SuppressWarnings("resource")

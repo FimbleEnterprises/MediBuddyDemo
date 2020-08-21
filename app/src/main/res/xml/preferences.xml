@@ -62,6 +62,17 @@
             android:entries="@array/trip_minder_intervals"
             android:entryValues="@array/trip_minder_intervals_values" />
 
+        <ListPreference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
+            app:key="RECEIPT_FORMATS"
+            android:fontFamily="casual"
+            app:defaultValue=".png"
+            android:title="Receipt file format"
+            android:summary="The format to use when creating receipt files."
+            android:entries="@array/receipt_formats"
+            android:entryValues="@array/receipt_formats_values" />
+
         <Preference
             android:foreground="#000000"
             android:theme="@style/AppTheme"

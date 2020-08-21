@@ -88,7 +88,6 @@ public class MainActivity extends AppCompatActivity {
         fragmentManager = getSupportFragmentManager();
 
         Helpers.Files.makeAppDirectory();
-        Helpers.Files.makeBackupDirectory();
 
         drawer = findViewById(R.id.drawer_layout);
 
@@ -409,6 +408,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void checkForUpdate(final boolean silently) {
+
+        Helpers.Files.deleteAppTempDirectory();
 
         // If an update has been previously downloaded prompt the user to install it
         if (options.updateIsAvailableLocally()) {

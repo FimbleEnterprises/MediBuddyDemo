@@ -322,13 +322,12 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
         return true;
     }
 
-    public static void install(boolean show, final Activity activity, MileBuddyUpdate update) {
+    public static void install(boolean show, final Activity activity, final MileBuddyUpdate update) {
 
         final MySettingsHelper options = new MySettingsHelper(activity);
 
-
         if (show) {
-            final File file = new File(Helpers.Files.getAppDownloadDirectory().getPath(), update.version + ".apk");
+
             final Dialog dialog = new Dialog(activity);
             dialog.setContentView(R.layout.update_app_dialog);
             dialog.setCancelable(true);
@@ -343,17 +342,40 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
                 }
             });
             TextView txtChangeLog = dialog.findViewById(R.id.txtChangelog);
-            txtChangeLog.setText("Ver: " + options.getMileBuddyUpdate().version + "\n" + options.getMileBuddyUpdate().changelog);
+            txtChangeLog.setText("Ver: " + options.getMileBuddyUpdate().version + "\n"
+                    + options.getMileBuddyUpdate().changelog);
             Button btnInstall = dialog.findViewById(R.id.btnInstall);
             btnInstall.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     dialog.dismiss();
+
+                    final File originalFile = new File(Helpers.Files.getAppDownloadDirectory().getPath(), update.version + ".apk");
+                    final File tempDir = Helpers.Files.getAppTempDirectory();
+                    tempDir.delete();
+                    tempDir.mkdirs();
+
+                    final File tempApp = new File(tempDir.getAbsolutePath(),update.version + ".apk");
+                    if (tempApp.exists()) {
+                        tempApp.delete();
+                    }
+
+                    if (!Helpers.Files.copy(originalFile, tempApp)) {
+                        Toast.makeText(activity, "Failed to instal (the copy part failed, dawg).", Toast.LENGTH_SHORT).show();
+                        Log.w(TAG, "install: Failed to copy the update file to a temp location for installation");
+                        MileBuddyUpdate.deleteAllLocallyAvailableUpdates();
+                        return;
+                    } else {
+                        Log.i(TAG, "install Ready to install!");
+                    }
+
+                    // delete the downloaded, original file since it should now have been copied to
+                    // a temporary location.
                     MileBuddyUpdate.deleteAllLocallyAvailableUpdates();
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         Uri contentUri = FileProvider.getUriForFile(activity,
-                                BuildConfig.APPLICATION_ID + PROVIDER_PATH, file);
+                                BuildConfig.APPLICATION_ID + PROVIDER_PATH, tempApp);
                         Intent install = new Intent(Intent.ACTION_VIEW);
                         install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                         install.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -363,7 +385,7 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
                     } else {
                         Intent install = new Intent(Intent.ACTION_VIEW);
                         install.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        install.setDataAndType(Uri.fromFile(file), APP_INSTALL_PATH);
+                        install.setDataAndType(Uri.fromFile(tempApp), APP_INSTALL_PATH);
                         activity.startActivity(install);
                     }
 

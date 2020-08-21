@@ -88,7 +88,7 @@ public class RestoreDbActivity extends AppCompatActivity {
         final ArrayList<String> filenames = new ArrayList<>();
 
         try {
-            for (File file : Helpers.Files.getBackupDirectory().listFiles()) {
+            for (File file : Helpers.Files.getAppDirectory().listFiles()) {
                 if (file.getName().endsWith(".db")) {
                     filenames.add(file.getName());
                     backups.add(file);

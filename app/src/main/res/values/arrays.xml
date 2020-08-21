@@ -22,4 +22,16 @@
         <item>1200000</item>
     </string-array>
 
+    <string-array name="receipt_formats">
+        <item>Text File</item>
+        <item>PNG File</item>
+        <item>JPEG File</item>
+    </string-array>
+
+    <string-array name="receipt_formats_values">
+        <item>.txt</item>
+        <item>.png</item>
+        <item>.jpeg</item>
+    </string-array>
+
 </resources>

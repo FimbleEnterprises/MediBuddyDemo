@@ -111,9 +111,9 @@ public class MileBuddyUpdate {
         MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
         SharedPreferences prefs = options.getSharedPrefs();
         prefs.edit().remove(MILEBUDDY_UPDATE_JSON).commit();
-        File[] files = Helpers.Files.getAppDirectory().listFiles();
+        File[] files = Helpers.Files.getAppDownloadDirectory().listFiles();
         for (File file : files) {
-            if (file.getName().endsWith(".apk")) {
+            if (! file.isDirectory() && file.getName().endsWith(".apk")) {
                 file.delete();
                 i++;
             }

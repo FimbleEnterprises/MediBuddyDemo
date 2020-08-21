@@ -10,7 +10,10 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.location.Location;
 import android.media.AudioManager;
@@ -23,6 +26,11 @@ import android.os.Environment;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
+import android.text.Layout;
+import android.text.SpannableString;
+import android.text.StaticLayout;
+import android.text.TextPaint;
+import android.text.style.UnderlineSpan;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
@@ -42,6 +50,7 @@ import org.joda.time.format.DateTimeFormatter;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -102,6 +111,82 @@ public class Helpers {
         public static Bitmap getBitmapFromResource(Context context, @DrawableRes int resource) {
             return BitmapFactory.decodeResource(context.getResources(),
                     resource);
+        }
+
+        public static File createPngFileFromString(String text, String fileName) throws IOException {
+
+           fileName = fileName.replace(".txt",".png");
+            if (!fileName.endsWith(".png")) {
+                fileName += ".png";
+            }
+
+            final Rect bounds = new Rect();
+            TextPaint textPaint = new TextPaint() {
+                {
+                    setColor(Color.WHITE);
+                    setTextAlign(Paint.Align.LEFT);
+                    setTextSize(20f);
+                    setAntiAlias(true);
+                }
+            };
+            textPaint.getTextBounds(text, 0, text.length(), bounds);
+            StaticLayout mTextLayout = new StaticLayout(text, textPaint,
+                    bounds.width(), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
+            int maxWidth = -1;
+            for (int i = 0; i < mTextLayout.getLineCount(); i++) {
+                if (maxWidth < mTextLayout.getLineWidth(i)) {
+                    maxWidth = (int) mTextLayout.getLineWidth(i);
+                }
+            }
+            final Bitmap bmp = Bitmap.createBitmap(maxWidth , mTextLayout.getHeight(),
+                    Bitmap.Config.ARGB_8888);
+            bmp.eraseColor(Color.BLACK);// just adding black background
+            final Canvas canvas = new Canvas(bmp);
+            mTextLayout.draw(canvas);
+            File outputFile = new File(Helpers.Files.getAppTempDirectory(), fileName);
+            FileOutputStream stream = new FileOutputStream(outputFile); //create your FileOutputStream here
+            bmp.compress(Bitmap.CompressFormat.PNG, 85, stream);
+            bmp.recycle();
+            stream.close();
+            return outputFile;
+        }
+
+        public static File createJpegFileFromString(String text, String fileName) throws IOException {
+
+            fileName = fileName.replace(".txt",".jpeg");
+            if (!fileName.endsWith(".jpeg")) {
+                fileName += ".jpeg";
+            }
+
+            final Rect bounds = new Rect();
+            TextPaint textPaint = new TextPaint() {
+                {
+                    setColor(Color.WHITE);
+                    setTextAlign(Paint.Align.LEFT);
+                    setTextSize(20f);
+                    setAntiAlias(true);
+                }
+            };
+            textPaint.getTextBounds(text, 0, text.length(), bounds);
+            StaticLayout mTextLayout = new StaticLayout(text, textPaint,
+                    bounds.width(), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
+            int maxWidth = -1;
+            for (int i = 0; i < mTextLayout.getLineCount(); i++) {
+                if (maxWidth < mTextLayout.getLineWidth(i)) {
+                    maxWidth = (int) mTextLayout.getLineWidth(i);
+                }
+            }
+            final Bitmap bmp = Bitmap.createBitmap(maxWidth , mTextLayout.getHeight(),
+                    Bitmap.Config.ARGB_8888);
+            bmp.eraseColor(Color.BLACK);// just adding black background
+            final Canvas canvas = new Canvas(bmp);
+            mTextLayout.draw(canvas);
+            File outputFile = new File(Helpers.Files.getAppTempDirectory(), fileName);
+            FileOutputStream stream = new FileOutputStream(outputFile); //create your FileOutputStream here
+            bmp.compress(Bitmap.CompressFormat.JPEG, 85, stream);
+            bmp.recycle();
+            stream.close();
+            return outputFile;
         }
     }
 
@@ -1174,7 +1259,7 @@ public class Helpers {
                     PropertyValuesHolder.ofFloat("scaleY", 1.15f));
             scaleDown.setDuration(750);
 
-            scaleDown.setRepeatCount(25);
+            scaleDown.setRepeatCount(250);
             scaleDown.setRepeatMode(ObjectAnimator.REVERSE);
 
             scaleDown.start();
@@ -1460,11 +1545,19 @@ public class Helpers {
             return (path.delete());
         }// END deleteDirectory()
 
+        public static File getAppDirectory() {
+                makeAppDirectory();
+                Context context = MyApp.getAppContext();
+                File dir = new File(context.getExternalFilesDir(null), "MileBuddy");
+                Log.i(TAG, "getAppDirectory: " + dir.getAbsolutePath());
+                return dir;
+        }
+
         public static void makeAppDirectory() {
 
             Context context = MyApp.getAppContext();
 
-            File dir = new File(context.getExternalFilesDir(null), "MileBuddy");
+            File dir = new File(context.getExternalFilesDir(null).getAbsolutePath());
 
             if (!dir.exists() || !dir.isDirectory()) {
                 Log.i(TAG, "makeAppDirectory: " + dir.mkdirs());
@@ -1473,6 +1566,7 @@ public class Helpers {
             }
         }
 
+        /*
         public static void makeBackupDirectory() {
 
             Context context = MyApp.getAppContext();
@@ -1485,25 +1579,45 @@ public class Helpers {
                 Log.i(TAG, "makeBackupDirectory: Backup directory exists");
             }
         }
-
-        public static File getAppDirectory() {
-                makeAppDirectory();
-                Context context = MyApp.getAppContext();
-                File dir = new File(context.getExternalFilesDir(null), "MileBuddy");
-                Log.i(TAG, "getAppDirectory: " + dir.getAbsolutePath());
-                return dir;
-        }
+        */
 
         public static File getAppDownloadDirectory() {
             return new File(MyApp.getAppContext().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString());
         }
 
-        public static File getBackupDirectory() {
+        public static File getAppTempDirectory() {
+            File tmp = new File(MyApp.getAppContext().getExternalFilesDir(null).toString() + File.separator
+                    + "temp");
+            if (!tmp.exists()) {
+                tmp.mkdirs();
+            }
+            return tmp;
+        }
+
+        public static boolean deleteAppTempDirectory() {
+            boolean result = false;
+
+            File tempDir = getAppTempDirectory();
+            if (tempDir.exists()) {
+                if (tempDir.isDirectory()) {
+                    for (File f : tempDir.listFiles()) {
+                        result = f.delete();
+                        Log.i(TAG, "deleteAppTempDirectory | deleted a file (" + f.getName() + ")");
+                    }
+                    tempDir.delete();
+                }
+            }
+
+            Log.i(TAG, "deleteAppTempDirectory " + !tempDir.exists());
+            return result;
+        }
+
+        /*public static File getBackupDirectory() {
             makeAppDirectory();
             File dir = new File(getAppDirectory(), "Backups");
             Log.i(TAG, "getBackupDirectory: " + dir.getAbsolutePath());
             return dir;
-        }
+        }*/
     }
 
     public static class Fonts {
@@ -1512,6 +1626,12 @@ public class Helpers {
     }
 
     public static class Strings {
+
+        public static SpannableString makeUnderlined(String txt) {
+            SpannableString content = new SpannableString(txt);
+            content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
+            return content;
+        }
 
         @RequiresApi(api = Build.VERSION_CODES.O)
         public static byte[]decodeBase64(String encodedData){

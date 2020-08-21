@@ -22,6 +22,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -128,6 +129,10 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     MySpeedoGauge gauge;
     Runnable tripDurationRunner;
     Handler tripDurationHandler = new Handler();
+    Runnable mtdTogglerRunner;
+    Handler mtdTogglerHandler = new Handler();
+    boolean isShowingMilesTotal = false;
+
     double lastMtdValue;
     private double lastMtdMilesValue = 0;
     MyAnimatedNumberTextView animatedNumberTextView;
@@ -174,18 +179,13 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         txtMtd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (txtMilesTotal.getVisibility() != View.VISIBLE) {
-                    txtMilesTotal.setVisibility(View.VISIBLE);
-                    txtMtd.setVisibility(View.GONE);
-                } else {
-                    txtMtd.setVisibility(View.VISIBLE);
-                    txtMilesTotal.setVisibility(View.GONE);
-                }
-                if (!animatedNumberTextView.isRunning) {
+                stopMtdTogglerRunner();
+                startMtdTogglerRunner();
+                /*if (!animatedNumberTextView.isRunning) {
                     txtMtd.setText("---");
                     lastMtdValue = 1;
                     populateTripList();
-                }
+                }*/
             }
         });
 
@@ -193,18 +193,13 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         txtMilesTotal.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (txtMilesTotal.getVisibility() != View.VISIBLE) {
-                    txtMilesTotal.setVisibility(View.VISIBLE);
-                    txtMtd.setVisibility(View.GONE);
-                } else {
-                    txtMtd.setVisibility(View.VISIBLE);
-                    txtMilesTotal.setVisibility(View.GONE);
-                }
-                if (!animatedNumberTextView.isRunning) {
+                stopMtdTogglerRunner();
+                startMtdTogglerRunner();
+                /*if (!animatedNumberTextView.isRunning) {
                     txtMtd.setText("---");
                     lastMtdValue = 1;
                     populateTripList();
-                }
+                }*/
             }
         });
 
@@ -545,6 +540,64 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         }
     }
 
+    void startMtdTogglerRunner() {
+        mtdTogglerRunner = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (isShowingMilesTotal) {
+                        Helpers.Animations.fadeOut(txtMilesTotal, 250, new Animation.AnimationListener() {
+                            @Override
+                            public void onAnimationStart(Animation animation) {
+                                isShowingMilesTotal = false;
+                                Helpers.Animations.fadeIn(txtMtd, 250);
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animation animation) {
+                                txtMilesTotal.setVisibility(View.INVISIBLE);
+                                txtMtd.setVisibility(View.VISIBLE);
+                                mtdTogglerHandler.postDelayed(mtdTogglerRunner, 5000);
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animation animation) {
+
+                            }
+                        });
+                    } else {
+                        Helpers.Animations.fadeOut(txtMtd, 250, new Animation.AnimationListener() {
+                            @Override
+                            public void onAnimationStart(Animation animation) {
+                                isShowingMilesTotal = true;
+                                Helpers.Animations.fadeIn(txtMilesTotal, 250);
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animation animation) {
+                                txtMilesTotal.setVisibility(View.VISIBLE);
+                                txtMtd.setVisibility(View.INVISIBLE);
+                                mtdTogglerHandler.postDelayed(mtdTogglerRunner, 5000);
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animation animation) {
+
+                            }
+                        });
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        mtdTogglerRunner.run();
+    }
+
+    void stopMtdTogglerRunner() {
+        mtdTogglerHandler.removeCallbacks(mtdTogglerRunner);
+    }
+
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case PERMISSION_START_TRIP:
@@ -718,13 +771,16 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         for (int i = 0; i < this.getParentFragmentManager().getBackStackEntryCount(); i++) {
             Log.i(TAG, "onCreateView: Backstack[" + i + "] name: " + this.getParentFragmentManager().getBackStackEntryAt(i).getId());
         }
-        // this.getParentFragmentManager().popBackStack();
+
+        Helpers.Animations.pulseAnimation(txtMilesTotal);
+        Helpers.Animations.pulseAnimation(txtMtd);
+        startMtdTogglerRunner();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-
+        stopMtdTogglerRunner();
     }
 
     @Override
@@ -1654,14 +1710,16 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         List<FullTrip> allTrips = ds.getTrips(monthNum, year, true);
         String fName = "mileage_receipt_month_" + DateTime.now().getMonthOfYear() + "_year_" +
                 DateTime.now().getYear() + ".txt";
-        File path = new File(Helpers.Files.getAppDirectory(), fName);
+        File txtFile = new File(Helpers.Files.getAppTempDirectory(), fName);
+        File finalReceiptFile = null;
 
         float total = 0f;
         float tripAmt = 0f;
         int tripCount = 0;
+        float totalMiles = 0f;
 
         try {
-            FileOutputStream stream = new FileOutputStream(path);
+            FileOutputStream stream = new FileOutputStream(txtFile);
             StringBuilder stringBuilder = new StringBuilder();
             try {
                 stringBuilder.append("----------------------------------------\n");
@@ -1672,6 +1730,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                         tripCount += 1;
                         tripAmt = trip.calculateReimbursement();
                         total += tripAmt;
+                        totalMiles += trip.getDistanceInMiles();
                         stringBuilder.append("* Trip: " + Helpers.DatesAndTimes.getPrettyDate(trip.getDateTime()) + "\n\t" +
                                 "Distance:" + trip.getDistanceInMiles() + "\n\t" +
                                 "Reimbursement: " + Helpers.Numbers.convertToCurrency(tripAmt) + "\n\t" +
@@ -1679,18 +1738,38 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                                 "Is manual: " + trip.getIsManualTrip() + "\n\n");
                     }
                 }
-                stringBuilder.append("\n\n Trips: " + tripCount);
-                stringBuilder.append("\n Reimbursement: " + Helpers.Numbers.convertToCurrency(Math.round(total)));
+                stringBuilder.append("\n\n Trip count: " + tripCount);
+                stringBuilder.append("\n Total reimbursement: " + Helpers.Numbers.convertToCurrency(Math.round(total)));
+                stringBuilder.append("\n Total miles: " + Helpers.Numbers.formatAsOneDecimalPointNumber(totalMiles));
 
                 stream.write(stringBuilder.toString().getBytes());
             } finally {
                 stream.close();
             }
+
+            try {
+                if (options.getReceiptFormat().equals(MySettingsHelper.RECEIPT_FORMAT_PNG)) {
+                    finalReceiptFile = Helpers.Bitmaps.createPngFileFromString(stringBuilder.toString(), fName);
+                } else if (options.getReceiptFormat().equals(MySettingsHelper.RECEIPT_FORMAT_JPEG)) {
+                    finalReceiptFile = Helpers.Bitmaps.createJpegFileFromString(stringBuilder.toString(), fName);
+                } else {
+                    finalReceiptFile = txtFile;
+                }
+                return finalReceiptFile;
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(getContext(), "Failed to make an image file.  Text file will have to do!", Toast.LENGTH_SHORT).show();
+                return txtFile;
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (tripCount > 0) {
-            return path;
+
+        if (tripCount > 0 && finalReceiptFile != null) {
+            return finalReceiptFile;
+        } else if (tripCount > 0 && finalReceiptFile == null) {
+            return txtFile;
         } else {
             return null;
         }

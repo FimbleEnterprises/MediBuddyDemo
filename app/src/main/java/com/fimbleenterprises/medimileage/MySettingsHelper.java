@@ -2,21 +2,14 @@ package com.fimbleenterprises.medimileage;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.util.Log;
-
-import com.google.android.gms.maps.GoogleMap;
-import com.google.gson.Gson;
-import com.google.gson.internal.$Gson$Preconditions;
 
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.json.JSONObject;
 
 import java.io.File;
-
-import androidx.annotation.Nullable;
 
 public class MySettingsHelper {
 
@@ -41,6 +34,11 @@ public class MySettingsHelper {
     public static final String FCM_TOKEN = "FCM_TOKEN";
     public static final String LAST_UPDATED_ACT_ADDYS = "LAST_UPDATED_ACT_ADDYS";
     public static final String LAST_UPDATED_USER_ADDYS = "LAST_UPDATED_USER_ADDYS";
+    public static final String RECEIPT_FORMATS = "RECEIPT_FORMATS";
+
+    public static final String RECEIPT_FORMAT_PNG = ".png";
+    public static final String RECEIPT_FORMAT_JPEG = ".jpeg";
+    public static final String RECEIPT_FORMAT_TXT = ".txt";
 
     Context context;
     SharedPreferences prefs;
@@ -74,6 +72,29 @@ public class MySettingsHelper {
             e.printStackTrace();
             return true;
         }
+    }
+
+    /**
+     * Returns the extension of the generated receipt file (.png, .jpeg or .txt)
+     * @return The extension of the generated receipt file.
+     */
+    public String getReceiptFormat() {
+        return prefs.getString(RECEIPT_FORMATS, ".png");
+    }
+
+    /**
+     * Sets the generated receipt file's format and extension (.png, .jpeg or .txt)
+     * @param receiptFormat "A string representing an appropriate extension (.png, .jpeg or .txt)
+     */
+    public void setReceiptFormat(String receiptFormat) {
+        prefs.edit().putString(RECEIPT_FORMATS, receiptFormat).commit();
+    }
+
+    /**
+     * Sets the default receipt format to .png
+     */
+    public void setDefaultReceiptFormat() {
+        prefs.edit().putString(RECEIPT_FORMATS, RECEIPT_FORMAT_PNG).commit();
     }
 
     public void updateLastUpdatedUserAddys() {
