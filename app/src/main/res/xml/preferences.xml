@@ -48,7 +48,7 @@
             android:fontFamily="casual"
             app:defaultValue="true"
             android:summary="Trips will evaluate the length of time between location updates to determine if you have forgotten to end a trip."
-            app:title="Trip Minder" />
+            app:title="Auto-stop trips" />
 
         <ListPreference
             android:dependency="TRIP_MINDER"
@@ -57,8 +57,8 @@
             app:key="TRIP_MINDER_INTERVAL"
             android:fontFamily="casual"
             app:defaultValue="1200000"
-            android:title="Trip Minder interval (minutes)"
-            android:summary="The length of time between new location updates indicating a forgotten trip."
+            android:title="Auto-stop interval (minutes)"
+            android:summary="The length of time between location updates to determine a forgotten, running trip."
             android:entries="@array/trip_minder_intervals"
             android:entryValues="@array/trip_minder_intervals_values" />
 

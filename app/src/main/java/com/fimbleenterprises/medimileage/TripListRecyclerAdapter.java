@@ -1,8 +1,8 @@
 package com.fimbleenterprises.medimileage;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Typeface;
-import android.media.Image;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,7 +17,6 @@ import com.fimbleenterprises.medimileage.ui.mileage.MileageFragment;
 
 import java.util.ArrayList;
 
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
 
@@ -71,8 +70,24 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
 
         holder.txtSubtext.setText(Helpers.Geo.convertMetersToMiles(trip.getDistance(),2) + " miles - " +
                 trip.calculatePrettyReimbursement());
-        holder.txtManual.setText((trip.getIsManualTrip()) ? "MANUAL" : "");
-        holder.txtEdited.setText((trip.getIsEdited()) ? "EDITED" : "");
+
+        // Set special status fields as appropriate
+        if (trip.getIsTripMinderKilled()) {
+            holder.txtIsAutoStoppedTrip.setText("AUTO-STOPPED");
+            holder.txtIsAutoStoppedTrip.setTextColor(Color.BLUE);
+        } else {
+            holder.txtIsAutoStoppedTrip.setText("");
+        }
+
+        if (trip.getIsEdited()) {
+            holder.txtIsEditedOrManual.setText("EDITED");
+            holder.txtIsEditedOrManual.setTextColor(Color.RED);
+        } else if (trip.getIsManualTrip()) {
+            holder.txtIsEditedOrManual.setText("MANUAL");
+            holder.txtIsEditedOrManual.setTextColor(Color.RED);
+        } else {
+            holder.txtIsEditedOrManual.setText("");
+        }
 
         if (trip.getIsEdited()) {
             Log.i(TAG, "onBindViewHolder Edited trip");
@@ -90,8 +105,8 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
                 ? (int) R.drawable.av_checkmark : (int) R.drawable.upload_icon2_48x48);
 
         holder.txtSubtext.setVisibility((trip.isSeparator) ? View.GONE : View.VISIBLE);
-        holder.txtManual.setVisibility((trip.isSeparator) ? View.GONE : View.VISIBLE);
-        holder.txtEdited.setVisibility((trip.isSeparator) ? View.GONE : View.VISIBLE);
+        holder.txtIsEditedOrManual.setVisibility((trip.isSeparator) ? View.GONE : View.VISIBLE);
+        holder.txtIsAutoStoppedTrip.setVisibility((trip.isSeparator) ? View.GONE : View.VISIBLE);
         holder.imgSubmitStatus.setVisibility((trip.isSeparator) ? View.GONE : View.VISIBLE);
 
         if (trip.isSeparator) {
@@ -150,8 +165,8 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
         TextView txtSubtext;
         ImageView imgUserStarted;
         ImageView imgUserStopped;
-        TextView txtManual;
-        TextView txtEdited;
+        TextView txtIsEditedOrManual;
+        TextView txtIsAutoStoppedTrip;
         CheckBox chkbxSelectTrip;
         RelativeLayout layout;
 
@@ -164,8 +179,8 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
             txtSubtext = itemView.findViewById(R.id.textView_FullTripRowSubtext);
             imgUserStarted = itemView.findViewById(R.id.imageView_started);
             imgUserStopped = itemView.findViewById(R.id.imageView_stopped);
-            txtManual = itemView.findViewById(R.id.txtManual);
-            txtEdited = itemView.findViewById(R.id.txtEdited);
+            txtIsEditedOrManual = itemView.findViewById(R.id.txtIsEditedOrManual);
+            txtIsAutoStoppedTrip = itemView.findViewById(R.id.txtIsAutoStopped);
             chkbxSelectTrip = itemView.findViewById(R.id.checkBox_selectTrip);
 
             itemView.setOnClickListener(this);

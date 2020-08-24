@@ -160,6 +160,7 @@ public class MyLocationService extends Service implements LocationListener {
 
         if (intent != null && intent.getBooleanExtra(USER_STARTED_TRIP_FLAG, false)) {
             userStartedTrip = true;
+            options.lastTripAutoKilled(false);
         }
 
         try {
@@ -223,8 +224,6 @@ public class MyLocationService extends Service implements LocationListener {
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
     }
-
-
 
     @Override
     public void onDestroy() {
@@ -764,7 +763,16 @@ public class MyLocationService extends Service implements LocationListener {
             Log.i(TAG, "tripMinderEvaluation time between valid updates has been exceeded.");
             if (userHasBeenWarned) {
                 Log.w(TAG, "tripMinderEvaluation: User has been warned.  Stopping the trip!");
-                this.stopSelf();
+                try {
+                    this.stopSelf();
+                    options.lastTripAutoKilled(true);
+
+                    // This will update the trip as auto-killed prior to submission
+                    fullTrip.tripMinderKilled = 1;
+                    fullTrip.save();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             } else {
                 Log.w(TAG, "tripMinderEvaluation: Warning the user!");
                 this.lastLocationChangedTimeInMilis = System.currentTimeMillis();

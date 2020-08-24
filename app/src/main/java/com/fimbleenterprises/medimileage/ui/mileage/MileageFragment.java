@@ -327,101 +327,102 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         locReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(final Context context, Intent intent) {
-                if (intent != null) {
+            if (intent != null) {
 
-                    btnStartStop.setText((MyLocationService.isRunning) ? "STOP" : "GO");
-                    btnSync.setTextColor((MyLocationService.isRunning) ? Color.GRAY : Color.BLUE);
-                    btnSync.setEnabled((MyLocationService.isRunning) ? false : true);
-                    tripStatusContainer.setVisibility((MyLocationService.isRunning) ? View.VISIBLE : View.GONE);
-                    txtDuration.setText(MyLocationService.getTripDuration() + " mins");
+                
+                btnStartStop.setText((MyLocationService.isRunning) ? "STOP" : "GO");
+                btnSync.setTextColor((MyLocationService.isRunning) ? Color.GRAY : Color.BLUE);
+                btnSync.setEnabled((MyLocationService.isRunning) ? false : true);
+                tripStatusContainer.setVisibility((MyLocationService.isRunning) ? View.VISIBLE : View.GONE);
+                txtDuration.setText(MyLocationService.getTripDuration() + " mins");
 
-                    // NEW LOCATION INFORMATION RECEIVED
-                    if (intent.getParcelableExtra(MyLocationService.LOCATION_CHANGED) != null) {
-                        LocationContainer update = intent.getParcelableExtra(MyLocationService.LOCATION_CHANGED);
-                        Log.d(TAG, "onReceive Location broadcast received!");
+                // NEW LOCATION INFORMATION RECEIVED
+                if (intent.getParcelableExtra(MyLocationService.LOCATION_CHANGED) != null) {
+                    LocationContainer update = intent.getParcelableExtra(MyLocationService.LOCATION_CHANGED);
+                    Log.d(TAG, "onReceive Location broadcast received!");
 
-                        if (MyLocationService.isRunning) {
-                            txtStatus.setText("Trip is running");
-                            txtStatus.setTextColor(Color.GREEN);
-                            txtReimbursement.setText(update.fullTrip.calculatePrettyReimbursement());
-                            Helpers.Animations.pulseAnimation(txtStatus, 1.00f, 1.25f, 9000, 150);
-                            if (isStarting) {
-                                showGif(false);
-                                isStarting = false;
-                            }
-                        } else {
-                            txtStatus.setText("Trip not started");
-                            txtStatus.setTextColor(DEFAULT_FONT_COLOR);
+                    if (MyLocationService.isRunning) {
+                        txtStatus.setText("Trip is running");
+                        txtStatus.setTextColor(Color.GREEN);
+                        txtReimbursement.setText(update.fullTrip.calculatePrettyReimbursement());
+                        Helpers.Animations.pulseAnimation(txtStatus, 1.00f, 1.25f, 9000, 150);
+                        if (isStarting) {
+                            showGif(false);
+                            isStarting = false;
                         }
-
-                        txtDistance.setText(Helpers.Geo.convertMetersToMiles(update.fullTrip.getDistance(), 2) + " miles");
-                        txtSpeed.setText(update.tripEntry.getSpeedInMph(true));
-                        gauge.setSpeed(update.tripEntry.getMph());
-
-                        setEditMode(false);
-                        manageDefaultImage();
-
+                    } else {
+                        txtStatus.setText("Trip not started");
+                        txtStatus.setTextColor(DEFAULT_FONT_COLOR);
                     }
 
-                    // SERVICE HAS STARTED
-                    if (intent.getAction() != null && intent.getAction().equals(MyLocationService.SERVICE_STARTED)) {
-                        btnSync.setEnabled(false);
-                        txtStatus.setText("Start driving!");
-                        txtDistance.setText("0 miles");
-                        txtSpeed.setText("0 mph");
-                        isStarting = true;
-                        tripStatusContainer.setVisibility(View.VISIBLE);
-                        txtStatus.setTextColor(Color.BLUE);
-                        txtReimbursement.setText("$0.00");
-                        Helpers.Animations.pulseAnimation(txtStatus, 1.00f, 1.25f, 9000, 450);
-                        Log.i(TAG, "onReceive | trip starting broadcast received.");
-                        manageDefaultImage();
-                        gauge.setSpeed(0);
-                        gauge.setMaxSpeed(120);
-                        startTripDurationRunner();
-                    }
+                    txtDistance.setText(Helpers.Geo.convertMetersToMiles(update.fullTrip.getDistance(), 2) + " miles");
+                    txtSpeed.setText(update.tripEntry.getSpeedInMph(true));
+                    gauge.setSpeed(update.tripEntry.getMph());
 
-                    // SERVICE IS STOPPING
-                    if (intent.getAction() != null && intent.getAction().equals(MyLocationService.SERVICE_STOPPED)) {
-                        txtStatus.setText("Trip is stopping");
-                        Log.i(TAG, "onReceive  | trip stopping broadcast received");
-                    }
-
-                    // SERVICE IS ENDED
-                    if (intent.getAction() != null && intent.getAction().equals(MyLocationService.SERVICE_STOPPED)) {
-                        txtStatus.setText("Trip is stopping...");
-                        txtStatus.setTextColor(Color.RED);
-                        tripStatusContainer.setVisibility(View.GONE);
-                        Log.i(TAG, "onReceive | trip stopped broadcast received.");
-                        adapter.notifyDataSetChanged();
-                        populateTripList();
-                        manageDefaultImage();
-                        Log.i(TAG, "onReceive | trip stopping broadcast received.");
-
-                        if (intent.getParcelableExtra(MyLocationService.FINAL_LOCATION) != null) {
-                            FullTrip trip = intent.getParcelableExtra(MyLocationService.FINAL_LOCATION);
-                            Log.i(TAG, "onReceive " + trip.toString());
-
-                            if (options.getAutosubmitOnTripEnd()) {
-                                try {
-                                    if (trip.getDistanceInMiles() >= 2 && trip.getTripEntries().size() > 2) {
-                                        submitTrip(trip);
-                                    }
-                                } catch (UnsupportedEncodingException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-
-                        }
-                    }
-
-                    // USER IS NOT MOVING
-                    if (intent.getAction() != null && intent.getAction().equals(MyLocationService.NOT_MOVING)) {
-                        txtSpeed.setText("0 mph");
-                        Log.i(TAG, "onReceive: Got a stopped moving broadcast!");
-                    }
+                    setEditMode(false);
+                    manageDefaultImage();
 
                 }
+
+                // SERVICE HAS STARTED
+                if (intent.getAction() != null && intent.getAction().equals(MyLocationService.SERVICE_STARTED)) {
+                    btnSync.setEnabled(false);
+                    txtStatus.setText("Start driving!");
+                    txtDistance.setText("0 miles");
+                    txtSpeed.setText("0 mph");
+                    isStarting = true;
+                    tripStatusContainer.setVisibility(View.VISIBLE);
+                    txtStatus.setTextColor(Color.BLUE);
+                    txtReimbursement.setText("$0.00");
+                    Helpers.Animations.pulseAnimation(txtStatus, 1.00f, 1.25f, 9000, 450);
+                    Log.i(TAG, "onReceive | trip starting broadcast received.");
+                    manageDefaultImage();
+                    gauge.setSpeed(0);
+                    gauge.setMaxSpeed(120);
+                    startTripDurationRunner();
+                }
+
+                // SERVICE IS STOPPING
+                if (intent.getAction() != null && intent.getAction().equals(MyLocationService.SERVICE_STOPPED)) {
+                    txtStatus.setText("Trip is stopping");
+                    Log.i(TAG, "onReceive  | trip stopping broadcast received");
+                }
+
+                // SERVICE IS ENDED
+                if (intent.getAction() != null && intent.getAction().equals(MyLocationService.SERVICE_STOPPED)) {
+                    txtStatus.setText("Trip is stopped.");
+                    txtStatus.setTextColor(Color.RED);
+                    tripStatusContainer.setVisibility(View.GONE);
+                    Log.i(TAG, "onReceive | trip stopped broadcast received.");
+                    adapter.notifyDataSetChanged();
+                    populateTripList();
+                    manageDefaultImage();
+                    Log.i(TAG, "onReceive | trip stopping broadcast received.");
+
+                    if (intent.getParcelableExtra(MyLocationService.FINAL_LOCATION) != null) {
+                        FullTrip trip = intent.getParcelableExtra(MyLocationService.FINAL_LOCATION);
+                        Log.i(TAG, "onReceive " + trip.toString());
+
+                        if (options.getAutosubmitOnTripEnd()) {
+                            try {
+                                if (trip.getDistanceInMiles() >= 2 && trip.getTripEntries().size() > 2) {
+                                    submitTrip(trip);
+                                }
+                            } catch (UnsupportedEncodingException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                    }
+                }
+
+                // USER IS NOT MOVING
+                if (intent.getAction() != null && intent.getAction().equals(MyLocationService.NOT_MOVING)) {
+                    txtSpeed.setText("0 mph");
+                    Log.i(TAG, "onReceive: Got a stopped moving broadcast!");
+                }
+
+            }
             }
         };
 
@@ -658,13 +659,11 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                     e.printStackTrace();
                 }
             } else {
-
                 // Check permission and request if not present
-
                 if (validateLocPermissions()) {
-
                     // Set up the visuals
                     tripStatusContainer.setVisibility(View.VISIBLE);
+                    btnStartStop.setText("STOP");
                     showGif(true);
 
                     // Start the actual service
@@ -680,6 +679,10 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
         populateTripList();
 
+    }
+
+    void startStopTrip() {
+        startStopTrip(null);
     }
 
     public boolean validateLocPermissions() {
@@ -734,10 +737,6 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         } else {
             return true;
         }
-    }
-
-    void startStopTrip() {
-        startStopTrip(null);
     }
 
     public void showGif(boolean showStartupAnimation) {
@@ -956,6 +955,16 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     void populateTripList() {
 
         datasource = new MySqlDatasource(getContext());
+
+        boolean wasKilled = options.lastTripAutoKilled();
+        boolean isRunning = MyLocationService.isRunning;
+        if (wasKilled && ! isRunning) {
+            Log.i(TAG, "onReceive: Last trip was auto-killed and the service is not running!");
+            tripStatusContainer.setVisibility(View.GONE);
+            btnStartStop.setText("GO");
+            options.lastTripAutoKilled(false);
+        }
+
 
         txtMtd.setText("---");
         txtMilesTotal.setText("---");

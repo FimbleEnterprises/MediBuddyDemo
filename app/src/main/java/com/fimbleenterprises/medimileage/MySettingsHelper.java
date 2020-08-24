@@ -35,6 +35,7 @@ public class MySettingsHelper {
     public static final String LAST_UPDATED_ACT_ADDYS = "LAST_UPDATED_ACT_ADDYS";
     public static final String LAST_UPDATED_USER_ADDYS = "LAST_UPDATED_USER_ADDYS";
     public static final String RECEIPT_FORMATS = "RECEIPT_FORMATS";
+    public static final String LAST_TRIP_AUTO_KILLED = "lasttripautokilled";
 
     public static final String RECEIPT_FORMAT_PNG = ".png";
     public static final String RECEIPT_FORMAT_JPEG = ".jpeg";
@@ -181,6 +182,17 @@ public class MySettingsHelper {
     public void logout() {
         prefs.edit().remove(CACHED_USERNAME).commit();
         prefs.edit().remove(CACHED_PASSWORD).commit();
+    }
+
+    public boolean lastTripAutoKilled() {
+        boolean value = prefs.getBoolean(LAST_TRIP_AUTO_KILLED, false);
+        Log.i(TAG, "lastTripAutoKilled: " + value);
+        return value;
+    }
+
+    public void lastTripAutoKilled(boolean value) {
+        Log.i(TAG, "setLastTripAutoKilled: " + value);
+        prefs.edit().putBoolean(LAST_TRIP_AUTO_KILLED, value).commit();
     }
 
     public boolean authenticateFragIsVisible() {
