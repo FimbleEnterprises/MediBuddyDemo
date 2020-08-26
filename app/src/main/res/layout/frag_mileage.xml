@@ -354,7 +354,7 @@
                 android:textAlignment="gravity" />
 
             <FrameLayout
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight=".18">
 
@@ -365,11 +365,11 @@
                     android:layout_height="match_parent"
                     android:layout_margin="1dp"
                     android:background="@drawable/btn_delete_multiple_trips"
-                    android:enabled="false"
+                    android:enabled="true"
                     android:text="Delete"
                     android:textColor="#FFFFFF"
                     android:textSize="12sp"
-                    android:visibility="invisible" />
+                    android:visibility="visible" />
 
             </FrameLayout>
 
@@ -453,7 +453,7 @@
 
 
                 <TableRow
-                    android:id="@+id/tableRow3"
+                    android:id="@+id/tableRow1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
 

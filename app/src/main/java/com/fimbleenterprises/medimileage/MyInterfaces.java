@@ -18,6 +18,11 @@ public class MyInterfaces {
         void onFailure(String message);
     }
 
+    public interface TripSubmitListener {
+        void onSuccess(FullTrip trip);
+        void onFailure(String message);
+    }
+
     public interface GetTripsCallback {
         void onSuccess(ArrayList<FullTrip> trips);
         void onFailure(String message);

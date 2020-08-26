@@ -37,7 +37,7 @@
 	        android:paddingBottom="2dp"
 	        android:paddingTop="2dp" >
 	        <TableRow
-	            android:id="@+id/tableRow3"
+	            android:id="@+id/tableRow1"
 	            android:layout_width="wrap_content"
 	            android:layout_height="wrap_content" >
 	            <FrameLayout 

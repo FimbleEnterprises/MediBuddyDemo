@@ -65,7 +65,7 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
 
     // binds the data to the TextView in each row
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(final ViewHolder holder, final int position) {
         final FullTrip trip = mData.get(position);
 
         holder.txtSubtext.setText(Helpers.Geo.convertMetersToMiles(trip.getDistance(),2) + " miles - " +
@@ -89,8 +89,8 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
             holder.txtIsEditedOrManual.setText("");
         }
 
-        if (trip.getIsEdited()) {
-            Log.i(TAG, "onBindViewHolder Edited trip");
+        if (trip.isChecked) {
+            Log.i(TAG, "onBindViewHolder Checked trip found (" + trip.getTripcode() + ")");
         }
 
         holder.chkbxSelectTrip.setVisibility((isInEditMode) ? View.VISIBLE : View.INVISIBLE);
@@ -99,6 +99,7 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 trip.isChecked = b;
+                mClickListener.onItemClick(holder.itemView, position);
             }
         });
         holder.imgSubmitStatus.setImageResource((trip.getIsSubmitted())
@@ -155,7 +156,11 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
                 trip.isChecked = false;
             }
         }
-        this.notifyDataSetChanged();
+        try {
+            this.notifyDataSetChanged();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     // stores and recycles views as they are scrolled off screen

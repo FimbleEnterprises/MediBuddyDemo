@@ -26,10 +26,12 @@ import android.view.animation.Animation;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.CalendarView;
 import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -85,8 +87,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MileageFragment extends Fragment implements TripListRecyclerAdapter.ItemClickListener
-{
+public class MileageFragment extends Fragment implements TripListRecyclerAdapter.ItemClickListener {
+
     public static final int PERMISSION_MAKE_RECEIPT = 0;
     public static final int PERMISSION_START_TRIP = 1;
     public static final int PERMISSION_MAKE_TRIP = 2;
@@ -122,6 +124,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     TextView txtDuration;
     ToggleButton toggleEditButton;
     Button btnDeleteTrips;
+    Button btnSubmitTrips;
     ImageView gif_view;
     Button btnAddManualTrip;
     Button btnCreateReceipt;
@@ -163,7 +166,6 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         locFilter.addAction(MyLocationService.SERVICE_STOPPING);
         locFilter.addAction(MyLocationService.SERVICE_STOPPED);
         locFilter.addAction(MyLocationService.NOT_MOVING);
-
         emptyTripList = root.findViewById(R.id.image_no_trips);
         gif_view = root.findViewById(R.id.gifview);
         gauge = root.findViewById(R.id.speedo);
@@ -214,6 +216,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 }
             }
         });
+
         btnStartStop = root.findViewById(R.id.btnStartStopTrip);
         btnStartStop.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -225,6 +228,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 }
             }
         });
+
         toggleEditButton = root.findViewById(R.id.tgglebtn_editTrips);
         toggleEditButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -232,11 +236,12 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 setEditMode(isChecked);
             }
         });
+
         btnDeleteTrips = root.findViewById(R.id.btn_deleteSelectedTrips);
         btnDeleteTrips.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                MyYesNoDialog.showDialog(getContext(), "Are you sure you want to delete this trip?"
+                MyYesNoDialog.showDialog(getContext(), "Are you sure you want to delete these trips?"
                         , new MyYesNoDialog.YesNoListener() {
                     @Override
                     public void onYes() {
@@ -805,10 +810,13 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         final Dialog dialog = new Dialog(getContext());
         final Context c = getContext();
         dialog.setContentView(R.layout.edit_trip);
+        final CalendarView dtTripDate = dialog.findViewById(R.id.calendarView);
         Button btnSaveTrip = dialog.findViewById(R.id.button_NameAndCreateTrip);
         final AutoCompleteTextView txtName = dialog.findViewById(R.id.autocomplete_EditText_NameTrip);
         final EditText txtDistance = dialog.findViewById(R.id.editTxt_Distance);
         final float originalMiles = clickedTrip.getDistanceInMiles();
+        final long originalDate = clickedTrip.getDateTime().getMillis();
+        final long[] newDate = {originalDate};
         txtDistance.setText(Float.toString(originalMiles));
 
         String[] tripnames = datasource.getTripNames();
@@ -816,6 +824,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 (getContext(), android.R.layout.select_dialog_item, tripnames);
         txtName.setThreshold(1);
         txtName.setAdapter(adapter);
+        txtName.setText(clickedTrip.getTitle());
         dialog.setTitle("Edit Trip");
         dialog.setCancelable(true);
 
@@ -825,9 +834,12 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
                 float newMiles = Float.parseFloat(txtDistance.getText().toString());
 
-                if (originalMiles != newMiles) {
+
+                if (originalMiles != newMiles || originalDate != newDate[0]) {
                     clickedTrip.setIsEdited(true);
                     clickedTrip.setDistance(Helpers.Geo.convertMilesToMeters(newMiles, 1));
+                    clickedTrip.setMilis(newDate[0]);
+                    clickedTrip.setDateTime(new DateTime(newDate[0]));
                     clickedTrip.save();
                 }
 
@@ -853,6 +865,13 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 }
             }
         });
+        dtTripDate.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+            @Override
+            public void onSelectedDayChange(@NonNull CalendarView calendarView, int i, int i1, int i2) {
+                newDate[0] = new DateTime(i, i1 + 1, i2,0,0).getMillis();
+            }
+        });
+        dtTripDate.setDate(clickedTrip.getDateTime().getMillis());
         dialog.show();
     }
 
@@ -1179,6 +1198,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         factory.addColumn("msus_trip_duration");
         factory.addColumn("msus_is_manual");
         factory.addColumn("msus_edited");
+        factory.addColumn("msus_trip_minder_killed");
         factory.addColumn("msus_fulltripid");
         factory.addColumn("msus_trip_entries_json");
         factory.addColumn("msus_is_submitted");
@@ -1410,6 +1430,43 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         });
     }
 
+    public void submitTripWithoutDialog(final FullTrip clickedTrip, final MyInterfaces.TripSubmitListener listener) throws UnsupportedEncodingException {
+
+        Crm crm = new Crm();
+        Request request = clickedTrip.packageForCrm();
+
+        Log.i(TAG, "submitTrip JSON LENGTH: " + clickedTrip.tripEntriesJson.length());
+
+        crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                String result = new String(responseBody);
+                try {
+                    if (!new JSONObject(result).isNull("Guid")) {
+                        clickedTrip.setIsSubmitted(true);
+                        clickedTrip.setTripGuid(new JSONObject(result).getString("Guid"));
+                        clickedTrip.setIsSubmitted(true);
+                        clickedTrip.save();
+                        listener.onSuccess(clickedTrip);
+                    }
+                } catch (Exception e) {
+                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                    listener.onFailure(e.getMessage());
+                }
+                Log.i(TAG, "onSuccess " + new String(responseBody));
+                Toast.makeText(getContext(), "Trip was submitted", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                Log.w(TAG, "onFailure: " + new String(responseBody));
+                Toast.makeText(getContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
+                listener.onFailure(error.getMessage());
+            }
+        });
+    }
+
     public void submitTrip(final FullTrip clickedTrip) throws UnsupportedEncodingException {
 
         Crm crm = new Crm();
@@ -1500,14 +1557,10 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     void showTripOptions(final FullTrip clickedTrip) {
         // custom dialog
         final Dialog dialog = new Dialog(getContext());
-        dialog.setContentView(R.layout.trip_options);
+        dialog.setContentView(R.layout.trip_options_minimalist);
         dialog.setTitle("Trip Options");
         Button btnEditTrip = dialog.findViewById(R.id.edit_trip);
         Button btnDeleteTrip = dialog.findViewById(R.id.btnDelete);
-
-        // set the custom dialog components - text, image and button
-        TextView text = (TextView) dialog.findViewById(R.id.TextView_TripOptionsMainText);
-        text.setText("What would you like to do with this trip?");
 
         Button btnSubmit = dialog.findViewById(R.id.btnSubmit);
         btnSubmit.setOnClickListener(new View.OnClickListener() {
