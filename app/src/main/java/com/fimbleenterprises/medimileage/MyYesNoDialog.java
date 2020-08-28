@@ -41,7 +41,12 @@ public class MyYesNoDialog {
                 .create();
     }
 
-    public static void showDialog(Context context, String msg, YesNoListener listener) {
+    public static void show(Context context, YesNoListener listener) {
+        build(context, listener);
+        dialog.show();
+    }
+
+    public static void show(Context context, String msg, YesNoListener listener) {
         message = msg;
         build(context, listener);
         dialog.show();

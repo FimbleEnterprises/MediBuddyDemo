@@ -360,7 +360,7 @@ public class QueryFactory {
             public static final String ON_OR_BEFORE = "on-or-before";
             public static final String TODAY = "today";
             public static final String YESTERDAY = "yesterday";
-            public static final String LAST_X_DAys = "last-x-days";
+            public static final String LAST_X_DAYS = "last-x-days";
             public static final String THIS_WEEK = "this-week";
             public static final String LAST_WEEK = "last-week";
             public static final String LAST_X_WEEKS = "last-x-weeks";

@@ -59,7 +59,7 @@ public class RestoreDbActivity extends AppCompatActivity {
         switch (item.getItemId()) {
 
             case R.id.action_delete_backups :
-                MyYesNoDialog.showDialog(context, "Are you sure you want to delete all backups?", new MyYesNoDialog.YesNoListener() {
+                MyYesNoDialog.show(context, "Are you sure you want to delete all backups?", new MyYesNoDialog.YesNoListener() {
                     @Override
                     public void onYes() {
                         int count = 0;
@@ -127,7 +127,7 @@ public class RestoreDbActivity extends AppCompatActivity {
                 btnRestore.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        MyYesNoDialog.showDialog(context, "Are you sure you want to restore this database?",
+                        MyYesNoDialog.show(context, "Are you sure you want to restore this database?",
                                 new MyYesNoDialog.YesNoListener() {
                             @Override
                             public void onYes() {

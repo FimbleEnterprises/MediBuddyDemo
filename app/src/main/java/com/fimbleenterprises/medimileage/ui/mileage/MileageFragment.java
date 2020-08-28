@@ -236,7 +236,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         btnDeleteTrips.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                MyYesNoDialog.showDialog(getContext(), "Are you sure you want to delete this trip?"
+                MyYesNoDialog.show(getContext(), "Are you sure you want to delete this trip?"
                         , new MyYesNoDialog.YesNoListener() {
                     @Override
                     public void onYes() {
@@ -636,7 +636,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         if (MyLocationService.isRunning) {
             if (MyLocationService.tripIsValid()) {
                 if (options.getConfirmTripEnd()) {
-                    MyYesNoDialog.showDialog(getContext(), "Are you sure you want to stop this trip?",
+                    MyYesNoDialog.show(getContext(), "Are you sure you want to stop this trip?",
                             new MyYesNoDialog.YesNoListener() {
                                 @Override
                                 public void onYes() {
@@ -1578,7 +1578,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         btnDeleteTrip.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                MyYesNoDialog.showDialog(getContext(), "Are you sure you want to delete this trip?",
+                MyYesNoDialog.show(getContext(), "Are you sure you want to delete this trip?",
                         new MyYesNoDialog.YesNoListener() {
                             @Override
                             public void onYes() {

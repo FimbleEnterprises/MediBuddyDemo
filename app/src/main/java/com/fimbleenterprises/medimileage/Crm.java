@@ -24,7 +24,7 @@ public class Crm {
 
     }
 
-    public RequestHandle makeCrmRequest(Context context, com.fimbleenterprises.medimileage.Requests.Request request,
+    public RequestHandle makeCrmRequest(Context context, Requests.Request request,
                                         final AsyncHttpResponseHandler responseHandler) {
 
         String argString = "";

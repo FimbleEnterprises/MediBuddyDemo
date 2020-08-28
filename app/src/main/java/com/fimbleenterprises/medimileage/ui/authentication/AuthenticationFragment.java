@@ -37,6 +37,8 @@ import cz.msebera.android.httpclient.Header;
 
 public class AuthenticationFragment extends Fragment {
 
+    public static final String TRUE = "true";
+    public static final String FALSE = "false";
     private static final String TAG = "AuthenticationFragment";
     private AuthenticationViewModel authenticationViewModel;
     Button btnLogin;
@@ -113,8 +115,6 @@ public class AuthenticationFragment extends Fragment {
         return root;
     }
 
-
-
     @Override
     public void onStart() {
         options.authenticateFragIsVisible(true);
@@ -155,11 +155,20 @@ public class AuthenticationFragment extends Fragment {
 
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+
                     String strResponse = new String(responseBody);
-                    RestResponse response = new RestResponse(strResponse);
                     Log.d(TAG, "onSuccess " + strResponse);
-                    result.onYes(null);
+
+                    // Added 1.5 - was authenticating everyone prior
+                    if (strResponse != null && strResponse.equals(TRUE)) {
+                        result.onYes(null);
+                    } else if (strResponse != null && strResponse.equals(FALSE)) {
+                        result.onNo(null);
+                    } else {
+                        result.onNo(null);
+                    }
                     dialog.dismiss();
+
                 }
 
                 @Override
@@ -180,7 +189,7 @@ public class AuthenticationFragment extends Fragment {
     }
 
     public void getUser(String email) {
-        String query = Queries.getUser(email);
+        String query = Queries.Users.getUser(email);
         Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
         request.arguments.add(new Requests.Argument(null, query));
         Crm crm = new Crm();

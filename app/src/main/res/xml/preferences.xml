@@ -182,6 +182,18 @@
             app:defaultValue="false"
             app:title="Debug mode" />
 
+        <PreferenceCategory
+            app:key="EXPERIMENTAL_CATEGORY"
+            app:title="Experimental">
+                <Preference
+                    android:foreground="#000000"
+                    android:theme="@style/AppTheme"
+                    app:key="EXPERIMENTAL_FUNCTION"
+                    android:fontFamily="casual"
+                    app:isPreferenceVisible="true"
+                    app:summary="Execute whatever function exists under this preference button.  It could be anything!"
+                    app:title="Test function" />
+        </PreferenceCategory>
     </PreferenceCategory>
 
 <!--    <FrameLayout

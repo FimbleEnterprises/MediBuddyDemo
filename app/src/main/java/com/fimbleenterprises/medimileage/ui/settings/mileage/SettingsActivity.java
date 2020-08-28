@@ -1,36 +1,34 @@
 package com.fimbleenterprises.medimileage.ui.settings.mileage;
 
 import android.Manifest;
-import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.Settings;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.View;
 import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.AccountAddresses;
-import com.fimbleenterprises.medimileage.AdapterDbBackups;
+import com.fimbleenterprises.medimileage.Crm;
+import com.fimbleenterprises.medimileage.CrmEntities;
 import com.fimbleenterprises.medimileage.Helpers;
+import com.fimbleenterprises.medimileage.MediUser;
 import com.fimbleenterprises.medimileage.MileBuddyUpdate;
+import com.fimbleenterprises.medimileage.MileageUser;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.MyLocationService;
 import com.fimbleenterprises.medimileage.MyProgressDialog;
 import com.fimbleenterprises.medimileage.MySettingsHelper;
 import com.fimbleenterprises.medimileage.MySqlDatasource;
 import com.fimbleenterprises.medimileage.MyYesNoDialog;
+import com.fimbleenterprises.medimileage.Queries;
 import com.fimbleenterprises.medimileage.R;
+import com.fimbleenterprises.medimileage.Requests;
 import com.fimbleenterprises.medimileage.RestoreDbActivity;
 import com.fimbleenterprises.medimileage.UserAddresses;
-
-import org.joda.time.DateTime;
+import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,11 +39,10 @@ import java.util.ArrayList;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.preference.DropDownPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+
+import cz.msebera.android.httpclient.Header;
 
 /*import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
@@ -74,6 +71,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String TRIP_MINDER = "TRIP_MINDER";
     public static final String TRIP_MINDER_INTERVAL = "TRIP_MINDER_INTERVAL";
     public static final String IS_SHOWING_MTD_REIMBURSEMENT = "IS_SHOWING_MTD_REIMBURSEMENT";
+    public static final String EXPERIMENTAL_FUNCTION = "EXPERIMENTAL_FUNCTION";
 
     public static String DEFAULT_DATABASE_NAME = "mileagetracking.db";
     Context context;
@@ -122,6 +120,7 @@ public class SettingsActivity extends AppCompatActivity {
             Preference prefUpdateActAddys;
             Preference prefDeleteAllLocalUpdates;
             Preference prefGoToPermissions;
+            Preference prefExperimentalFunction;
 
             prefBackupDb = findPreference(BACKUP_DB_KEY);
             prefBackupDb.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
@@ -205,7 +204,7 @@ public class SettingsActivity extends AppCompatActivity {
             prefDeleteAllBackups.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
-                    MyYesNoDialog.showDialog(getContext(), "Are you sure you want to delete all backups?",
+                    MyYesNoDialog.show(getContext(), "Are you sure you want to delete all backups?",
                             new MyYesNoDialog.YesNoListener() {
                                 @Override
                                 public void onYes() {
@@ -233,7 +232,7 @@ public class SettingsActivity extends AppCompatActivity {
             prefDeleteAllMileageData.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
-                    MyYesNoDialog.showDialog(getContext(), "Are you sure you want to delete all mileage data?",
+                    MyYesNoDialog.show(getContext(), "Are you sure you want to delete all mileage data?",
                             new MyYesNoDialog.YesNoListener() {
                                 @Override
                                 public void onYes() {
@@ -268,7 +267,7 @@ public class SettingsActivity extends AppCompatActivity {
             prefDeleteEmptyTrips.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
-                MyYesNoDialog.showDialog(getContext(), "Are you sure you want to delete all empty trips?",
+                MyYesNoDialog.show(getContext(), "Are you sure you want to delete all empty trips?",
                     new MyYesNoDialog.YesNoListener() {
                         @Override
                         public void onYes() {
@@ -310,6 +309,45 @@ public class SettingsActivity extends AppCompatActivity {
                     } else {
                         requestStoragePermission(REQ_PERMISSION_RESTORE);
                     }
+                    return false;
+                }
+            });
+
+            prefExperimentalFunction = findPreference(EXPERIMENTAL_FUNCTION);
+            prefExperimentalFunction.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    MyYesNoDialog.show(getContext(), "I don't even know what will run when you click, \"Yes\"\n\nAre you sure?", new MyYesNoDialog.YesNoListener() {
+                        @Override
+                        public void onYes() {
+                            String query = Queries.OrderLines.getOrderLines(MediUser.getMe().systemuserid, Queries.Operators.DateOperator.THIS_MONTH);
+                            Crm crm = new Crm();
+                            ArrayList<Requests.Argument> arguments = new ArrayList<>();
+                            Requests.Argument argument = new Requests.Argument("query", query);
+                            arguments.add(argument);
+                            Requests.Request request = new Requests.Request(Requests.Request.Function.GET, arguments);
+                            crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+                                @Override
+                                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                                    String response = new String(responseBody);
+                                    ArrayList<CrmEntities.OrderProduct> orderProducts = CrmEntities.OrderProduct.createMany(response);
+                                    Log.i(TAG, "onSuccess: Count: " + orderProducts.size());
+                                }
+
+                                @Override
+                                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                                    Toast.makeText(getContext(), "Error: " + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                            Toast.makeText(getContext(), "Made a " + query.length() + " character query!  Boring, I know.", Toast.LENGTH_SHORT).show();
+                            Log.i(TAG, "onYes: Query: " + query);
+                        }
+
+                        @Override
+                        public void onNo() {
+                            Toast.makeText(getContext(), "Probably wise to say, \"No\"...", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                     return false;
                 }
             });
