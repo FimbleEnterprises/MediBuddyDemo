@@ -85,6 +85,23 @@
 			</TableRow>
 
 			<TableRow
+				android:id="@+id/tableRow_1aa"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content">
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+					<TextView
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:text="" />
+				</FrameLayout>
+			</TableRow>
+
+			<TableRow
 				android:id="@+id/tableRow_5"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content">
@@ -100,10 +117,10 @@
 						android:layout_height="wrap_content"
 						android:layout_marginLeft="5dp"
 						android:layout_marginRight="5dp"
-						android:fontFamily="casual"
 						android:gravity="left"
 						android:text="Distance:"
 						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:fontFamily="casual"
 						android:textColor="#454545"
 						android:textSize="13sp"
 						android:textStyle="bold" />
@@ -128,6 +145,63 @@
 						android:fontFamily="casual"
 						android:inputType="numberDecimal" />
 				</FrameLayout>
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="match_parent"
+					android:layout_weight="1">
+
+					<TextView
+						android:id="@+id/unitlabel"
+						android:layout_width="wrap_content"
+						android:layout_height="match_parent"
+						android:ems="10"
+						android:fontFamily="casual"
+						android:gravity="center_vertical"
+						android:text=" miles"
+						android:textStyle="bold" />
+				</FrameLayout>
+			</TableRow>
+
+			<TableRow
+				android:id="@+id/tableRow_1aaa"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content">
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+					<TextView
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:text="" />
+				</FrameLayout>
+			</TableRow>
+
+			<TableRow
+				android:id="@+id/tableRow_datelabel"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content">
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+					<TextView
+						android:id="@+id/textView_df"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:gravity="left"
+						android:text="Trip date:"
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:fontFamily="casual"
+						android:textColor="#454545"
+						android:textSize="13sp"
+						android:textStyle="bold" />
+				</FrameLayout>
 			</TableRow>
 
 			<TableRow
@@ -138,22 +212,52 @@
 					android:layout_width="0dp"
 					android:layout_height="wrap_content"
 					android:layout_weight="1">
-
-					<TextView
-						android:id="@+id/textView_df"
+					<CalendarView
+						android:id="@+id/calendarView"
 						android:layout_width="match_parent"
-						android:layout_height="wrap_content"
-						android:layout_marginLeft="5dp"
-						android:layout_marginRight="5dp"
-						android:gravity="left"
-						android:text=""
-						android:textAppearance="?android:attr/textAppearanceSmall"
-						android:textColor="#454545"
-						android:textSize="13sp"
-						android:textStyle="bold" />
+						android:layout_height="wrap_content" />
+				</FrameLayout>
+			</TableRow>
+			<TableRow
+				android:id="@+id/tableRow_4a"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content">
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+					<LinearLayout
+						android:id="@+id/companyWide_topBorder"
+						android:layout_width="325dp"
+						android:layout_height="2dp"
+						android:layout_gravity="center_horizontal"
+						android:background="#000000"
+						android:orientation="vertical"
+						android:visibility="visible" />
+
 				</FrameLayout>
 			</TableRow>
 
+
+
+			<TableRow
+				android:id="@+id/tableRow_1aaaa"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content">
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+					<TextView
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:text="" />
+				</FrameLayout>
+			</TableRow>
 
 			<TableRow
 				android:id="@+id/tableRow_3a"
