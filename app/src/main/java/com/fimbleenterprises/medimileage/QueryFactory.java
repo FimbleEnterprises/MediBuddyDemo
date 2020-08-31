@@ -16,6 +16,12 @@ public class QueryFactory {
     Filter filter;
     private boolean distinct = false;
 
+    @Override
+    public String toString() {
+        return "Entity: " + this.entityName + ", Columns: " + this.columns.size() + ", Links: "
+                + this.linkEntities.size();
+    }
+
     public QueryFactory(String entity) {
         entityName = entity;
         this.columns = new ArrayList<>();
@@ -158,6 +164,11 @@ public class QueryFactory {
 
     public static class SortClause {
 
+        @Override
+        public String toString() {
+            return this.clausePosition + ", Descending: " + this.isDescending;
+        }
+
         public enum ClausePosition {
             ONE, TWO;
         }
@@ -188,6 +199,11 @@ public class QueryFactory {
         public String toEncodedString() {
             return "%3Cattribute%20name%3D%22" + this.columnName + "%22%20%2F%3E";
         }
+
+        @Override
+        public String toString() {
+            return this.columnName;
+        }
     }
 
     public static class LinkEntity {
@@ -198,6 +214,12 @@ public class QueryFactory {
         String fullString;
         Filter filter;
         ArrayList<EntityColumn> columns = new ArrayList<>();
+
+        @Override
+        public String toString() {
+            return this.entityName + " , From: " + this.from + " To: " + this.to
+                    + ", Columns(" + this.columns.size() + ")";
+        }
 
         public LinkEntity() {
 
@@ -311,6 +333,11 @@ public class QueryFactory {
         private FilterType type;
         ArrayList<FilterCondition> conditions;
 
+        @Override
+        public String toString() {
+            return "Type: " + this.type.name();
+        }
+
         public Filter() {
             conditions = new ArrayList<>();
         }
@@ -376,6 +403,8 @@ public class QueryFactory {
             public static final String NOT_CONTAINS_DATA = "con";
             public static final String ENDS_WITH = "endswith";
             public static final String STARTS_WITH = "startswith";
+            public static final String IN_FISCAL_YEAR = "in-fiscal-year";
+            public static final String IN_FISCAL_PERIOD = "in-fiscal-period";
 
             Operands operand;
             public Operator(Operands operand) {
@@ -386,7 +415,7 @@ public class QueryFactory {
                 EQUALS, NOT_EQUALS, GREATER_THAN_OR_EQUAL_TO, LESS_THAN_OR_EQUAL_TO, LESS_THAN,
                 GREATER_THAN, ON_OR_AFTER, ON_OR_BEFORE, TODAY, THIS_WEEK, THIS_MONTH, THIS_YEAR,
                 CONTAINS, NOT_CONTAINS, CONTAINS_DATA, NOT_CONTAINS_DATA, ENDS_WITH, STARTS_WITH,
-                AND, OR;
+                AND, OR, IN_FISCAL_PERIOD, IN_FISCAL_YEAR;
             }
 
             public String getOperator() {
@@ -444,6 +473,11 @@ public class QueryFactory {
             String value;
             String uiType;
 
+            @Override
+            public String toString() {
+                return "Field: " + this.attribute + ", Operator: " + this.getStrOperator() + ", Value: " + value;
+            }
+
             public FilterCondition(String attribute, Operator operator, String value) {
                 this.attribute = attribute;
                 this.operator = operator;
@@ -482,6 +516,12 @@ public class QueryFactory {
             public String toEncodedString() {
                 String encoded;
                 String uiString = (this.uiType == null) ? "" : "uitype%3D%22" + this.uiType + "%22%20";
+
+                // If the operator is, "Contains" or "Not Contains" then surround the value with the % character)
+                if (this.getStrOperator().equals("like") || this.getStrOperator().equals("not-like")) {
+                    this.value = "%25" + this.value + "%25";
+                }
+
                 String valueString = (this.value == null) ? "" : "value%3D%22" + this.value + "%22%20";
 
                 encoded = "%3Ccondition%20"
@@ -574,6 +614,7 @@ public class QueryFactory {
         public static final String ORDER_TO_ACCOUNT = "name=\"account\" from=\"accountid\" to=\"msus_customerid_override\" visible=\"false\" link-type=\"outer\" alias=\"aa\"";
         public static final String CONTRACT_TO_ACCOUNT = "name=\"account\" from=\"accountid\" to=\"customerid\" visible=\"false\" link-type=\"outer\" alias=\"a_6984df23c1fb4ec4be29e6afd19a145d\"";
         public static final String TERRITORY_TO_USER = "name=\"territory\" from=\"territoryid\" to=\"territoryid\" visible=\"false\" link-type=\"outer\" alias=\"a_4484069205d044a7bee3fb52c273d285\"";
+        public static final String MANAGER_TO_USER = "name=\"systemuser\" from=\"systemuserid\" to=\"parentsystemuserid\" visible=\"false\" link-type=\"outer\" alias=\"a_af5d32e9bffd4f9ea21ec50f8501a7ea\"";
     }
 
 // QueryFactory

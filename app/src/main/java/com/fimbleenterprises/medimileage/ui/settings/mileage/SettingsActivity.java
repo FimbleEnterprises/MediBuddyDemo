@@ -26,6 +26,7 @@ import com.fimbleenterprises.medimileage.MyYesNoDialog;
 import com.fimbleenterprises.medimileage.Queries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.Requests;
+import com.fimbleenterprises.medimileage.RestResponse;
 import com.fimbleenterprises.medimileage.RestoreDbActivity;
 import com.fimbleenterprises.medimileage.UserAddresses;
 import com.loopj.android.http.AsyncHttpResponseHandler;
@@ -39,6 +40,8 @@ import java.util.ArrayList;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
@@ -72,6 +75,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String TRIP_MINDER_INTERVAL = "TRIP_MINDER_INTERVAL";
     public static final String IS_SHOWING_MTD_REIMBURSEMENT = "IS_SHOWING_MTD_REIMBURSEMENT";
     public static final String EXPERIMENTAL_FUNCTION = "EXPERIMENTAL_FUNCTION";
+    public static final String UPDATE_USER_INFO = "updateUserInfo";
 
     public static String DEFAULT_DATABASE_NAME = "mileagetracking.db";
     Context context;
@@ -121,6 +125,7 @@ public class SettingsActivity extends AppCompatActivity {
             Preference prefDeleteAllLocalUpdates;
             Preference prefGoToPermissions;
             Preference prefExperimentalFunction;
+            Preference prefUpdateMyUserInfo;
 
             prefBackupDb = findPreference(BACKUP_DB_KEY);
             prefBackupDb.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
@@ -313,6 +318,15 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             });
 
+            prefUpdateMyUserInfo = findPreference(UPDATE_USER_INFO);
+            prefUpdateMyUserInfo.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    getUser(MediUser.getMe().email);
+                    return false;
+                }
+            });
+
             prefExperimentalFunction = findPreference(EXPERIMENTAL_FUNCTION);
             prefExperimentalFunction.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
@@ -433,6 +447,45 @@ public class SettingsActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
+        }
+
+        public void getUser(String email) {
+            String query = Queries.Users.getUser(email);
+            Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
+            request.arguments.add(new Requests.Argument(null, query));
+            Crm crm = new Crm();
+            final MyProgressDialog progressDialog = new MyProgressDialog(getContext(), "Getting your user information...");
+            progressDialog.show();
+
+            try {
+                crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers,
+                                          byte[] responseBody) {
+                        progressDialog.dismiss();
+                        String strResponse = new String(responseBody);
+                        RestResponse response = new RestResponse(strResponse);
+                        MediUser user = new MediUser(response);
+                        user.save(getContext());
+                        MySqlDatasource db = new MySqlDatasource(getContext());
+                        Log.d(TAG, "onSuccess " + strResponse);
+                        Toast.makeText(getContext(), "Successfully updated user.", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers,
+                                          byte[] responseBody, Throwable error) {
+                        Log.w(TAG, "onFailure: " + error.getMessage());
+                        progressDialog.dismiss();
+                        Toast.makeText(getContext(), "Failed to get user information\n" + error.getMessage()
+                                , Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.w(TAG, "onClick: " + e.getMessage());
+                progressDialog.dismiss();
+            }
         }
     }
 

@@ -34,15 +34,15 @@ public class Crm {
 
         Log.i(TAG, "makeCrmRequest: Request function: " + request.function + " Request arguments: " + argString);
 
-        StringEntity entity = null;
+        StringEntity payload = null;
         try {
-            entity = new StringEntity(request.toJson());
+            payload = new StringEntity(request.toJson());
         } catch (Exception e) {
             e.printStackTrace();
             responseHandler.onFailure(0, null, null, e);
         }
 
-        return client.post(context, BASE_URL, entity, "application/json",
+        return client.post(context, BASE_URL, payload, "application/json",
             new AsyncHttpResponseHandler() {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {

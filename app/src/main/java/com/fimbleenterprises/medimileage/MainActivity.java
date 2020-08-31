@@ -23,11 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.ui.settings.mileage.SettingsActivity;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.json.JSONArray;
@@ -138,7 +134,9 @@ public class MainActivity extends AppCompatActivity {
                     startActivityForResult(intent, 0);
                 } else if (item.getTitle().toString().toLowerCase().equals("stats")) {
                     startActivity(new Intent(activity, AggregateStatsActivity.class));
-                } else {
+                } else if (item.getTitle().toString().toLowerCase().contains("sales") ) {
+                    startActivity(new Intent(activity, Activity_SalesPerf.class));
+                }  else {
                     try {
                         Log.i(TAG, "onNavigationItemSelected index:" + item.getItemId());
                         Log.i(TAG, "onNavigationItemSelected fullname:" + users.get(item.getItemId()).fullname);
@@ -510,7 +508,7 @@ public class MainActivity extends AppCompatActivity {
                     JSONArray array = json.getJSONArray("value");
                     users = MileageUser.makeMany(array);
                     Menu m = navigationView.getMenu();
-                    SubMenu subMenu = m.getItem(3).getSubMenu();
+                    SubMenu subMenu = m.getItem(4).getSubMenu();
                     subMenu.removeItem(subMenu.getItem(0).getItemId());
 
                     for (int i = 0; i < users.size(); i++) {
@@ -536,7 +534,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         Menu m = navigationView.getMenu();
-        SubMenu subMenu = m.getItem(3).getSubMenu();
+        SubMenu subMenu = m.getItem(4).getSubMenu();
         subMenu.clear();
         subMenu.add("Loading...");
         subMenu.getItem(0).setTitle("Loading...");

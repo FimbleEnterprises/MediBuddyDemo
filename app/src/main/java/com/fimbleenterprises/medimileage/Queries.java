@@ -1,11 +1,20 @@
 package com.fimbleenterprises.medimileage;
 
+import com.google.gson.internal.$Gson$Preconditions;
+
+import org.joda.time.DateTime;
+
 import java.util.ArrayList;
 
 import static com.fimbleenterprises.medimileage.Queries.Operators.getDateOperator;
 import static com.fimbleenterprises.medimileage.QueryFactory.Filter.FilterType.AND;
 
 public class Queries {
+
+    public static final String EAST_REGIONID = "00AB0144-2AFA-E711-80DE-005056A36B9B";
+    public static final String WEST_REGIONID = "61E8B94E-2AFA-E711-80DE-005056A36B9B";
+    public static final String WEST_BUSINESSUNITID = "02AD3593-FB81-E711-80D7-005056A36B9B";
+    public static final String EAST_BUSINESSUNITID = "101E629C-FB81-E711-80D7-005056A36B9B";
 
     public static class Operators {
         public enum DateOperator {
@@ -107,6 +116,7 @@ public class Queries {
             query.addColumn("title");
             query.addColumn("parentsystemuserid");
             query.addColumn("positionid");
+            query.addColumn("msus_user_salesregion");
 
             // Filter creation to make use of our conditions
             QueryFactory.Filter filter = new QueryFactory.Filter(AND);
@@ -124,6 +134,11 @@ public class Queries {
             linkEntity_territory.addColumn(new QueryFactory.EntityColumn("new_businessunit"));
             query.addLinkEntity(linkEntity_territory);
 
+            QueryFactory.LinkEntity linkEntity_Manager =
+                    new QueryFactory.LinkEntity(QueryFactory.LINK_ENTITY_STRINGS.MANAGER_TO_USER);
+            linkEntity_Manager.addColumn(new QueryFactory.EntityColumn("businessunitid"));
+            query.addLinkEntity(linkEntity_Manager);
+
             // Spit out the encoded query
             String rslt = query.construct();
             return rslt;
@@ -135,7 +150,7 @@ public class Queries {
         public static String getOrderLines(String repid, Operators.DateOperator operator) {
 
             /************** TESTING *************/
-             repid = "E2A46FDF-5B7C-E711-80D1-005056A32EEA";
+            // repid = "E2A46FDF-5B7C-E711-80D1-005056A32EEA";
             /************************************/
 
 
@@ -207,6 +222,188 @@ public class Queries {
 
             return query;
         }
+    }
+
+    public static class Goals {
+
+        public static String getYtdGoalsByRep(String repid, int yearNum) {
+
+            /************** TESTING *************/
+            // repid = "E2A46FDF-5B7C-E711-80D1-005056A32EEA";
+            /************************************/
+
+
+            // Query columns
+            QueryFactory factory = new QueryFactory("goal");
+            factory.addColumn("title");
+            factory.addColumn("goalownerid");
+            factory.addColumn("percentage");
+            factory.addColumn("targetmoney");
+            factory.addColumn("actualmoney");
+            factory.addColumn("goalid");
+
+            // Filter conditions
+            QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter
+                    .FilterCondition("goalstartdate", QueryFactory.Filter.Operator.IN_FISCAL_YEAR, Integer.toString(yearNum));
+            QueryFactory.Filter.FilterCondition condition2 = new QueryFactory.Filter
+                    .FilterCondition("goalenddate", QueryFactory.Filter.Operator.IN_FISCAL_YEAR, Integer.toString(yearNum));
+            QueryFactory.Filter.FilterCondition condition3 = new QueryFactory.Filter
+                    .FilterCondition("title", QueryFactory.Filter.Operator.NOT_CONTAINS, "month");
+            QueryFactory.Filter.FilterCondition condition4 = new QueryFactory.Filter
+                    .FilterCondition("goalownerid", QueryFactory.Filter.Operator.EQUALS, repid);
+
+            ArrayList<QueryFactory.Filter.FilterCondition> conditions = new ArrayList<>();
+            conditions.add(condition1);
+            conditions.add(condition2);
+            conditions.add(condition3);
+            conditions.add(condition4);
+
+            // Set filter
+            QueryFactory.Filter filter = new QueryFactory.Filter(AND, conditions);
+            factory.setFilter(filter);
+
+            // Build query
+            String query = factory.construct();
+
+            return query;
+        }
+
+        public static String getMtdGoalsByRep(String repid, int monthNum, int yearNum) {
+
+            /**************     TESTING     *************/
+            // repid = "E2A46FDF-5B7C-E711-80D1-005056A32EEA";
+            /********************************************/
+
+            DateTime firstofCurMonth = new DateTime(DateTime.now().getYear(),
+                    DateTime.now().getMonthOfYear(), 1,0,0);
+
+            // Query columns
+            QueryFactory factory = new QueryFactory("goal");
+            factory.addColumn("title");
+            factory.addColumn("goalownerid");
+            factory.addColumn("percentage");
+            factory.addColumn("targetmoney");
+            factory.addColumn("actualmoney");
+            factory.addColumn("goalid");
+            factory.addColumn("msus_fiscalfirstdayofmonth");
+
+            // Filter conditions
+            QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter
+                    .FilterCondition("title", QueryFactory.Filter.Operator.CONTAINS, "month");
+            QueryFactory.Filter.FilterCondition condition2 = new QueryFactory.Filter
+                    .FilterCondition("goalownerid", QueryFactory.Filter.Operator.EQUALS, repid);
+            QueryFactory.Filter.FilterCondition condition3 = new QueryFactory.Filter
+                    .FilterCondition("msus_fiscalfirstdayofmonth", QueryFactory.Filter.Operator.IN_FISCAL_YEAR, Integer.toString(yearNum));
+            QueryFactory.Filter.FilterCondition condition4 = new QueryFactory.Filter
+                    .FilterCondition("msus_fiscalfirstdayofmonth", QueryFactory.Filter.Operator.IN_FISCAL_PERIOD, Integer.toString(monthNum));
+
+            ArrayList<QueryFactory.Filter.FilterCondition> conditions = new ArrayList<>();
+            conditions.add(condition1);
+            conditions.add(condition2);
+            conditions.add(condition3);
+            conditions.add(condition4);
+
+            // Set filter
+            QueryFactory.Filter filter = new QueryFactory.Filter(AND, conditions);
+            factory.setFilter(filter);
+
+            // Build query
+            String query = factory.construct();
+
+            return query;
+        }
+
+        public static String getYtdGoalsByRegion(String regionid, int yearNum) {
+
+            /************** TESTING *************/
+            // regionid = WEST_REGIONID;
+            /************************************/
+
+
+            // Query columns
+            QueryFactory factory = new QueryFactory("goal");
+            factory.addColumn("title");
+            factory.addColumn("goalownerid");
+            factory.addColumn("percentage");
+            factory.addColumn("targetmoney");
+            factory.addColumn("actualmoney");
+            factory.addColumn("goalid");
+
+            // Filter conditions
+            QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter
+                    .FilterCondition("goalstartdate", QueryFactory.Filter.Operator.IN_FISCAL_YEAR,
+                        Integer.toString(yearNum));
+            QueryFactory.Filter.FilterCondition condition2 = new QueryFactory.Filter
+                    .FilterCondition("goalenddate", QueryFactory.Filter.Operator.IN_FISCAL_YEAR,
+                        Integer.toString(yearNum));
+            QueryFactory.Filter.FilterCondition condition3 = new QueryFactory.Filter
+                    .FilterCondition("title", QueryFactory.Filter.Operator.NOT_CONTAINS, "month");
+            QueryFactory.Filter.FilterCondition condition4 = new QueryFactory.Filter
+                    .FilterCondition("msus_region", QueryFactory.Filter.Operator.EQUALS, regionid);
+
+            ArrayList<QueryFactory.Filter.FilterCondition> conditions = new ArrayList<>();
+            conditions.add(condition1);
+            conditions.add(condition2);
+            conditions.add(condition3);
+            conditions.add(condition4);
+
+            // Set filter
+            QueryFactory.Filter filter = new QueryFactory.Filter(AND, conditions);
+            factory.setFilter(filter);
+
+            // Build query
+            String query = factory.construct();
+
+            return query;
+        }
+
+        public static String getMtdGoalsByRegion(String regionid, int monthNum, int yearNum) {
+
+            /**************     TESTING     *************/
+            // regionid = WEST_REGIONID;
+            /********************************************/
+
+            DateTime firstofCurMonth = new DateTime(DateTime.now().getYear(),
+                    DateTime.now().getMonthOfYear(), 1,0,0);
+
+            // Query columns
+            QueryFactory factory = new QueryFactory("goal");
+            factory.addColumn("title");
+            factory.addColumn("goalownerid");
+            factory.addColumn("percentage");
+            factory.addColumn("targetmoney");
+            factory.addColumn("actualmoney");
+            factory.addColumn("goalid");
+            factory.addColumn("msus_fiscalfirstdayofmonth");
+
+            // Filter conditions
+            QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter
+                    .FilterCondition("title", QueryFactory.Filter.Operator.CONTAINS, "month");
+            QueryFactory.Filter.FilterCondition condition2 = new QueryFactory.Filter
+                    .FilterCondition("msus_region", QueryFactory.Filter.Operator.EQUALS, regionid);
+            QueryFactory.Filter.FilterCondition condition3 = new QueryFactory.Filter
+                    .FilterCondition("msus_fiscalfirstdayofmonth",
+                        QueryFactory.Filter.Operator.IN_FISCAL_YEAR, Integer.toString(yearNum));
+            QueryFactory.Filter.FilterCondition condition4 = new QueryFactory.Filter
+                    .FilterCondition("msus_fiscalfirstdayofmonth",
+                        QueryFactory.Filter.Operator.IN_FISCAL_PERIOD, Integer.toString(monthNum));
+
+            ArrayList<QueryFactory.Filter.FilterCondition> conditions = new ArrayList<>();
+            conditions.add(condition1);
+            conditions.add(condition2);
+            conditions.add(condition3);
+            conditions.add(condition4);
+
+            // Set filter
+            QueryFactory.Filter filter = new QueryFactory.Filter(AND, conditions);
+            factory.setFilter(filter);
+
+            // Build query
+            String query = factory.construct();
+
+            return query;
+        }
+
     }
 
 

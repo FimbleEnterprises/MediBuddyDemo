@@ -45,6 +45,10 @@ public class MediUser {
     public ArrayList<String> managedTerritories = new ArrayList<>();
     public String businessunitid;
     public String businessunitname;
+    public String managerbusinessunitid;
+    public String managerbusinessunitname;
+    public String salesregionid;
+    public String salesregionname;
     public boolean isMe = true;
 
     public MediUser(com.fimbleenterprises.medimileage.RestResponse restresponse) {
@@ -171,6 +175,20 @@ public class MediUser {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+               try {
+                   if (!json.isNull("_msus_user_salesregion_value")) {
+                       this.salesregionid = (json.getString("_msus_user_salesregion_value"));
+                   }
+               } catch (JSONException e) {
+                   e.printStackTrace();
+               }
+               try {
+                   if (!json.isNull("_msus_user_salesregion_valueFormattedValue")) {
+                       this.salesregionname = (json.getString("_msus_user_salesregion_valueFormattedValue"));
+                   }
+               } catch (JSONException e) {
+                   e.printStackTrace();
+               }
                 try {
                     if (!json.isNull("msus_push_onallorders")) {
                         this.pushonallorders = (json.getBoolean("msus_push_onallorders"));
@@ -184,7 +202,21 @@ public class MediUser {
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
-                }
+                }/*
+               try {
+                   if (!json.isNull("a_af5d32e9bffd4f9ea21ec50f8501a7ea")) {
+                       this.pushonallorders = (json.getBoolean("a_af5d32e9bffd4f9ea21ec50f8501a7ea"));
+                   }
+               } catch (JSONException e) {
+                   e.printStackTrace();
+               }
+               try {
+                   if (!json.isNull("a_af5d32e9bffd4f9ea21ec50f8501a7ea")) {
+                       this.pushonorder = (json.getBoolean("a_af5d32e9bffd4f9ea21ec50f8501a7ea"));
+                   }
+               } catch (JSONException e) {
+                   e.printStackTrace();
+               }*/
                 try {
                     if (!json.isNull("msus_medibuddy_managed_territories")) {
                         this.msus_medibuddy_managed_territories = (json.getString("msus_medibuddy_managed_territories"));

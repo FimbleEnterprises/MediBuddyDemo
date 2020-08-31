@@ -44,6 +44,7 @@ import android.widget.Toast;
 import com.google.android.gms.maps.model.LatLng;
 
 import org.joda.time.DateTime;
+import org.joda.time.Days;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -64,6 +65,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Calendar;
@@ -480,7 +482,7 @@ public class Helpers {
         }
 
         // This method returns today's date as a short date string
-        public static String getTodaysDate() {
+        public static String getTodaysDateAsString() {
             Calendar c = Calendar.getInstance();
             SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy");
             String formattedDate = df.format(c.getTime());
@@ -491,7 +493,7 @@ public class Helpers {
         }
 
         // This method returns yesterday's date as a short date string
-        public static String getYesterdaysDate() {
+        public static String getYesterdaysDateAsString() {
 
             // Get today as a Calendar
             Calendar c = Calendar.getInstance();
@@ -506,7 +508,7 @@ public class Helpers {
         }
 
         // This method returns the first day of the week as a short date string
-        public static String getFirstOfWeek() {
+        public static String getFirstDayOfWeek() {
 
             // get today and clear time of day
             Calendar cal = Calendar.getInstance();
@@ -534,7 +536,7 @@ public class Helpers {
         }
 
         // This method returns the first day of the month as a short date string
-        public static String getFirstOfMonth() {
+        public static String getFirstDayOfMonth() {
 
             // get today and clear time of day
             Calendar cal = Calendar.getInstance();
@@ -558,6 +560,59 @@ public class Helpers {
 
             // return the result
             return formattedDate;
+        }
+
+        public static DateTime getFirstOfYear() {
+
+            DateTime date1 = new DateTime(DateTime.now().getYear(), 1, 1, 0,0);
+            return date1;
+        }
+
+        public static DateTime getLastOfYear() {
+            return new DateTime(DateTime.now().getYear(), 12, 31, 0, 0);
+        }
+
+        public static DateTime getFirstOfMonth() {
+
+            DateTime date1 = new DateTime(DateTime.now().getYear(), DateTime.now().getMonthOfYear(), 1, 0,0);
+            return date1;
+        }
+
+        public static DateTime getLastOfMonth() {
+
+            DateTime date1 = new DateTime(DateTime.now().getYear(), DateTime.now().getMonthOfYear(),
+                    getDaysInMonth(DateTime.now().getYear(), DateTime.now().getMonthOfYear()), 0,0);
+            return date1;
+        }
+
+        public static DateTime getFirstOfYear(int year) {
+
+            DateTime date1 = new DateTime(DateTime.now().getYear(), 1, 1, 0,0);
+            return date1;
+        }
+
+        public static DateTime getLastOfYear(int year) {
+            return new DateTime(DateTime.now().getYear(), 12, 31, 0, 0);
+        }
+
+        public static DateTime getFirstOfMonth(int year, int month) {
+
+            DateTime date1 = new DateTime(year, month, 1, 0,0);
+            return date1;
+        }
+
+        public static DateTime getLastOfMonth(int year, int month) {
+
+            DateTime date1 = new DateTime(year, month, getDaysInMonth(year, month),0 ,0);
+            return date1;
+        }
+
+        public static int getDaysInMonth(int year, int month) {
+            Calendar cal = Calendar.getInstance();
+            cal.set(Calendar.MONTH, month);
+            cal.set(Calendar.YEAR, year);
+            int days = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+            return days; // <-- the result!
         }
 
         public static String getLastDayOfMonth(int month, int year) {

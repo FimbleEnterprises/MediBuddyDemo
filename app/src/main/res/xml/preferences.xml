@@ -83,8 +83,16 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="Addresses"
+        android:title="Users"
         android:fontFamily="casual">
+
+        <Preference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
+            app:key="updateUserInfo"
+            app:summary="Update my user information"
+            android:fontFamily="casual"
+            app:title="Update me" />
 
         <Preference
             android:foreground="#000000"

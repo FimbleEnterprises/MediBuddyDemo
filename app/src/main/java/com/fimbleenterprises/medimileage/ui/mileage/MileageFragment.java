@@ -50,7 +50,9 @@ import cz.msebera.android.httpclient.Header;
 import com.bumptech.glide.Glide;
 import com.fimbleenterprises.medimileage.Activity_ManualTrip;
 import com.fimbleenterprises.medimileage.Crm;
+import com.fimbleenterprises.medimileage.CrmEntities;
 import com.fimbleenterprises.medimileage.FullTrip;
+import com.fimbleenterprises.medimileage.GoalSummary;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.LocationContainer;
 import com.fimbleenterprises.medimileage.MediUser;
@@ -63,11 +65,13 @@ import com.fimbleenterprises.medimileage.MySettingsHelper;
 import com.fimbleenterprises.medimileage.MySpeedoGauge;
 import com.fimbleenterprises.medimileage.MySqlDatasource;
 import com.fimbleenterprises.medimileage.MyYesNoDialog;
+import com.fimbleenterprises.medimileage.Queries;
 import com.fimbleenterprises.medimileage.QueryFactory;
 import com.fimbleenterprises.medimileage.QueryFactory.Filter;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.Requests;
 import com.fimbleenterprises.medimileage.Requests.Request;
+import com.fimbleenterprises.medimileage.RestResponse;
 import com.fimbleenterprises.medimileage.TripListRecyclerAdapter;
 import com.fimbleenterprises.medimileage.ViewTripActivity;
 import com.loopj.android.http.AsyncHttpResponseHandler;
@@ -454,6 +458,11 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 refreshlayout.finishLoadMore(500/*,false*/);
             }
         });
+
+        // Update the current user silently just in case something has changed
+        if (MediUser.getMe() != null && MediUser.getMe().email != null) {
+            getUser(MediUser.getMe().email);
+        }
 
         return root;
     }
@@ -888,6 +897,36 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 }
                 btnDeleteTrips.setEnabled(false);
             }
+        }
+    }
+
+    public void getUser(String email) {
+        String query = Queries.Users.getUser(email);
+        Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
+        request.arguments.add(new Requests.Argument(null, query));
+        Crm crm = new Crm();
+
+        try {
+            crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers,
+                                      byte[] responseBody) {
+                    String strResponse = new String(responseBody);
+                    RestResponse response = new RestResponse(strResponse);
+                    MediUser user = new MediUser(response);
+                    user.save(getContext());
+                    Log.d(TAG, "onSuccess " + strResponse);
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers,
+                                      byte[] responseBody, Throwable error) {
+                    Log.w(TAG, "onFailure: " + error.getMessage());
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.w(TAG, "onClick: " + e.getMessage());
         }
     }
 
