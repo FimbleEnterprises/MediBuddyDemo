@@ -609,8 +609,9 @@ public class Helpers {
 
         public static int getDaysInMonth(int year, int month) {
             Calendar cal = Calendar.getInstance();
-            cal.set(Calendar.MONTH, month);
+            cal.set(Calendar.MONTH, (month - 1));
             cal.set(Calendar.YEAR, year);
+            cal.set(Calendar.DAY_OF_MONTH, 1);
             int days = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
             return days; // <-- the result!
         }

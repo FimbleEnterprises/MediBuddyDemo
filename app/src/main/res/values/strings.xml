@@ -155,6 +155,8 @@
     </string>
     <string name="menu_sales">Sales (beta)</string>
     <string name="action_change_date">Change Date...</string>
+    <string name="action_last_month">Last month</string>
+    <string name="action_this_month">This month</string>
 
 
 </resources>

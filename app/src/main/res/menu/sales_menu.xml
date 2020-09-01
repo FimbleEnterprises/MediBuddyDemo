@@ -3,7 +3,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/action_change_date"
+        android:id="@+id/action_this_month"
+        android:orderInCategory="98"
+        android:title="@string/action_this_month"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_last_month"
+        android:orderInCategory="99"
+        android:title="@string/action_last_month"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_choose_month"
         android:orderInCategory="100"
         android:title="@string/action_change_date"
         app:showAsAction="never" />

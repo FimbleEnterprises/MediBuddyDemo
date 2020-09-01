@@ -158,21 +158,6 @@ public class CrmEntities {
     }
 
     public static class Goal {
-        /*
-            "etag": "W/\"299914255\"",
-			"goalid": "48589582-ebd7-ea11-80f8-005056a32eea",
-			"percentageFormattedValue": "42",
-			"percentage": 42.0,
-			"title": "Territory 10050 FY2020 (non-cap)",
-			"_goalownerid_valueFormattedValue": "Cammie Kegel",
-			"_goalownerid_value": "e2a46fdf-5b7c-e711-80d1-005056a32eea",
-			"targetmoneyFormattedValue": "nk1045447.00",
-			"targetmoney": 1045447.0,
-			"_transactioncurrencyid_valueFormattedValue": "Norsk krone",
-			"_transactioncurrencyid_value": "84b4bc5c-e619-e711-80d2-005056a36b9b",
-			"actualmoneyFormattedValue": "nk439375.00",
-			"actualmoney": 439375.0
-         */
 
         public String goalid;
         public float pct;
@@ -183,6 +168,8 @@ public class CrmEntities {
         public float actual;
         public int period;
         public int year;
+        public String fiscalFirstDayFormatted;
+        public String fiscalFirstDayValue;
 
         public String getPrettyPct() {
            return Helpers.Numbers.formatAsZeroDecimalPointNumber(this.pct, RoundingMode.UNNECESSARY) + "%";
@@ -247,26 +234,25 @@ public class CrmEntities {
                 e.printStackTrace();
             }
             try {
+                if (!json.isNull("msus_fiscalfirstdayofmonthFormattedValue")) {
+                    this.fiscalFirstDayFormatted = json.getString("msus_fiscalfirstdayofmonthFormattedValue");
+                }
+            } catch (Exception e) { }
+            try {
+                if (!json.isNull("msus_fiscalfirstdayofmonth")) {
+                    this.fiscalFirstDayValue = json.getString("msus_fiscalfirstdayofmonth");
+                    DateTime fiscalFirstDay = new DateTime(this.fiscalFirstDayValue);
+                    this.period = fiscalFirstDay.getMonthOfYear();
+                    this.year = fiscalFirstDay.getYear();
+                }
+            } catch (Exception e) { }
+            try {
                 if (!json.isNull("actualmoney")) {
                     this.actual = (json.getLong("actualmoney"));
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-
-        }
-
-        public Goal (JSONObject json, int period, int year) {
-            Goal goal = new Goal(json);
-            this.actual = goal.actual;
-            this.target = goal.target;
-            this.ownerid = goal.ownerid;
-            this.title = goal.title;
-            this.ownername = goal.ownername;
-            this.pct = goal.pct;
-            this.goalid = goal.goalid;
-            this.period = period;
-            this.year = year;
 
         }
 
@@ -306,6 +292,19 @@ public class CrmEntities {
 
         public GoalSummary getGoalSummary(DateTime startDate, DateTime endDate, DateTime measureDate) {
             return new GoalSummary(this, measureDate, startDate, endDate);
+        }
+
+        public DateTime getStartDate() {
+            return new DateTime(this.year, this.period, 1, 0, 0);
+        }
+
+        public DateTime getEndDate() {
+            int daysInMonth = Helpers.DatesAndTimes.getDaysInMonth(this.year, this.period);
+            return new DateTime(this.year, this.period, daysInMonth, 0, 0);
+        }
+
+        public int daysInMonth() {
+            return Helpers.DatesAndTimes.getDaysInMonth(this.year, this.period);
         }
 
     }

@@ -10,7 +10,7 @@ public class GoalSummary {
     private static final String TAG = "GoalSummary";
 
     public GoalSummary(CrmEntities.Goal goal, DateTime curDate, DateTime startDate, DateTime endDate) {
-        this.daysBetweenStartAndEnd = Days.daysBetween(startDate.toLocalDate(), endDate.toLocalDate()).getDays();
+        this.daysBetweenStartAndEnd = Days.daysBetween(startDate.toLocalDate(), endDate.toLocalDate()).getDays() +1;
         this.amtNeededPerDay = goal.target / daysBetweenStartAndEnd;
         this.daysBetweenStartAndNow = Days.daysBetween(startDate.toLocalDate(), curDate.toLocalDate()).getDays() + 1;
         this.targetAmtForToday = amtNeededPerDay * daysBetweenStartAndNow;

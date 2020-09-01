@@ -28,7 +28,14 @@ import com.anychart.AnyChart;
 import com.anychart.AnyChartView;
 import com.anychart.chart.common.dataentry.DataEntry;
 import com.anychart.chart.common.dataentry.ValueDataEntry;
+import com.anychart.chart.common.listener.Event;
+import com.anychart.chart.common.listener.ListenersInterface;
 import com.anychart.charts.Cartesian;
+import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
@@ -153,8 +160,8 @@ public class Activity_SalesPerf extends AppCompatActivity
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        monthNum = DateTime.now().getMonthOfYear();
-        yearNum = DateTime.now().getYear();
+        // monthNum = DateTime.now().getMonthOfYear();
+        // yearNum = DateTime.now().getYear();
 
     }
 
@@ -214,10 +221,24 @@ public class Activity_SalesPerf extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-
+        Intent dateChanged;
+        DateTime now = DateTime.now();
         switch (item.getItemId()) {
-            case R.id.action_change_date :
-                showMonthYearDialog();
+            case R.id.action_this_month :
+                dateChanged = new Intent(DATE_CHANGED);
+                dateChanged.putExtra(MONTH, now.getMonthOfYear());
+                dateChanged.putExtra(YEAR, now.getYear());
+                sendBroadcast(dateChanged);
+                break;
+            case R.id.action_last_month :
+                dateChanged = new Intent(DATE_CHANGED);
+                DateTime aMonthAgo = now.minusMonths(1);
+                dateChanged.putExtra(MONTH, aMonthAgo.getMonthOfYear());
+                dateChanged.putExtra(YEAR, aMonthAgo.getYear());
+                sendBroadcast(dateChanged);
+                break;
+            case R.id.action_choose_month :
+                showMonthYearPicker();
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -282,7 +303,7 @@ public class Activity_SalesPerf extends AppCompatActivity
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
                 Intent dateChanged = new Intent(DATE_CHANGED);
-                dateChanged.putExtra(MONTH, month + 1);
+                dateChanged.putExtra(MONTH, month);
                 dateChanged.putExtra(YEAR, year);
                 monthNum = month;
                 yearNum = year;
@@ -355,7 +376,9 @@ public class Activity_SalesPerf extends AppCompatActivity
         private View rootView;
         public static final String ARG_SECTION_NUMBER = "section_number";
         // ProgressBar pbLoading;
-        AnyChartView anyChartView;
+        /*Cartesian bar;
+        AnyChartView anyChartView;*/
+        BarChart barChart;
         RefreshLayout refreshLayout;
 
         @Override
@@ -377,8 +400,11 @@ public class Activity_SalesPerf extends AppCompatActivity
         public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                                  @Nullable Bundle savedInstanceState) {
             rootView = inflater.inflate(R.layout.frag_sales_mtd, container, false);
+            /*bar = AnyChart.bar();
             anyChartView = (AnyChartView) rootView.findViewById(R.id.chartMtd);
-            // pbLoading = rootView.findViewById(R.id.pbLoading);
+            anyChartView.setChart(bar);*/
+
+            barChart = rootView.findViewById(R.id.chart);
 
             refreshLayout = (RefreshLayout) rootView.findViewById(R.id.refreshLayout);
             refreshLayout.setRefreshHeader(new MaterialHeader(getContext()));
@@ -386,7 +412,6 @@ public class Activity_SalesPerf extends AppCompatActivity
             refreshLayout.setOnRefreshListener(new OnRefreshListener() {
                 @Override
                 public void onRefresh(RefreshLayout refreshlayout) {
-                    // refreshlayout.finishRefresh(500/*,false*/);
                     getMtdGoalsByRegion();
                 }
             });
@@ -397,6 +422,13 @@ public class Activity_SalesPerf extends AppCompatActivity
                 }
             });
 
+            if (monthNum == 0) {
+                monthNum = DateTime.now().getMonthOfYear();
+            }
+
+            if (yearNum == 0) {
+                yearNum = DateTime.now().getYear();
+            }
 
             getMtdGoalsByRegion();
             return rootView;
@@ -410,7 +442,7 @@ public class Activity_SalesPerf extends AppCompatActivity
 
         @Override
         public void onPause() {
-            getActivity().unregisterReceiver(receiver);
+            // getActivity().unregisterReceiver(receiver);
             super.onPause();
         }
 
@@ -445,25 +477,40 @@ public class Activity_SalesPerf extends AppCompatActivity
         }
 
         void populateChartMtd(CrmEntities.Goals goals) {
-            Cartesian bar = AnyChart.bar();
-            List<DataEntry> data = new ArrayList<>();
-            for (int i = 0; i < goals.list.size(); i++) {
-                GoalSummary goalSummary = goals.list.get(i).getGoalSummary(
-                        Helpers.DatesAndTimes.getFirstOfMonth()
-                        , Helpers.DatesAndTimes.getLastOfMonth()
-                        , DateTime.now());
 
-                data.add(new ValueDataEntry(goalSummary.goal.ownername, goalSummary.getPctAcheivedAsOfToday()));
-                bar.data(data);
+            // List<DataEntry> data = new ArrayList<>();
+            ArrayList<BarEntry> data = new ArrayList();
+
+            for (int i = 0; i < goals.list.size(); i++) {
+                CrmEntities.Goal goal = goals.list.get(i);
+                GoalSummary goalSummary = goals.list.get(i).getGoalSummary(goal.getStartDate(), goal.getEndDate(), DateTime.now());
+                data.add(new BarEntry(i, goalSummary.getPctAcheivedAsOfToday()));
             }
 
-            anyChartView.setChart(bar);
-            bar.title("MTD Goals " + MediUser.getMe().salesregionname + " Region (month: " + monthNum
-                    + " year: " + yearNum + ")");
-            bar.labels().enabled(true);
-        }
+            BarDataSet dataset = new BarDataSet(data,"hi");
 
-    }
+            ArrayList<String> labels = new ArrayList<String>();
+            for (int i = 0; i < goals.list.size(); i++) {
+                CrmEntities.Goal goal = goals.list.get(i);
+                labels.add(goal.ownername);
+            }
+            BarData barData = new BarData((IBarDataSet) labels, dataset);
+
+            barChart.setData(barData);
+            barChart.animateXY(2000, 2000);
+            barChart.invalidate();
+
+            String title = "MTD Goals " + MediUser.getMe().salesregionname + " Region (month: " + monthNum
+                    + " year: " + yearNum + ")";
+            /*bar.title(title);
+            bar.labels(true);
+            bar.labels().selectable(true);
+            bar.labels().enabled(true);
+            bar.data(data);*/
+
+        } // END ONCREATEVIEW
+
+    } // END FRAGMENT
 
     public static class Frag_YtdRegion extends Fragment {
         public static final String ARG_SECTION_NUMBER = "section_number";

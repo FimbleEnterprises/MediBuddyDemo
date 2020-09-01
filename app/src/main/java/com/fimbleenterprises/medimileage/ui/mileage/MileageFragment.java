@@ -1671,22 +1671,22 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             @Override
             public void onClick(View view) {
                 MyYesNoDialog.show(getContext(), "Are you sure you want to delete this trip?",
-                        new MyYesNoDialog.YesNoListener() {
-                            @Override
-                            public void onYes() {
-                                if (datasource.deleteFulltrip(clickedTrip.getTripcode(), true)) {
-                                    Toast.makeText(getContext(), "Deleted trip.", Toast.LENGTH_SHORT).show();
-                                    populateTripList();
-                                    dialog.dismiss();
-                                }
-                            }
-
-                            @Override
-                            public void onNo() {
-                                Toast.makeText(getContext(), "Cancelled", Toast.LENGTH_SHORT).show();
+                    new MyYesNoDialog.YesNoListener() {
+                        @Override
+                        public void onYes() {
+                            if (datasource.deleteFulltrip(clickedTrip.getTripcode(), true)) {
+                                Toast.makeText(getContext(), "Deleted trip.", Toast.LENGTH_SHORT).show();
+                                populateTripList();
                                 dialog.dismiss();
                             }
-                        });
+                        }
+
+                        @Override
+                        public void onNo() {
+                            Toast.makeText(getContext(), "Cancelled", Toast.LENGTH_SHORT).show();
+                            dialog.dismiss();
+                        }
+                    });
             }
         });
 
