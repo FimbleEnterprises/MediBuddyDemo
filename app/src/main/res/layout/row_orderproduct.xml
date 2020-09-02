@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/row_orderproduct"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="5dp"
+    android:orientation="vertical">
+
+
+    <ImageView
+        android:id="@+id/img_PartIcon"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_alignParentLeft="true"
+        app:srcCompat="@drawable/pv_probe_64x" />
+
+    <TextView
+        android:id="@+id/txt_Qty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="3dp"
+        android:layout_marginRight="3dp"
+        android:layout_toRightOf="@id/img_PartIcon"
+        android:layout_weight="0"
+        android:fontFamily="@font/casual"
+        android:text="2 x "
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/txt_partNumber"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/txt_Qty"
+        android:layout_weight="0"
+        android:fontFamily="@font/casual"
+        android:text="PS100032"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/txt_extendedAmt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentRight="true"
+        android:layout_weight="0"
+        android:fontFamily="@font/casual"
+        android:text="$3200"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/txt_customerName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txt_partNumber"
+        android:layout_marginLeft="3dp"
+        android:layout_marginRight="3dp"
+        android:layout_toRightOf="@id/img_PartIcon"
+        android:layout_weight="0"
+        android:fontFamily="@font/casual"
+        android:text="Baptist Memorial Hospital"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/txt_orderDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txt_customerName"
+        android:layout_marginLeft="3dp"
+        android:layout_marginRight="3dp"
+        android:layout_toRightOf="@id/img_PartIcon"
+        android:layout_weight="0"
+        android:fontFamily="@font/casual"
+        android:text="12/22/2020"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/txt_salesOrder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txt_customerName"
+        android:layout_alignParentRight="true"
+        android:layout_marginLeft="3dp"
+        android:layout_marginRight="3dp"
+        android:layout_weight="0"
+        android:fontFamily="@font/casual"
+        android:text="SO-22334"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+</RelativeLayout>

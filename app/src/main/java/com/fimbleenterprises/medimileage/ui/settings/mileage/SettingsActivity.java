@@ -16,7 +16,6 @@ import com.fimbleenterprises.medimileage.CrmEntities;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.MediUser;
 import com.fimbleenterprises.medimileage.MileBuddyUpdate;
-import com.fimbleenterprises.medimileage.MileageUser;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.MyLocationService;
 import com.fimbleenterprises.medimileage.MyProgressDialog;
@@ -27,7 +26,6 @@ import com.fimbleenterprises.medimileage.Queries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.Requests;
 import com.fimbleenterprises.medimileage.RestResponse;
-import com.fimbleenterprises.medimileage.RestoreDbActivity;
 import com.fimbleenterprises.medimileage.UserAddresses;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
@@ -40,8 +38,6 @@ import java.util.ArrayList;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
@@ -145,7 +141,7 @@ public class SettingsActivity extends AppCompatActivity {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
                     if (checkStoragePermission()) {
-                        restoreDb();
+                        // restoreDb();
                     } else {
                         requestStoragePermission(REQ_PERMISSION_RESTORE);
                     }
@@ -344,8 +340,8 @@ public class SettingsActivity extends AppCompatActivity {
                                 @Override
                                 public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                                     String response = new String(responseBody);
-                                    ArrayList<CrmEntities.OrderProduct> orderProducts = CrmEntities.OrderProduct.createMany(response);
-                                    Log.i(TAG, "onSuccess: Count: " + orderProducts.size());
+                                    CrmEntities.OrderProducts products = new CrmEntities.OrderProducts(response);
+                                    Log.i(TAG, "onSuccess: Count: " + products.size());
                                 }
 
                                 @Override
@@ -390,7 +386,7 @@ public class SettingsActivity extends AppCompatActivity {
                 }
                 case REQ_PERMISSION_RESTORE :
                     if (checkStoragePermission()) {
-                        restoreDb();
+                        //restoreDb();
                     }
                     break;
             }
@@ -408,12 +404,6 @@ public class SettingsActivity extends AppCompatActivity {
             String permission = Manifest.permission.WRITE_EXTERNAL_STORAGE;
             int res = getContext().checkCallingOrSelfPermission(permission);
             return (res == PackageManager.PERMISSION_GRANTED);
-        }
-
-        public void restoreDb() {
-            Log.i(TAG, "restoreDb ");
-            Intent i = new Intent(getContext(), RestoreDbActivity.class);
-            startActivityForResult(i, RESTORE_DB_REQUEST_CODE);
         }
 
         public void exportDB(){

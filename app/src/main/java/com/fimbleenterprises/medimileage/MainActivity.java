@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
                 } else if (item.getTitle().toString().toLowerCase().equals("stats")) {
                     startActivity(new Intent(activity, AggregateStatsActivity.class));
                 } else if (item.getTitle().toString().toLowerCase().contains("sales") ) {
-                    startActivity(new Intent(activity, Activity_SalesPerf.class));
+                    startActivity(new Intent(activity, Activity_TerritoryData.class));
                 }  else {
                     try {
                         Log.i(TAG, "onNavigationItemSelected index:" + item.getItemId());

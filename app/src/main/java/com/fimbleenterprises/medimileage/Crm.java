@@ -11,6 +11,7 @@ import com.loopj.android.http.RequestParams;
 import java.io.UnsupportedEncodingException;
 
 import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.client.HttpClient;
 import cz.msebera.android.httpclient.entity.StringEntity;
 
 public class Crm {
@@ -20,9 +21,7 @@ public class Crm {
     // public static final String BASE_URL = "http://192.168.1.9:44341/";
     private static AsyncHttpClient client = new AsyncHttpClient();
 
-    public Crm() {
-
-    }
+    public Crm() { }
 
     public RequestHandle makeCrmRequest(Context context, Requests.Request request,
                                         final AsyncHttpResponseHandler responseHandler) {

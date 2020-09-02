@@ -24,18 +24,9 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.anychart.AnyChart;
-import com.anychart.AnyChartView;
-import com.anychart.chart.common.dataentry.DataEntry;
-import com.anychart.chart.common.dataentry.ValueDataEntry;
-import com.anychart.chart.common.listener.Event;
-import com.anychart.chart.common.listener.ListenersInterface;
-import com.anychart.charts.Cartesian;
 import com.github.mikephil.charting.charts.BarChart;
-import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
-import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
@@ -53,7 +44,6 @@ import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -61,11 +51,12 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.PagerTitleStrip;
 import cn.pedant.SweetAlert.SweetAlertDialog;
 import cz.msebera.android.httpclient.Header;
 
-public class Activity_SalesPerf extends AppCompatActivity
+public class Activity_TerritoryData extends AppCompatActivity
 {
 
     public static AutocompleteSupportFragment autoCompleteFrag_From;
@@ -95,15 +86,19 @@ public class Activity_SalesPerf extends AppCompatActivity
     public static String distanceStr;
     public static MySettingsHelper options;
     ProgressBar prog;
-    public static IntentFilter intentFilter;
-    public static BroadcastReceiver receiver;
 
+    // Receivers for date range changes at the activity level
+    public static IntentFilter intentFilter;
+    public static BroadcastReceiver goalsReceiver;
+    public static BroadcastReceiver salesLinesReceiver;
+    public static BroadcastReceiver casesReceiver;
+    public static BroadcastReceiver opportunitiesReceiver;
+
+    // vars for the date ranges
     public static int monthNum;
     public static int yearNum;
 
-    public static final int TAG_FROM = 0;
-    public static final int TAG_TO = 1;
-    public final static String TAG = "ManualTrip";
+    public final static String TAG = "TerritoryData";
     public static final String TAG_TITLE = "TAG_TITLE";
     public static final String TAG_DATE = "TAG_DATE";
     public static final String TAG_DISTANCE = "TAG_DISTANCE";
@@ -117,11 +112,14 @@ public class Activity_SalesPerf extends AppCompatActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
 
+        super.onCreate(savedInstanceState);
         context = this;
         activity = this;
         intentFilter = new IntentFilter(DATE_CHANGED);
+
+        monthNum = DateTime.now().getMonthOfYear();
+        yearNum = DateTime.now().getYear();
 
         setContentView(R.layout.activity_sales_perf);
 
@@ -141,9 +139,11 @@ public class Activity_SalesPerf extends AppCompatActivity
         mViewPager.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-                Log.i(TAG, "onScrollChange scrollX: " + scrollX + " scrollY: " + scrollY + "" +
+                /*Log.i(TAG, "onScrollChange scrollX: " + scrollX + " scrollY: " + scrollY + "" +
                         "oldScrollX: " + oldScrollX + " oldScrollY: " + oldScrollY);
-                Log.i(TAG, "onScrollChange Page: " + mViewPager.currentPosition);
+                Log.i(TAG, "onScrollChange Page: " + mViewPager.currentPosition);*/
+
+
             }
         });
 
@@ -178,13 +178,11 @@ public class Activity_SalesPerf extends AppCompatActivity
 
     @Override
     public void onResume() {
-        registerReceiver(receiver, intentFilter);
         super.onResume();
     }
 
     @Override
     public void onPause() {
-        unregisterReceiver(receiver);
         super.onPause();
     }
 
@@ -329,17 +327,33 @@ public class Activity_SalesPerf extends AppCompatActivity
             Log.w(TAG, "getItem: PAGER POSITION: " + position);
 
             if (position == 0) {
-                Fragment fragment = new Frag_MtdRegion();
+                Fragment fragment = new Frag_Goals();
                 Bundle args = new Bundle();
-                args.putInt(Frag_MtdRegion.ARG_SECTION_NUMBER, position + 1);
+                args.putInt(Frag_Goals.ARG_SECTION_NUMBER, position + 1);
                 fragment.setArguments(args);
                 return fragment;
             }
 
             if (position == 1) {
-                Fragment fragment = new Frag_YtdRegion();
+                Fragment fragment = new Frag_SalesLines();
                 Bundle args = new Bundle();
-                args.putInt(Frag_YtdRegion.ARG_SECTION_NUMBER, position + 1);
+                args.putInt(Frag_SalesLines.ARG_SECTION_NUMBER, position + 1);
+                fragment.setArguments(args);
+                return fragment;
+            }
+
+            if (position == 2) {
+                Fragment fragment = new Frag_Opportunities();
+                Bundle args = new Bundle();
+                args.putInt(Frag_Opportunities.ARG_SECTION_NUMBER, position + 1);
+                fragment.setArguments(args);
+                return fragment;
+            }
+
+            if (position == 3) {
+                Fragment fragment = new Frag_Cases();
+                Bundle args = new Bundle();
+                args.putInt(Frag_Opportunities.ARG_SECTION_NUMBER, position + 1);
                 fragment.setArguments(args);
                 return fragment;
             }
@@ -348,7 +362,7 @@ public class Activity_SalesPerf extends AppCompatActivity
 
         @Override
         public int getCount() {
-            return 5;
+            return 4;
         }
 
         @Override
@@ -358,13 +372,11 @@ public class Activity_SalesPerf extends AppCompatActivity
                 case 0:
                     return "MTD Goals";
                 case 1:
-                    return "YTD Goals";
+                    return "Sales Lines";
                 case 2:
-                    return "";
+                    return "Opportunities";
                 case 3:
-                    return "";
-                case 4:
-                    return "";
+                    return "Cases";
             }
             return null;
         }
@@ -372,7 +384,7 @@ public class Activity_SalesPerf extends AppCompatActivity
 
     //region ********************************** FRAGS *****************************************
 
-    public static class Frag_MtdRegion extends Fragment {
+    public static class Frag_Goals extends Fragment {
         private View rootView;
         public static final String ARG_SECTION_NUMBER = "section_number";
         // ProgressBar pbLoading;
@@ -384,15 +396,6 @@ public class Activity_SalesPerf extends AppCompatActivity
         @Override
         public void onCreate(@Nullable Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            receiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    Log.i(TAG, "onReceive Received month and year broadcast!");
-                    monthNum = intent.getIntExtra(MONTH, DateTime.now().getMonthOfYear());
-                    yearNum = intent.getIntExtra(YEAR, DateTime.now().getYear());
-                    getMtdGoalsByRegion();
-                }
-            };
         }
 
         @Nullable
@@ -403,6 +406,15 @@ public class Activity_SalesPerf extends AppCompatActivity
             /*bar = AnyChart.bar();
             anyChartView = (AnyChartView) rootView.findViewById(R.id.chartMtd);
             anyChartView.setChart(bar);*/
+            goalsReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Log.i(TAG, "onReceive Received month and year broadcast! (goals frag)");
+                    monthNum = intent.getIntExtra(MONTH, DateTime.now().getMonthOfYear());
+                    yearNum = intent.getIntExtra(YEAR, DateTime.now().getYear());
+                    getMtdGoalsByRegion();
+                }
+            };
 
             barChart = rootView.findViewById(R.id.chart);
 
@@ -436,13 +448,15 @@ public class Activity_SalesPerf extends AppCompatActivity
 
         @Override
         public void onResume() {
-            getActivity().registerReceiver(receiver, intentFilter);
+            getActivity().registerReceiver(goalsReceiver, intentFilter);
+            Log.i(TAG, "onResume Registered the goals receiver");
             super.onResume();
         }
 
         @Override
         public void onPause() {
-            // getActivity().unregisterReceiver(receiver);
+            getActivity().unregisterReceiver(goalsReceiver);
+            Log.i(TAG, "onPause Unregistered the goals receiver");
             super.onPause();
         }
 
@@ -494,9 +508,7 @@ public class Activity_SalesPerf extends AppCompatActivity
                 CrmEntities.Goal goal = goals.list.get(i);
                 labels.add(goal.ownername);
             }
-            BarData barData = new BarData((IBarDataSet) labels, dataset);
 
-            barChart.setData(barData);
             barChart.animateXY(2000, 2000);
             barChart.invalidate();
 
@@ -512,171 +524,275 @@ public class Activity_SalesPerf extends AppCompatActivity
 
     } // END FRAGMENT
 
-    public static class Frag_YtdRegion extends Fragment {
+    public static class Frag_SalesLines extends Fragment {
         public static final String ARG_SECTION_NUMBER = "section_number";
         public View rootView;
+        public RecyclerView recyclerView;
+        RefreshLayout refreshLayout;
+        OrderLineRecyclerAdapter adapter;
+        ArrayList<CrmEntities.OrderProduct> allOrders = new ArrayList<>();
 
         @Nullable
         @Override
         public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-            rootView = inflater.inflate(R.layout.man_trip_from, container, false);
+            rootView = inflater.inflate(R.layout.frag_saleslines, container, false);
+            refreshLayout = rootView.findViewById(R.id.refreshLayout);
+            recyclerView = rootView.findViewById(R.id.recyclerview);
             super.onCreateView(inflater, container, savedInstanceState);
 
+            salesLinesReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Log.i(TAG, "onReceive Received month and year broadcast! (sales lines frag)");
+                    monthNum = intent.getIntExtra(MONTH, DateTime.now().getMonthOfYear());
+                    yearNum = intent.getIntExtra(YEAR, DateTime.now().getYear());
+                    getSalesLines();
+                }
+            };
+
+            getSalesLines();
 
             return rootView;
         }
 
+        @Override
+        public void onResume() {
+            getActivity().registerReceiver(salesLinesReceiver, intentFilter);
+            Log.i(TAG, "onResume Registered the sales lines receiver");
+            super.onResume();
+        }
+
+        @Override
+        public void onPause() {
+            getActivity().unregisterReceiver(salesLinesReceiver);
+            Log.i(TAG, "onPause Unregistered the sales lines receiver");
+            super.onPause();
+        }
+
+        protected void getSalesLines() {
+            refreshLayout.autoRefreshAnimationOnly();
+
+            String query = null;
+
+            if (monthNum == DateTime.now().getMonthOfYear()) {
+                query = Queries.OrderLines.getOrderLines(MediUser.getMe().territoryid,
+                        Queries.Operators.DateOperator.THIS_MONTH);
+            } else if (monthNum == DateTime.now().minusMonths(1).getMonthOfYear()) {
+                query = Queries.OrderLines.getOrderLines(MediUser.getMe().territoryid,
+                        Queries.Operators.DateOperator.LAST_MONTH);
+            }
+
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            Requests.Argument argument = new Requests.Argument("query", query);
+            args.add(argument);
+            Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
+            Crm crm = new Crm();
+            crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    String response = new String(responseBody);
+                    Toast.makeText(getContext(), "Response: " + response.length() + " characters long", Toast.LENGTH_SHORT).show();
+                    Log.i(TAG, "onSuccess " + response);
+                    allOrders = new CrmEntities.OrderProducts(response).list;
+                    populateList();
+                    refreshLayout.finishRefresh();
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
+
+                    refreshLayout.finishRefresh();
+                }
+            });
+        }
+
+        protected void populateList() {
+
+            ArrayList<CrmEntities.OrderProduct> orderList = new ArrayList<>();
+
+            boolean addedTodayHeader = false;
+            boolean addedYesterdayHeader = false;
+            boolean addedThisWeekHeader = false;
+            boolean addedThisMonthHeader = false;
+            boolean addedOlderHeader = false;
+
+            // Now today's date attributes
+            int todayDayOfYear = Helpers.DatesAndTimes.returnDayOfYear(DateTime.now());
+            int todayWeekOfYear = Helpers.DatesAndTimes.returnWeekOfYear(DateTime.now());
+            int todayMonthOfYear = Helpers.DatesAndTimes.returnMonthOfYear(DateTime.now());
+
+            Log.i(TAG, "populateTripList: Preparing the dividers and trips...");
+            for (int i = 0; i < (allOrders.size()); i++) {
+                int tripDayOfYear = Helpers.DatesAndTimes.returnDayOfYear(allOrders.get(i).orderDate);
+                int tripWeekOfYear = Helpers.DatesAndTimes.returnWeekOfYear(allOrders.get(i).orderDate);
+                int tripMonthOfYear = Helpers.DatesAndTimes.returnMonthOfYear(allOrders.get(i).orderDate);
+
+                // Trip was today
+                if (tripDayOfYear == todayDayOfYear) {
+                    if (addedTodayHeader == false) {
+                        CrmEntities.OrderProduct headerObj = new CrmEntities.OrderProduct();
+                        headerObj.isSeparator = true;
+                        headerObj.setTitle("Today");
+                        orderList.add(headerObj);
+                        addedTodayHeader = true;
+                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Today' - This will not be added again!");
+                    }
+                    // Trip was yesterday
+                } else if (tripDayOfYear == (todayDayOfYear - 1)) {
+                    if (addedYesterdayHeader == false) {
+                        CrmEntities.OrderProduct headerObj = new CrmEntities.OrderProduct();
+                        headerObj.isSeparator = true;
+                        headerObj.setTitle("Yesterday");
+                        orderList.add(headerObj);
+                        addedYesterdayHeader = true;
+                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Yesterday' - This will not be added again!");
+                    }
+
+                    // Trip was this week
+                } else if (tripWeekOfYear == todayWeekOfYear) {
+                    if (addedThisWeekHeader == false) {
+                        CrmEntities.OrderProduct headerObj = new CrmEntities.OrderProduct();
+                        headerObj.isSeparator = true;
+                        headerObj.setTitle("This week");
+                        orderList.add(headerObj);
+                        addedThisWeekHeader = true;
+                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'This week' - This will not be added again!");
+                    }
+
+                    // Trip was this month
+                } else if (tripMonthOfYear == todayMonthOfYear) {
+                    if (addedThisMonthHeader == false) {
+                        CrmEntities.OrderProduct headerObj = new CrmEntities.OrderProduct();
+                        headerObj.isSeparator = true;
+                        headerObj.setTitle("This month");
+                        orderList.add(headerObj);
+                        addedThisMonthHeader = true;
+                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'This month' - This will not be added again!");
+                    }
+
+                    // Trip was older than this month
+                } else if (tripMonthOfYear < todayMonthOfYear) {
+                    if (addedOlderHeader == false) {
+                        CrmEntities.OrderProduct headerObj = new CrmEntities.OrderProduct();
+                        headerObj.isSeparator = true;
+                        headerObj.setTitle("Last month and older");
+                        orderList.add(headerObj);
+                        addedOlderHeader = true;
+                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Older' - This will not be added again!");
+                    }
+                }
+
+                CrmEntities.OrderProduct orderProduct = allOrders.get(i);
+                orderList.add(orderProduct);
+            }
+
+            Log.i(TAG, "populateTripList Finished preparing the dividers and trips.");
+
+            adapter = new OrderLineRecyclerAdapter(getContext(), orderList);
+            adapter.setClickListener(new OrderLineRecyclerAdapter.ItemClickListener() {
+                @Override
+                public void onItemClick(View view, int position) {
+
+                }
+            });
+            recyclerView.setAdapter(adapter);
+
+        }
     }
 
-/*    public static class Frag_Submit extends Fragment {
+    public static class Frag_Opportunities extends Fragment {
         public static final String ARG_SECTION_NUMBER = "section_number";
-        private View rootView;
-        Button btnSubmit;
+        public View rootView;
+        public RecyclerView listview;
+        RefreshLayout refreshLayout;
+
+        @Override
+        public void onCreate(@Nullable Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+            getActivity().unregisterReceiver(opportunitiesReceiver);
+            Log.i(TAG, "onResume Unregistered opportunities receiver");
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            getActivity().registerReceiver(opportunitiesReceiver, intentFilter);
+            Log.i(TAG, "onResume Registered opportunities receiver");
+        }
 
         @Nullable
         @Override
-        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                                 @Nullable Bundle savedInstanceState) {
-            rootView = inflater.inflate(R.layout.man_trip_submit, container, false);
-            btnSubmit = rootView.findViewById(R.id.btn_submit);
-            btnSubmit.setOnClickListener(new View.OnClickListener() {
+        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            rootView = inflater.inflate(R.layout.frag_saleslines, container, false);
+            listview = rootView.findViewById(R.id.recyclerview);
+            refreshLayout = rootView.findViewById(R.id.refreshLayout);
+
+            super.onCreateView(inflater, container, savedInstanceState);
+            opportunitiesReceiver = new BroadcastReceiver() {
                 @Override
-                public void onClick(View v) {
-                    saveTrip();
+                public void onReceive(Context context, Intent intent) {
+                    Log.i(TAG, "onReceive Received month and year broadcast! (opportunities frag)");
+                    monthNum = intent.getIntExtra(MONTH, DateTime.now().getMonthOfYear());
+                    yearNum = intent.getIntExtra(YEAR, DateTime.now().getYear());
                 }
-            });
+            };
+
+
             return rootView;
         }
 
-        private boolean validateEntries() {
-            boolean isValid = true;
-
-            if (title.getText().length() == 0) {
-                Toast.makeText(context, "Please name this trip.", Toast.LENGTH_SHORT).show();
-                mViewPager.setCurrentItem(0, true);
-                return false;
-            }
-
-            if (fromLatLng == null) {
-                Toast.makeText(context, "Please set your starting location", Toast.LENGTH_SHORT).show();
-                mViewPager.setCurrentItem(1, true);
-                return false;
-            }
-
-            if (toLatLng == null) {
-                Toast.makeText(context, "Please set your destination", Toast.LENGTH_SHORT).show();
-                mViewPager.setCurrentItem(2, true);
-                return false;
-            }
-
-            if (date.getText().length() == 0) {
-                Toast.makeText(context, "Please set the date of this trip", Toast.LENGTH_SHORT).show();
-                mViewPager.setCurrentItem(3, true);
-                return false;
-            }
-
-            if (distance.getText().length() == 0) {
-                Toast.makeText(context, "Please set the distance travelled", Toast.LENGTH_SHORT).show();
-                mViewPager.setCurrentItem(4, true);
-                return false;
-            }
-
-            return isValid;
-        }
-
-        private void saveTrip() {
-
-            if (options.getReimbursementRate() == 0) {
-
-            }
-
-            try {
-                // Instantiate a datasource
-                MySqlDatasource ds = new MySqlDatasource();
-                MediUser user = MediUser.getMe();
-                FullTrip fullTrip = new FullTrip(date.getDateSelectedAsDateTime().getMillis(),user.domainname, user.systemuserid, user.email);
-
-                fullTrip.setTitle(title.getText().toString());
-                fullTrip.setDateTime(date.getDateSelectedAsDateTime());
-                fullTrip.setMilis(fullTrip.getTripcode());
-                float distmiles = Float.parseFloat(distance.getText().toString());
-                float dist = Helpers.Geo.convertMilesToMeters(distmiles, 2);
-                fullTrip.setDistance(dist);
-                fullTrip.setIsManualTrip(true);
-                fullTrip.setReimbursementRate((float) options.getReimbursementRate());
-
-                ds.createNewTrip(fullTrip);
-
-                Location lastLoc = null;
-                for (LatLng latLng : polyline.getPoints()) {
-
-                    Location location = new Location("gps");
-                    location.setLatitude(latLng.latitude);
-                    location.setLongitude(latLng.longitude);
-
-                    if (lastLoc == null) {
-                        lastLoc = location;
-                    }
-
-                    TripEntry entry = new TripEntry();
-                    entry.setLatitude(location.getLatitude());
-                    entry.setLongitude(location.getLongitude());
-                    entry.setTripcode(fullTrip.getTripcode());
-                    entry.setGuid(user.systemuserid);
-                    entry.setDateTime(date.getDateSelectedAsDateTime());
-                    entry.setMilis(entry.getDateTime().getMillis());
-                    entry.setDistance(location.distanceTo(lastLoc));
-                    entry.setSpeed(0);
-                    ds.appendTrip(entry);
-
-                    lastLoc = location;
-
-                }
-
-                getActivity().setResult(Activity.RESULT_OK);
-                getActivity().finish();
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                getActivity().setResult(Activity.RESULT_CANCELED);
-                getActivity().finish();
-            }
-        }
-    }*/
-
-    void showProgress(boolean value, String msg) {
-        if (pDialog == null) {
-            pDialog = new SweetAlertDialog(context, SweetAlertDialog.PROGRESS_TYPE);
-        }
-        pDialog.getProgressHelper().setBarColor(Color.parseColor("#A5DC86"));
-        pDialog.setTitleText(msg);
-        pDialog.setCancelable(false);
-        try {
-            if (value == true) {
-                pDialog.show();
-            } else {
-                pDialog.dismiss();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
-    @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) {
-        if (fromMarker != null) {
-            outState.putParcelable(TAG_FROM_LOC, fromMarker.getPosition());
-            outState.putString(TAG_FROM_TITLE, fromMarker.getTitle());
-        }
-        if (toMarker != null) {
-            outState.putParcelable(TAG_TO_LOC, toMarker.getPosition());
-            outState.putString(TAG_TO_TITLE, toMarker.getTitle());
-        }
-        outState.putString(TAG_TITLE, title.getText().toString());
-        outState.putString(TAG_DATE, date.getText().toString());
-        outState.putString(TAG_DISTANCE, date.getText().toString());
+    public static class Frag_Cases extends Fragment {
+        public static final String ARG_SECTION_NUMBER = "section_number";
+        public View rootView;
+        public RecyclerView listview;
+        RefreshLayout refreshLayout;
 
-        super.onSaveInstanceState(outState);
+        @Override
+        public void onCreate(@Nullable Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+        }
+
+        @Nullable
+        @Override
+        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            rootView = inflater.inflate(R.layout.frag_saleslines, container, false);
+            listview = rootView.findViewById(R.id.recyclerview);
+            refreshLayout = rootView.findViewById(R.id.refreshLayout);
+            super.onCreateView(inflater, container, savedInstanceState);
+
+            casesReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Log.i(TAG, "onReceive Received month and year broadcast! (cases frag)");
+                    monthNum = intent.getIntExtra(MONTH, DateTime.now().getMonthOfYear());
+                    yearNum = intent.getIntExtra(YEAR, DateTime.now().getYear());
+                }
+            };
+
+            return rootView;
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            getActivity().registerReceiver(casesReceiver, intentFilter);
+            Log.i(TAG, "onResume Registered the cases receiver");
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+            getActivity().unregisterReceiver(casesReceiver);
+            Log.i(TAG, "onPause Unregistered the cases receiver");
+        }
     }
 
 }

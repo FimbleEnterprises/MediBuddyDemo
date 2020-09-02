@@ -15,6 +15,7 @@ public class Queries {
     public static final String WEST_REGIONID = "61E8B94E-2AFA-E711-80DE-005056A36B9B";
     public static final String WEST_BUSINESSUNITID = "02AD3593-FB81-E711-80D7-005056A36B9B";
     public static final String EAST_BUSINESSUNITID = "101E629C-FB81-E711-80D7-005056A36B9B";
+    public static final String JOHN_SYSTEMUSERID = "DAA46FDF-5B7C-E711-80D1-005056A32EEA";
 
     public static class Operators {
         public enum DateOperator {
@@ -147,44 +148,86 @@ public class Queries {
 
     public static class OrderLines {
 
-        public static String getOrderLines(String repid, Operators.DateOperator operator) {
+        public static String getOrderLines(String territoryid, Operators.DateOperator operator) {
 
             /************** TESTING *************/
-            // repid = "E2A46FDF-5B7C-E711-80D1-005056A32EEA";
+            // repid = "DAA46FDF-5B7C-E711-80D1-005056A32EEA";
             /************************************/
 
 
-            // Order line columns
+            // Main entity columns
             QueryFactory factory = new QueryFactory("salesorderdetail");
             factory.addColumn("productid");
-            factory.addColumn("priceperunit");
+            factory.addColumn("msus_price_per_unit");
+            factory.addColumn("new_customer");
             factory.addColumn("quantity");
             factory.addColumn("extendedamount");
+            factory.addColumn("salesrepid");
+            factory.addColumn("salesorderid");
             factory.addColumn("salesorderdetailid");
 
-            // Account entity link
-            QueryFactory.LinkEntity linkEntityAccount = new QueryFactory.LinkEntity("account","accountid", "new_customer", "a_db24f99da8fee71180df005056a36b9b");
-            linkEntityAccount.columns.add(new QueryFactory.EntityColumn("msus_salesrep"));
-            linkEntityAccount.columns.add(new QueryFactory.EntityColumn("name"));
-            linkEntityAccount.columns.add(new QueryFactory.EntityColumn("accountnumber"));
-            QueryFactory.Filter.FilterCondition accountCondition = new QueryFactory.Filter.FilterCondition("msus_salesrep", QueryFactory.Filter.Operator.EQUALS, repid);
-            linkEntityAccount.addFilter(new QueryFactory.Filter(AND, accountCondition));
-            factory.linkEntities.add(linkEntityAccount);
+            // Create link entities
+            QueryFactory.LinkEntity linkEntitySalesOrder = new QueryFactory.LinkEntity(
+                    "salesorder",
+                    "salesorderid",
+                    "salesorderid",
+                    "a_6ec0e72e4c104394bc627456c6412838"
+            );
+            QueryFactory.LinkEntity linkEntitySystemUser = new QueryFactory.LinkEntity(
+                    "systemuser",
+                    "systemuserid",
+                    "salesrepid",
+                    "a_a1cf96c07c114d478335b8c445651a12"
+            );
+            QueryFactory.LinkEntity linkEntityAccount = new QueryFactory.LinkEntity(
+                    "account",
+                    "accountid",
+                    "new_customer",
+                    "a_db24f99da8fee71180df005056a36b9b"
+            );
+            QueryFactory.LinkEntity linkEntityProduct = new QueryFactory.LinkEntity(
+                    "product",
+                    "productid",
+                    "productid",
+                    "a_070ef9d142cd40d98bebd513e03c7cd1"
+            );
 
-            // Order entity link
-            QueryFactory.LinkEntity linkEntitySalesOrder = new QueryFactory.LinkEntity("salesorder","salesorderid", "salesorderid", "ac");
-            linkEntitySalesOrder.columns.add(new QueryFactory.EntityColumn("submitdate"));
-            QueryFactory.Filter.FilterCondition orderCondition = new QueryFactory.Filter.FilterCondition("submitdate", getDateOperator(operator));
-            linkEntitySalesOrder.addFilter(new QueryFactory.Filter(AND, orderCondition));
-            factory.linkEntities.add(linkEntitySalesOrder);
+            // Add columns to link entities
+            linkEntitySalesOrder.addColumn(new QueryFactory.EntityColumn("submitdate"));
+            linkEntitySystemUser.addColumn(new QueryFactory.EntityColumn("employeeid"));
+            linkEntityAccount.addColumn(new QueryFactory.EntityColumn("accountnumber"));
+            linkEntityAccount.addColumn(new QueryFactory.EntityColumn("territoryid"));
+            linkEntityProduct.addColumn(new QueryFactory.EntityColumn("msus_is_capital"));
+            linkEntityProduct.addColumn(new QueryFactory.EntityColumn("productnumber"));
 
-            // Product entity link
-            QueryFactory.LinkEntity linkEntityProduct = new QueryFactory.LinkEntity("product","productid", "productid", "a_070ef9d142cd40d98bebd513e03c7cd1");
-            linkEntityProduct.columns.add(new QueryFactory.EntityColumn("msus_is_capital"));
-            linkEntityProduct.columns.add(new QueryFactory.EntityColumn("productnumber"));
-            linkEntityProduct.columns.add(new QueryFactory.EntityColumn("name"));
-            factory.linkEntities.add(linkEntityProduct);
+            // Create and populate a condition array for a link entity
+            ArrayList<QueryFactory.Filter.FilterCondition> salesOrderConditions = new ArrayList<>();
+            QueryFactory.Filter.FilterCondition conditionOrderDate = new QueryFactory.Filter.FilterCondition(
+                    "submitdate", getDateOperator(operator));
+            salesOrderConditions.add(conditionOrderDate);
 
+            // Create and populate a condition array for a link entity
+            ArrayList<QueryFactory.Filter.FilterCondition> customerConditions = new ArrayList<>();
+            QueryFactory.Filter.FilterCondition conditionRepId = new QueryFactory.Filter.FilterCondition(
+                    "territoryid", QueryFactory.Filter.Operator.EQUALS, territoryid);
+            customerConditions.add(conditionRepId);
+
+            // Add new filters to the link entities that have filters
+            linkEntitySalesOrder.addFilter(new QueryFactory.Filter(AND, salesOrderConditions));
+            linkEntityAccount.addFilter(new QueryFactory.Filter(AND, customerConditions));
+
+            // Create and add a sort clause
+            QueryFactory.SortClause sortClause = new QueryFactory.SortClause("salesorderid",
+                    true, QueryFactory.SortClause.ClausePosition.ONE);
+            factory.addSortClause(sortClause);
+
+            // Add the constructed link entities
+            factory.addLinkEntity(linkEntityAccount);
+            factory.addLinkEntity(linkEntityProduct);
+            factory.addLinkEntity(linkEntitySalesOrder);
+            factory.addLinkEntity(linkEntitySystemUser);
+
+            // Build teh query
             String query = factory.construct();
 
             return query;

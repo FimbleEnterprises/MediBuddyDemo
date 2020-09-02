@@ -21,104 +21,18 @@ public class CrmEntities {
     public static class OrderProducts {
         public ArrayList<OrderProduct> list = new ArrayList<>();
 
+        public int size() {
+            return this.list.size();
+        }
+
         @Override
         public String toString() {
             return "Order products: " + this.list.size();
         }
 
-        public OrderProducts(ArrayList<OrderProduct> orders) {
-            this.list = orders;
-        }
+        public OrderProducts() { }
 
         public OrderProducts(String crmResponse) {
-            this.list = OrderProduct.createMany(crmResponse);
-        }
-    }
-
-    public static class OrderProduct {
-
-        String productid;
-        float amount;
-        String salesorderdetailid;
-        float price;
-        int qty;
-        boolean isCapital;
-        DateTime orderDate;
-        String accountnumber;
-        String partNumber;
-        String accountName;
-        String productDescription;
-        String salesrepid;
-
-        @Override
-        public String toString() {
-            return this.partNumber + ", Qty: " + this.qty + ", Amount: " + this.amount;
-        }
-
-        public OrderProduct(JSONObject json) {
-            try {
-                if (!json.isNull("_productid_value")) {
-                    this.productid = json.getString("_productid_value");
-                }
-            } catch (Exception e) { }
-            try {
-                if (!json.isNull("extendedamount")) {
-                    this.amount = json.getLong("extendedamount");
-                }
-            } catch (Exception e) { }
-            try {
-                if (!json.isNull("salesorderdetailid")) {
-                    this.salesorderdetailid = json.getString("salesorderdetailid");
-                }
-            } catch (Exception e) { }
-            try {
-                if (!json.isNull("priceperunit")) {
-                    this.price = json.getLong("priceperunit");
-                }
-            } catch (Exception e) { }
-            try {
-                if (!json.isNull("quantity")) {
-                    this.qty = json.getInt("quantity");
-                }
-            } catch (Exception e) { }
-            try {
-                if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_msus_is_capital")) {
-                    this.isCapital = json.getBoolean("a_070ef9d142cd40d98bebd513e03c7cd1_msus_is_capital");
-                }
-            } catch (Exception e) { }
-            try {
-                if (!json.isNull("ac_submitdate")) {
-                    this.orderDate = new DateTime(json.getString("ac_submitdate"));
-                }
-            } catch (Exception e) { }
-            try {
-                if (!json.isNull("a_db24f99da8fee71180df005056a36b9b_accountnumber")) {
-                    this.accountnumber = json.getString("a_db24f99da8fee71180df005056a36b9b_accountnumber");
-                }
-            } catch (Exception e) { }
-            try {
-                if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_productnumber")) {
-                    this.partNumber = json.getString("a_070ef9d142cd40d98bebd513e03c7cd1_productnumber");
-                }
-            } catch (Exception e) { }
-            try {
-                if (!json.isNull("a_db24f99da8fee71180df005056a36b9b_name")) {
-                    this.accountName = json.getString("a_db24f99da8fee71180df005056a36b9b_name");
-                }
-            } catch (Exception e) { }
-            try {
-                if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_name")) {
-                    this.productDescription = json.getString("a_070ef9d142cd40d98bebd513e03c7cd1_name");
-                }
-            } catch (Exception e) { }
-            try {
-                if (!json.isNull("a_db24f99da8fee71180df005056a36b9b_msus_salesrep")) {
-                    this.salesrepid = json.getString("a_db24f99da8fee71180df005056a36b9b_msus_salesrep");
-                }
-            } catch (Exception e) { }
-        }
-
-        public static ArrayList<OrderProduct> createMany(String crmResponse) {
             ArrayList<OrderProduct> orderProducts = new ArrayList<>();
             try {
                 JSONObject root = new JSONObject(crmResponse);
@@ -127,18 +41,193 @@ public class CrmEntities {
                     OrderProduct orderProduct = new OrderProduct(rootArray.getJSONObject(i));
                     orderProducts.add(orderProduct);
                 }
-                return orderProducts;
+                this.list = orderProducts;
             } catch (JSONException e) {
                 e.printStackTrace();
-                return null;
+            }
+        }
+    }
+
+    public static class OrderProduct {
+
+        boolean isSeparator;
+        String etag;
+        String productid;
+        String productidFormatted;
+        String partNumber;
+        float extendedAmt;
+        String extendedAmtFormatted;
+        String customerid;
+        String customeridFormatted;
+        String salesorderid;
+        String salesorderidFormatted;
+        String salesrepid;
+        String salesrepidFormatted;
+        float priceperunit;
+        String priceperunitFormatted;
+        int qty;
+        boolean isCapital;
+        String territoryid;
+        String territoryidFormatted;
+        String accountnumber;
+        String orderdateFormatted;
+        DateTime orderDate;
+
+        @Override
+        public String toString() {
+            return this.partNumber + ", Qty: " + this.qty + ", Amount: " + this.extendedAmtFormatted;
+        }
+
+        public OrderProduct() { }
+
+        public OrderProduct(JSONObject json) {
+            try {
+                if (!json.isNull("etag")) {
+                    this.etag = (json.getString("etag"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("_productid_value")) {
+                    this.productid = (json.getString("_productid_value"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("_productid_valueFormattedValue")) {
+                    this.productidFormatted = (json.getString("_productid_valueFormattedValue"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("extendedamount")) {
+                    this.extendedAmt = (json.getLong("extendedamount"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("extendedamountFormattedValue")) {
+                    this.extendedAmtFormatted = (json.getString("extendedamountFormattedValue"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("_new_customer_value")) {
+                    this.customerid = (json.getString("_new_customer_value"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("_new_customer_valueFormattedValue")) {
+                    this.customeridFormatted = (json.getString("_new_customer_valueFormattedValue"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("_salesrepid_valueFormattedValue")) {
+                    this.salesrepidFormatted = (json.getString("_salesrepid_valueFormattedValue"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("_salesrepid_value")) {
+                    this.salesrepid = (json.getString("_salesrepid_value"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("quantity")) {
+                    this.qty = (json.getInt("quantity"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("_salesorderid_valueFormattedValue")) {
+                    this.salesorderidFormatted = (json.getString("_salesorderid_valueFormattedValue"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("_salesorderid")) {
+                    this.salesorderid = (json.getString("_salesorderid"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_msus_is_capital")) {
+                    this.isCapital = (json.getBoolean("a_070ef9d142cd40d98bebd513e03c7cd1_msus_is_capital"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_productnumber")) {
+                    this.partNumber = (json.getString("a_070ef9d142cd40d98bebd513e03c7cd1_productnumber"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("a_db24f99da8fee71180df005056a36b9b_accountnumber")) {
+                    this.accountnumber = (json.getString("a_db24f99da8fee71180df005056a36b9b_accountnumber"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("a_db24f99da8fee71180df005056a36b9b_territoryid")) {
+                    this.territoryid = (json.getString("a_db24f99da8fee71180df005056a36b9b_territoryid"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("a_a1cf96c07c114d478335b8c445651a12_employeeid")) {
+                    this.territoryidFormatted = (json.getString("a_a1cf96c07c114d478335b8c445651a12_employeeid"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("a_6ec0e72e4c104394bc627456c6412838_submitdate")) {
+                    this.orderDate = (new DateTime(json.getString("a_6ec0e72e4c104394bc627456c6412838_submitdate")));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("a_6ec0e72e4c104394bc627456c6412838_submitdateFormattedValue")) {
+                    this.orderdateFormatted = (json.getString("a_6ec0e72e4c104394bc627456c6412838_submitdateFormattedValue"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
         }
 
+        public void setTitle(String text) {
+            this.partNumber = text;
+        }
     }
 
     public static class Goals {
 
         private static final String TAG = "Goals";
+
+        public int size() {
+            return this.list.size();
+        }
 
         @Override
         public String toString() {
@@ -152,7 +241,18 @@ public class CrmEntities {
         }
 
         public Goals(String crmResponse) {
-            this.list = Goal.createMany(crmResponse);
+            ArrayList<Goal> goals = new ArrayList<>();
+            try {
+                JSONObject root = new JSONObject(crmResponse);
+                JSONArray rootArray = root.getJSONArray("value");
+                for (int i = 0; i < rootArray.length(); i++) {
+                    Goal goal = new Goal(rootArray.getJSONObject(i));
+                    goals.add(goal);
+                }
+                this.list = goals;
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
 
     }
@@ -254,22 +354,6 @@ public class CrmEntities {
                 e.printStackTrace();
             }
 
-        }
-
-        public static ArrayList<Goal> createMany(String crmResponse) {
-            ArrayList<Goal> goals = new ArrayList<>();
-            try {
-                JSONObject root = new JSONObject(crmResponse);
-                JSONArray rootArray = root.getJSONArray("value");
-                for (int i = 0; i < rootArray.length(); i++) {
-                    Goal goal = new Goal(rootArray.getJSONObject(i));
-                    goals.add(goal);
-                }
-                return goals;
-            } catch (JSONException e) {
-                e.printStackTrace();
-                return null;
-            }
         }
 
         public static ArrayList<Goal> createMany(String crmResponse, int period, int year) {

@@ -27,13 +27,6 @@
             android:theme="@style/FullscreenTheme"
             tools:ignore="LockedOrientationActivity" />
         <activity
-            android:name=".RestoreDbActivity"
-            android:configChanges="orientation|keyboardHidden"
-            android:label="@string/title_activity_activitiy__restore_db"
-            android:screenOrientation="portrait"
-            android:theme="@style/AppTheme"
-            tools:ignore="LockedOrientationActivity" />
-        <activity
             android:name=".ui.settings.mileage.SettingsActivity"
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/title_activity_settings"
@@ -41,7 +34,7 @@
             android:theme="@style/AppTheme"
             tools:ignore="LockedOrientationActivity" />
         <activity
-            android:name=".Activity_SalesPerf"
+            android:name=".Activity_TerritoryData"
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/title_activity__sales_performance"
             android:screenOrientation="portrait"
