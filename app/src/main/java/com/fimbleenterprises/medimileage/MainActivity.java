@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
                     startActivityForResult(intent, 0);
                 } else if (item.getTitle().toString().toLowerCase().equals("stats")) {
                     startActivity(new Intent(activity, AggregateStatsActivity.class));
-                } else if (item.getTitle().toString().toLowerCase().contains("sales") ) {
+                } else if (item.getTitle().toString().toLowerCase().contains("territory") ) {
                     startActivity(new Intent(activity, Activity_TerritoryData.class));
                 }  else {
                     try {

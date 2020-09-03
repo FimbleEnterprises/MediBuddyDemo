@@ -4,15 +4,17 @@
     android:id="@+id/row_orderproduct"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="5dp"
-    android:orientation="vertical">
+    android:background="@drawable/btn_glass_gray_orange_border"
+    android:orientation="vertical"
+    android:padding="5dp">
 
 
     <ImageView
         android:id="@+id/img_PartIcon"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:layout_alignParentLeft="true"
+        android:layout_centerInParent="true"
         app:srcCompat="@drawable/pv_probe_64x" />
 
     <TextView
@@ -20,7 +22,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_marginLeft="3dp"
+        android:layout_marginLeft="10dp"
         android:layout_marginRight="3dp"
         android:layout_toRightOf="@id/img_PartIcon"
         android:layout_weight="0"
@@ -41,7 +43,7 @@
         android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/txt_extendedAmt"
+        android:id="@+id/txt_salesOrder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
@@ -49,7 +51,7 @@
         android:layout_alignParentRight="true"
         android:layout_weight="0"
         android:fontFamily="@font/casual"
-        android:text="$3200"
+        android:text="SO-22334"
         android:textSize="16sp"
         android:textStyle="bold" />
 
@@ -58,12 +60,29 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/txt_partNumber"
-        android:layout_marginLeft="3dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="4dp"
+        android:singleLine="true"
+        android:layout_marginRight="3dp"
+        android:layout_toStartOf="@+id/txt_orderDate"
+        android:layout_toEndOf="@id/img_PartIcon"
+        android:fontFamily="@font/casual"
+        android:text="Baptist Memorial Hospital"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/txt_extendedAmt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txt_customerName"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="-2dp"
         android:layout_marginRight="3dp"
         android:layout_toRightOf="@id/img_PartIcon"
         android:layout_weight="0"
         android:fontFamily="@font/casual"
-        android:text="Baptist Memorial Hospital"
+        android:text="$22340"
         android:textSize="16sp"
         android:textStyle="bold" />
 
@@ -71,27 +90,11 @@
         android:id="@+id/txt_orderDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/txt_customerName"
-        android:layout_marginLeft="3dp"
-        android:layout_marginRight="3dp"
-        android:layout_toRightOf="@id/img_PartIcon"
+        android:layout_below="@id/txt_salesOrder"
+        android:layout_alignParentRight="true"
         android:layout_weight="0"
         android:fontFamily="@font/casual"
         android:text="12/22/2020"
-        android:textSize="16sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/txt_salesOrder"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/txt_customerName"
-        android:layout_alignParentRight="true"
-        android:layout_marginLeft="3dp"
-        android:layout_marginRight="3dp"
-        android:layout_weight="0"
-        android:fontFamily="@font/casual"
-        android:text="SO-22334"
         android:textSize="16sp"
         android:textStyle="bold" />
 </RelativeLayout>

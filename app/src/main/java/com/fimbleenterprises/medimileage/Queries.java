@@ -199,6 +199,8 @@ public class Queries {
             linkEntityAccount.addColumn(new QueryFactory.EntityColumn("territoryid"));
             linkEntityProduct.addColumn(new QueryFactory.EntityColumn("msus_is_capital"));
             linkEntityProduct.addColumn(new QueryFactory.EntityColumn("productnumber"));
+            linkEntityProduct.addColumn(new QueryFactory.EntityColumn("col_itemgroup"));
+            linkEntityProduct.addColumn(new QueryFactory.EntityColumn("col_producfamily"));
 
             // Create and populate a condition array for a link entity
             ArrayList<QueryFactory.Filter.FilterCondition> salesOrderConditions = new ArrayList<>();
@@ -284,6 +286,7 @@ public class Queries {
             factory.addColumn("targetmoney");
             factory.addColumn("actualmoney");
             factory.addColumn("goalid");
+            factory.addColumn("msus_fiscalfirstdayofmonth");
 
             // Filter conditions
             QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter
@@ -371,6 +374,9 @@ public class Queries {
             factory.addColumn("targetmoney");
             factory.addColumn("actualmoney");
             factory.addColumn("goalid");
+            factory.addColumn("goalstartdate");
+            factory.addColumn("goalenddate");
+            factory.addColumn("msus_fiscalfirstdayofmonth");
 
             // Filter conditions
             QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter
@@ -394,6 +400,10 @@ public class Queries {
             QueryFactory.Filter filter = new QueryFactory.Filter(AND, conditions);
             factory.setFilter(filter);
 
+            // Sort clause
+            QueryFactory.SortClause sortClause = new QueryFactory.SortClause("percentage", true, QueryFactory.SortClause.ClausePosition.ONE);
+            factory.addSortClause(sortClause);
+
             // Build query
             String query = factory.construct();
 
@@ -406,9 +416,6 @@ public class Queries {
             // regionid = WEST_REGIONID;
             /********************************************/
 
-            DateTime firstofCurMonth = new DateTime(DateTime.now().getYear(),
-                    DateTime.now().getMonthOfYear(), 1,0,0);
-
             // Query columns
             QueryFactory factory = new QueryFactory("goal");
             factory.addColumn("title");
@@ -417,9 +424,11 @@ public class Queries {
             factory.addColumn("targetmoney");
             factory.addColumn("actualmoney");
             factory.addColumn("goalid");
+            factory.addColumn("goalstartdate");
+            factory.addColumn("goalenddate");
             factory.addColumn("msus_fiscalfirstdayofmonth");
 
-            // Filter conditions
+            // Create filter conditions
             QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter
                     .FilterCondition("title", QueryFactory.Filter.Operator.CONTAINS, "month");
             QueryFactory.Filter.FilterCondition condition2 = new QueryFactory.Filter
@@ -431,15 +440,20 @@ public class Queries {
                     .FilterCondition("msus_fiscalfirstdayofmonth",
                         QueryFactory.Filter.Operator.IN_FISCAL_PERIOD, Integer.toString(monthNum));
 
+            // Add filter conditions
             ArrayList<QueryFactory.Filter.FilterCondition> conditions = new ArrayList<>();
             conditions.add(condition1);
             conditions.add(condition2);
             conditions.add(condition3);
             conditions.add(condition4);
 
-            // Set filter
+            // Create and set filter
             QueryFactory.Filter filter = new QueryFactory.Filter(AND, conditions);
             factory.setFilter(filter);
+
+            // Sort clause
+            QueryFactory.SortClause sortClause = new QueryFactory.SortClause("percentage", true, QueryFactory.SortClause.ClausePosition.ONE);
+            factory.addSortClause(sortClause);
 
             // Build query
             String query = factory.construct();

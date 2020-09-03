@@ -39,8 +39,8 @@ public class OrderLineRecyclerAdapter extends RecyclerView.Adapter<OrderLineRecy
     // inflates the row layout from xml when needed
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = mInflater.inflate(R.layout.triplist_row, parent, false);
-        textView = view.findViewById(R.id.textView_FullTripRowMainText);
+        View view = mInflater.inflate(R.layout.row_orderproduct, parent, false);
+        textView = view.findViewById(R.id.txt_customerName);
         originalTypeface = textView.getTypeface();
         return new ViewHolder(view);
     }
@@ -53,20 +53,41 @@ public class OrderLineRecyclerAdapter extends RecyclerView.Adapter<OrderLineRecy
         final CrmEntities.OrderProduct orderProduct = mData.get(position);
 
         if (orderProduct.isSeparator) {
+            // Display
             holder.txtQty.setVisibility(View.GONE);
             holder.txtAmount.setVisibility(View.GONE);
             holder.txtCustName.setVisibility(View.GONE);
             holder.txtDate.setVisibility(View.GONE);
             holder.imgProductIcon.setVisibility(View.GONE);
+            holder.txtOrderNumber.setVisibility(View.GONE);
             holder.itemView.setLongClickable(false);
+            holder.layout.setBackground(null);
         } else {
+            // Display
             holder.itemView.setLongClickable(true);
+            holder.txtQty.setVisibility(View.VISIBLE);
+            holder.txtAmount.setVisibility(View.VISIBLE);
+            holder.txtCustName.setVisibility(View.VISIBLE);
+            holder.txtDate.setVisibility(View.VISIBLE);
+            holder.txtOrderNumber.setVisibility(View.VISIBLE);
+            holder.imgProductIcon.setVisibility(View.VISIBLE);
+
+            ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) holder.layout.getLayoutParams();
+            layoutParams.bottomMargin = 6;
+            layoutParams.topMargin = 6;
+            holder.layout.setLayoutParams(layoutParams);
+            holder.layout.setBackgroundResource(R.drawable.btn_glass_gray_black_border);
+
+            // Values
+            holder.txtDate.setText(orderProduct.orderdateFormatted);
+            holder.txtCustName.setText(orderProduct.customeridFormatted);
+            holder.txtAmount.setText(orderProduct.extendedAmtFormatted);
+            holder.txtQty.setText(orderProduct.qty + " x ");
+            holder.txtPartNumber.setText(orderProduct.partNumber);
+            holder.txtOrderNumber.setText(orderProduct.salesorderidFormatted);
+            holder.imgProductIcon.setImageBitmap(Helpers.Bitmaps.getImageIconForPart(orderProduct, context));
         }
 
-        holder.txtDate.setText(orderProduct.orderdateFormatted);
-        holder.txtCustName.setText(orderProduct.customeridFormatted);
-        holder.txtAmount.setText(orderProduct.extendedAmtFormatted);
-        holder.txtQty.setText(orderProduct.qty + " x ");
         holder.txtPartNumber.setText(orderProduct.partNumber);
 
     }
@@ -85,6 +106,7 @@ public class OrderLineRecyclerAdapter extends RecyclerView.Adapter<OrderLineRecy
         TextView txtDate;
         TextView txtCustName;
         TextView txtAmount;
+        TextView txtOrderNumber;
         RelativeLayout layout;
 
 
@@ -97,6 +119,7 @@ public class OrderLineRecyclerAdapter extends RecyclerView.Adapter<OrderLineRecy
             txtDate = itemView.findViewById(R.id.txt_orderDate);
             txtCustName = itemView.findViewById(R.id.txt_customerName);
             txtAmount = itemView.findViewById(R.id.txt_extendedAmt);
+            txtOrderNumber = itemView.findViewById(R.id.txt_salesOrder);
 
             itemView.setOnClickListener(this);
             itemView.setOnLongClickListener(this);

@@ -65,6 +65,7 @@ public class CrmEntities {
         String salesrepidFormatted;
         float priceperunit;
         String priceperunitFormatted;
+        String itemgroup;
         int qty;
         boolean isCapital;
         String territoryid;
@@ -72,6 +73,8 @@ public class CrmEntities {
         String accountnumber;
         String orderdateFormatted;
         DateTime orderDate;
+        int productfamilyValue;
+        String productfamilyFormattedValue;
 
         @Override
         public String toString() {
@@ -174,7 +177,28 @@ public class CrmEntities {
             }
             try {
                 if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_productnumber")) {
-                    this.partNumber = (json.getString("a_070ef9d142cd40d98bebd513e03c7cd1_productnumber"));
+                    this.setTitle(json.getString("a_070ef9d142cd40d98bebd513e03c7cd1_productnumber"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_col_itemgroup")) {
+                    this.itemgroup = (json.getString("a_070ef9d142cd40d98bebd513e03c7cd1_col_itemgroup"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_col_producfamily")) {
+                    this.productfamilyValue = (json.getInt("a_070ef9d142cd40d98bebd513e03c7cd1_col_producfamily"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_col_producfamilyFormattedValue")) {
+                    this.productfamilyFormattedValue = (json.getString("a_070ef9d142cd40d98bebd513e03c7cd1_col_producfamilyFormattedValue"));
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -213,6 +237,36 @@ public class CrmEntities {
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
+            }
+        }
+
+        public enum ProductFamily {
+            AUX_CABLE, FLOWMETER, LEASE_COMPLIANCE, LICENSE_CARD, PROBE, PROBE_PRODUCT, SERVICE_MISC,
+            SPARE_PART, SYSTEM_PRODUCT, SHIPPING_HANDLING
+        }
+
+        public ProductFamily getFamily(int productfamilyValue) {
+            switch (productfamilyValue) {
+                case 100004070 :
+                    return ProductFamily.AUX_CABLE;
+                case 181004050 :
+                    return ProductFamily.FLOWMETER;
+                case 100004040 :
+                    return ProductFamily.LEASE_COMPLIANCE;
+                case 100004030 :
+                    return ProductFamily.LICENSE_CARD;
+                case 181400001 :
+                    return ProductFamily.PROBE_PRODUCT;
+                case 100004010 :
+                    return ProductFamily.SERVICE_MISC;
+                case 100004020 :
+                    return ProductFamily.SHIPPING_HANDLING;
+                case 100004075 :
+                    return ProductFamily.SPARE_PART;
+                case 181400000 :
+                    return ProductFamily.SYSTEM_PRODUCT;
+                default :
+                    return ProductFamily.PROBE;
             }
         }
 
@@ -270,6 +324,8 @@ public class CrmEntities {
         public int year;
         public String fiscalFirstDayFormatted;
         public String fiscalFirstDayValue;
+        public DateTime rawStartDate;
+        public DateTime rawEndDate;
 
         public String getPrettyPct() {
            return Helpers.Numbers.formatAsZeroDecimalPointNumber(this.pct, RoundingMode.UNNECESSARY) + "%";
@@ -301,6 +357,20 @@ public class CrmEntities {
             try {
                 if (!json.isNull("percentage")) {
                     this.pct = (json.getLong("percentage"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("goalstartdate")) {
+                    this.rawStartDate = (new DateTime(json.getString("goalstartdate")));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("goalenddate")) {
+                    this.rawEndDate = (new DateTime(json.getString("goalenddate")));
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -379,12 +449,20 @@ public class CrmEntities {
         }
 
         public DateTime getStartDate() {
-            return new DateTime(this.year, this.period, 1, 0, 0);
+            return this.rawStartDate;
         }
 
         public DateTime getEndDate() {
+            return this.rawEndDate;
+        }
+
+        public DateTime getEndDateForMonthlyGoal() {
             int daysInMonth = Helpers.DatesAndTimes.getDaysInMonth(this.year, this.period);
             return new DateTime(this.year, this.period, daysInMonth, 0, 0);
+        }
+
+        public DateTime getStartDateForMonthlyGoal() {
+            return new DateTime(this.year, this.period, 1, 0, 0);
         }
 
         public int daysInMonth() {
