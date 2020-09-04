@@ -463,6 +463,36 @@ public class Queries {
 
     }
 
+    public static class Addresses {
+
+        public static String getAllAccountAddresses() {
+
+            // Instantiate a new constructor for the case entity and add the columns we want to see
+            QueryFactory query = new QueryFactory("account");
+            query.addColumn("name");
+            query.addColumn("customertypecode");
+            query.addColumn("accountid");
+            query.addColumn("address1_name");
+            query.addColumn("address1_composite");
+            query.addColumn("address1_longitude");
+            query.addColumn("address1_latitude");
+            query.addColumn("accountnumber");
+            query.addColumn("msus_loc_updated");
+
+            ArrayList<QueryFactory.Filter.FilterCondition> conditions = new ArrayList<>();
+            QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter.FilterCondition
+                    ("msus_loc_updated", QueryFactory.Filter.Operator.EQUALS, "true");
+            conditions.add(condition1);
+            QueryFactory.Filter filter = new QueryFactory.Filter(AND, conditions);
+
+            query.setFilter(filter);
+
+            // Spit out the encoded query
+            String rslt = query.construct();
+            return rslt;
+        }
+    }
+
 
 
 

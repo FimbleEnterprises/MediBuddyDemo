@@ -1,7 +1,11 @@
 package com.fimbleenterprises.medimileage;
 
+import android.location.Location;
+import android.location.LocationProvider;
 import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.gson.Gson;
 import com.google.rpc.Help;
 
 import org.joda.time.DateTime;
@@ -11,6 +15,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.math.RoundingMode;
+import java.security.Provider;
 import java.util.ArrayList;
 import java.util.Formatter;
 
@@ -467,6 +472,137 @@ public class CrmEntities {
 
         public int daysInMonth() {
             return Helpers.DatesAndTimes.getDaysInMonth(this.year, this.period);
+        }
+
+    }
+
+    public static class CrmAddresses {
+        public ArrayList<CrmAddress> list = new ArrayList<>();
+
+        public String toJson() {
+            Gson gson = new Gson();
+            return gson.toJson(this);
+        }
+
+        public CrmAddresses(ArrayList<CrmAddress> addresses) {
+            this.list = addresses;
+        }
+
+        public CrmAddresses(String crmResponse) {
+            ArrayList<CrmAddress> addys = new ArrayList<>();
+            try {
+                JSONObject root = new JSONObject(crmResponse);
+                JSONArray rootArray = root.getJSONArray("value");
+                for (int i = 0; i < rootArray.length(); i++) {
+                    CrmAddress addy = new CrmAddress(rootArray.getJSONObject(i));
+                    addys.add(addy);
+                }
+                this.list = addys;
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public static class CrmAddress {
+
+            public String etag;
+            public String accountid;
+            public String accountnumber;
+            public int customertypeValue;
+            public String customertypeFormatted;
+            public String accountName;
+            public String addressComposite;
+            public double latitude;
+            public double longitude;
+
+            public CrmAddress(JSONObject json) {
+                try {
+                    if (!json.isNull("etag")) {
+                        this.etag = (json.getString("etag"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("accountid")) {
+                        this.accountid = (json.getString("accountid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("accountnumber")) {
+                        this.accountnumber = (json.getString("accountnumber"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("customertypecodeFormattedValue")) {
+                        this.customertypeFormatted = (json.getString("customertypecodeFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("customertypecode")) {
+                        this.customertypeValue = (json.getInt("customertypecode"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("name")) {
+                        this.accountName = (json.getString("name"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("address1_composite")) {
+                        this.addressComposite = (json.getString("address1_composite"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("address1_longitude")) {
+                        this.longitude = (json.getLong("address1_longitude"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("address1_latitude")) {
+                        this.latitude = (json.getLong("address1_latitude"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            public LatLng getLatLng() {
+                return new LatLng(this.latitude, this.longitude);
+            }
+
+            /**
+             * Calculate the distance between this location and the supplied location.
+             * @param latLng The location to measure to.
+             * @return The distance between the two locations in meters.
+             */
+            public double distanceTo(LatLng latLng) {
+                Location startLoc = new Location("START");
+                Location endLoc = new Location("END");
+
+                startLoc.setLatitude(latLng.latitude);
+                startLoc.setLongitude(latLng.longitude);
+
+                endLoc.setLatitude(this.latitude);
+                endLoc.setLongitude(this.longitude);
+
+                return startLoc.distanceTo(endLoc);
+            }
+
         }
 
     }

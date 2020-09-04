@@ -53,11 +53,10 @@ public class MyInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 
         final MyMapMarker finalSelectedMarker = selectedMarker;
 
-        tvTitle.setText(selectedMarker.accountAddress.accountname);
-        tvSnippet.setText(selectedMarker.accountAddress.productnumber + " s/n: " +
-            selectedMarker.accountAddress.productsn + " - " + selectedMarker.accountAddress.productstatus);
+        tvTitle.setText(selectedMarker.accountAddress.accountName);
+        tvSnippet.setText(selectedMarker.accountAddress.customertypeFormatted);
 
-        if (selectedMarker.accountAddress != null) {
+        /*if (selectedMarker.accountAddress != null) {
             if (selectedMarker.accountAddress.productnumber.toLowerCase().startsWith("mq")) {
                 imageView.setImageResource(R.drawable.miraq64);
             } else if (selectedMarker.accountAddress.productnumber.toLowerCase().startsWith("vq")) {
@@ -65,7 +64,7 @@ public class MyInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
             } else {
                 imageView.setImageResource(R.drawable.car_icon_circular);
             }
-        }
+        }*/
 
         return myContentsView;
     }

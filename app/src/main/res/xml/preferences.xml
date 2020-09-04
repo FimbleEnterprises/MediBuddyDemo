@@ -165,6 +165,19 @@
         android:title="Other"
         android:fontFamily="casual">
 
+        <ListPreference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
+            app:key="DISTANCE_THRESHOLD"
+            android:fontFamily="casual"
+            app:defaultValue=".png"
+            android:title="Prompt for opportunities"
+            android:summary="The distance from a trip's end location to look for nearby accounts. {
+                
+            }"
+            android:entries="@array/distance_threshold_entries"
+            android:entryValues="@array/distance_threshold_values" />
+
         <Preference
             android:foreground="#000000"
             android:theme="@style/AppTheme"

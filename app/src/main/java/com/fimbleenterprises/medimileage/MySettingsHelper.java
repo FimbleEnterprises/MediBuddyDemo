@@ -5,6 +5,8 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.json.JSONObject;
@@ -36,6 +38,8 @@ public class MySettingsHelper {
     public static final String LAST_UPDATED_USER_ADDYS = "LAST_UPDATED_USER_ADDYS";
     public static final String RECEIPT_FORMATS = "RECEIPT_FORMATS";
     public static final String LAST_TRIP_AUTO_KILLED = "lasttripautokilled";
+    public static final String ALL_ADDRESSES_JSON = "ALL_ADDRESSES_JSON";
+    public static final String DISTANCE_THRESHOLD = "DISTANCE_THRESHOLD";
 
     public static final String RECEIPT_FORMAT_PNG = ".png";
     public static final String RECEIPT_FORMAT_JPEG = ".jpeg";
@@ -73,6 +77,43 @@ public class MySettingsHelper {
             e.printStackTrace();
             return true;
         }
+    }
+
+    public double getDistanceThreshold() {
+        String dist = prefs.getString(DISTANCE_THRESHOLD, "1609");
+        return Double.parseDouble(dist);
+    }
+
+    public CrmEntities.CrmAddresses getAllSavedCrmAddresses() {
+        String json = prefs.getString(ALL_ADDRESSES_JSON, null);
+        if (json != null) {
+            return new Gson().fromJson(json, CrmEntities.CrmAddresses.class);
+        } else {
+            return null;
+        }
+    }
+
+    public void saveAllCrmAddresses(CrmEntities.CrmAddresses addresses) {
+        prefs.edit().putString(ALL_ADDRESSES_JSON, addresses.toJson()).commit();
+    }
+
+    public boolean hasSavedAddresses() {
+        return (getAllSavedCrmAddresses() != null);
+    }
+
+    public boolean addressIsSaved(CrmEntities.CrmAddresses.CrmAddress address) {
+        CrmEntities.CrmAddresses addresses = this.getAllSavedCrmAddresses();
+        for (CrmEntities.CrmAddresses.CrmAddress addy : addresses.list) {
+            if (addy.accountid.equals(address.accountid)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int countSavedAddresses() {
+        CrmEntities.CrmAddresses addresses = getAllSavedCrmAddresses();
+        return (addresses != null ? addresses.list.size() : 0);
     }
 
     /**

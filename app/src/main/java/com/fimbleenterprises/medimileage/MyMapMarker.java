@@ -23,12 +23,12 @@ public class MyMapMarker {
     String name;
     boolean isAccount = true;
     MapMarkerDetails details;
-    AccountAddresses.AccountAddress accountAddress;
+    CrmEntities.CrmAddresses.CrmAddress accountAddress;
     UserAddresses.UserAddress userAddress;
 
     public MyMapMarker() { }
 
-    public MyMapMarker(AccountAddresses.AccountAddress accountAddress) {
+    public MyMapMarker(CrmEntities.CrmAddresses.CrmAddress accountAddress) {
         this.accountAddress = accountAddress;
         this.isAccount = true;
     }

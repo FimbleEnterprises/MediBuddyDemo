@@ -81,6 +81,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
     int curMapType = GoogleMap.MAP_TYPE_NORMAL;
     ArrayList<MyMapMarker> myMapMarkers = new ArrayList<>();
     MyInfoWindowAdapter infoWindowAdapter;
+    CrmEntities.CrmAddresses crmAddresses;
 
     interface DrawCompleteListener {
         void onFinished();
@@ -170,6 +171,10 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+
+        if (options.hasSavedAddresses()) {
+            crmAddresses = options.getAllSavedCrmAddresses();
         }
 
     }
@@ -310,89 +315,25 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
         try {
             myMapMarkers = new ArrayList<>();
             UserAddresses userAddresses = UserAddresses.getSavedUserAddys();
-            final AccountAddresses accountAddresses = AccountAddresses.getSavedActAddys();
-            Collections.sort(accountAddresses.addresses, new Comparator<AccountAddresses.AccountAddress>() {
-                @Override
-                public int compare(AccountAddresses.AccountAddress p1, AccountAddresses.AccountAddress p2) {
-                    // return p1.age+"".compareTo(p2.age+""); //sort by age
-                    return p1.accountname.compareTo(p2.accountname); // if you want to short by name
-                }
-            });
+            CrmEntities.CrmAddresses crmAddresses = options.getAllSavedCrmAddresses();
 
-            if (userAddresses != null && ! options.getShouldUpdateUserAddys()) {
-                for (UserAddresses.UserAddress addy : userAddresses.addresses) {
-                    Bitmap pin = Helpers.Bitmaps.getBitmapFromResource(context, R.drawable.house_icon_black_48x);
-                    MarkerOptions marker = new MarkerOptions();
-                    LatLng position = new LatLng(addy.latitude, addy.longitude);
-                    marker.position(position);
-                    marker.title(addy.fullname + "'s home");
-                    marker.icon(BitmapDescriptorFactory.fromBitmap(pin));
-
-                    MyMapMarker myMapMarker = new MyMapMarker(addy);
-                    myMapMarker.marker = map.addMarker(marker);
-                    myMapMarkers.add(myMapMarker);
-                }
-                infoWindowAdapter.setMyMapMarkers(myMapMarkers);
-            } else {
-                UserAddresses.getAllUserAddysFromCrm(context, new MyInterfaces.GetUserAddysListener() {
-                    @Override
-                    public void onSuccess(UserAddresses addresses) {
-                        addresses.save();
-                        Toast.makeText(context, "User addresses were saved locally.", Toast.LENGTH_SHORT).show();
-                        infoWindowAdapter.setMyMapMarkers(myMapMarkers);
-                    }
-
-                    @Override
-                    public void onFailure(String msg) {
-                        Toast.makeText(context, "Failed to obtain user addresses.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-
-            if (accountAddresses != null && ! options.getShouldUpdateActAddys()) {
-                for (AccountAddresses.AccountAddress addy : accountAddresses.addresses) {
+            if (crmAddresses != null) {
+                for (CrmEntities.CrmAddresses.CrmAddress addy : crmAddresses.list) {
                     Bitmap pin = Helpers.Bitmaps.getBitmapFromResource(context, R.drawable.maps_hospital_32x37);
                     MarkerOptions marker = new MarkerOptions();
                     LatLng position = new LatLng(addy.latitude, addy.longitude);
                     marker.position(position);
-                    marker.title(addy.accountname);
+                    marker.title(addy.accountName);
                     marker.icon(BitmapDescriptorFactory.fromBitmap(pin));
 
                     MyMapMarker myMapMarker = new MyMapMarker(addy);
-                    myMapMarker.name = addy.accountname;
+                    myMapMarker.name = addy.accountName;
                     myMapMarker.marker = map.addMarker(marker);
                     myMapMarkers.add(myMapMarker);
                 }
                 infoWindowAdapter.setMyMapMarkers(myMapMarkers);
-            } else {
-                AccountAddresses.getFromCrm(this, new MyInterfaces.GetAccountsListener() {
-                    @Override
-                    public void onSuccess(AccountAddresses accounts) {
-                        Log.i(TAG, "onSuccess Obtained " + accounts.addresses.size() + " act addresses from CRM");
-                        accounts.save();
-                        Toast.makeText(context, "Account addresses were updated and saved.", Toast.LENGTH_SHORT).show();
-                        for (AccountAddresses.AccountAddress addy : accounts.addresses) {
-                            Bitmap pin = Helpers.Bitmaps.getBitmapFromResource(context, R.drawable.maps_hospital_32x37);
-                            MarkerOptions marker = new MarkerOptions();
-                            LatLng position = new LatLng(addy.latitude, addy.longitude);
-                            marker.position(position);
-                            marker.title(addy.accountname);
-                            marker.icon(BitmapDescriptorFactory.fromBitmap(pin));
-
-                            MyMapMarker myMapMarker = new MyMapMarker(addy);
-                            myMapMarker.name = addy.accountname;
-                            myMapMarker.marker = map.addMarker(marker);
-                            myMapMarkers.add(myMapMarker);
-                        }
-                        infoWindowAdapter.setMyMapMarkers(myMapMarkers);
-                    }
-
-                    @Override
-                    public void onFailure(String msg) {
-                        Toast.makeText(context, "Failed to update account addressess", Toast.LENGTH_SHORT).show();
-                    }
-                });
             }
+
         } catch (Exception e) {
 
             e.printStackTrace();
@@ -563,6 +504,11 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
             for (Marker m : mapMarkers) {
                 // Add the current marker's position to the builder object
                 builder.include(m.getPosition());
+
+                if (crmAddresses != null) {
+
+                }
+
             }
 
             // Create a populated LatLngBounds object by calling the builder object's build() method

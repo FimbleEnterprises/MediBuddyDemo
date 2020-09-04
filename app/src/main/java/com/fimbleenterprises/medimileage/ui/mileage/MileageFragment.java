@@ -12,6 +12,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -74,6 +76,7 @@ import com.fimbleenterprises.medimileage.Requests.Request;
 import com.fimbleenterprises.medimileage.RestResponse;
 import com.fimbleenterprises.medimileage.TripListRecyclerAdapter;
 import com.fimbleenterprises.medimileage.ViewTripActivity;
+import com.google.android.gms.maps.model.LatLng;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.scwang.smart.refresh.footer.ClassicsFooter;
 import com.scwang.smart.refresh.header.MaterialHeader;
@@ -85,11 +88,15 @@ import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class MileageFragment extends Fragment implements TripListRecyclerAdapter.ItemClickListener {
 
@@ -461,6 +468,12 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         // Update the current user silently just in case something has changed
         if (MediUser.getMe() != null && MediUser.getMe().email != null) {
             getUser(MediUser.getMe().email);
+        }
+
+        try {
+            getAllAddresses();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return root;
@@ -1181,6 +1194,29 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
         Helpers.Animations.pulseAnimation(emptyTripList, 1.05f, 1.02f, 9000, 350);
 
+    }
+
+    public void getAllAddresses() {
+        Requests.Argument argument = new Requests.Argument("query", Queries.Addresses.getAllAccountAddresses());
+        ArrayList<Requests.Argument> args = new ArrayList<>();
+        args.add(argument);
+        Request request = new Request(Request.Function.GET, args);
+        Crm crm = new Crm();
+        crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                // Construct an array of CrmAddresses
+                String response = new String(responseBody);
+                CrmEntities.CrmAddresses addresses = new CrmEntities.CrmAddresses(response);
+                options.saveAllCrmAddresses(addresses);
+                Log.i(TAG, "onSuccess response: " + response.length());
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                Log.w(TAG, "onFailure: error: " + error.getLocalizedMessage());
+            }
+        });
     }
 
     public enum LOCATION_PERM_RESULT {
