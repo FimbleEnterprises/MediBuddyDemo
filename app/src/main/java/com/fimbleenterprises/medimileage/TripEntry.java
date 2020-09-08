@@ -218,6 +218,20 @@ public class TripEntry implements Parcelable {
 
     }
 
+    public double distanceTo(LatLng position) {
+        Location sourcePos = new Location("SOURCE");
+        sourcePos.setLatitude(this.lattitude);
+        sourcePos.setLongitude(this.longitude);
+
+        Location targetPos = new Location("DEST");
+        targetPos.setLatitude(position.latitude);
+        targetPos.setLongitude(position.longitude);
+
+        double meters = sourcePos.distanceTo(targetPos);
+
+        return meters;
+    }
+
     public Location makeLocation() {
         Location location = new Location("GPS");
         location.setSpeed(this.speed);

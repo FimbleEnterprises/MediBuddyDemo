@@ -8,6 +8,8 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
+import com.fimbleenterprises.medimileage.CrmEntities.CrmAddresses;
+import com.fimbleenterprises.medimileage.CrmEntities.CrmAddresses.CrmAddress;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -22,12 +24,15 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -81,7 +86,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
     int curMapType = GoogleMap.MAP_TYPE_NORMAL;
     ArrayList<MyMapMarker> myMapMarkers = new ArrayList<>();
     MyInfoWindowAdapter infoWindowAdapter;
-    CrmEntities.CrmAddresses crmAddresses;
+    CrmAddresses crmAddresses;
 
     interface DrawCompleteListener {
         void onFinished();
@@ -177,6 +182,24 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
             crmAddresses = options.getAllSavedCrmAddresses();
         }
 
+
+
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_viewtrip, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_evaluate_addresses :
+                detectAccountsAtStartOrEnd();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -311,14 +334,46 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
         });
     }
 
+    void detectAccountsAtStartOrEnd() {
+        TripEntry startEntry = tripEntries.get(0);
+        TripEntry endEntry = tripEntries.get(tripEntries.size() - 1);
+
+        CrmAddresses accountAddresses = options.getAllSavedCrmAddresses();
+        double thresh = options.getDistanceThreshold();
+
+        Log.i(TAG, "detectAccountsAtStartOrEnd: Distance threshold: " + thresh + " meters");
+        for (CrmAddress address : accountAddresses.list) {
+            double distFromStart = startEntry.distanceTo(address.getLatLng());
+            double distFromEnd = endEntry.distanceTo(address.getLatLng());
+
+            float milesFromStart = Helpers.Geo.convertMetersToMiles(distFromStart, 4);
+            float milesFromEnd = Helpers.Geo.convertMetersToMiles(distFromEnd, 4);
+
+            if (distFromStart <= thresh) {
+                Log.i(TAG, "detectAccountsAtStartOrEnd: WITHIN RANGE OF " + address.accountName + "!  Miles: " + milesFromStart);
+                Toast.makeText(this, "Within range of: " + address.accountName + "!", Toast.LENGTH_SHORT).show();
+            } else {
+                Log.i(TAG, "detectAccountsAtStartOrEnd: NOT IN RANGE OF: " + address.accountName + " - distance: " + distFromStart + " meters");
+            }
+
+            if (distFromEnd <= thresh) {
+                Log.i(TAG, "detectAccountsAtStartOrEnd: WITHIN RANGE OF " + address.accountName + "!  Miles: " + milesFromEnd);
+                Toast.makeText(this, "Within range of: " + address.accountName + "!", Toast.LENGTH_SHORT).show();
+            } else {
+                Log.i(TAG, "detectAccountsAtStartOrEnd: NOT IN RANGE OF: " + address.accountName + " - distance: " + distFromEnd + " meters");
+            }
+        }
+
+    }
+
     void populateAllAddresses() {
         try {
             myMapMarkers = new ArrayList<>();
             UserAddresses userAddresses = UserAddresses.getSavedUserAddys();
-            CrmEntities.CrmAddresses crmAddresses = options.getAllSavedCrmAddresses();
+            CrmAddresses crmAddresses = options.getAllSavedCrmAddresses();
 
             if (crmAddresses != null) {
-                for (CrmEntities.CrmAddresses.CrmAddress addy : crmAddresses.list) {
+                for (CrmAddress addy : crmAddresses.list) {
                     Bitmap pin = Helpers.Bitmaps.getBitmapFromResource(context, R.drawable.maps_hospital_32x37);
                     MarkerOptions marker = new MarkerOptions();
                     LatLng position = new LatLng(addy.latitude, addy.longitude);

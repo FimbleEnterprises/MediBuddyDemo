@@ -1,7 +1,10 @@
 package com.fimbleenterprises.medimileage;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
@@ -53,14 +56,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.PagerTitleStrip;
+
 import cn.pedant.SweetAlert.SweetAlertDialog;
 
-public class Activity_ManualTrip extends AppCompatActivity implements OnMapReadyCallback
-{
+public class Activity_ManualTrip extends AppCompatActivity implements OnMapReadyCallback {
 
     public static AutocompleteSupportFragment autoCompleteFrag_From;
     public static AutocompleteSupportFragment autoCompleteFrag_To;
@@ -100,6 +104,8 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
     public static final String TAG_FROM_LOC = "TAG_FROM_MARKER";
     public static final String TAG_TO_TITLE = "TAG_TO_TITLE";
     public static final String TAG_FROM_TITLE = "TAG_FROM_TITLE";
+    private ArrayList<MyMapMarker> myMapMarkers;
+    private MyInfoWindowAdapter infoWindowAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,7 +147,6 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
                 Log.i(TAG, "onScrollChange Page: " + mViewPager.currentPosition);
             }
         });
-
 
 
         fragMgr = getSupportFragmentManager();
@@ -354,7 +359,7 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
             // Instantiate a datasource
             MySqlDatasource ds = new MySqlDatasource();
             MediUser user = MediUser.getMe();
-            FullTrip fullTrip = new FullTrip(date.getDateSelectedAsDateTime().getMillis(),user.domainname, user.systemuserid, user.email);
+            FullTrip fullTrip = new FullTrip(date.getDateSelectedAsDateTime().getMillis(), user.domainname, user.systemuserid, user.email);
 
             fullTrip.setTitle(title.getText().toString());
             fullTrip.setDateTime(date.getDateSelectedAsDateTime());
@@ -527,7 +532,7 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
             date = rootView.findViewById(R.id.textView_date_value);
             date.setAsDatePicker(true);
             date.setText(Helpers.DatesAndTimes.getPrettyDate(DateTime.now()));
-            
+
             return rootView;
         }
 
@@ -735,8 +740,7 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
                 if ((mViewPager.currentPosition == 0 || mViewPager.currentPosition == 1) &&
                         fromMarker != null && toMarker != null) {
                     mViewPager.setCurrentItem(3, true);
-                }
-                else if ((mViewPager.currentPosition == 0 || mViewPager.currentPosition == 1)
+                } else if ((mViewPager.currentPosition == 0 || mViewPager.currentPosition == 1)
                         && fromMarker != null && toMarker == null) {
                     mViewPager.setCurrentItem(2, true);
                 } else {
@@ -777,9 +781,40 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
         });
 
         prog.setVisibility(View.GONE);
+
+        populateAllAddresses();
         /*LinearLayout masterLayout = findViewById(R.id.layout_master);
         masterLayout.setBackgroundColor(Color.parseColor("#1435EB")) ;*/
 
+    }
+
+    void populateAllAddresses() {
+        try {
+            myMapMarkers = new ArrayList<>();
+            UserAddresses userAddresses = UserAddresses.getSavedUserAddys();
+            CrmEntities.CrmAddresses crmAddresses = options.getAllSavedCrmAddresses();
+
+            if (crmAddresses != null) {
+                for (CrmEntities.CrmAddresses.CrmAddress addy : crmAddresses.list) {
+                    Bitmap pin = Helpers.Bitmaps.getBitmapFromResource(context, R.drawable.maps_hospital_32x37);
+                    MarkerOptions marker = new MarkerOptions();
+                    LatLng position = new LatLng(addy.latitude, addy.longitude);
+                    marker.position(position);
+                    marker.title(addy.accountName);
+                    marker.icon(BitmapDescriptorFactory.fromBitmap(pin));
+
+                    MyMapMarker myMapMarker = new MyMapMarker(addy);
+                    myMapMarker.name = addy.accountName;
+                    myMapMarker.marker = map.addMarker(marker);
+                    myMapMarkers.add(myMapMarker);
+                }
+                infoWindowAdapter.setMyMapMarkers(myMapMarkers);
+            }
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -886,13 +921,13 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
     /** Moves the camera to a position such that both the start and end map markers are viewable on screen. **/
     private static void moveCameraToShowMarkers() {
 
-        Log.d(TAG,"Moving the camera to get all the markers in view");
+        Log.d(TAG, "Moving the camera to get all the markers in view");
 
         CameraUpdate cu;
 
         // Create a new LatLngBounds.Builder object
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
-        LatLng singleLocation = new LatLng(0,0);
+        LatLng singleLocation = new LatLng(0, 0);
 
         // Check that the two markers representing the start and end points are present
         if (fromMarker != null) {
@@ -936,6 +971,19 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
 
         FusedLocationProviderClient fusedLocationClient;
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        if (ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
         Task<Location> task = fusedLocationClient.getLastLocation();
         task.addOnSuccessListener(new OnSuccessListener<Location>() {
             @Override
