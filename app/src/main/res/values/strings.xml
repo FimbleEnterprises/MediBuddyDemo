@@ -159,6 +159,10 @@
     <string name="action_this_month">This month</string>
     <string name="action_this_year">This year</string>
     <string name="action_last_year">Last year</string>
+    <string name="action_east_region">East region</string>
+    <string name="action_west_region">West region</string>
+    <string name="title_activity_fullscreen_choose_territory">FullscreenActivity</string>
+    <string name="action_choose_territory">Territory...</string>
 
 
 </resources>

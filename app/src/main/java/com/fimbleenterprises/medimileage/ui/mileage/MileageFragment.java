@@ -94,6 +94,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -1147,16 +1148,20 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 // Only tally this month's trips
                 int thisMonth = DateTime.now().getMonthOfYear();
                 int thisYear = DateTime.now().getYear();
-                if (trip.getDateTime().getMonthOfYear() == thisMonth && trip.getDateTime().getYear() == thisYear) {
-                    mtdTotal += trip.calculateReimbursement();
+                if (trip.getDateTime().getMonthOfYear() == thisMonth
+                        && trip.getDateTime().getYear() == thisYear) {
                     mtdMilesTotal += trip.getDistanceInMiles();
                 }
             }
         }
 
+        mtdMilesTotal = Helpers.Numbers.formatAsZeroDecimalPointNumber(mtdMilesTotal);
+        mtdTotal += Helpers.Numbers.formatAsTwoDecimalPointNumber(
+                mtdMilesTotal * options.getReimbursementRate()) ;
+
         animatedNumberTextView = new MyAnimatedNumberTextView(getContext(), txtMtd);
         if (lastMtdValue > 0) {
-            animatedNumberTextView.setNewValue(Math.round(mtdTotal), lastMtdValue, true);
+            animatedNumberTextView.setNewValue(mtdTotal, lastMtdValue, true);
         } else {
             txtMtd.setText(Helpers.Numbers.convertToCurrency(mtdTotal));
         }
@@ -1164,7 +1169,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         lastMtdValue = Math.round(mtdTotal);
         lastMtdMilesValue = Helpers.Numbers.formatAsOneDecimalPointNumber(mtdMilesTotal);
 
-        txtMilesTotal.setText(lastMtdMilesValue + " mi");
+        txtMilesTotal.setText(Helpers.Numbers.formatAsZeroDecimalPointNumber(lastMtdMilesValue) + " mi");
 
         manageDefaultImage();
 
@@ -1875,8 +1880,8 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                     }
                 }
                 stringBuilder.append("\n\n Trip count: " + tripCount);
-                stringBuilder.append("\n Total reimbursement: " + Helpers.Numbers.convertToCurrency(Math.round(total)));
-                stringBuilder.append("\n Total miles: " + Helpers.Numbers.formatAsOneDecimalPointNumber(totalMiles));
+                stringBuilder.append("\n Total reimbursement: " + Helpers.Numbers.convertToCurrency(total));
+                stringBuilder.append("\n Total miles: " + Helpers.Numbers.formatAsZeroDecimalPointNumber(totalMiles, RoundingMode.HALF_UP));
 
                 stream.write(stringBuilder.toString().getBytes());
             } finally {

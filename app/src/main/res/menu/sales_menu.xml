@@ -3,6 +3,23 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_choose_territory"
+        android:orderInCategory="96"
+        android:title="@string/action_choose_territory"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_east_region"
+        android:checkable="true"
+        android:orderInCategory="96"
+        android:title="@string/action_east_region"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_west_region"
+        android:checkable="true"
+        android:orderInCategory="96"
+        android:title="@string/action_west_region"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_this_year"
         android:orderInCategory="96"
         android:title="@string/action_this_year"

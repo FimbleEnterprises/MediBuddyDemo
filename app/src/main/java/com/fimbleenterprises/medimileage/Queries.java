@@ -146,6 +146,33 @@ public class Queries {
         }
     }
 
+    public static class Territories {
+
+        public static String getTerritoriesWithManagersAssigned() {
+
+            // Instantiate a new constructor for the case entity and add the columns we want to see
+            QueryFactory query = new QueryFactory("territory");
+            query.addColumn("name");
+            query.addColumn("territoryid");
+            query.addColumn("new_salesrepresentative");
+            query.addColumn("msus_salesregion");
+            query.addColumn("managerid");
+
+            // Filter creation to make use of our conditions
+            QueryFactory.Filter filter = new QueryFactory.Filter(AND);
+            filter.addCondition(new QueryFactory.Filter.FilterCondition("managerid",
+                            QueryFactory.Filter.Operator.CONTAINS_DATA));
+            query.setFilter(filter);
+
+            QueryFactory.SortClause sortClause = new QueryFactory.SortClause("name", false, QueryFactory.SortClause.ClausePosition.ONE);
+            query.addSortClause(sortClause);
+
+            // Spit out the encoded query
+            String rslt = query.construct();
+            return rslt;
+        }
+    }
+
     public static class OrderLines {
 
         public static String getOrderLines(String territoryid, Operators.DateOperator operator) {

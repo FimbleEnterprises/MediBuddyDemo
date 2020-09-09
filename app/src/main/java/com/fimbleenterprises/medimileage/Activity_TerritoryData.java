@@ -90,7 +90,7 @@ public class Activity_TerritoryData extends AppCompatActivity
     ProgressBar prog;
 
     // Receivers for date range changes at the activity level
-    public static IntentFilter intentFilter;
+    public static IntentFilter intentFilterMonthYear;
     public static BroadcastReceiver goalsReceiverMtd;
     public static BroadcastReceiver goalsReceiverYtd;
     public static BroadcastReceiver salesLinesReceiver;
@@ -101,6 +101,12 @@ public class Activity_TerritoryData extends AppCompatActivity
     public static int monthNum;
     public static int yearNum;
 
+    // var for region
+    public static boolean isEastRegion = true;
+
+    // var for territoryid
+    public static Territory territory;
+
     public final static String TAG = "TerritoryData";
     public static final String TAG_TITLE = "TAG_TITLE";
     public static final String TAG_DATE = "TAG_DATE";
@@ -110,6 +116,7 @@ public class Activity_TerritoryData extends AppCompatActivity
     public static final String TAG_TO_TITLE = "TAG_TO_TITLE";
     public static final String TAG_FROM_TITLE = "TAG_FROM_TITLE";
     public static final String DATE_CHANGED = "DATE_CHANGED";
+    public static final String REGION_CHANGED = "REGION_CHANGED";
     public static final String MONTH = "MONTH";
     public static final String YEAR = "YEAR";
 
@@ -119,8 +126,11 @@ public class Activity_TerritoryData extends AppCompatActivity
         super.onCreate(savedInstanceState);
         context = this;
         activity = this;
-        intentFilter = new IntentFilter(DATE_CHANGED);
+        intentFilterMonthYear = new IntentFilter(DATE_CHANGED);
 
+        territory = new Territory();
+        territory.territoryid = MediUser.getMe().territoryid;
+        territory.territoryName = MediUser.getMe().territoryname;
         monthNum = DateTime.now().getMonthOfYear();
         yearNum = DateTime.now().getYear();
 
@@ -165,6 +175,22 @@ public class Activity_TerritoryData extends AppCompatActivity
 
         // monthNum = DateTime.now().getMonthOfYear();
         // yearNum = DateTime.now().getYear();
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        try {
+            territory = data.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
+            Intent dateChanged = new Intent(DATE_CHANGED);
+            dateChanged.putExtra(YEAR, yearNum);
+            dateChanged.putExtra(MONTH, monthNum);
+            sendBroadcast(dateChanged);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -224,23 +250,48 @@ public class Activity_TerritoryData extends AppCompatActivity
     @Override
     public boolean onPreparePanel(int featureId, @Nullable View view, @NonNull Menu menu) {
 
+        menu.findItem(R.id.action_east_region).setChecked(isEastRegion);
+        menu.findItem(R.id.action_west_region).setChecked(!isEastRegion);
+
         switch (mViewPager.currentPosition) {
-            case 2 :
+            case 0 : // Sales lines
+                menu.findItem(R.id.action_this_month).setVisible(true);
+                menu.findItem(R.id.action_last_month).setVisible(true);
+                menu.findItem(R.id.action_choose_month).setVisible(true);
+
+                menu.findItem(R.id.action_this_year).setVisible(false);
+                menu.findItem(R.id.action_last_year).setVisible(false);
+
+                menu.findItem(R.id.action_west_region).setVisible(false);
+                menu.findItem(R.id.action_east_region).setVisible(false);
+
+                menu.findItem(R.id.action_choose_territory).setVisible(true);
+                break;
+            case 1 : // MTD
+                menu.findItem(R.id.action_this_month).setVisible(true);
+                menu.findItem(R.id.action_last_month).setVisible(true);
+                menu.findItem(R.id.action_choose_month).setVisible(true);
+
+                menu.findItem(R.id.action_this_year).setVisible(false);
+                menu.findItem(R.id.action_last_year).setVisible(false);
+
+                menu.findItem(R.id.action_west_region).setVisible(true);
+                menu.findItem(R.id.action_east_region).setVisible(true);
+                menu.findItem(R.id.action_choose_territory).setVisible(false);
+                break;
+            case 2 : // YTD
                 menu.findItem(R.id.action_this_month).setVisible(false);
                 menu.findItem(R.id.action_last_year).setVisible(false);
                 menu.findItem(R.id.action_choose_month).setVisible(false);
 
                 menu.findItem(R.id.action_this_year).setVisible(true);
                 menu.findItem(R.id.action_last_year).setVisible(true);
-                break;
-            default:
-                menu.findItem(R.id.action_choose_month).setVisible(true);
-                menu.findItem(R.id.action_last_month).setVisible(true);
-                menu.findItem(R.id.action_this_month).setVisible(true);
 
-                menu.findItem(R.id.action_this_year).setVisible(false);
-                menu.findItem(R.id.action_last_year).setVisible(false);
+                menu.findItem(R.id.action_west_region).setVisible(true);
+                menu.findItem(R.id.action_east_region).setVisible(true);
+                menu.findItem(R.id.action_choose_territory).setVisible(false);
                 break;
+
         }
 
         return super.onPreparePanel(featureId, view, menu);
@@ -252,6 +303,25 @@ public class Activity_TerritoryData extends AppCompatActivity
         DateTime now = DateTime.now();
         DateTime aMonthAgo = now.minusMonths(1);
         switch (item.getItemId()) {
+            case R.id.action_choose_territory :
+                Intent intent = new Intent(context, FullscreenActivityChooseTerritory.class);
+                startActivityForResult(intent, 0);
+                break;
+                
+            case R.id.action_east_region :
+                dateChanged = new Intent(DATE_CHANGED);
+                isEastRegion = true;
+                dateChanged.putExtra(MONTH, monthNum);
+                dateChanged.putExtra(YEAR, yearNum);
+                sendBroadcast(dateChanged);
+                break;
+            case R.id.action_west_region :
+                dateChanged = new Intent(DATE_CHANGED);
+                isEastRegion = false;
+                dateChanged.putExtra(MONTH, monthNum);
+                dateChanged.putExtra(YEAR, yearNum);
+                sendBroadcast(dateChanged);
+                break;
             case R.id.action_this_month :
                 dateChanged = new Intent(DATE_CHANGED);
                 dateChanged.putExtra(MONTH, now.getMonthOfYear());
@@ -278,7 +348,16 @@ public class Activity_TerritoryData extends AppCompatActivity
                 sendBroadcast(dateChanged);
                 break;
         }
+
         return super.onOptionsItemSelected(item);
+    }
+
+    public static String getRegionid() {
+        if (isEastRegion) {
+            return Queries.EAST_REGIONID;
+        } else {
+            return Queries.WEST_REGIONID;
+        }
     }
 
     void showMonthYearDialog() {
@@ -417,7 +496,7 @@ public class Activity_TerritoryData extends AppCompatActivity
 
             switch (position) {
                 case 0:
-                    return "Sales Lines";
+                    return "Sales Lines (" + territory.territoryName + ")";
                 case 1:
                     return "MTD Goals";
                 case 2:
@@ -443,10 +522,11 @@ public class Activity_TerritoryData extends AppCompatActivity
 
         @Nullable
         @Override
-        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                                 @Nullable Bundle savedInstanceState) {
             root = inflater.inflate(R.layout.frag_saleslines, container, false);
             refreshLayout = root.findViewById(R.id.refreshLayout);
-            RefreshLayout refreshLayout = (RefreshLayout) root.findViewById(R.id.refreshLayout);
+            RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
             refreshLayout.setRefreshHeader(new MaterialHeader(getContext()));
             refreshLayout.setOnRefreshListener(new OnRefreshListener() {
                 @Override
@@ -480,16 +560,29 @@ public class Activity_TerritoryData extends AppCompatActivity
         }
 
         @Override
+        public void onStop() {
+            super.onStop();
+
+        }
+
+        @Override
+        public void onDestroyView() {
+            super.onDestroyView();
+            getActivity().unregisterReceiver(salesLinesReceiver);
+            Log.i(TAG, "onPause Unregistered the sales lines receiver");
+        }
+
+        @Override
         public void onResume() {
-            getActivity().registerReceiver(salesLinesReceiver, intentFilter);
+            getActivity().registerReceiver(salesLinesReceiver, intentFilterMonthYear);
+
             Log.i(TAG, "onResume Registered the sales lines receiver");
             super.onResume();
         }
 
         @Override
         public void onPause() {
-            getActivity().unregisterReceiver(salesLinesReceiver);
-            Log.i(TAG, "onPause Unregistered the sales lines receiver");
+
             super.onPause();
         }
 
@@ -499,10 +592,10 @@ public class Activity_TerritoryData extends AppCompatActivity
             String query = null;
 
             if (monthNum == DateTime.now().getMonthOfYear()) {
-                query = Queries.OrderLines.getOrderLines(MediUser.getMe().territoryid,
+                query = Queries.OrderLines.getOrderLines(territory.territoryid,
                         Queries.Operators.DateOperator.THIS_MONTH);
             } else if (monthNum == DateTime.now().minusMonths(1).getMonthOfYear()) {
-                query = Queries.OrderLines.getOrderLines(MediUser.getMe().territoryid,
+                query = Queries.OrderLines.getOrderLines(territory.territoryid,
                         Queries.Operators.DateOperator.LAST_MONTH);
             }
 
@@ -695,7 +788,7 @@ public class Activity_TerritoryData extends AppCompatActivity
 
         @Override
         public void onResume() {
-            getActivity().registerReceiver(goalsReceiverMtd, intentFilter);
+            getActivity().registerReceiver(goalsReceiverMtd, intentFilterMonthYear);
             Log.i(TAG, "onResume Registered the goals receiver");
             super.onResume();
         }
@@ -712,7 +805,7 @@ public class Activity_TerritoryData extends AppCompatActivity
             // anyChartView.setVisibility(View.GONE);
             refreshLayout.autoRefreshAnimationOnly();
 
-            String query = Queries.Goals.getMtdGoalsByRegion(MediUser.getMe().salesregionid, monthNum, yearNum);
+            String query = Queries.Goals.getMtdGoalsByRegion(getRegionid(), monthNum, yearNum);
             ArrayList<Requests.Argument> args = new ArrayList<>();
             Requests.Argument argument = new Requests.Argument("query", query);
             args.add(argument);
@@ -832,7 +925,7 @@ public class Activity_TerritoryData extends AppCompatActivity
 
         @Override
         public void onResume() {
-            getActivity().registerReceiver(goalsReceiverYtd, intentFilter);
+            getActivity().registerReceiver(goalsReceiverYtd, intentFilterMonthYear);
             Log.i(TAG, "onResume Registered the goals receiver");
             super.onResume();
         }
@@ -849,7 +942,7 @@ public class Activity_TerritoryData extends AppCompatActivity
             // anyChartView.setVisibility(View.GONE);
             refreshLayout.autoRefreshAnimationOnly();
 
-            String query = Queries.Goals.getYtdGoalsByRegion(MediUser.getMe().salesregionid,  yearNum);
+            String query = Queries.Goals.getYtdGoalsByRegion(getRegionid(),  yearNum);
             ArrayList<Requests.Argument> args = new ArrayList<>();
             Requests.Argument argument = new Requests.Argument("query", query);
             args.add(argument);
@@ -921,7 +1014,7 @@ public class Activity_TerritoryData extends AppCompatActivity
         @Override
         public void onResume() {
             super.onResume();
-            getActivity().registerReceiver(opportunitiesReceiver, intentFilter);
+            getActivity().registerReceiver(opportunitiesReceiver, intentFilterMonthYear);
             Log.i(TAG, "onResume Registered opportunities receiver");
         }
 
@@ -982,7 +1075,7 @@ public class Activity_TerritoryData extends AppCompatActivity
         @Override
         public void onResume() {
             super.onResume();
-            getActivity().registerReceiver(casesReceiver, intentFilter);
+            getActivity().registerReceiver(casesReceiver, intentFilterMonthYear);
             Log.i(TAG, "onResume Registered the cases receiver");
         }
 
