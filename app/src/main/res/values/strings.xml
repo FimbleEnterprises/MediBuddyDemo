@@ -9,7 +9,68 @@
     <string name="action_delete_backups">Delete all...</string>
 
     <string name="menu_home">Home</string>
+    <string name="menu_mileage">Mileage</string>
+    <string name="menu_data">Data</string>
+    <string name="menu_users">Users</string>
     <string name="menu_authentication">Login</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_other">Other</string>
+
+    <string name="triplist_today">Today</string>
+    <string name="triplist_yesterday">Yesterday</string>
+    <string name="triplist_this_week">This week</string>
+    <string name="triplist_last_week">Last week</string>
+    <string name="triplist_this_month">This month</string>
+    <string name="triplist_last_month_and_older">Last month and older</string>
+
+    <!-- EXPLICIT STRINGS -->
+    <string name="menu_home_explicit">Home</string>
+    <string name="menu_mileage_explicit">Fucking Mileage</string>
+    <string name="menu_data_explicit">Fucking Data</string>
+    <string name="menu_stats_explicit">Fucking Stats</string>
+    <string name="menu_settings_explicit">Fucking Settings</string>
+    <string name="menu_authentication_explicit">Fucking Login</string>
+    <string name="menu_other_fucking_shit">Other Fucking Shit</string>
+    <string name="menu_users_explicit">Other Fuckers</string>
+
+    <string name="action_settings_explicit">Fucking settings...</string>
+    <string name="action_update_check">Check for update</string>
+    <string name="action_update_check_explicit">Update this shit</string>
+
+    <string name="triplist_today_explicit">Fucking today</string>
+    <string name="triplist_yesterday_explicit">Fucking yesterday</string>
+    <string name="triplist_this_week_explicit">This fucking week</string>
+    <string name="triplist_last_week_explicit">Last fucking week</string>
+    <string name="triplist_this_month_explicit">This fucking month</string>
+    <string name="triplist_last_month_and_older_explicit">Last month and fucking older</string>
+
+    <!-- EXPLICIT FUCKING PREFERENCES -->
+    <string name="settings_mileage_title_explicit">Mileage shit</string>
+    <string name="settings_name_trips_explicit">Name your fucking trips</string>
+    <string name="settings_auto_submit_explicit">Auto-fucking-submit trips</string>
+    <string name="settings_confirmend_explicit">Confirm you want to fucking stop</string>
+    <string name="settings_auto_stop_explicit">Auto-fucking-stop trips</string>
+    <string name="settings_auto_stop_interval_explicit">Fucking stop interval</string>
+    <string name="settings_receipt_format_explicit">Receipt fucking format</string>
+    <string name="settings_permissions_explicit">Fucking permissions</string>
+
+    <string name="settings_users_title">Fucking Users</string>
+    <string name="settings_update_me_explicit">Update my-fucking-self</string>
+    <string name="settings_update_addresses_explicit">Update fucking addresses</string>
+    <string name="settings_update_account_addresses_explicit">Update fucking account addresses</string>
+
+    <string name="settings_database_explicit">The Fucking Database</string>
+    <string name="settings_delete_mileage_explicit">Delete all fucking mileage</string>
+    <string name="settings_delete_empty_explicit">Delete empty fucking trips</string>
+
+    <string name="settings_other_explicit">Other Shit</string>
+    <string name="settings_prompt_opportunities_explicit">Update fucking opportunities</string>
+    <string name="settings_delete_local_updates_explicit">Delete local fucking updates</string>
+    <string name="settings_check_updates_explicit">Automatically check for fucking updates</string>
+    <string name="settings_debug_explicit">Debug mode, bitch</string>
+    <string name="settings_explicit_explicit">Naughty words?</string>
+
+    <string name="settings_experimental_menu_explicit">Experimental Shit</string>
 
     <string name="home_second">Home Second</string>
     <string name="NotificationText">Trip running</string>
@@ -54,6 +115,8 @@
     <string name="lastest_version">You are running the most recent version</string>
     <string name="logout">Logout</string>
     <string name="login">Login</string>
+    <string name="logout_explicit">Log the fuck out</string>
+    <string name="login_explicit">Log the fuck in</string>
     <string name="stopping_trip">Stopping trip...</string>
     <string name="must_login">You must login</string>
     <string name="loading">Loading...</string>
@@ -153,7 +216,7 @@
         "For example, position the FAB to one side of stream of a cards so the FAB won’t interfere "
         "when a user tries to pick up one of cards.\n\n"
     </string>
-    <string name="menu_sales">Territory</string>
+    <string name="menu_sales">Other</string>
     <string name="action_change_date">Change Date...</string>
     <string name="action_last_month">Last month</string>
     <string name="action_this_month">This month</string>

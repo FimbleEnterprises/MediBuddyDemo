@@ -121,7 +121,11 @@ public class Requests {
 
         @Override
         public String toString() {
-            return "Argument: " + name + " | Value: + " + value.toString();
+            try {
+                return "Argument: " + name + " | Value: + " + value.toString();
+            } catch (Exception e) {
+                return null;
+            }
         }
     }
 }

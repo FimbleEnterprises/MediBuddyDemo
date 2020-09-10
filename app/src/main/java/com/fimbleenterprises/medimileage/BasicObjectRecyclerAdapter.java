@@ -1,6 +1,7 @@
 package com.fimbleenterprises.medimileage;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,8 +21,7 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
     private ItemClickListener mClickListener;
     MySettingsHelper options;
     Context context;
-
-
+    public int selectedIndex = -1;
 
     // data is passed into the constructor
     public BasicObjectRecyclerAdapter(Context context, ArrayList<BasicObject> data) {
@@ -47,11 +47,33 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
         holder.txtSubtext.setText(object.subtitle.toString());
         holder.itemView.setLongClickable(true);
 
+        // Hide the icon if it is not explicitly set
         if (object.iconResource != -1) {
             holder.img.setImageResource(object.iconResource);
             holder.img.setVisibility(View.VISIBLE);
+
+            if (object.isSelected) {
+                holder.img.setImageResource(R.drawable.av_checkmark);
+                holder.txtMainText.setTypeface(null, Typeface.BOLD_ITALIC);
+                holder.txtSubtext.setTypeface(null, Typeface.BOLD_ITALIC);
+            }
+
         } else {
             holder.img.setVisibility(View.GONE);
+        }
+
+        // Hide the main text field if it is null
+        if (holder.txtMainText.getText() == null) {
+            holder.txtMainText.setVisibility(View.GONE);
+        } else {
+            holder.txtMainText.setVisibility(View.VISIBLE);
+        }
+
+        // Hide the sub text field if it is null
+        if (holder.txtSubtext.getText() == null) {
+            holder.txtSubtext.setVisibility(View.GONE);
+        } else {
+            holder.txtSubtext.setVisibility(View.VISIBLE);
         }
 
     }

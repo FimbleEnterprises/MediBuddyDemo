@@ -4,9 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/layout"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_margin="4dp"
-    android:background="@drawable/btn_glass_gray_orange_border">
+    android:layout_height="wrap_content">
 
     <ImageView
         android:id="@+id/imageView_BasicObjectIcon"

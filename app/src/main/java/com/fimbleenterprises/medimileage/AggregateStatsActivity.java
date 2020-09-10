@@ -16,6 +16,8 @@ import com.fimbleenterprises.medimileage.QueryFactory.Filter.FilterCondition;
 import com.fimbleenterprises.medimileage.QueryFactory.SortClause;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
+import org.joda.time.DateTime;
+
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
@@ -62,6 +64,9 @@ public class AggregateStatsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_aggregate_stats);
+
+        // Log a metric
+        MileBuddyMetrics.updateMetric(this, MileBuddyMetrics.MetricName.LAST_ACCESSED_MILEAGE_STATS, DateTime.now());
 
         this.setTitle("Statistics");
 

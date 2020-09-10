@@ -93,7 +93,6 @@ public class MainActivity extends AppCompatActivity {
                 .setDrawerLayout(drawer)
                 .build();
 
-
         TextView txtVersion = navigationView.getHeaderView(0).findViewById(R.id.textViewVersion);
         txtVersion.setText(getString(R.string.version) + Helpers.Application.getAppVersion(this));
 
@@ -126,15 +125,17 @@ public class MainActivity extends AppCompatActivity {
                     Menu m = navigationView.getMenu();
                     SubMenu subMenu = m.getItem(3).getSubMenu();
                     subMenu.getItem(0).setTitle(getString(R.string.loading));
-                    getDistinctUsersWithTrips();
+                    try {
+                        getDistinctUsersWithTrips();
+                    } catch (Exception e) { }
                 } else if (item.getTitle().equals(getString(R.string.loading))) {
                     return false;
-                } else if (item.getTitle().equals("Settings")) {
+                } else if (item.getItemId() == R.id.nav_settings) {
                     Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
                     startActivityForResult(intent, 0);
-                } else if (item.getTitle().toString().toLowerCase().equals("stats")) {
+                } else if (item.getItemId() == R.id.nav_stats) {
                     startActivity(new Intent(activity, AggregateStatsActivity.class));
-                } else if (item.getTitle().toString().toLowerCase().contains("territory") ) {
+                } else if (item.getItemId() == R.id.nav_other) {
                     startActivity(new Intent(activity, Activity_TerritoryData.class));
                 }  else {
                     try {
@@ -161,7 +162,9 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onDrawerOpened(@NonNull View drawerView) {
-                getDistinctUsersWithTrips();
+                try {
+                    getDistinctUsersWithTrips();
+                } catch (Exception e) { }
             }
 
             @Override
@@ -255,6 +258,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        makeDrawerTitles();
+    }
+
+    @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
         if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -272,15 +281,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onKeyDown(keyCode, event);
-    }
-
-    boolean isInStack(String name) {
-        for (String entry : myStack) {
-            if (name.equals(entry)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override
@@ -313,21 +313,20 @@ public class MainActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
-    private void applyFontToMenuItem(MenuItem mi, Typeface font) {
-        SpannableString mNewTitle = new SpannableString(mi.getTitle());
-        mNewTitle.setSpan(new CustomTypefaceSpan("", font), 0, mNewTitle.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-        mi.setTitle(mNewTitle);
-    }
-
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
 
-        MenuItem login = menu.findItem(R.id.action_loginlogout);
+        MenuItem update = menu.findItem(R.id.action_update);
+        update.setTitle(options.isExplicitMode() ? getString(R.string.action_update_check_explicit) : getString(R.string.action_update_check));
 
+        MenuItem settings = menu.findItem(R.id.action_settings);
+        settings.setTitle(options.isExplicitMode() ? getString(R.string.action_settings_explicit) : getString(R.string.action_settings));
+
+        MenuItem login = menu.findItem(R.id.action_loginlogout);
         if (options.hasCachedCredentials()) {
-            login.setTitle(getString(R.string.logout));
+            login.setTitle(options.isExplicitMode() ? getString(R.string.logout_explicit) : getString(R.string.logout));
         } else {
-            login.setTitle(R.string.login);
+            login.setTitle(options.isExplicitMode() ? getString(R.string.login_explicit) : getString(R.string.login));
         }
 
         Typeface typeface = getResources().getFont(R.font.casual);
@@ -397,6 +396,28 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         return NavigationUI.navigateUp(navController, mAppBarConfiguration)
                 || super.onSupportNavigateUp();
+    }
+
+    public void makeDrawerTitles() {
+        Menu menu = navigationView.getMenu();
+        
+        if (options.isExplicitMode()) {
+            menu.findItem(R.id.nav_home).setTitle(R.string.menu_mileage_explicit);
+            menu.findItem(R.id.nav_stats).setTitle(R.string.menu_stats_explicit);
+            menu.findItem(R.id.nav_data).setTitle(R.string.menu_data_explicit);
+            menu.findItem(R.id.nav_other).setTitle(R.string.menu_other_fucking_shit);
+            menu.findItem(R.id.nav_settings).setTitle(R.string.menu_settings_explicit);
+            menu.findItem(R.id.nav_user_trips).setTitle(R.string.menu_users_explicit);
+        } else {
+            menu.findItem(R.id.nav_home).setTitle(R.string.menu_mileage);
+            menu.findItem(R.id.nav_stats).setTitle(R.string.menu_stats);
+            menu.findItem(R.id.nav_data).setTitle(R.string.menu_data);
+            menu.findItem(R.id.nav_other).setTitle(R.string.menu_other);
+            menu.findItem(R.id.nav_settings).setTitle(R.string.menu_settings);
+            menu.findItem(R.id.nav_user_trips).setTitle(R.string.menu_users);
+        }
+
+        getDistinctUsersWithTrips();
     }
 
     public boolean checkStoragePermission() {
@@ -508,7 +529,7 @@ public class MainActivity extends AppCompatActivity {
                     JSONArray array = json.getJSONArray("value");
                     users = MileageUser.makeMany(array);
                     Menu m = navigationView.getMenu();
-                    SubMenu subMenu = m.getItem(4).getSubMenu();
+                    SubMenu subMenu = m.getItem(2).getSubMenu();
                     subMenu.removeItem(subMenu.getItem(0).getItemId());
 
                     for (int i = 0; i < users.size(); i++) {
@@ -516,7 +537,7 @@ public class MainActivity extends AppCompatActivity {
                         if (user.isDriving()) {
                             subMenu.add(0, i, i, user.fullname + " (driving now)");
                         } else {
-                            subMenu.add(0, i, i, user.fullname);
+                            subMenu.add(0, i, i, options.isExplicitMode() ? user.fullFuckingName() : user.fullname);
                         }
                     }
                 } catch (Exception e) {
@@ -534,10 +555,25 @@ public class MainActivity extends AppCompatActivity {
         });
 
         Menu m = navigationView.getMenu();
-        SubMenu subMenu = m.getItem(4).getSubMenu();
+        SubMenu subMenu = m.getItem(2).getSubMenu();
         subMenu.clear();
         subMenu.add("Loading...");
         subMenu.getItem(0).setTitle("Loading...");
+    }
+
+    boolean isInStack(String name) {
+        for (String entry : myStack) {
+            if (name.equals(entry)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void applyFontToMenuItem(MenuItem mi, Typeface font) {
+        SpannableString mNewTitle = new SpannableString(mi.getTitle());
+        mNewTitle.setSpan(new CustomTypefaceSpan("", font), 0, mNewTitle.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+        mi.setTitle(mNewTitle);
     }
 
 /*    @RequiresApi(api = Build.VERSION_CODES.O)

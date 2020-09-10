@@ -40,6 +40,7 @@ public class MySettingsHelper {
     public static final String LAST_TRIP_AUTO_KILLED = "lasttripautokilled";
     public static final String ALL_ADDRESSES_JSON = "ALL_ADDRESSES_JSON";
     public static final String DISTANCE_THRESHOLD = "DISTANCE_THRESHOLD";
+    public static final String EXPLICIT_MODE = "EXPLICIT_MODE";
 
     public static final String RECEIPT_FORMAT_PNG = ".png";
     public static final String RECEIPT_FORMAT_JPEG = ".jpeg";
@@ -55,6 +56,14 @@ public class MySettingsHelper {
 
     public SharedPreferences getSharedPrefs() {
         return prefs;
+    }
+
+    public boolean isExplicitMode() {
+        return prefs.getBoolean(EXPLICIT_MODE, false);
+    }
+
+    public void isExplicitMode(boolean value) {
+        prefs.edit().putBoolean(EXPLICIT_MODE, value).commit();
     }
 
     public boolean getShouldUpdateUserAddys() {

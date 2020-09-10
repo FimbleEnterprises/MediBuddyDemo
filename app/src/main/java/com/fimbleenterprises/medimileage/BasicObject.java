@@ -6,6 +6,7 @@ class BasicObject {
     String subtitle;
     Object object;
     int iconResource = -1;
+    boolean isSelected = false;
 
     public BasicObject() {  }
 

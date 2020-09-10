@@ -23,6 +23,16 @@ public class MyInterfaces {
         void onFailure(String message);
     }
 
+    public interface MetricUpdateListener {
+        void onSuccess();
+        void onFailure(String msg);
+    }
+
+    public interface EntityUpdateListener {
+        void oinSuccess();
+        void onFailure(String msg);
+    }
+
     public interface GetTripsCallback {
         void onSuccess(ArrayList<FullTrip> trips);
         void onFailure(String message);

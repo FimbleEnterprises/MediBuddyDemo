@@ -34,6 +34,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.libraries.places.api.model.RectangularBounds;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.inappmessaging.internal.injection.qualifiers.Analytics;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.scwang.smart.refresh.footer.ClassicsFooter;
 import com.scwang.smart.refresh.header.MaterialHeader;
@@ -58,36 +60,22 @@ import androidx.viewpager.widget.PagerTitleStrip;
 import cn.pedant.SweetAlert.SweetAlertDialog;
 import cz.msebera.android.httpclient.Header;
 
-public class Activity_TerritoryData extends AppCompatActivity
-{
-
-    public static AutocompleteSupportFragment autoCompleteFrag_From;
-    public static AutocompleteSupportFragment autoCompleteFrag_To;
+public class Activity_TerritoryData extends AppCompatActivity {
     public static Activity activity;
     public static EditText title;
     public static MyUnderlineEditText date;
     public static EditText distance;
-    public static GoogleMap map;
-    public static MapFragment mapFragment;
     public static Marker fromMarker;
     public static Marker toMarker;
     public static Context context;
     public static Polyline polyline;
     public static LatLng fromLatLng;
     public static LatLng toLatLng;
-    public static String toTitle;
-    public static String fromTitle;
-    public static SweetAlertDialog pDialog;
-    public static Button btnPrev;
-    public static Button btnNext;
     public static MyViewPager mViewPager;
     public static PagerTitleStrip mPagerStrip;
     public static SectionsPagerAdapter sectionsPagerAdapter;
     public static androidx.fragment.app.FragmentManager fragMgr;
-    public static RectangularBounds bounds;
-    public static String distanceStr;
     public static MySettingsHelper options;
-    ProgressBar prog;
 
     // Receivers for date range changes at the activity level
     public static IntentFilter intentFilterMonthYear;
@@ -108,15 +96,7 @@ public class Activity_TerritoryData extends AppCompatActivity
     public static Territory territory;
 
     public final static String TAG = "TerritoryData";
-    public static final String TAG_TITLE = "TAG_TITLE";
-    public static final String TAG_DATE = "TAG_DATE";
-    public static final String TAG_DISTANCE = "TAG_DISTANCE";
-    public static final String TAG_TO_LOC = "TAG_TO_MARKER";
-    public static final String TAG_FROM_LOC = "TAG_FROM_MARKER";
-    public static final String TAG_TO_TITLE = "TAG_TO_TITLE";
-    public static final String TAG_FROM_TITLE = "TAG_FROM_TITLE";
     public static final String DATE_CHANGED = "DATE_CHANGED";
-    public static final String REGION_CHANGED = "REGION_CHANGED";
     public static final String MONTH = "MONTH";
     public static final String YEAR = "YEAR";
 
@@ -127,6 +107,9 @@ public class Activity_TerritoryData extends AppCompatActivity
         context = this;
         activity = this;
         intentFilterMonthYear = new IntentFilter(DATE_CHANGED);
+
+        // Log a metric
+        MileBuddyMetrics.updateMetric(this, MileBuddyMetrics.MetricName.LAST_ACCESSED_TERRITORY_DATA, DateTime.now());
 
         territory = new Territory();
         territory.territoryid = MediUser.getMe().territoryid;
@@ -151,31 +134,14 @@ public class Activity_TerritoryData extends AppCompatActivity
         mViewPager.setPageCount(6);
         mViewPager.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
-            public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-                /*Log.i(TAG, "onScrollChange scrollX: " + scrollX + " scrollY: " + scrollY + "" +
-                        "oldScrollX: " + oldScrollX + " oldScrollY: " + oldScrollY);
-                Log.i(TAG, "onScrollChange Page: " + mViewPager.currentPosition);*/
-
-
-            }
+            public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) { }
         });
-
-
-
         fragMgr = getSupportFragmentManager();
-
-        if (savedInstanceState != null) {
-
-        }
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
-
-        // monthNum = DateTime.now().getMonthOfYear();
-        // yearNum = DateTime.now().getYear();
-
     }
 
     @Override
@@ -305,6 +271,7 @@ public class Activity_TerritoryData extends AppCompatActivity
         switch (item.getItemId()) {
             case R.id.action_choose_territory :
                 Intent intent = new Intent(context, FullscreenActivityChooseTerritory.class);
+                intent.putExtra(FullscreenActivityChooseTerritory.CURRENT_TERRITORY, territory);
                 startActivityForResult(intent, 0);
                 break;
                 
@@ -358,58 +325,6 @@ public class Activity_TerritoryData extends AppCompatActivity
         } else {
             return Queries.WEST_REGIONID;
         }
-    }
-
-    void showMonthYearDialog() {
-        final Dialog dialog = new Dialog(this);
-        final Context c = this;
-        dialog.setContentView(R.layout.make_receipt);
-        dialog.setCancelable(true);
-        Button btnThisMonth = dialog.findViewById(R.id.btnThisMonth);
-        Button btnLastMonth = dialog.findViewById(R.id.btnLastMonth);
-        Button btnChoose = dialog.findViewById(R.id.btnChooseMonth);
-        btnThisMonth.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent dateChanged = new Intent(DATE_CHANGED);
-                DateTime now = DateTime.now();
-                dateChanged.putExtra(MONTH, now.getMonthOfYear());
-                dateChanged.putExtra(YEAR, now.getYear());
-                sendBroadcast(dateChanged);
-                dialog.dismiss();
-            }
-        });
-        btnLastMonth.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent dateChanged = new Intent(DATE_CHANGED);
-                DateTime now = DateTime.now();
-                DateTime aMonthAgo = now.minusMonths(1);
-                dateChanged.putExtra(MONTH, aMonthAgo.getMonthOfYear());
-                dateChanged.putExtra(YEAR, aMonthAgo.getYear());
-                sendBroadcast(dateChanged);
-                dialog.dismiss();
-            }
-        });
-        btnChoose.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showMonthYearPicker();
-                dialog.dismiss();
-            }
-        });
-        dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
-            @Override
-            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-                if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    dialog.dismiss();
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        });
-        dialog.show();
     }
 
     @SuppressLint("NewApi")
@@ -510,7 +425,7 @@ public class Activity_TerritoryData extends AppCompatActivity
         }
     }
 
-    //region ********************************** FRAGS *****************************************
+//region ********************************** FRAGS *****************************************
 
     public static class Frag_SalesLines extends Fragment {
         public static final String ARG_SECTION_NUMBER = "section_number";

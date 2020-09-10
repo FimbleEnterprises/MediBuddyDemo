@@ -15,6 +15,7 @@ import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.CrmEntities;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.MediUser;
+import com.fimbleenterprises.medimileage.MileBuddyMetrics;
 import com.fimbleenterprises.medimileage.MileBuddyUpdate;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.MyLocationService;
@@ -41,6 +42,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
+import org.joda.time.DateTime;
+
 import cz.msebera.android.httpclient.Header;
 
 /*import androidx.annotation.RequiresApi;
@@ -52,6 +55,7 @@ import androidx.preference.PreferenceFragmentCompat;*/
 public class SettingsActivity extends AppCompatActivity {
 
     private static final String TAG = "SettingsActivity";
+    public static MySettingsHelper options;
 
     public static final int REQ_PERMISSION_BACKUP = 1;
     public static final int REQ_PERMISSION_RESTORE = 0;
@@ -72,16 +76,25 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String IS_SHOWING_MTD_REIMBURSEMENT = "IS_SHOWING_MTD_REIMBURSEMENT";
     public static final String EXPERIMENTAL_FUNCTION = "EXPERIMENTAL_FUNCTION";
     public static final String UPDATE_USER_INFO = "updateUserInfo";
+    public static final String NAME_TRIP_ON_START = "NAME_TRIP_ON_START";
+    public static final String CONFIRM_END = "CONFIRM_END";
+    public static final String RECEIPT_FORMATS = "RECEIPT_FORMATS";
+    public static final String DISTANCE_THRESHOLD = "DISTANCE_THRESHOLD";
+    public static final String CHECK_FOR_UPDATES = "CHECK_FOR_UPDATES";
+    public static final String DEBUG_MODE = "DEBUG_MODE";
+    public static final String EXPLICIT_MODE = "EXPLICIT_MODE";
 
     public static String DEFAULT_DATABASE_NAME = "mileagetracking.db";
     Context context;
-    MySettingsHelper options;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_activity);
+
+        // Log a metric
+        MileBuddyMetrics.updateMetric(this, MileBuddyMetrics.MetricName.LAST_ACCESSED_APP_SETTINGS, DateTime.now());
 
         this.context = this;
         options = new MySettingsHelper(context);
@@ -111,6 +124,10 @@ public class SettingsActivity extends AppCompatActivity {
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.preferences, rootKey);
 
+            if (options.isExplicitMode()) {
+                makeExplicit();
+            }
+
             Preference prefBackupDb;
             Preference prefRestoreBackup;
             Preference prefDeleteAllBackups;
@@ -122,6 +139,7 @@ public class SettingsActivity extends AppCompatActivity {
             Preference prefGoToPermissions;
             Preference prefExperimentalFunction;
             Preference prefUpdateMyUserInfo;
+            Preference prefExplicitMode;
 
             prefBackupDb = findPreference(BACKUP_DB_KEY);
             prefBackupDb.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
@@ -362,6 +380,16 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             });
 
+            prefExplicitMode = findPreference(EXPLICIT_MODE);
+            prefExplicitMode.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    getActivity().finish();
+                    getActivity().startActivity(new Intent(getContext(), SettingsActivity.class));
+                    return true;
+                }
+            });
+
             // We do not want to backup or restore the db while a trip is running.
             if (MyLocationService.isRunning) {
                 prefBackupDb.setEnabled(false);
@@ -390,6 +418,30 @@ public class SettingsActivity extends AppCompatActivity {
                     }
                     break;
             }
+
+        }
+
+        public void makeExplicit() {
+            findPreference(NAME_TRIP_ON_START).setTitle(R.string.settings_name_trips_explicit);
+            findPreference(SUBMIT_ON_END).setTitle(R.string.settings_auto_submit_explicit);
+            findPreference(CONFIRM_END).setTitle(R.string.settings_confirmend_explicit);
+            findPreference(TRIP_MINDER).setTitle(R.string.settings_auto_stop_explicit);
+            findPreference(TRIP_MINDER_INTERVAL).setTitle(R.string.settings_auto_stop_interval_explicit);
+            findPreference(RECEIPT_FORMATS).setTitle(R.string.settings_receipt_format_explicit);
+            findPreference(GOTO_PERMISSIONS).setTitle(R.string.settings_permissions_explicit);
+
+            findPreference(UPDATE_USER_INFO).setTitle(R.string.settings_update_me_explicit);
+            findPreference(UPDATE_USER_ADDYS).setTitle(R.string.settings_update_addresses_explicit);
+            findPreference(UPDATE_ACT_ADDYS).setTitle(R.string.settings_update_account_addresses_explicit);
+
+            findPreference(DELETE_ALL_TRIP_DATA).setTitle(R.string.settings_delete_mileage_explicit);
+            findPreference(DELETE_EMPTY_TRIP_DATA).setTitle(R.string.settings_delete_empty_explicit);
+
+            findPreference(DISTANCE_THRESHOLD).setTitle(R.string.settings_prompt_opportunities_explicit);
+            findPreference(DELETE_LOCAL_UPDATES).setTitle(R.string.settings_delete_local_updates_explicit);
+            findPreference(CHECK_FOR_UPDATES).setTitle(R.string.settings_check_updates_explicit);
+            findPreference(DEBUG_MODE).setTitle(R.string.settings_debug_explicit);
+            findPreference(EXPLICIT_MODE).setTitle(R.string.settings_explicit_explicit);
 
         }
 

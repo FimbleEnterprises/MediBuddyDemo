@@ -76,6 +76,9 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
             this.user = getIntent().getParcelableExtra(MILEAGE_USER);
         }
 
+        // Log a metric
+        MileBuddyMetrics.updateMetric(this, MileBuddyMetrics.MetricName.LAST_ACCESSED_OTHER_USER_TRIPS, DateTime.now());
+
         adapter = new TripListRecyclerAdapter(this, allTrips);
         adapter.setClickListener(this);
         recyclerView.setAdapter(adapter);

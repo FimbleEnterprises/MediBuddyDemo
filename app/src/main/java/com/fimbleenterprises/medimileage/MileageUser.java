@@ -2,6 +2,7 @@ package com.fimbleenterprises.medimileage;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.TextUtils;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -125,6 +126,24 @@ public class MileageUser implements Parcelable {
             }
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Makes the user's fullname more explicit
+     * @return The user's fullname with a fucking modifier.
+     */
+    public String fullFuckingName() {
+        try {
+            String[] splitName = fullname.split(" ");
+            if (splitName.length > 1) {
+                String newFullname = splitName[0] + " Fucking " + splitName[1];
+                return newFullname;
+            } else {
+                return fullname;
+            }
+        } catch (Exception e) {
+            return fullname;
         }
     }
 

@@ -1,6 +1,7 @@
 package com.fimbleenterprises.medimileage;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import cz.msebera.android.httpclient.Header;
@@ -13,6 +14,8 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
+
+import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 
@@ -30,6 +33,8 @@ public class FullscreenActivityChooseTerritory extends AppCompatActivity {
     BasicObjectRecyclerAdapter adapter;
     public static final int REQUESTCODE = 011;
     public static final String TERRITORY_RESULT = "TERRITORY_RESULT";
+    public static final String CURRENT_TERRITORY = "CURRENT_TERRITORY";
+    Territory currentTerritory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +42,18 @@ public class FullscreenActivityChooseTerritory extends AppCompatActivity {
         this.context = this;
         setContentView(R.layout.activity_fullscreen_choose_territory);
         listView = findViewById(R.id.rvTerritories);
+
+        // Log a metric
+        MileBuddyMetrics.updateMetric(this, MileBuddyMetrics.MetricName.LAST_ACCESSED_TERRITORY_CHANGER, DateTime.now());
+
+        Intent intent = getIntent();
+        if (intent != null) {
+            Territory curTerritory = intent.getParcelableExtra(CURRENT_TERRITORY);
+            if (curTerritory != null) {
+                currentTerritory = curTerritory;
+                this.setTitle("Choose territory");
+            }
+        }
 
         getTerritories();
 
@@ -61,6 +78,10 @@ public class FullscreenActivityChooseTerritory extends AppCompatActivity {
                 objects.clear();
                 for (Territory t : territories) {
                     BasicObject basicObject = new BasicObject(t.territoryName, t.repName, t);
+                    basicObject.iconResource = R.drawable.next32;
+                    if (currentTerritory.territoryid.equals(t.territoryid)) {
+                        basicObject.isSelected = true;
+                    }
                     objects.add(basicObject);
                     dialog.dismiss();
                 }
@@ -79,6 +100,8 @@ public class FullscreenActivityChooseTerritory extends AppCompatActivity {
     void populateTerritories() {
         adapter = new BasicObjectRecyclerAdapter(this, objects);
         listView.setAdapter(adapter);
+        listView.addItemDecoration(new DividerItemDecoration(context,
+                DividerItemDecoration.VERTICAL));
         listView.setLayoutManager(new LinearLayoutManager(context));
         adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
             @Override
