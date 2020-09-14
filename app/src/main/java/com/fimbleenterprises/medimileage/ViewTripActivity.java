@@ -491,12 +491,14 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
         MarkerOptions startMarker = new MarkerOptions();
         LatLng startPos = entries.get(0).getLatLng();
         startMarker.position(startPos);
-        startMarker.title("Start");
+        startMarker.title(options.isExplicitMode() ? getString(R.string.start_marker_explicit) :
+                getString(R.string.start_marker));
         startMarker.icon(BitmapDescriptorFactory.fromBitmap(pin));
         MarkerOptions endMarker = new MarkerOptions();
         LatLng endPos = entries.get(entries.size() - 1).getLatLng();
         endMarker.icon(BitmapDescriptorFactory.fromBitmap(pin));
-        endMarker.title("End");
+        endMarker.title(options.isExplicitMode() ? getString(R.string.end_marker_explicit) :
+                getString(R.string.end_marker));
         endMarker.position(endPos);
 
         mapMarkers = new ArrayList<>();

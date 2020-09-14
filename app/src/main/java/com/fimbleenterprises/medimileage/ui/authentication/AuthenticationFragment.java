@@ -203,8 +203,7 @@ public class AuthenticationFragment extends Fragment {
                                       byte[] responseBody) {
                     progressDialog.dismiss();
                     String strResponse = new String(responseBody);
-                    RestResponse response = new RestResponse(strResponse);
-                    MediUser user = new MediUser(response);
+                    MediUser user = MediUser.createOne(strResponse);
                     user.save(context);
                     MySqlDatasource db = new MySqlDatasource(context);
                     MediUser retreivedUser = db.getMe();

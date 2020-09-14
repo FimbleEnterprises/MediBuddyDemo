@@ -3,39 +3,37 @@ package com.fimbleenterprises.medimileage;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DatePickerDialog;
-import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.ProgressBar;
 
+/*import com.anychart.APIlib;
 import com.anychart.AnyChart;
 import com.anychart.AnyChartView;
 import com.anychart.chart.common.dataentry.DataEntry;
 import com.anychart.chart.common.dataentry.ValueDataEntry;
-import com.anychart.charts.Cartesian;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
+import com.anychart.charts.Cartesian;*/
+import com.github.mikephil.charting.charts.HorizontalBarChart;
+import com.github.mikephil.charting.components.Description;
+import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
+import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
-import com.google.android.libraries.places.api.model.RectangularBounds;
-import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
-import com.google.firebase.analytics.FirebaseAnalytics;
-import com.google.firebase.inappmessaging.internal.injection.qualifiers.Analytics;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.scwang.smart.refresh.footer.ClassicsFooter;
 import com.scwang.smart.refresh.header.MaterialHeader;
@@ -57,7 +55,6 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.PagerTitleStrip;
-import cn.pedant.SweetAlert.SweetAlertDialog;
 import cz.msebera.android.httpclient.Header;
 
 public class Activity_TerritoryData extends AppCompatActivity {
@@ -276,47 +273,44 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 break;
                 
             case R.id.action_east_region :
-                dateChanged = new Intent(DATE_CHANGED);
                 isEastRegion = true;
-                dateChanged.putExtra(MONTH, monthNum);
-                dateChanged.putExtra(YEAR, yearNum);
-                sendBroadcast(dateChanged);
+                sendBroadcastUsingExistingValues();
                 break;
             case R.id.action_west_region :
-                dateChanged = new Intent(DATE_CHANGED);
                 isEastRegion = false;
-                dateChanged.putExtra(MONTH, monthNum);
-                dateChanged.putExtra(YEAR, yearNum);
-                sendBroadcast(dateChanged);
+                sendBroadcastUsingExistingValues();
                 break;
             case R.id.action_this_month :
-                dateChanged = new Intent(DATE_CHANGED);
-                dateChanged.putExtra(MONTH, now.getMonthOfYear());
-                dateChanged.putExtra(YEAR, now.getYear());
-                sendBroadcast(dateChanged);
+                monthNum = now.getMonthOfYear();
+                yearNum = now.getYear();
+                sendBroadcastUsingExistingValues();
                 break;
             case R.id.action_last_month :
-                dateChanged = new Intent(DATE_CHANGED);
-                dateChanged.putExtra(MONTH, aMonthAgo.getMonthOfYear());
-                dateChanged.putExtra(YEAR, aMonthAgo.getYear());
-                sendBroadcast(dateChanged);
+                monthNum = aMonthAgo.getMonthOfYear();
+                yearNum = aMonthAgo.getYear();
+                sendBroadcastUsingExistingValues();
                 break;
             case R.id.action_choose_month :
                 showMonthYearPicker();
                 break;
             case R.id.action_this_year :
-                dateChanged = new Intent(DATE_CHANGED);
-                dateChanged.putExtra(YEAR, now.getYear());
-                sendBroadcast(dateChanged);
+                yearNum = now.getYear();
+                sendBroadcastUsingExistingValues();
                 break;
             case R.id.action_last_year :
-                dateChanged = new Intent(DATE_CHANGED);
-                dateChanged.putExtra(YEAR, now.minusYears(1));
-                sendBroadcast(dateChanged);
+                yearNum = aMonthAgo.getYear();
+                sendBroadcastUsingExistingValues();
                 break;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public static void sendBroadcastUsingExistingValues() {
+        Intent dateChanged = dateChanged = new Intent(DATE_CHANGED);
+        dateChanged.putExtra(MONTH, monthNum);
+        dateChanged.putExtra(YEAR, yearNum);
+        activity.sendBroadcast(dateChanged);
     }
 
     public static String getRegionid() {
@@ -324,6 +318,14 @@ public class Activity_TerritoryData extends AppCompatActivity {
             return Queries.EAST_REGIONID;
         } else {
             return Queries.WEST_REGIONID;
+        }
+    }
+
+    public static String getRegionName() {
+        if (isEastRegion) {
+            return "East Region";
+        } else {
+            return "West Region";
         }
     }
 
@@ -640,9 +642,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
         // ProgressBar pbLoading;
         /*Cartesian bar;
         AnyChartView anyChartView;*/
-        AnyChartView mtdChartView;
-        RefreshLayout refreshLayout;
-        Cartesian bar;
+        RefreshLayout mtdRefreshLayout;
+        HorizontalBarChart chartMtd;
 
         @Override
         public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -667,21 +668,19 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 }
             };
 
-            mtdChartView = rootView.findViewById(R.id.chartMtd);
-
-            refreshLayout = (RefreshLayout) rootView.findViewById(R.id.refreshLayout);
-            refreshLayout.setRefreshHeader(new MaterialHeader(getContext()));
-            refreshLayout.setRefreshFooter(new ClassicsFooter(getContext()));
-            refreshLayout.setOnRefreshListener(new OnRefreshListener() {
+            mtdRefreshLayout = (RefreshLayout) rootView.findViewById(R.id.mtdRefreshLayout);
+            mtdRefreshLayout.setRefreshHeader(new MaterialHeader(getContext()));
+            mtdRefreshLayout.setRefreshFooter(new ClassicsFooter(getContext()));
+            mtdRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
                 @Override
                 public void onRefresh(RefreshLayout refreshlayout) {
                     getMtdGoalsByRegion();
                 }
             });
-            refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
+            mtdRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
                 @Override
                 public void onLoadMore(RefreshLayout refreshlayout) {
-                    refreshlayout.finishLoadMore(500/*,false*/);
+                    refreshlayout.finishLoadMore(1/*,false*/);
                 }
             });
 
@@ -693,12 +692,30 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 yearNum = DateTime.now().getYear();
             }
 
-            bar = AnyChart.bar();
-            mtdChartView = rootView.findViewById(R.id.chartMtd);
-            mtdChartView.setChart(bar);
+            chartMtd = (HorizontalBarChart) rootView.findViewById(R.id.chartMtd);
 
             getMtdGoalsByRegion();
             return rootView;
+        }
+
+        protected BarData generateBarData(CrmEntities.Goals goals) {
+
+            ArrayList<IBarDataSet> sets = new ArrayList<>();
+
+                ArrayList<BarEntry> entries = new ArrayList<>();
+
+                for(int j = 0; j < goals.list.size(); j++) {
+                    CrmEntities.Goal goal = goals.list.get(j);
+                    BarEntry entry = new BarEntry(goal.actual, goal.pct);
+                    entries.add(entry);
+                }
+
+                BarDataSet ds = new BarDataSet(entries, "test");
+                ds.setColors(ColorTemplate.VORDIPLOM_COLORS);
+                sets.add(ds);
+
+            BarData d = new BarData(sets);
+            return d;
         }
 
         @Override
@@ -718,7 +735,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         void getMtdGoalsByRegion() {
             // pbLoading.setVisibility(View.VISIBLE);
             // anyChartView.setVisibility(View.GONE);
-            refreshLayout.autoRefreshAnimationOnly();
+            mtdRefreshLayout.autoRefreshAnimationOnly();
 
             String query = Queries.Goals.getMtdGoalsByRegion(getRegionid(), monthNum, yearNum);
             ArrayList<Requests.Argument> args = new ArrayList<>();
@@ -732,35 +749,38 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     String response = new String(responseBody);
                     CrmEntities.Goals goals = new CrmEntities.Goals(response);
                     Log.i(TAG, "onSuccess " + response);
-                    populateChartMtd(goals);
-                    refreshLayout.finishRefresh();
+                    chartMtd.setData(generateBarData(goals));
+                    chartMtd.animateXY(2000, 2000);
+                    chartMtd.invalidate();
+                    mtdRefreshLayout.finishRefresh();
                 }
 
                 @Override
                 public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
                     Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
                     // pbLoading.setVisibility(View.GONE);
-                    refreshLayout.finishRefresh();
+                    mtdRefreshLayout.finishRefresh();
                 }
             });
         }
 
         void populateChartMtd(CrmEntities.Goals goals) {
 
-            List<DataEntry> data = new ArrayList<>();
+            /*List<DataEntry> data = new ArrayList<>();
             for (int i = 0; i < goals.list.size(); i++) {
                 CrmEntities.Goal goal = goals.list.get(i);
                 GoalSummary goalSummary = goals.list.get(i).getGoalSummary(goal.getStartDateForMonthlyGoal(), goal.getEndDateForMonthlyGoal(), DateTime.now());
                 data.add(new ValueDataEntry(goalSummary.goal.ownername, goalSummary.getPctAcheivedAsOfToday()));
             }
 
-            bar.data(data);
+            mtdBar.data(data);
 
-            String title = "MTD Goals " + MediUser.getMe().salesregionname + " Region (month: " + monthNum
+            String title = "MTD Goals " + getRegionName() + " (month: " + monthNum
                     + " year: " + yearNum + ")";
 
-            bar.title(title);
-            mtdChartView.invalidate(); // refresh
+            mtdBar.title(title);
+            APIlib.getInstance().setActiveAnyChartView(mtdChartView);
+            mtdChartView.invalidate(); // refresh*/
 
             /*bar.title(title);
             bar.labels(true);
@@ -778,9 +798,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         // ProgressBar pbLoading;
         /*Cartesian bar;
         AnyChartView anyChartView;*/
-        AnyChartView ytdChartView;
-        RefreshLayout refreshLayout;
-        Cartesian bar;
+        RefreshLayout ytdRefreshLayout;
 
         @Override
         public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -804,21 +822,19 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 }
             };
 
-            ytdChartView = rootView.findViewById(R.id.chartYtd);
-
-            refreshLayout = (RefreshLayout) rootView.findViewById(R.id.refreshLayout);
-            refreshLayout.setRefreshHeader(new MaterialHeader(getContext()));
-            refreshLayout.setRefreshFooter(new ClassicsFooter(getContext()));
-            refreshLayout.setOnRefreshListener(new OnRefreshListener() {
+            ytdRefreshLayout = (RefreshLayout) rootView.findViewById(R.id.ytdRefreshLayout);
+            ytdRefreshLayout.setRefreshHeader(new MaterialHeader(getContext()));
+            ytdRefreshLayout.setRefreshFooter(new ClassicsFooter(getContext()));
+            ytdRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
                 @Override
                 public void onRefresh(RefreshLayout refreshlayout) {
                     getYtdGoalsByRegion();
                 }
             });
-            refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
+            ytdRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
                 @Override
                 public void onLoadMore(RefreshLayout refreshlayout) {
-                    refreshlayout.finishLoadMore(500/*,false*/);
+                    refreshlayout.finishLoadMore(1/*,false*/);
                 }
             });
 
@@ -830,9 +846,11 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 yearNum = DateTime.now().getYear();
             }
 
-            bar = AnyChart.bar();
-            ytdChartView = rootView.findViewById(R.id.chartYtd);
-            ytdChartView.setChart(bar);
+            HorizontalBarChart chart = (HorizontalBarChart) rootView.findViewById(R.id.chartYtd);
+
+            chart.setData(generateBarData(1, 20, 20));
+            chart.animateXY(2000, 2000);
+            chart.invalidate();
 
             getYtdGoalsByRegion();
             return rootView;
@@ -855,7 +873,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         void getYtdGoalsByRegion() {
             // pbLoading.setVisibility(View.VISIBLE);
             // anyChartView.setVisibility(View.GONE);
-            refreshLayout.autoRefreshAnimationOnly();
+            ytdRefreshLayout.autoRefreshAnimationOnly();
 
             String query = Queries.Goals.getYtdGoalsByRegion(getRegionid(),  yearNum);
             ArrayList<Requests.Argument> args = new ArrayList<>();
@@ -870,41 +888,65 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     CrmEntities.Goals goals = new CrmEntities.Goals(response);
                     Log.i(TAG, "onSuccess " + response);
                     populateChartYtd(goals);
-                    refreshLayout.finishRefresh();
+                    ytdRefreshLayout.finishRefresh();
                 }
 
                 @Override
                 public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
                     Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
                     // pbLoading.setVisibility(View.GONE);
-                    refreshLayout.finishRefresh();
+                    ytdRefreshLayout.finishRefresh();
                 }
             });
         }
 
         void populateChartYtd(CrmEntities.Goals goals) {
 
-            List<DataEntry> data = new ArrayList<>();
+            /*List<DataEntry> data = new ArrayList<>();
             for (int i = 0; i < goals.list.size(); i++) {
                 CrmEntities.Goal goal = goals.list.get(i);
                 GoalSummary goalSummary = goals.list.get(i).getGoalSummary(goal.getStartDate(), goal.getEndDate(), DateTime.now());
                 data.add(new ValueDataEntry(goalSummary.goal.ownername, goalSummary.getPctAcheivedAsOfToday()));
             }
 
-            bar.data(data);
+            ytdBar.data(data);
 
-            String title = "YTD Goals " + MediUser.getMe().salesregionname + " Region (year: " + yearNum + ")";
+            String title = "YTD Goals " + getRegionName() + " (year: " + yearNum + ")";
 
-            bar.title(title);
+            ytdBar.title(title);
+            APIlib.getInstance().setActiveAnyChartView(ytdChartView);
             ytdChartView.invalidate(); // refresh
 
-            /*bar.title(title);
+            *//*bar.title(title);
             bar.labels(true);
             bar.labels().selectable(true);
             bar.labels().enabled(true);
             bar.data(data);*/
 
         } // END ONCREATEVIEW
+
+
+
+        protected BarData generateBarData(int dataSets, float range, int count) {
+
+            ArrayList<IBarDataSet> sets = new ArrayList<>();
+
+            for(int i = 0; i < dataSets; i++) {
+
+                ArrayList<BarEntry> entries = new ArrayList<>();
+
+                for(int j = 0; j < count; j++) {
+                    entries.add(new BarEntry(j, (float) (Math.random() * range) + range / 4));
+                }
+
+                BarDataSet ds = new BarDataSet(entries, "test");
+                ds.setColors(ColorTemplate.VORDIPLOM_COLORS);
+                sets.add(ds);
+            }
+
+            BarData d = new BarData(sets);
+            return d;
+        }
 
     }
 

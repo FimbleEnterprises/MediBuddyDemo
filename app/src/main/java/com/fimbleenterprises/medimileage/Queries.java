@@ -106,6 +106,19 @@ public class Queries {
             query.addColumn("territoryid");
             query.addColumn("employeeid");
             query.addColumn("photourl");
+            query.addColumn("msus_last_used_milebuddy");
+            query.addColumn("msus_last_viewed_mileage_stats");
+            query.addColumn("msus_last_synced_mileage");
+            query.addColumn("msus_last_opened_settings");
+            query.addColumn("msus_last_accessed_milebuddy");
+            query.addColumn("msus_last_generated_receipt");
+            query.addColumn("msus_last_generated_receipt_milebuddy");
+            query.addColumn("msus_milebuddy_last_accessed_territory_changer");
+            query.addColumn("msus_last_accessed_other_user_trips");
+            query.addColumn("msus_last_accessed_medibuddy");
+            query.addColumn("msus_is_mileage_user");
+            query.addColumn("msus_ismanager");
+            query.addColumn("msus_is_driving");
             query.addColumn("address1_composite");
             query.addColumn("address1_latitude");
             query.addColumn("address1_longitude");
@@ -123,6 +136,71 @@ public class Queries {
             QueryFactory.Filter filter = new QueryFactory.Filter(AND);
             filter.addCondition(new QueryFactory.Filter.FilterCondition("internalemailaddress"
                     ,"eq",email));
+            query.setFilter(filter);
+
+            // Link entity creation to join to the account entity and apply our territory condition
+            QueryFactory.LinkEntity linkEntity_territory =
+                    new QueryFactory.LinkEntity(QueryFactory.LINK_ENTITY_STRINGS.TERRITORY_TO_USER);
+            linkEntity_territory.addColumn(new QueryFactory.EntityColumn("name"));
+            linkEntity_territory.addColumn(new QueryFactory.EntityColumn("new_salesrepresentative"));
+            linkEntity_territory.addColumn(new QueryFactory.EntityColumn("msus_salesregion"));
+            linkEntity_territory.addColumn(new QueryFactory.EntityColumn("managerid"));
+            linkEntity_territory.addColumn(new QueryFactory.EntityColumn("new_businessunit"));
+            query.addLinkEntity(linkEntity_territory);
+
+            QueryFactory.LinkEntity linkEntity_Manager =
+                    new QueryFactory.LinkEntity(QueryFactory.LINK_ENTITY_STRINGS.MANAGER_TO_USER);
+            linkEntity_Manager.addColumn(new QueryFactory.EntityColumn("businessunitid"));
+            query.addLinkEntity(linkEntity_Manager);
+
+            // Spit out the encoded query
+            String rslt = query.construct();
+            return rslt;
+        }
+
+        public static String getUsUsers() {
+            // Instantiate a new constructor for the case entity and add the columns we want to see
+            QueryFactory query = new QueryFactory("systemuser");
+            query.addColumn("fullname");
+            query.addColumn("address1_telephone1");
+            query.addColumn("businessunitid");
+            query.addColumn("siteid");
+            query.addColumn("positionid");
+            query.addColumn("systemuserid");
+            query.addColumn("domainname");
+            query.addColumn("territoryid");
+            query.addColumn("employeeid");
+            query.addColumn("photourl");
+            query.addColumn("msus_last_used_milebuddy");
+            query.addColumn("msus_last_viewed_mileage_stats");
+            query.addColumn("msus_last_synced_mileage");
+            query.addColumn("msus_last_opened_settings");
+            query.addColumn("msus_last_accessed_milebuddy");
+            query.addColumn("msus_last_generated_receipt");
+            query.addColumn("msus_last_generated_receipt_milebuddy");
+            query.addColumn("msus_milebuddy_last_accessed_territory_changer");
+            query.addColumn("msus_last_accessed_other_user_trips");
+            query.addColumn("msus_last_accessed_medibuddy");
+            query.addColumn("msus_is_mileage_user");
+            query.addColumn("msus_ismanager");
+            query.addColumn("msus_is_driving");
+            query.addColumn("address1_composite");
+            query.addColumn("address1_latitude");
+            query.addColumn("address1_longitude");
+            query.addColumn("msus_medibuddy_managed_territories");
+            query.addColumn("msus_push_onallorders");
+            query.addColumn("msus_push_onorder");
+            query.addColumn("internalemailaddress");
+            query.addColumn("mobilephone");
+            query.addColumn("title");
+            query.addColumn("parentsystemuserid");
+            query.addColumn("positionid");
+            query.addColumn("msus_user_salesregion");
+
+            // Filter creation to make use of our conditions
+            QueryFactory.Filter filter = new QueryFactory.Filter(AND);
+            filter.addCondition(new QueryFactory.Filter.FilterCondition("msus_is_us_user"
+                    ,"eq","1"));
             query.setFilter(filter);
 
             // Link entity creation to join to the account entity and apply our territory condition

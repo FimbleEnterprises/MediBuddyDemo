@@ -62,28 +62,36 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
     }
 
 
-
     // binds the data to the TextView in each row
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         final FullTrip trip = mData.get(position);
 
-        holder.txtSubtext.setText(Helpers.Geo.convertMetersToMiles(trip.getDistance(),2) + " miles - " +
-                trip.calculatePrettyReimbursement());
+        if (options.isExplicitMode()) {
+            holder.txtSubtext.setText(Helpers.Geo.convertMetersToMiles(
+                    trip.getDistance(),2) + " fucking miles - " + trip.calculatePrettyReimbursement());
+        } else {
+            holder.txtSubtext.setText(Helpers.Geo.convertMetersToMiles(
+                    trip.getDistance(),2) + " miles - " + trip.calculatePrettyReimbursement());
+        }
 
         // Set special status fields as appropriate
-        if (trip.getIsTripMinderKilled()) {
-            holder.txtIsAutoStoppedTrip.setText("AUTO-STOPPED");
+        if (trip.wasAutoKilled()) {
+            holder.txtIsAutoStoppedTrip.setText(options.isExplicitMode() ?
+                    context.getString(R.string.is_autostopped_explicit) :
+                    context.getString(R.string.is_autostopped));
             holder.txtIsAutoStoppedTrip.setTextColor(Color.BLUE);
         } else {
             holder.txtIsAutoStoppedTrip.setText("");
         }
 
         if (trip.getIsEdited()) {
-            holder.txtIsEditedOrManual.setText("EDITED");
+            holder.txtIsEditedOrManual.setText(options.isExplicitMode() ? context.getString(R.string.is_edited_explicit)
+                    : context.getString(R.string.is_edited));
             holder.txtIsEditedOrManual.setTextColor(Color.RED);
         } else if (trip.getIsManualTrip()) {
-            holder.txtIsEditedOrManual.setText("MANUAL");
+            holder.txtIsEditedOrManual.setText(options.isExplicitMode() ? context.getString(
+                    R.string.is_manual_explicit) : context.getString(R.string.is_manual));
             holder.txtIsEditedOrManual.setTextColor(Color.RED);
         } else {
             holder.txtIsEditedOrManual.setText("");
@@ -124,18 +132,8 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
             layoutParams.topMargin = 6;
             holder.layout.setLayoutParams(layoutParams);
             holder.layout.setBackgroundResource(R.drawable.btn_glass_gray_black_border);
-            if (options.getDebugMode()) {
-                holder.imgUserStarted.setVisibility(View.VISIBLE);
-                holder.imgUserStopped.setVisibility(View.VISIBLE);
-                holder.imgUserStarted.setImageResource((trip.getUserStartedTrip())
-                        ? R.drawable.green_dot_32x32 : R.drawable.red_dot_32x32);
-                holder.imgUserStopped.setImageResource((trip.getUserStoppedTrip())
-                        ? R.drawable.green_dot_32x32 : R.drawable.red_dot_32x32);
-            } else {
-                holder.imgUserStarted.setVisibility(View.GONE);
-                holder.imgUserStopped.setVisibility(View.GONE);
-            }
-            holder.txtMainText.setText(trip.getTitle() + " - " + Helpers.DatesAndTimes.getPrettyDate(trip.getDateTime()));
+            holder.txtMainText.setText(trip.getTitle() + " - " + Helpers.DatesAndTimes.getPrettyDate
+                    (trip.getDateTime()));
             holder.chkbxSelectTrip.setVisibility((isInEditMode) ? View.VISIBLE : View.INVISIBLE);
             // holder.txtMainText.setTypeface(null, Typeface.NORMAL);
         }

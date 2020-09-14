@@ -933,8 +933,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 public void onSuccess(int statusCode, Header[] headers,
                                       byte[] responseBody) {
                     String strResponse = new String(responseBody);
-                    RestResponse response = new RestResponse(strResponse);
-                    MediUser user = new MediUser(response);
+                    MediUser user = MediUser.createOne(strResponse);
                     user.save(getContext());
                     Log.d(TAG, "onSuccess " + strResponse);
                 }
@@ -1655,7 +1654,6 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         dialog.setTitle("Trip Options");
         Button btnEditTrip = dialog.findViewById(R.id.edit_trip);
         Button btnDeleteTrip = dialog.findViewById(R.id.btnDelete);
-
         Button btnSubmit = dialog.findViewById(R.id.btnSubmit);
         btnSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -1746,6 +1744,20 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         });
 
         btnEditTrip.setEnabled(!clickedTrip.getIsSubmitted());
+
+        if (options.isExplicitMode()) {
+            btn_ViewTrip.setText(getString(R.string.tripOptions_view_explicit));
+            btnSubmit.setText(getString(R.string.tripOptions_submit_explicit));
+            btnRecall.setText(getString(R.string.tripOptions_recall_explicit));
+            btnEditTrip.setText(getString(R.string.tripOptions_edit_explicit));
+            btnDeleteTrip.setText(getString(R.string.tripOptions_delete_explicit));
+        } else {
+            btn_ViewTrip.setText(getString(R.string.tripOptions_view));
+            btnSubmit.setText(getString(R.string.tripOptions_submit));
+            btnRecall.setText(getString(R.string.tripOptions_recall));
+            btnEditTrip.setText(getString(R.string.tripOptions_edit));
+            btnDeleteTrip.setText(getString(R.string.tripOptions_delete));
+        }
 
         dialogTripOptions = dialog;
         dialog.show();

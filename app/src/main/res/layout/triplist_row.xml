@@ -101,8 +101,9 @@
         android:layout_marginEnd="2dp"
         android:layout_marginBottom="2dp"
         android:layout_toRightOf="@id/textView_FullTripRowMainText"
+        android:visibility="invisible"
         app:srcCompat="@drawable/green_dot_32x32"
-        tools:visibility="gone" />
+        tools:visibility="invisible" />
 
     <ImageView
         android:id="@+id/imageView_stopped"
@@ -113,7 +114,8 @@
         android:layout_marginEnd="2dp"
         android:layout_marginBottom="2dp"
         android:layout_toRightOf="@id/imageView_started"
+        android:visibility="invisible"
         app:srcCompat="@drawable/red_dot_32x32"
-        tools:visibility="gone" />
+        tools:visibility="invisible" />
 
 </RelativeLayout>

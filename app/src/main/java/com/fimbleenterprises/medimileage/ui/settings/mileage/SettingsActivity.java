@@ -13,6 +13,7 @@ import android.widget.Toast;
 import com.fimbleenterprises.medimileage.AccountAddresses;
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.CrmEntities;
+import com.fimbleenterprises.medimileage.FullscreenActivityChooseRep;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.MediUser;
 import com.fimbleenterprises.medimileage.MileBuddyMetrics;
@@ -348,27 +349,9 @@ public class SettingsActivity extends AppCompatActivity {
                     MyYesNoDialog.show(getContext(), "I don't even know what will run when you click, \"Yes\"\n\nAre you sure?", new MyYesNoDialog.YesNoListener() {
                         @Override
                         public void onYes() {
-                            String query = Queries.OrderLines.getOrderLines(MediUser.getMe().systemuserid, Queries.Operators.DateOperator.THIS_MONTH);
-                            Crm crm = new Crm();
-                            ArrayList<Requests.Argument> arguments = new ArrayList<>();
-                            Requests.Argument argument = new Requests.Argument("query", query);
-                            arguments.add(argument);
-                            Requests.Request request = new Requests.Request(Requests.Request.Function.GET, arguments);
-                            crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
-                                @Override
-                                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                                    String response = new String(responseBody);
-                                    CrmEntities.OrderProducts products = new CrmEntities.OrderProducts(response);
-                                    Log.i(TAG, "onSuccess: Count: " + products.size());
-                                }
-
-                                @Override
-                                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                                    Toast.makeText(getContext(), "Error: " + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                            Toast.makeText(getContext(), "Made a " + query.length() + " character query!  Boring, I know.", Toast.LENGTH_SHORT).show();
-                            Log.i(TAG, "onYes: Query: " + query);
+                            Intent intent = new Intent(getContext(), FullscreenActivityChooseRep.class);
+                            intent.putExtra(FullscreenActivityChooseRep.CURRENT_VALUE, MediUser.getMe());
+                            startActivity(intent);
                         }
 
                         @Override
@@ -506,8 +489,7 @@ public class SettingsActivity extends AppCompatActivity {
                                           byte[] responseBody) {
                         progressDialog.dismiss();
                         String strResponse = new String(responseBody);
-                        RestResponse response = new RestResponse(strResponse);
-                        MediUser user = new MediUser(response);
+                        MediUser user = MediUser.createOne(strResponse);
                         user.save(getContext());
                         MySqlDatasource db = new MySqlDatasource(getContext());
                         Log.d(TAG, "onSuccess " + strResponse);

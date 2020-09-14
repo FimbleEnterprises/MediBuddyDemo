@@ -548,9 +548,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
                 Log.w(TAG, "onFailure: " + error.getMessage());
-                Menu m = navigationView.getMenu();
-                SubMenu subMenu = m.getItem(3).getSubMenu();
-                subMenu.getItem(0).setTitle("Retry");
+                try {
+                    Menu m = navigationView.getMenu();
+                    SubMenu subMenu = m.getItem(3).getSubMenu();
+                    subMenu.getItem(0).setTitle("Retry");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
 

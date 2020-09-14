@@ -99,6 +99,12 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
+        if (options.isExplicitMode()) {
+            this.setTitle("Fucking Trips");
+        } else {
+            this.setTitle("Trips");
+        }
+
     }
 
     @Override
@@ -205,7 +211,8 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
                 if (addedTodayHeader == false) {
                     FullTrip headerObj = new FullTrip();
                     headerObj.isSeparator = true;
-                    headerObj.setTitle("Today");
+                    headerObj.setTitle(options.isExplicitMode() ? getString(R.string.triplist_today_explicit)
+                    : getString(R.string.triplist_today));
                     triplist.add(headerObj);
                     addedTodayHeader = true;
                     Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Today' - This will not be added again!");
@@ -216,7 +223,8 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
                 if (addedYesterdayHeader == false) {
                     FullTrip headerObj = new FullTrip();
                     headerObj.isSeparator = true;
-                    headerObj.setTitle("Yesterday");
+                    headerObj.setTitle(options.isExplicitMode() ? getString(R.string.triplist_yesterday_explicit)
+                            : getString(R.string.triplist_yesterday));
                     triplist.add(headerObj);
                     addedYesterdayHeader = true;
                     Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Yesterday' - This will not be added again!");
@@ -227,7 +235,8 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
                 if (addedThisWeekHeader == false) {
                     FullTrip headerObj = new FullTrip();
                     headerObj.isSeparator = true;
-                    headerObj.setTitle("This week");
+                    headerObj.setTitle(options.isExplicitMode() ? getString(R.string.triplist_this_week_explicit)
+                            : getString(R.string.triplist_this_week));
                     triplist.add(headerObj);
                     addedThisWeekHeader = true;
                     Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'This week' - This will not be added again!");
@@ -238,7 +247,8 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
                 if (addedThisMonthHeader == false) {
                     FullTrip headerObj = new FullTrip();
                     headerObj.isSeparator = true;
-                    headerObj.setTitle("This month");
+                    headerObj.setTitle(options.isExplicitMode() ? getString(R.string.triplist_this_month_explicit)
+                            : getString(R.string.triplist_this_month_explicit));
                     triplist.add(headerObj);
                     addedThisMonthHeader = true;
                     Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'This month' - This will not be added again!");
@@ -249,7 +259,8 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
                 if (addedOlderHeader == false) {
                     FullTrip headerObj = new FullTrip();
                     headerObj.isSeparator = true;
-                    headerObj.setTitle("Last month and older");
+                    headerObj.setTitle(options.isExplicitMode() ? getString(R.string.triplist_last_month_and_older_explicit)
+                            : getString(R.string.triplist_last_month_and_older));
                     triplist.add(headerObj);
                     addedOlderHeader = true;
                     Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Older' - This will not be added again!");
@@ -289,15 +300,34 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
             }
         }
 
+        if (options.isExplicitMode()) {
+            try {
+                String[] names = user.fullname.split(" ");
+                txtName.setText(names[0] + " Fucking " + names[1]);
+                txtMtdCount.setText("" + tripCount + " fucking trips");
+                txtMtdCountLastMonth.setText("" + tripCountLastMonth + " fucking trips");
+                txtRate.setText("Rate: " + Helpers.Numbers.convertToCurrency((double) rate) + " / fucking mile");
+                txtRateLastMonth.setText("Rate: " + Helpers.Numbers.convertToCurrency((double) rateLastMonth) + " / fucking mile");
+            } catch (Exception e) {
+                txtName.setText(user.fullname);
+                txtMtdCount.setText("" + tripCount + " trips");
+                txtMtdCountLastMonth.setText("" + tripCountLastMonth + " trips");
+                txtRate.setText("Rate: " + Helpers.Numbers.convertToCurrency((double) rate) + " / mile");
+                txtRateLastMonth.setText("Rate: " + Helpers.Numbers.convertToCurrency((double) rateLastMonth) + " / mile");
+            }
+        } else {
+            txtName.setText(user.fullname);
+            txtMtdCount.setText("" + tripCount + " trips");
+            txtMtdCountLastMonth.setText("" + tripCountLastMonth + " trips");
+            txtRate.setText("Rate: " + Helpers.Numbers.convertToCurrency((double) rate) + " / mile");
+            txtRateLastMonth.setText("Rate: " + Helpers.Numbers.convertToCurrency((double) rateLastMonth) + " / mile");
+        }
 
-        txtName.setText(user.fullname);
-        txtMtdCount.setText("" + tripCount + " trips");
-        txtMtdCountLastMonth.setText("" + tripCountLastMonth + " trips");
         txtMtd.setText(Helpers.Numbers.convertToCurrency(mtdTotal));
         txtMtdLastMonth.setText(Helpers.Numbers.convertToCurrency(lastMonthTotal));
         userInfoContainer.setVisibility(View.VISIBLE);
-        txtRate.setText("Rate: " + Helpers.Numbers.convertToCurrency((double) rate) + " / mile");
-        txtRateLastMonth.setText("Rate: " + Helpers.Numbers.convertToCurrency((double) rateLastMonth) + " / mile");
+
+
 
     }
 

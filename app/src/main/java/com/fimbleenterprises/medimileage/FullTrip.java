@@ -319,7 +319,7 @@ public class FullTrip implements Parcelable {
         return this.isManualTrip == 1;
     }
 
-    public boolean getIsTripMinderKilled() {
+    public boolean wasAutoKilled() {
         return this.tripMinderKilled == 1;
     }
 
