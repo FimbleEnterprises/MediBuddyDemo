@@ -1860,7 +1860,8 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     void doActualReceipt(int month, int year) {
 
         // Log a metric
-        MileBuddyMetrics.updateMetric(getContext(), MileBuddyMetrics.MetricName.LAST_ACCESSED_GENERATE_RECEIPT, DateTime.now());
+        MileBuddyMetrics.updateMetric(getContext(), MileBuddyMetrics.MetricName
+                .LAST_ACCESSED_GENERATE_RECEIPT, DateTime.now());
 
         File receipt = makeReceiptFile(month, year);
         if (receipt != null) {
@@ -1872,7 +1873,8 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                     String.valueOf(R.string.receipt_mail_subject_preamble) + " (" + month + "/" + year + ")"
                     , getContext(), receipt, false);
         } else {
-            Toast.makeText(getContext(), "No trips found for that month/year.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "No trips found for that month/year."
+                    , Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -1909,9 +1911,11 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                                 "Is manual: " + trip.getIsManualTrip() + "\n\n");
                     }
                 }
+
+                totalMiles = Helpers.Numbers.formatAsZeroDecimalPointNumber(totalMiles, RoundingMode.HALF_UP);
                 stringBuilder.append("\n\n Trip count: " + tripCount);
-                stringBuilder.append("\n Total reimbursement: " + Helpers.Numbers.convertToCurrency(total));
-                stringBuilder.append("\n Total miles: " + Helpers.Numbers.formatAsZeroDecimalPointNumber(totalMiles, RoundingMode.HALF_UP));
+                stringBuilder.append("\n Total reimbursement: " + Helpers.Numbers.convertToCurrency(totalMiles * options.getReimbursementRate()));
+                stringBuilder.append("\n Total miles: " + totalMiles);
 
                 stream.write(stringBuilder.toString().getBytes());
             } finally {

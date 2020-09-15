@@ -52,9 +52,6 @@ import static com.fimbleenterprises.medimileage.ui.mileage.MileageFragment.PERMI
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
-
-
-
     private AppBarConfiguration mAppBarConfiguration;
     MySettingsHelper options;
     IntentFilter locFilter = new IntentFilter(MyLocationService.LOCATION_EVENT);
@@ -126,17 +123,20 @@ public class MainActivity extends AppCompatActivity {
                     SubMenu subMenu = m.getItem(3).getSubMenu();
                     subMenu.getItem(0).setTitle(getString(R.string.loading));
                     try {
-                        getDistinctUsersWithTrips();
+                        makeDrawerTitles();
                     } catch (Exception e) { }
                 } else if (item.getTitle().equals(getString(R.string.loading))) {
                     return false;
                 } else if (item.getItemId() == R.id.nav_settings) {
                     Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
                     startActivityForResult(intent, 0);
+                    drawer.closeDrawer(navigationView);
                 } else if (item.getItemId() == R.id.nav_stats) {
                     startActivity(new Intent(activity, AggregateStatsActivity.class));
+                    drawer.closeDrawer(navigationView);
                 } else if (item.getItemId() == R.id.nav_other) {
                     startActivity(new Intent(activity, Activity_TerritoryData.class));
+                    drawer.closeDrawer(navigationView);
                 }  else {
                     try {
                         Log.i(TAG, "onNavigationItemSelected index:" + item.getItemId());
@@ -163,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDrawerOpened(@NonNull View drawerView) {
                 try {
-                    getDistinctUsersWithTrips();
+                    makeDrawerTitles();
                 } catch (Exception e) { }
             }
 
@@ -260,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        makeDrawerTitles();
+        // makeDrawerTitles();
     }
 
     @Override
@@ -396,6 +396,12 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         return NavigationUI.navigateUp(navController, mAppBarConfiguration)
                 || super.onSupportNavigateUp();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        makeDrawerTitles();
     }
 
     public void makeDrawerTitles() {
@@ -579,94 +585,5 @@ public class MainActivity extends AppCompatActivity {
         mNewTitle.setSpan(new CustomTypefaceSpan("", font), 0, mNewTitle.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
         mi.setTitle(mNewTitle);
     }
-
-/*    @RequiresApi(api = Build.VERSION_CODES.O)
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case 1: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    if (permissions.length > 0) {
-                        if (permissions[0].equals("android.permission.ACCESS_FINE_LOCATION")) {
-                            startMyLocService();
-                        } else if (permissions[0].equals("android.permission.WRITE_EXTERNAL_STORAGE")) {
-                            Toast.makeText(getApplicationContext(), "Database was exported.", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                } else {
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                }
-                return;
-            }
-            // other 'case' lines to check for other
-            // permissions this app might request
-        }
-    }*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

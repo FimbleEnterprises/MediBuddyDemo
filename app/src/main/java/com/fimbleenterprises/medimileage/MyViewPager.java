@@ -22,6 +22,7 @@ public class MyViewPager extends ViewPager {
     public int currentPosition;
     private int pageCount = -1;
     OnRealPageChangedListener onRealPageChangedListener;
+    public boolean isPaging = false;
 
     public interface OnRealPageChangedListener {
         void onPageActuallyFuckingChanged(int pageIndex);

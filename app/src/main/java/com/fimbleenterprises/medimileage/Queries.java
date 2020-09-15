@@ -340,6 +340,93 @@ public class Queries {
             return query;
         }
 
+        public static String getOrderLines(String territoryid, int monthNum) {
+
+            /************** TESTING *************/
+            // repid = "DAA46FDF-5B7C-E711-80D1-005056A32EEA";
+            /************************************/
+
+
+            // Main entity columns
+            QueryFactory factory = new QueryFactory("salesorderdetail");
+            factory.addColumn("productid");
+            factory.addColumn("msus_price_per_unit");
+            factory.addColumn("new_customer");
+            factory.addColumn("quantity");
+            factory.addColumn("extendedamount");
+            factory.addColumn("salesrepid");
+            factory.addColumn("salesorderid");
+            factory.addColumn("salesorderdetailid");
+
+            // Create link entities
+            QueryFactory.LinkEntity linkEntitySalesOrder = new QueryFactory.LinkEntity(
+                    "salesorder",
+                    "salesorderid",
+                    "salesorderid",
+                    "a_6ec0e72e4c104394bc627456c6412838"
+            );
+            QueryFactory.LinkEntity linkEntitySystemUser = new QueryFactory.LinkEntity(
+                    "systemuser",
+                    "systemuserid",
+                    "salesrepid",
+                    "a_a1cf96c07c114d478335b8c445651a12"
+            );
+            QueryFactory.LinkEntity linkEntityAccount = new QueryFactory.LinkEntity(
+                    "account",
+                    "accountid",
+                    "new_customer",
+                    "a_db24f99da8fee71180df005056a36b9b"
+            );
+            QueryFactory.LinkEntity linkEntityProduct = new QueryFactory.LinkEntity(
+                    "product",
+                    "productid",
+                    "productid",
+                    "a_070ef9d142cd40d98bebd513e03c7cd1"
+            );
+
+            // Add columns to link entities
+            linkEntitySalesOrder.addColumn(new QueryFactory.EntityColumn("submitdate"));
+            linkEntitySystemUser.addColumn(new QueryFactory.EntityColumn("employeeid"));
+            linkEntityAccount.addColumn(new QueryFactory.EntityColumn("accountnumber"));
+            linkEntityAccount.addColumn(new QueryFactory.EntityColumn("territoryid"));
+            linkEntityProduct.addColumn(new QueryFactory.EntityColumn("msus_is_capital"));
+            linkEntityProduct.addColumn(new QueryFactory.EntityColumn("productnumber"));
+            linkEntityProduct.addColumn(new QueryFactory.EntityColumn("col_itemgroup"));
+            linkEntityProduct.addColumn(new QueryFactory.EntityColumn("col_producfamily"));
+
+            // Create and populate a condition array for a link entity
+            ArrayList<QueryFactory.Filter.FilterCondition> salesOrderConditions = new ArrayList<>();
+            QueryFactory.Filter.FilterCondition conditionOrderDate = new QueryFactory.Filter.FilterCondition(
+                    "submitdate", QueryFactory.Filter.Operator.IN_FISCAL_PERIOD, Integer.toString(monthNum));
+            salesOrderConditions.add(conditionOrderDate);
+
+            // Create and populate a condition array for a link entity
+            ArrayList<QueryFactory.Filter.FilterCondition> customerConditions = new ArrayList<>();
+            QueryFactory.Filter.FilterCondition conditionRepId = new QueryFactory.Filter.FilterCondition(
+                    "territoryid", QueryFactory.Filter.Operator.EQUALS, territoryid);
+            customerConditions.add(conditionRepId);
+
+            // Add new filters to the link entities that have filters
+            linkEntitySalesOrder.addFilter(new QueryFactory.Filter(AND, salesOrderConditions));
+            linkEntityAccount.addFilter(new QueryFactory.Filter(AND, customerConditions));
+
+            // Create and add a sort clause
+            QueryFactory.SortClause sortClause = new QueryFactory.SortClause("salesorderid",
+                    true, QueryFactory.SortClause.ClausePosition.ONE);
+            factory.addSortClause(sortClause);
+
+            // Add the constructed link entities
+            factory.addLinkEntity(linkEntityAccount);
+            factory.addLinkEntity(linkEntityProduct);
+            factory.addLinkEntity(linkEntitySalesOrder);
+            factory.addLinkEntity(linkEntitySystemUser);
+
+            // Build teh query
+            String query = factory.construct();
+
+            return query;
+        }
+
     }
 
     public static class Orders {
@@ -393,6 +480,13 @@ public class Queries {
             factory.addColumn("goalid");
             factory.addColumn("msus_fiscalfirstdayofmonth");
 
+            // Link entities
+            QueryFactory.LinkEntity linkEntityOwner = new QueryFactory.LinkEntity("systemuser", "systemuserid", "owninguser", "a_1124b4bdf013df11a16e00155d7aa40d");
+            linkEntityOwner.addColumn(new QueryFactory.EntityColumn("territoryid"));
+            linkEntityOwner.addColumn(new QueryFactory.EntityColumn("employeeid"));
+            factory.addLinkEntity(linkEntityOwner);
+
+
             // Filter conditions
             QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter
                     .FilterCondition("goalstartdate", QueryFactory.Filter.Operator.IN_FISCAL_YEAR, Integer.toString(yearNum));
@@ -438,6 +532,13 @@ public class Queries {
             factory.addColumn("goalid");
             factory.addColumn("msus_fiscalfirstdayofmonth");
 
+            // Link entities
+            QueryFactory.LinkEntity linkEntityOwner = new QueryFactory.LinkEntity("systemuser", "systemuserid", "owninguser", "a_1124b4bdf013df11a16e00155d7aa40d");
+            linkEntityOwner.addColumn(new QueryFactory.EntityColumn("territoryid"));
+            linkEntityOwner.addColumn(new QueryFactory.EntityColumn("employeeid"));
+            factory.addLinkEntity(linkEntityOwner);
+
+
             // Filter conditions
             QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter
                     .FilterCondition("title", QueryFactory.Filter.Operator.CONTAINS, "month");
@@ -482,6 +583,12 @@ public class Queries {
             factory.addColumn("goalstartdate");
             factory.addColumn("goalenddate");
             factory.addColumn("msus_fiscalfirstdayofmonth");
+
+            // Link entities
+            QueryFactory.LinkEntity linkEntityOwner = new QueryFactory.LinkEntity("systemuser", "systemuserid", "owninguser", "a_1124b4bdf013df11a16e00155d7aa40d");
+            linkEntityOwner.addColumn(new QueryFactory.EntityColumn("territoryid"));
+            linkEntityOwner.addColumn(new QueryFactory.EntityColumn("employeeid"));
+            factory.addLinkEntity(linkEntityOwner);
 
             // Filter conditions
             QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter
@@ -532,6 +639,12 @@ public class Queries {
             factory.addColumn("goalstartdate");
             factory.addColumn("goalenddate");
             factory.addColumn("msus_fiscalfirstdayofmonth");
+
+            // Link entities
+            QueryFactory.LinkEntity linkEntityOwner = new QueryFactory.LinkEntity("systemuser", "systemuserid", "owninguser", "a_1124b4bdf013df11a16e00155d7aa40d");
+            linkEntityOwner.addColumn(new QueryFactory.EntityColumn("territoryid"));
+            linkEntityOwner.addColumn(new QueryFactory.EntityColumn("employeeid"));
+            factory.addLinkEntity(linkEntityOwner);
 
             // Create filter conditions
             QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter

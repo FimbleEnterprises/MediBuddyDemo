@@ -331,6 +331,8 @@ public class CrmEntities {
         public String fiscalFirstDayValue;
         public DateTime rawStartDate;
         public DateTime rawEndDate;
+        public String territoryid;
+        public String territoryname;
 
         public String getPrettyPct() {
            return Helpers.Numbers.formatAsZeroDecimalPointNumber(this.pct, RoundingMode.UNNECESSARY) + "%";
@@ -355,6 +357,20 @@ public class CrmEntities {
             try {
                 if (!json.isNull("goalid")) {
                     this.goalid = (json.getString("goalid"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("a_1124b4bdf013df11a16e00155d7aa40d_employeeid")) {
+                    this.territoryname = (json.getString("a_1124b4bdf013df11a16e00155d7aa40d_employeeid"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("a_1124b4bdf013df11a16e00155d7aa40d_territoryid")) {
+                    this.territoryid = (json.getString("a_1124b4bdf013df11a16e00155d7aa40d_territoryid"));
                 }
             } catch (JSONException e) {
                 e.printStackTrace();

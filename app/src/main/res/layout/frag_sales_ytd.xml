@@ -14,8 +14,20 @@
         android:layout_centerInParent="true"
         android:visibility="gone" />
 
+    <TextView
+        android:id="@+id/txtChartTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:fontFamily="@font/casual"
+        android:padding="10dp"
+        android:text="Loading..."
+        android:textAlignment="center"
+        android:textStyle="bold" />
+
     <com.scwang.smart.refresh.layout.SmartRefreshLayout
         android:id="@+id/ytdRefreshLayout"
+        android:layout_below="@id/txtChartTitle"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <com.scwang.smart.refresh.header.ClassicsHeader

@@ -3,20 +3,26 @@ package com.fimbleenterprises.medimileage;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.TextView;
 
 /*import com.anychart.APIlib;
 import com.anychart.AnyChart;
@@ -24,12 +30,20 @@ import com.anychart.AnyChartView;
 import com.anychart.chart.common.dataentry.DataEntry;
 import com.anychart.chart.common.dataentry.ValueDataEntry;
 import com.anychart.charts.Cartesian;*/
+import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.HorizontalBarChart;
 import com.github.mikephil.charting.components.Description;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.PieEntry;
+import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -92,10 +106,15 @@ public class Activity_TerritoryData extends AppCompatActivity {
     // var for territoryid
     public static Territory territory;
 
+    // The popup dialog for goals represented by the chart.
+    public static Dialog chartPopupDialog;
+
     public final static String TAG = "TerritoryData";
     public static final String DATE_CHANGED = "DATE_CHANGED";
     public static final String MONTH = "MONTH";
     public static final String YEAR = "YEAR";
+
+    public int curPageIndex = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,7 +150,9 @@ public class Activity_TerritoryData extends AppCompatActivity {
         mViewPager.setPageCount(6);
         mViewPager.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
-            public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) { }
+            public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+                destroyChartDialogIfVisible();
+            }
         });
         fragMgr = getSupportFragmentManager();
 
@@ -147,6 +168,9 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
         try {
             territory = data.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
+
+             sectionsPagerAdapter.notifyDataSetChanged();
+
             Intent dateChanged = new Intent(DATE_CHANGED);
             dateChanged.putExtra(YEAR, yearNum);
             dateChanged.putExtra(MONTH, monthNum);
@@ -218,41 +242,37 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
         switch (mViewPager.currentPosition) {
             case 0 : // Sales lines
-                menu.findItem(R.id.action_this_month).setVisible(true);
-                menu.findItem(R.id.action_last_month).setVisible(true);
-                menu.findItem(R.id.action_choose_month).setVisible(true);
-
+                menu.findItem(R.id.action_west_region).setVisible(false);
+                menu.findItem(R.id.action_east_region).setVisible(false);
                 menu.findItem(R.id.action_this_year).setVisible(false);
                 menu.findItem(R.id.action_last_year).setVisible(false);
 
-                menu.findItem(R.id.action_west_region).setVisible(false);
-                menu.findItem(R.id.action_east_region).setVisible(false);
-
+                menu.findItem(R.id.action_this_month).setVisible(true);
+                menu.findItem(R.id.action_last_month).setVisible(true);
+                menu.findItem(R.id.action_choose_month).setVisible(true);
                 menu.findItem(R.id.action_choose_territory).setVisible(true);
                 break;
             case 1 : // MTD
+                menu.findItem(R.id.action_this_year).setVisible(false);
+                menu.findItem(R.id.action_last_year).setVisible(false);
+                menu.findItem(R.id.action_choose_territory).setVisible(false);
+
+                menu.findItem(R.id.action_west_region).setVisible(true);
+                menu.findItem(R.id.action_east_region).setVisible(true);
                 menu.findItem(R.id.action_this_month).setVisible(true);
                 menu.findItem(R.id.action_last_month).setVisible(true);
                 menu.findItem(R.id.action_choose_month).setVisible(true);
-
-                menu.findItem(R.id.action_this_year).setVisible(false);
-                menu.findItem(R.id.action_last_year).setVisible(false);
-
-                menu.findItem(R.id.action_west_region).setVisible(true);
-                menu.findItem(R.id.action_east_region).setVisible(true);
-                menu.findItem(R.id.action_choose_territory).setVisible(false);
                 break;
             case 2 : // YTD
                 menu.findItem(R.id.action_this_month).setVisible(false);
-                menu.findItem(R.id.action_last_year).setVisible(false);
+                menu.findItem(R.id.action_last_month).setVisible(false);
                 menu.findItem(R.id.action_choose_month).setVisible(false);
-
-                menu.findItem(R.id.action_this_year).setVisible(true);
-                menu.findItem(R.id.action_last_year).setVisible(true);
+                menu.findItem(R.id.action_choose_territory).setVisible(false);
 
                 menu.findItem(R.id.action_west_region).setVisible(true);
                 menu.findItem(R.id.action_east_region).setVisible(true);
-                menu.findItem(R.id.action_choose_territory).setVisible(false);
+                menu.findItem(R.id.action_this_year).setVisible(true);
+                menu.findItem(R.id.action_last_year).setVisible(true);
                 break;
 
         }
@@ -306,6 +326,12 @@ public class Activity_TerritoryData extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    public static void destroyChartDialogIfVisible() {
+        if (chartPopupDialog != null && chartPopupDialog.isShowing()) {
+            chartPopupDialog.dismiss();
+        }
+    }
+
     public static void sendBroadcastUsingExistingValues() {
         Intent dateChanged = dateChanged = new Intent(DATE_CHANGED);
         dateChanged.putExtra(MONTH, monthNum);
@@ -352,7 +378,6 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public SectionsPagerAdapter(androidx.fragment.app.FragmentManager fm) {
             super(fm);
             sectionsPagerAdapter = this;
-
         }
 
         @Override
@@ -411,13 +436,15 @@ public class Activity_TerritoryData extends AppCompatActivity {
         @Override
         public CharSequence getPageTitle(int position) {
 
+            curPageIndex = position;
+
             switch (position) {
                 case 0:
                     return "Sales Lines (" + territory.territoryName + ")";
                 case 1:
-                    return "MTD Goals";
+                    return "MTD Goals by Region";
                 case 2:
-                    return "YTD Goals";
+                    return "YTD Goals by Region";
                 case 3:
                     return "Opportunities";
                 case 4:
@@ -514,6 +541,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
             } else if (monthNum == DateTime.now().minusMonths(1).getMonthOfYear()) {
                 query = Queries.OrderLines.getOrderLines(territory.territoryid,
                         Queries.Operators.DateOperator.LAST_MONTH);
+            } else {
+                query = Queries.OrderLines.getOrderLines(territory.territoryid, monthNum);
             }
 
             ArrayList<Requests.Argument> args = new ArrayList<>();
@@ -644,6 +673,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         AnyChartView anyChartView;*/
         RefreshLayout mtdRefreshLayout;
         HorizontalBarChart chartMtd;
+        TextView txtChartTitle;
 
         @Override
         public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -655,9 +685,10 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                                  @Nullable Bundle savedInstanceState) {
             rootView = inflater.inflate(R.layout.frag_sales_mtd, container, false);
-            /*bar = AnyChart.bar();
-            anyChartView = (AnyChartView) rootView.findViewById(R.id.chartMtd);
-            anyChartView.setChart(bar);*/
+
+            txtChartTitle = rootView.findViewById(R.id.txtChartTitle);
+            chartMtd = rootView.findViewById(R.id.chartMtd);
+
             goalsReceiverMtd = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
@@ -692,30 +723,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 yearNum = DateTime.now().getYear();
             }
 
-            chartMtd = (HorizontalBarChart) rootView.findViewById(R.id.chartMtd);
-
             getMtdGoalsByRegion();
             return rootView;
-        }
-
-        protected BarData generateBarData(CrmEntities.Goals goals) {
-
-            ArrayList<IBarDataSet> sets = new ArrayList<>();
-
-                ArrayList<BarEntry> entries = new ArrayList<>();
-
-                for(int j = 0; j < goals.list.size(); j++) {
-                    CrmEntities.Goal goal = goals.list.get(j);
-                    BarEntry entry = new BarEntry(goal.actual, goal.pct);
-                    entries.add(entry);
-                }
-
-                BarDataSet ds = new BarDataSet(entries, "test");
-                ds.setColors(ColorTemplate.VORDIPLOM_COLORS);
-                sets.add(ds);
-
-            BarData d = new BarData(sets);
-            return d;
         }
 
         @Override
@@ -749,9 +758,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     String response = new String(responseBody);
                     CrmEntities.Goals goals = new CrmEntities.Goals(response);
                     Log.i(TAG, "onSuccess " + response);
-                    chartMtd.setData(generateBarData(goals));
-                    chartMtd.animateXY(2000, 2000);
-                    chartMtd.invalidate();
+                    populateChartMtd(goals);
                     mtdRefreshLayout.finishRefresh();
                 }
 
@@ -764,31 +771,121 @@ public class Activity_TerritoryData extends AppCompatActivity {
             });
         }
 
-        void populateChartMtd(CrmEntities.Goals goals) {
+        void populateChartMtd(final CrmEntities.Goals goals) {
 
-            /*List<DataEntry> data = new ArrayList<>();
-            for (int i = 0; i < goals.list.size(); i++) {
+            String title = "MTD Goals " + getRegionName() + " (month: " + monthNum + ", year: " + yearNum + ")";
+            
+            txtChartTitle.setText(title);
+
+            // Start building the containers to hold the goal data
+            ArrayList<IBarDataSet> sets = new ArrayList<>();
+            ArrayList<BarEntry> entries = new ArrayList<>();
+
+            // Create and populate a container to hold the bar entries, labels and colors
+            final ArrayList<String> xAxisLabel = new ArrayList<>();
+            for(int i = 0; i < goals.size(); i++) {
                 CrmEntities.Goal goal = goals.list.get(i);
-                GoalSummary goalSummary = goals.list.get(i).getGoalSummary(goal.getStartDateForMonthlyGoal(), goal.getEndDateForMonthlyGoal(), DateTime.now());
-                data.add(new ValueDataEntry(goalSummary.goal.ownername, goalSummary.getPctAcheivedAsOfToday()));
+                BarEntry entry = new BarEntry(i, goal.pct);
+                entries.add(entry);
+                xAxisLabel.add(goal.ownername + " (" + goal.territoryname + ")");
             }
 
-            mtdBar.data(data);
+            // Build a BarDataSet container and fill it with our data containers
+            BarDataSet ds = new BarDataSet(entries, title);
+            ds.setColors(ColorTemplate.MATERIAL_COLORS);
+            sets.add(ds);
+            BarData d = new BarData(sets);
 
-            String title = "MTD Goals " + getRegionName() + " (month: " + monthNum
-                    + " year: " + yearNum + ")";
+            // Apply the chart data to the chart
+            chartMtd.setData(d);
 
-            mtdBar.title(title);
-            APIlib.getInstance().setActiveAnyChartView(mtdChartView);
-            mtdChartView.invalidate(); // refresh*/
+            // Hide the legend
+            chartMtd.getLegend().setEnabled(false);
 
-            /*bar.title(title);
-            bar.labels(true);
-            bar.labels().selectable(true);
-            bar.labels().enabled(true);
-            bar.data(data);*/
+            // Aesthetics
+            chartMtd.setDrawValueAboveBar(true);
+            chartMtd.animateXY(2000, 2000);
 
-        } // END ONCREATEVIEW
+            // Show each label for each entry
+            ValueFormatter xAxisFormatter = new ValueFormatter() {
+                @Override
+                public String getBarLabel(BarEntry barEntry) {
+                    return super.getBarLabel(barEntry);
+                }
+            };
+
+            // Format the entries and labels
+            XAxis xAxis = chartMtd.getXAxis();
+            xAxis.setPosition(XAxis.XAxisPosition.TOP_INSIDE); // Where to put the labels
+            xAxis.setDrawGridLines(false);
+            xAxis.setGranularity(1f); // intervals
+            xAxis.setLabelCount(xAxisLabel.size());
+            xAxis.setValueFormatter(xAxisFormatter);
+            xAxis.setGranularity(1f); // minimum axis-step (interval) is 1
+            ValueFormatter formatter = new ValueFormatter() {
+                @Override
+                public String getFormattedValue(float value) {
+                    return xAxisLabel.get((int) value);
+                }
+            };
+            xAxis.setValueFormatter(formatter);
+
+            // Refresh the chart
+            chartMtd.invalidate();
+
+            // Make an onclick listener for chart values
+            chartMtd.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
+                @Override
+                public void onValueSelected(Entry e, Highlight h) {
+                    Log.i(TAG, "onValueSelected " + e.getData());
+
+                    // Get the goal represented by the selected entry
+                    CrmEntities.Goal selectedGoal = goals.list.get((int) e.getX());
+
+                    // Show the goal summary for the selected entry
+                    chartPopupDialog = new Dialog(context);
+                    final Context c = context;
+                    chartPopupDialog.setContentView(R.layout.generic_app_dialog);
+                    chartPopupDialog.setTitle(selectedGoal.ownername);
+                    chartPopupDialog.setCancelable(true);
+                    final TextView txtMainText = chartPopupDialog.findViewById(R.id.txtMainText);
+                    Button btnOkay = chartPopupDialog.findViewById(R.id.btnOkay);
+                    btnOkay.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            chartPopupDialog.dismiss();
+                        }
+                    });
+                    txtMainText.setText(
+                            selectedGoal.ownername + "\n" +
+                            "Month: " + selectedGoal.period + ", Year: " + selectedGoal.year + "\n" +
+                            "\n" +
+                            "Target: " + selectedGoal.getPrettyTarget() + "\n" +
+                            "Actual: " + selectedGoal.getPrettyActual() + "\n" +
+                            "Percent: " + selectedGoal.getPrettyPct() + "\n"
+                    );
+                    chartPopupDialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+                        @Override
+                        public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                                dialog.dismiss();
+                                return true;
+                            } else {
+                                return false;
+                            }
+                        }
+                    });
+                    chartPopupDialog.show();
+
+                }
+
+                @Override
+                public void onNothingSelected() {
+
+                }
+            }); // end onChartClickListener
+
+        }
 
     }
 
@@ -799,6 +896,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
         /*Cartesian bar;
         AnyChartView anyChartView;*/
         RefreshLayout ytdRefreshLayout;
+        TextView txtChartTitle;
+        HorizontalBarChart chartYtd;
 
         @Override
         public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -810,9 +909,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                                  @Nullable Bundle savedInstanceState) {
             rootView = inflater.inflate(R.layout.frag_sales_ytd, container, false);
-            /*bar = AnyChart.bar();
-            anyChartView = (AnyChartView) rootView.findViewById(R.id.chartMtd);
-            anyChartView.setChart(bar);*/
+            txtChartTitle = rootView.findViewById(R.id.txtChartTitle);
+            chartYtd = (HorizontalBarChart) rootView.findViewById(R.id.chartYtd);
             goalsReceiverYtd = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
@@ -821,6 +919,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     getYtdGoalsByRegion();
                 }
             };
+
+            txtChartTitle = rootView.findViewById(R.id.txtChartTitle);
 
             ytdRefreshLayout = (RefreshLayout) rootView.findViewById(R.id.ytdRefreshLayout);
             ytdRefreshLayout.setRefreshHeader(new MaterialHeader(getContext()));
@@ -845,12 +945,6 @@ public class Activity_TerritoryData extends AppCompatActivity {
             if (yearNum == 0) {
                 yearNum = DateTime.now().getYear();
             }
-
-            HorizontalBarChart chart = (HorizontalBarChart) rootView.findViewById(R.id.chartYtd);
-
-            chart.setData(generateBarData(1, 20, 20));
-            chart.animateXY(2000, 2000);
-            chart.invalidate();
 
             getYtdGoalsByRegion();
             return rootView;
@@ -900,52 +994,120 @@ public class Activity_TerritoryData extends AppCompatActivity {
             });
         }
 
-        void populateChartYtd(CrmEntities.Goals goals) {
-
-            /*List<DataEntry> data = new ArrayList<>();
-            for (int i = 0; i < goals.list.size(); i++) {
-                CrmEntities.Goal goal = goals.list.get(i);
-                GoalSummary goalSummary = goals.list.get(i).getGoalSummary(goal.getStartDate(), goal.getEndDate(), DateTime.now());
-                data.add(new ValueDataEntry(goalSummary.goal.ownername, goalSummary.getPctAcheivedAsOfToday()));
-            }
-
-            ytdBar.data(data);
+        void populateChartYtd(final CrmEntities.Goals goals) {
 
             String title = "YTD Goals " + getRegionName() + " (year: " + yearNum + ")";
 
-            ytdBar.title(title);
-            APIlib.getInstance().setActiveAnyChartView(ytdChartView);
-            ytdChartView.invalidate(); // refresh
+            txtChartTitle.setText(title);
 
-            *//*bar.title(title);
-            bar.labels(true);
-            bar.labels().selectable(true);
-            bar.labels().enabled(true);
-            bar.data(data);*/
-
-        } // END ONCREATEVIEW
-
-
-
-        protected BarData generateBarData(int dataSets, float range, int count) {
-
+            // Start building the containers to hold the goal data
             ArrayList<IBarDataSet> sets = new ArrayList<>();
+            ArrayList<BarEntry> entries = new ArrayList<>();
 
-            for(int i = 0; i < dataSets; i++) {
-
-                ArrayList<BarEntry> entries = new ArrayList<>();
-
-                for(int j = 0; j < count; j++) {
-                    entries.add(new BarEntry(j, (float) (Math.random() * range) + range / 4));
-                }
-
-                BarDataSet ds = new BarDataSet(entries, "test");
-                ds.setColors(ColorTemplate.VORDIPLOM_COLORS);
-                sets.add(ds);
+            // Create a container to hold the bar entry labels and populate them
+            final ArrayList<String> xAxisLabel = new ArrayList<>();
+            for(int i = 0; i < goals.size(); i++) {
+                CrmEntities.Goal goal = goals.list.get(i);
+                BarEntry entry = new BarEntry(i, goal.pct);
+                entries.add(entry);
+                xAxisLabel.add(goal.ownername + " (" + goal.territoryname + ")");
             }
 
+            // Create and populate a container to hold the bar entries, labels and colors
+            BarDataSet ds = new BarDataSet(entries, title);
+            ds.setColors(ColorTemplate.MATERIAL_COLORS);
+            sets.add(ds);
             BarData d = new BarData(sets);
-            return d;
+
+            // Apply the chart data to the chart
+            chartYtd.setData(d);
+
+            // Hide the legend
+            chartYtd.getLegend().setEnabled(false);
+
+            // Aesthetics
+            chartYtd.setDrawValueAboveBar(true);
+            chartYtd.animateXY(2000, 2000);
+
+            // Show each label for each entry
+            ValueFormatter xAxisFormatter = new ValueFormatter() {
+                @Override
+                public String getBarLabel(BarEntry barEntry) {
+                    return super.getBarLabel(barEntry);
+                }
+            };
+
+            // Format the entries and labels
+            XAxis xAxis = chartYtd.getXAxis();
+            xAxis.setPosition(XAxis.XAxisPosition.TOP_INSIDE); // Where to put the labels
+            xAxis.setDrawGridLines(false);
+            xAxis.setGranularity(1f); // intervals
+            xAxis.setLabelCount(xAxisLabel.size());
+            xAxis.setValueFormatter(xAxisFormatter);
+            xAxis.setGranularity(1f); // minimum axis-step (interval) is 1
+            ValueFormatter formatter = new ValueFormatter() {
+                @Override
+                public String getFormattedValue(float value) {
+                    return xAxisLabel.get((int) value);
+                }
+            };
+            xAxis.setValueFormatter(formatter);
+
+            // Refresh the chart
+            chartYtd.invalidate();
+
+            // Make an onclick listener for chart values
+            chartYtd.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
+                @Override
+                public void onValueSelected(Entry e, Highlight h) {
+                    Log.i(TAG, "onValueSelected " + e.getData());
+
+                    // Get the goal represented by the selected entry
+                    CrmEntities.Goal selectedGoal = goals.list.get((int) e.getX());
+
+                    // Show the goal summary for the selected entry
+                    chartPopupDialog = new Dialog(context);
+                    final Context c = context;
+                    chartPopupDialog.setContentView(R.layout.generic_app_dialog);
+                    chartPopupDialog.setTitle(selectedGoal.ownername);
+                    chartPopupDialog.setCancelable(true);
+                    final TextView txtMainText = chartPopupDialog.findViewById(R.id.txtMainText);
+                    Button btnOkay = chartPopupDialog.findViewById(R.id.btnOkay);
+                    btnOkay.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            chartPopupDialog.dismiss();
+                        }
+                    });
+                    txtMainText.setText(
+                            selectedGoal.ownername + "\n" +
+                            "Month: " + selectedGoal.period + ", Year: " + selectedGoal.year + "\n" +
+                            "\n" +
+                            "Target: " + selectedGoal.getPrettyTarget() + "\n" +
+                            "Actual: " + selectedGoal.getPrettyActual() + "\n" +
+                            "Percent: " + selectedGoal.getPrettyPct() + "\n"
+                    );
+                    chartPopupDialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+                        @Override
+                        public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                                dialog.dismiss();
+                                return true;
+                            } else {
+                                return false;
+                            }
+                        }
+                    });
+                    chartPopupDialog.show();
+
+                }
+
+                @Override
+                public void onNothingSelected() {
+
+                }
+            }); // end onChartClickListener
+
         }
 
     }

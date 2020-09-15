@@ -198,7 +198,7 @@
             app:key="EXPLICIT_MODE"
             android:fontFamily="casual"
             app:defaultValue="false"
-            app:title="Explicit mode" />
+            app:title="Naughty words" />
 
         <PreferenceCategory
             app:key="EXPERIMENTAL_CATEGORY"
