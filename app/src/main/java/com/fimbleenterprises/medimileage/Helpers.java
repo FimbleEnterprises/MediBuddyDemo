@@ -2,6 +2,9 @@ package com.fimbleenterprises.medimileage;
 
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
+import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -80,9 +83,11 @@ import androidx.annotation.RequiresApi;
 
 import static android.content.Context.MODE_PRIVATE;
 
-public class Helpers {
+public abstract class Helpers {
 
     public static class Application {
+
+        private static final String TAG = "Application";
 
         public static float getAppVersion(Context context) {
             try {
@@ -106,6 +111,54 @@ public class Helpers {
 
             context.startActivity( applicationDetailsSettingsIntent );
 
+        }
+
+        public static void startActivity(Context context, Class activityClass) {
+            Intent intent = new Intent(context, activityClass);
+            context.startActivity(intent);
+        }
+
+        public static void startActivityForResult(Activity sourceActivity, Class destActivityClass, int requestCode) {
+            sourceActivity.startActivityForResult(new Intent(sourceActivity, destActivityClass), requestCode);
+        }
+
+        public static void restartApplication(Context c) {
+            try {
+                //check if the context is given
+                if (c != null) {
+                    //fetch the packagemanager so we can get the default launch activity
+                    // (you can replace this intent with any other activity if you want
+                    PackageManager pm = c.getPackageManager();
+                    //check if we got the PackageManager
+                    if (pm != null) {
+                        //create the intent with the default start activity for your application
+                        Intent mStartActivity = pm.getLaunchIntentForPackage(
+                                c.getPackageName()
+                        );
+                        if (mStartActivity != null) {
+                            mStartActivity.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            //create a pending intent so the application is restarted after System.exit(0) was called.
+                            // We use an AlarmManager to call this intent in 100ms
+                            int mPendingIntentId = 223344;
+                            PendingIntent mPendingIntent = PendingIntent
+                                    .getActivity(c, mPendingIntentId, mStartActivity,
+                                            PendingIntent.FLAG_CANCEL_CURRENT);
+                            AlarmManager mgr = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
+                            mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100, mPendingIntent);
+                            //kill the application
+                            System.exit(0);
+                        } else {
+                            Log.e(TAG, "Was not able to restart application, mStartActivity null");
+                        }
+                    } else {
+                        Log.e(TAG, "Was not able to restart application, PM null");
+                    }
+                } else {
+                    Log.e(TAG, "Was not able to restart application, Context null");
+                }
+            } catch (Exception ex) {
+                Log.e(TAG, "Was not able to restart application");
+            }
         }
     }
 

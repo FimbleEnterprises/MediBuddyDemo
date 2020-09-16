@@ -81,24 +81,27 @@ public class AuthenticationFragment extends Fragment {
                 final MyProgressDialog dialog = new MyProgressDialog(getContext(), "Verifying credentials...");
                 dialog.show();
 
-                userCanAuthenticate(new MyInterfaces.YesNoResult() {
-                    @Override
-                    public void onYes(@Nullable Object object) {
-                        Toast.makeText(context, "Successfully authenticated.\nGetting user details...", Toast.LENGTH_SHORT).show();
-                        if (requestHandle != null && requestHandle.isCancelled()) {
-                            dialog.dismiss();
-                            return;
-                        }
-                        dialog.dismiss();
-                        getUser(txtUsername.getText().toString());
-                    }
+                Crm.userCanAuthenticate(txtUsername.getText().toString(), txtPassword.getText().toString(),
+                        new MyInterfaces.AuthenticationResult() {
+                            @Override
+                            public void onSuccess() {
+                                Toast.makeText(context, "Successfully authenticated.\nGetting user details...", Toast.LENGTH_SHORT).show();
+                                dialog.dismiss();
+                                getUser(txtUsername.getText().toString());
+                            }
 
-                    @Override
-                    public void onNo(@Nullable Object object) {
-                        Toast.makeText(context, "Failed to authenticate.", Toast.LENGTH_SHORT).show();
-                        dialog.dismiss();
-                    }
-                });
+                            @Override
+                            public void onFailure() {
+                                Toast.makeText(context, "Failed to authenticate!", Toast.LENGTH_SHORT).show();
+                                dialog.dismiss();
+                            }
+
+                            @Override
+                            public void onError(String msg, Throwable exception) {
+                                Toast.makeText(context, "Failed to authenticate\n" + exception.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                                dialog.dismiss();
+                            }
+                        });
             }
         });
 
@@ -139,7 +142,7 @@ public class AuthenticationFragment extends Fragment {
         }
     }
 
-    public void userCanAuthenticate(final MyInterfaces.YesNoResult result) {
+/*    public void userCanAuthenticate(final MyInterfaces.YesNoResult result) {
         if (requestHandle != null && requestHandle.isCancelled()) {
             return;
         }
@@ -186,7 +189,7 @@ public class AuthenticationFragment extends Fragment {
             Log.w(TAG, "onClick: " + e.getMessage());
             dialog.dismiss();
         }
-    }
+    }*/
 
     public void getUser(String email) {
         String query = Queries.Users.getUser(email);

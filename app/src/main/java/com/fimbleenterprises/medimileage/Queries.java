@@ -1,7 +1,5 @@
 package com.fimbleenterprises.medimileage;
 
-import com.google.gson.internal.$Gson$Preconditions;
-
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
@@ -244,6 +242,32 @@ public class Queries {
 
             QueryFactory.SortClause sortClause = new QueryFactory.SortClause("name", false, QueryFactory.SortClause.ClausePosition.ONE);
             query.addSortClause(sortClause);
+
+            // Spit out the encoded query
+            String rslt = query.construct();
+            return rslt;
+        }
+    }
+
+    /**
+     * Contains queries designed to test basic functionality and CRM communication
+     */
+    public static class Utility {
+
+        /**
+         * Used to test connectivity by requesting the current user by the current user's saved systemuserid.
+         * @return Some basic columns about the user (fullname, title etc.)
+         */
+        public static String getMyUser() {
+            // Instantiate a new constructor for the case entity and add the columns we want to see
+            QueryFactory query = new QueryFactory(QueryFactory.EntityNames.USER);
+            query.addColumn("fullname");
+
+            // Filter creation to make use of our conditions
+            QueryFactory.Filter filter = new QueryFactory.Filter(AND);
+            filter.addCondition(new QueryFactory.Filter.FilterCondition("systemuserid",
+                    QueryFactory.Filter.Operator.EQUALS, MediUser.getMe().systemuserid));
+            query.setFilter(filter);
 
             // Spit out the encoded query
             String rslt = query.construct();

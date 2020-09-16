@@ -192,9 +192,27 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
+        // Check in the background if the user has cached credentials and whether they are still valid
         if ( MediUser.getMe(this) == null || ! options.hasCachedCredentials()) {
             navController.navigate(R.id.action_HomeFragment_to_HomeSecondFragment);
             Toast.makeText(this, getString(R.string.must_login), Toast.LENGTH_SHORT).show();
+        } else {
+            Crm.userCanAuthenticate(options.getCachedUsername(), options.getCachedPassword(), new MyInterfaces.AuthenticationResult() {
+                @Override
+                public void onSuccess() {
+                    Log.i(TAG, "onSuccess ");
+                }
+
+                @Override
+                public void onFailure() {
+                    Log.w(TAG, "onFailure: ");
+                }
+
+                @Override
+                public void onError(String msg, Throwable exception) {
+                    Log.w(TAG, "onError: ");
+                }
+            });
         }
 
         try {

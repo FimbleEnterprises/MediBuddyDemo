@@ -114,7 +114,7 @@ public class QueryFactory {
     private void setEntity(String entity) {
         this.entityName = entity;
 
-        preamble = "/api/data/v8.2/" + ENTITY_NAMES.getPluralEntityName(entity)
+        preamble = "/api/data/v8.2/" + EntityNames.getPluralEntityName(entity)
                 + "?fetchXml=%3Cfetch%20version%3D%221.0%22%20output-format%3D%22xml-platform%22%20mapping%3D%22logical%22%20distinct%3D%22" + Boolean.toString(distinct) + "%22%3E%3Centity%20name%3D%22" + entity + "%22%3E";
     }
 
@@ -551,7 +551,7 @@ public class QueryFactory {
         public static final String FCM_TOKENS = "783b425c-4ace-e811-80e9-005056a36b9b";
     }
 
-    public static class ENTITY_NAMES {
+    public static class EntityNames {
         public static final String ACCOUNT = "account";
         public static final String CASE = "incident";
         public static final String NOTE = "annotation";
@@ -588,15 +588,15 @@ public class QueryFactory {
         }
 
         public static String getPluralEntityName(String entityLogicalName) {
-            if (entityLogicalName.equals(ENTITY_NAMES.CUSTOMER_INVENTORY)) {
+            if (entityLogicalName.equals(EntityNames.CUSTOMER_INVENTORY)) {
                 return "col_customerinventories";
-            } else if (entityLogicalName.equals(ENTITY_NAMES.OPPORTUNITIY)) {
+            } else if (entityLogicalName.equals(EntityNames.OPPORTUNITIY)) {
                 return "opportunities";
-            }  else if (entityLogicalName.equals(ENTITY_NAMES.SALESLITERATURE)) {
+            }  else if (entityLogicalName.equals(EntityNames.SALESLITERATURE)) {
                 return "salesliteratures";
-            } else if (entityLogicalName.equals(ENTITY_NAMES.SALESLITERATUREITEM)) {
+            } else if (entityLogicalName.equals(EntityNames.SALESLITERATUREITEM)) {
                 return "salesliteratureitems";
-            } else if (entityLogicalName.equals(ENTITY_NAMES.TERRITORY)) {
+            } else if (entityLogicalName.equals(EntityNames.TERRITORY)) {
                 return "territories";
             } else {
                 return entityLogicalName + "s";

@@ -71,4 +71,10 @@ public class MyInterfaces {
         public void onSuccess(UserAddresses addresses);
         public void onFailure(String msg);
     }
+
+    public interface AuthenticationResult {
+        void onSuccess();
+        void onFailure();
+        void onError(String msg, Throwable exception);
+    }
 }

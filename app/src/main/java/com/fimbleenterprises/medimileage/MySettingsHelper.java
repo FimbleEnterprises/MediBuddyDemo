@@ -41,6 +41,8 @@ public class MySettingsHelper {
     public static final String ALL_ADDRESSES_JSON = "ALL_ADDRESSES_JSON";
     public static final String DISTANCE_THRESHOLD = "DISTANCE_THRESHOLD";
     public static final String EXPLICIT_MODE = "EXPLICIT_MODE";
+    public static final String SET_DEFAULTS = "SET_DEFAULTS";
+    public static final String SERVER_BASE_URL = "SERVER_BASE_URL";
 
     public static final String RECEIPT_FORMAT_PNG = ".png";
     public static final String RECEIPT_FORMAT_JPEG = ".jpeg";
@@ -56,6 +58,18 @@ public class MySettingsHelper {
 
     public SharedPreferences getSharedPrefs() {
         return prefs;
+    }
+
+    public void setDefaults() {
+        prefs.edit().clear().commit();
+    }
+
+    public void setServerBaseUrl(String url) {
+        prefs.edit().putString(SERVER_BASE_URL, url).commit();
+    }
+
+    public String getServerBaseUrl() {
+        return prefs.getString(SERVER_BASE_URL, context.getString(R.string.base_server_url));
     }
 
     public boolean isExplicitMode() {

@@ -36,6 +36,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Objects;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
@@ -84,8 +85,15 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String CHECK_FOR_UPDATES = "CHECK_FOR_UPDATES";
     public static final String DEBUG_MODE = "DEBUG_MODE";
     public static final String EXPLICIT_MODE = "EXPLICIT_MODE";
+    public static final String SET_DEFAULTS = "SET_DEFAULTS";
+    public static final String SERVER_BASE_URL = "SERVER_BASE_URL";
 
     public static String DEFAULT_DATABASE_NAME = "mileagetracking.db";
+
+    // if this activity is started with an intent extra representing an existing preference then we will scroll to that preference after preferences are loaded.
+    public static Preference initialScrollToPreference;
+    public static String PREF_INTENT_TAG = "PREFERENCE";
+
     Context context;
 
 
@@ -125,6 +133,14 @@ public class SettingsActivity extends AppCompatActivity {
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.preferences, rootKey);
 
+            final Intent intent = getActivity().getIntent();
+            if (intent != null) {
+                String string = intent.getStringExtra(PREF_INTENT_TAG);
+                if (string != null) {
+                    scrollToPreference(string);
+                }
+            }
+
             if (options.isExplicitMode()) {
                 makeExplicit();
             }
@@ -141,6 +157,74 @@ public class SettingsActivity extends AppCompatActivity {
             Preference prefExperimentalFunction;
             Preference prefUpdateMyUserInfo;
             Preference prefExplicitMode;
+            Preference prefSetDefaults;
+            final Preference prefSetServerBaseUrl;
+
+            prefSetDefaults = findPreference(SET_DEFAULTS);
+            prefSetDefaults.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    MyYesNoDialog.show(getContext(), new MyYesNoDialog.YesNoListener() {
+                        @Override
+                        public void onYes() {
+                            String cachedUsername = options.getCachedUsername();
+                            String cachedPassword = options.getCachedPassword();
+                            options.setDefaults();
+                            options.setCachedUsername(cachedUsername);
+                            options.setCachedPassword(cachedPassword);
+                            Toast.makeText(getContext(), "Defaults set!", Toast.LENGTH_SHORT).show();
+                            Helpers.Application.restartApplication(getContext());
+                        }
+
+                        @Override
+                        public void onNo() {
+                            return;
+                        }
+                    });
+                    return false;
+                }
+            });
+
+            prefSetServerBaseUrl = findPreference(SERVER_BASE_URL);
+            prefSetServerBaseUrl.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+
+                    // Check if the user left it blank - if so then change that blank value to the
+                    // default value
+                    if (newValue.toString().length() == 0) {
+                        newValue = requireContext().getString(R.string.base_server_url);
+                    }
+
+                    final String newValueFinal = newValue.toString();
+
+                    final MyProgressDialog dialog = new MyProgressDialog(getContext(), getString(R.string.validate_server_url_progress_msg));
+                    dialog.show();
+                    final String originalValue = options.getServerBaseUrl();
+                    options.setServerBaseUrl(newValue.toString());
+                    Requests.Argument argument = new Requests.Argument("query", Queries.Utility.getMyUser());
+                    ArrayList<Requests.Argument> args = new ArrayList<>();
+                    args.add(argument);
+                    Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
+                    Crm crm = new Crm();
+                    crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+                        @Override
+                        public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                            Toast.makeText(getContext(), getString(R.string.server_url_validated_successfully), Toast.LENGTH_SHORT).show();
+                            reloadAndScrollTo(SERVER_BASE_URL);
+                            dialog.dismiss();
+                        }
+
+                        @Override
+                        public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                            options.setServerBaseUrl(originalValue);
+                            Toast.makeText(getContext(), getString(R.string.server_url_validated_unsuccessfully), Toast.LENGTH_SHORT).show();
+                            dialog.dismiss();
+                        }
+                    });
+                    return false;
+                }
+            });
 
             prefBackupDb = findPreference(BACKUP_DB_KEY);
             prefBackupDb.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
@@ -367,8 +451,7 @@ public class SettingsActivity extends AppCompatActivity {
             prefExplicitMode.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
-                    getActivity().finish();
-                    getActivity().startActivity(new Intent(getContext(), SettingsActivity.class));
+                    reloadAndScrollTo(EXPLICIT_MODE);
                     return true;
                 }
             });
@@ -381,6 +464,14 @@ public class SettingsActivity extends AppCompatActivity {
                 prefDeleteEmptyTrips.setEnabled(false);
             }
 
+        }
+
+        private void reloadAndScrollTo(String prefName) {
+            Log.i(TAG, "reloadAndScrollTo Reloading preferences and then (hopefully) scrolling to: " + prefName);
+            Intent i = new Intent(getContext(), getActivity().getClass());
+            i.putExtra(PREF_INTENT_TAG, prefName);
+            getActivity().finish();
+            startActivity(i);
         }
 
         @Override
@@ -406,25 +497,44 @@ public class SettingsActivity extends AppCompatActivity {
 
         public void makeExplicit() {
             findPreference(NAME_TRIP_ON_START).setTitle(R.string.settings_name_trips_explicit);
+
             findPreference(SUBMIT_ON_END).setTitle(R.string.settings_auto_submit_explicit);
+
             findPreference(CONFIRM_END).setTitle(R.string.settings_confirmend_explicit);
+
             findPreference(TRIP_MINDER).setTitle(R.string.settings_auto_stop_explicit);
+
             findPreference(TRIP_MINDER_INTERVAL).setTitle(R.string.settings_auto_stop_interval_explicit);
+
             findPreference(RECEIPT_FORMATS).setTitle(R.string.settings_receipt_format_explicit);
+
             findPreference(GOTO_PERMISSIONS).setTitle(R.string.settings_permissions_explicit);
 
             findPreference(UPDATE_USER_INFO).setTitle(R.string.settings_update_me_explicit);
+
             findPreference(UPDATE_USER_ADDYS).setTitle(R.string.settings_update_addresses_explicit);
+
             findPreference(UPDATE_ACT_ADDYS).setTitle(R.string.settings_update_account_addresses_explicit);
 
             findPreference(DELETE_ALL_TRIP_DATA).setTitle(R.string.settings_delete_mileage_explicit);
+
             findPreference(DELETE_EMPTY_TRIP_DATA).setTitle(R.string.settings_delete_empty_explicit);
 
             findPreference(DISTANCE_THRESHOLD).setTitle(R.string.settings_prompt_opportunities_explicit);
+
             findPreference(DELETE_LOCAL_UPDATES).setTitle(R.string.settings_delete_local_updates_explicit);
+
             findPreference(CHECK_FOR_UPDATES).setTitle(R.string.settings_check_updates_explicit);
+
             findPreference(DEBUG_MODE).setTitle(R.string.settings_debug_explicit);
+
             findPreference(EXPLICIT_MODE).setTitle(R.string.settings_explicit_explicit);
+
+            findPreference(SET_DEFAULTS).setTitle(getString(R.string.set_defaults_explicit));
+            findPreference(SET_DEFAULTS).setSummary(getString(R.string.set_defaults_description_explicit));
+
+            findPreference(SERVER_BASE_URL).setTitle(getString(R.string.change_server_addy_explicit));
+            findPreference(SERVER_BASE_URL).setSummary(getString(R.string.change_server_addy_description_explicit));
 
         }
 

@@ -6,7 +6,7 @@ import android.content.DialogInterface;
 
 import androidx.annotation.Nullable;
 
-public class MyYesNoDialog {
+public abstract class MyYesNoDialog {
 
     private static String message = "Are you sure?";
     private static AlertDialog dialog;

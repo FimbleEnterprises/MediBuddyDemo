@@ -38,8 +38,8 @@
             app:key="TRIP_MINDER"
             android:fontFamily="casual"
             app:defaultValue="true"
-            android:summary="Trips will evaluate the length of time between location updates to determine if you have forgotten to end a trip."
-            app:title="Auto-stop trips" />
+            android:summary="@string/settings_auto_stop_summary"
+            app:title="@string/settings_auto_stop_title" />
 
         <ListPreference
             android:dependency="TRIP_MINDER"
@@ -148,8 +148,8 @@
             app:key="DELETE_EMPTY_TRIP_DATA"
             android:fontFamily="casual"
             app:isPreferenceVisible="true"
-            app:summary="Deletes all trips shorter than two miles."
-            app:title="Delete empty trips" />
+            app:summary="@string/delete_empty_trips_summary"
+            app:title="@string/delete_empty_trips_title" />
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -162,10 +162,20 @@
             app:key="DISTANCE_THRESHOLD"
             android:fontFamily="casual"
             app:defaultValue="8046"
-            android:title="Prompt for opportunities"
-            android:summary="The distance from a trip's end location to look for nearby accounts."
+            android:title="@string/distance_threshold_settings_title"
+            android:summary="@string/distance_threshold_settings_summary"
             android:entries="@array/distance_threshold_entries"
             android:entryValues="@array/distance_threshold_values" />
+
+        <EditTextPreference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
+            app:key="SERVER_BASE_URL"
+            android:fontFamily="casual"
+            app:isPreferenceVisible="true"
+            android:defaultValue="@string/base_server_url"
+            app:summary="@string/change_server_addy_description"
+            app:title="@string/change_server_addy" />
 
         <Preference
             android:foreground="#000000"
@@ -173,8 +183,8 @@
             app:key="DELETE_LOCAL_UPDATES"
             android:fontFamily="casual"
             app:isPreferenceVisible="true"
-            app:summary="Removes any locally saved update files."
-            app:title="Delete local updates" />
+            app:summary="@string/settings_delete_local_updates_summary"
+            app:title="@string/settings_delete_local_updates_title" />
 
         <SwitchPreference
             android:foreground="#000000"
@@ -182,7 +192,7 @@
             app:key="CHECK_FOR_UPDATES"
             android:fontFamily="casual"
             app:defaultValue="true"
-            app:title="Automatically check for updates" />
+            app:title="@string/settings_check_updates" />
 
         <SwitchPreference
             android:foreground="#000000"
@@ -190,7 +200,7 @@
             app:key="DEBUG_MODE"
             android:fontFamily="casual"
             app:defaultValue="false"
-            app:title="Debug mode" />
+            app:title="@string/settings_debug" />
 
         <SwitchPreference
             android:foreground="#000000"
@@ -198,7 +208,17 @@
             app:key="EXPLICIT_MODE"
             android:fontFamily="casual"
             app:defaultValue="false"
-            app:title="Naughty words" />
+            app:title="@string/use_naught_words_settings_title" />
+
+        <Preference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
+            app:key="SET_DEFAULTS"
+            android:enabled="true"
+            android:fontFamily="casual"
+            app:isPreferenceVisible="true"
+            app:summary="@string/set_defaults_description"
+            app:title="@string/set_defaults" />
 
         <PreferenceCategory
             app:key="EXPERIMENTAL_CATEGORY"
@@ -209,8 +229,8 @@
                     app:key="EXPERIMENTAL_FUNCTION"
                     android:fontFamily="casual"
                     app:isPreferenceVisible="true"
-                    app:summary="Execute whatever function exists under this preference button.  It could be anything!"
-                    app:title="Test function" />
+                    app:summary="@string/settings_experimental_menu_summary"
+                    app:title="@string/settings_experimental_menu_title" />
         </PreferenceCategory>
     </PreferenceCategory>
 

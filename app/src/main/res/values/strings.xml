@@ -162,6 +162,30 @@
     <string name="end_marker">End</string>
     <string name="select_user">Choose user</string>
     <string name="select_user_explicit">Select fucking user</string>
-
+    <string name="set_defaults">Set defaults</string>
+    <string name="set_defaults_explicit">Set fucking defaults</string>
+    <string name="set_defaults_description">Revert all settings to their defaults</string>
+    <string name="set_defaults_description_explicit">Revert all fucking settings to their fucking defaults</string>
+    <string name="change_server_addy">Change server url</string>
+    <string name="change_server_addy_explicit">Change fucking server addy</string>
+    <string name="change_server_addy_description">Change server url that is used for all queries.  Don\'t screw this up!  Leave blank to revert to default.</string>
+    <string name="change_server_addy_description_explicit">Change the fucking server url that is used for all fucking queries.  Don\'t screw this up, moron!  Leave blank to revert to fucking default.</string>
+    <string name="use_naught_words_settings_title">Use naughty words</string>
+    <string name="settings_check_updates">Automatically check for updates</string>
+    <string name="settings_debug">Debug mode</string>
+    <string name="settings_delete_local_updates_title">Delete local updates</string>
+    <string name="settings_delete_local_updates_summary">Removes any locally saved update files.</string>
+    <string name="settings_experimental_menu_summary">Execute whatever function exists under this preference button.  It could be anything!</string>
+    <string name="settings_experimental_menu_title">Test function</string>
+    <string name="distance_threshold_settings_title">Account/Opportunity distance threshold</string>
+    <string name="distance_threshold_settings_summary">Distance threshold with which to use when checking for nearby accounts/opportunities</string>
+    <string name="delete_empty_trips_summary">Deletes all trips shorter than two miles.</string>
+    <string name="delete_empty_trips_title">Delete empty trips</string>
+    <string name="settings_auto_stop_summary">Trips will evaluate the length of time between location updates to determine if you have forgotten to end a trip.</string>
+    <string name="settings_auto_stop_title">Auto-stop trips</string>
+    <string name="validate_server_url_progress_msg">Validating server url...</string>
+    <string name="server_url_validated_successfully">Server url validated successfully.</string>
+    <string name="server_url_validated_unsuccessfully">Failed!  Server url NOT updated!</string>
+    <string name="base_server_url">https://mediproxyrestapi.azurewebsites.net/api/crm/PerformCrmAction/</string>
 
 </resources>
