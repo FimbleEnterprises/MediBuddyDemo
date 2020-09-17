@@ -682,24 +682,112 @@ public class CrmEntities {
 
         public static class MileageReimbursementAssociation {
             private static final String TAG = "MileageReimbursementAssociation";
-            /*
-            	"@odata.etag": "W/\"304161428\"",
-                "msus_name": "Test association",
-                "createdon": "2020-09-17T16:36:22Z",
-                "_msus_account_value": "59b38951-2337-e711-80d4-005056a36b9b",
-                "_msus_trip_value": "950f1a5c-b5f7-ea11-810b-005056a36b9b",
-                "msus_trip_associationid": "018473eb-03f9-ea11-810b-005056a36b9b"
-            */
-
             public String etag;
-            public String msus_name;
-            public DateTime createdon;
-            public String accountid;
-            public String trip;
+            public String name;
             public String id;
+            public String ownerid;
+            public String ownername;
+            public DateTime createdon;
+            public String associated_trip_name;
+            public String associated_trip_id;
+            public String associated_account_name;
+            public String associated_account_id;
+            public float associated_trip_reimbursement;
+            public DateTime associated_trip_date;
 
             public MileageReimbursementAssociation(JSONObject json) {
                 Log.i(TAG, "MileageReimbursementAssociation " + json);
+
+                try {
+                    if (!json.isNull("etag")) {
+                        this.etag = (json.getString("etag"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_ownerid_value")) {
+                        this.ownerid = (json.getString("_ownerid_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_ownerid_valueFormattedValue")) {
+                        this.ownername = (json.getString("_ownerid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                   if (!json.isNull("createdon")) {
+                       this.createdon = (new DateTime(json.getString("createdon")));
+                   }
+                } catch (JSONException e) {
+                   e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_associated_trip_valueFormattedValue")) {
+                        this.associated_trip_name = (json.getString("_msus_associated_trip_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_associated_trip_value")) {
+                        this.associated_trip_id = (json.getString("_msus_associated_trip_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_associated_account_valueFormattedValue")) {
+                        this.associated_account_name = (json.getString("_msus_associated_account_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_associated_account_value")) {
+                        this.associated_account_id = (json.getString("_msus_associated_account_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("msus_mileageassociationid")) {
+                        this.id = (json.getString("msus_mileageassociationid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("msus_name")) {
+                        this.name = (json.getString("msus_name"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_cc3500d91af9ea11810b005056a36b9b_msus_reimbursement")) {
+                        this.associated_trip_reimbursement = (json.getLong("a_cc3500d91af9ea11810b005056a36b9b_msus_reimbursement"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                   if (!json.isNull("a_cc3500d91af9ea11810b005056a36b9b_msus_dt_tripdate")) {
+                       this.associated_trip_date = (new DateTime(json.getString("a_cc3500d91af9ea11810b005056a36b9b_msus_dt_tripdate")));
+                   }
+                } catch (JSONException e) {
+                   e.printStackTrace();
+                }
+            }
+
+            @Override
+            public String toString() {
+                return this.name + ", " + this.associated_trip_date.toLocalDateTime().toString() +
+                        ", " + this.ownername;
             }
 
         }

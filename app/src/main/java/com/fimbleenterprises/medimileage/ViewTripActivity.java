@@ -373,6 +373,56 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
         if (nearbyAccounts.size() > 0) {
             Log.i(TAG, "detectAccountsAtStartOrEnd Found: " + nearbyAccounts.size()
                     + " accounts near the beginning and end of this trip!");
+
+
+            Containers containers = new Containers();
+            for (CrmAddress address : nearbyAccounts) {
+                Containers.EntityContainer container = new Containers.EntityContainer();
+                container.entityFields.add(new Containers.EntityField("msus_name", clickedTrip.getEmail() + " - " +
+                        clickedTrip.getPrettyDateTime()));
+                container.entityFields.add(new Containers.EntityField("msus_associated_trip", clickedTrip.tripGuid));
+                container.entityFields.add(new Containers.EntityField("msus_associated_account", address.accountid));
+                containers.entityContainers.add(container);
+
+            }
+
+            if (containers.entityContainers.size() > 0) {
+                /*
+                    entityguid
+                    entityName
+                    containers
+                    asUserid
+                 */
+
+                Requests.Request request = new Requests.Request(Requests.Request.Function.UPDATE_MANY);
+
+                ArrayList<Requests.Argument> args = new ArrayList<>();
+                Requests.Argument argument1 = new Requests.Argument("entityid", null);
+                Requests.Argument argument2 = new Requests.Argument("entityName", "msus_mileageassociation");
+                Requests.Argument argument3 = new Requests.Argument("containers", containers.toJson());
+                Requests.Argument argument4 = new Requests.Argument("asUserid", clickedTrip.getOwnerid());
+                args.add(argument1);
+                args.add(argument2);
+                args.add(argument3);
+                args.add(argument4);
+                request.arguments = args;
+
+                Crm crm = new Crm();
+                crm.makeCrmRequest(getApplicationContext(), request, new AsyncHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                        String response = new String(responseBody);
+                        Log.i(TAG, "onSuccess ");
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                        Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
+                    }
+                });
+
+            }
+
         }
     }
 

@@ -736,7 +736,7 @@ public class Queries {
     }
 
     public static class TripAssociation {
-        public static String getAssociationsByAccount(String accountid) {
+        public static String getAssociationsByTripid(String tripid) {
 
             // Query columns
             QueryFactory factory = new QueryFactory("msus_mileageassociation");
@@ -746,11 +746,19 @@ public class Queries {
             factory.addColumn("msus_associated_opportunity");
             factory.addColumn("msus_associated_account");
             factory.addColumn("msus_mileageassociationid");
+            factory.addColumn("ownerid");
+
+            // Related entity
+            QueryFactory.LinkEntity linkEntityTrip = new QueryFactory.LinkEntity("msus_fulltrip", "msus_fulltripid",
+                    "msus_associated_trip", "a_cc3500d91af9ea11810b005056a36b9b");
+            linkEntityTrip.addColumn(new QueryFactory.EntityColumn("msus_dt_tripdate"));
+            linkEntityTrip.addColumn(new QueryFactory.EntityColumn("msus_reimbursement"));
+            factory.addLinkEntity(linkEntityTrip);
 
             // Filter conditions
             QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter
                     .FilterCondition("msus_associated_trip", QueryFactory.Filter.Operator.EQUALS,
-                    accountid);
+                    tripid);
 
             ArrayList<QueryFactory.Filter.FilterCondition> conditions = new ArrayList<>();
             conditions.add(condition1);

@@ -510,9 +510,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void test() {
+    public void getTripAssociationsByTripId() {
 
-        String query = Queries.TripAssociation.getAssociationsByAccount("26C4B74D-58F8-EA11-810B-005056A36B9B");
+        String query = Queries.TripAssociation.getAssociationsByTripid("26C4B74D-58F8-EA11-810B-005056A36B9B");
 
         Requests.Argument arg = new Requests.Argument("query", query);
         ArrayList<Requests.Argument> args = new ArrayList<>();
@@ -523,12 +523,14 @@ public class MainActivity extends AppCompatActivity {
         crm.makeCrmRequest(getApplicationContext(), request, new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                Log.i(TAG, "onSuccess ");
+                String response = new String(responseBody);
+                CrmEntities.MileageReimbursementAssociations associations = new CrmEntities.MileageReimbursementAssociations(response);
+                Log.i(TAG, "onSuccess " + associations.list.size() + " associations.");
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                Log.w(TAG, "onFailure: ");
+                Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
             }
         });
 
@@ -537,7 +539,7 @@ public class MainActivity extends AppCompatActivity {
 
     protected void getDistinctUsersWithTrips() {
 
-        test();
+        getTripAssociationsByTripId();
 
         QueryFactory factory = new QueryFactory("msus_fulltrip");
         factory.addColumn("ownerid");
