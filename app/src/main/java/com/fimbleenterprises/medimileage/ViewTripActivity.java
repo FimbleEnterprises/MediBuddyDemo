@@ -23,11 +23,13 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import cz.msebera.android.httpclient.Header;
 
 import android.util.Log;
 import android.view.KeyEvent;
@@ -338,6 +340,8 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
         TripEntry startEntry = tripEntries.get(0);
         TripEntry endEntry = tripEntries.get(tripEntries.size() - 1);
 
+        ArrayList<CrmAddress> nearbyAccounts = new ArrayList<>();
+
         CrmAddresses accountAddresses = options.getAllSavedCrmAddresses();
         double thresh = options.getDistanceThreshold();
 
@@ -352,6 +356,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
             if (distFromStart <= thresh) {
                 Log.i(TAG, "detectAccountsAtStartOrEnd: WITHIN RANGE OF " + address.accountName + "!  Miles: " + milesFromStart);
                 Toast.makeText(this, "Within range of: " + address.accountName + "!", Toast.LENGTH_SHORT).show();
+                nearbyAccounts.add(address);
             } else {
                 Log.i(TAG, "detectAccountsAtStartOrEnd: NOT IN RANGE OF: " + address.accountName + " - distance: " + distFromStart + " meters");
             }
@@ -359,11 +364,16 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
             if (distFromEnd <= thresh) {
                 Log.i(TAG, "detectAccountsAtStartOrEnd: WITHIN RANGE OF " + address.accountName + "!  Miles: " + milesFromEnd);
                 Toast.makeText(this, "Within range of: " + address.accountName + "!", Toast.LENGTH_SHORT).show();
+                nearbyAccounts.add(address);
             } else {
                 Log.i(TAG, "detectAccountsAtStartOrEnd: NOT IN RANGE OF: " + address.accountName + " - distance: " + distFromEnd + " meters");
             }
         }
 
+        if (nearbyAccounts.size() > 0) {
+            Log.i(TAG, "detectAccountsAtStartOrEnd Found: " + nearbyAccounts.size()
+                    + " accounts near the beginning and end of this trip!");
+        }
     }
 
     void populateAllAddresses() {

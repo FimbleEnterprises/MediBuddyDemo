@@ -500,6 +500,11 @@ public class CrmEntities {
             return gson.toJson(this);
         }
 
+        @Override
+        public String toString() {
+            return this.list.size() + " addresses, ";
+        }
+
         public CrmAddresses(ArrayList<CrmAddress> addresses) {
             this.list = addresses;
         }
@@ -530,6 +535,8 @@ public class CrmEntities {
             public String addressComposite;
             public double latitude;
             public double longitude;
+            public double latitude_precise;
+            public double longitude_precise;
 
             public CrmAddress(JSONObject json) {
                 try {
@@ -583,18 +590,37 @@ public class CrmEntities {
                 }
                 try {
                     if (!json.isNull("address1_longitude")) {
-                        this.longitude = (json.getLong("address1_longitude"));
+                        this.longitude = (json.getDouble("address1_longitude"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
                 try {
                     if (!json.isNull("address1_latitude")) {
-                        this.latitude = (json.getLong("address1_latitude"));
+                        this.latitude = (json.getDouble("address1_latitude"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+                try {
+                    if (!json.isNull("msus_latitudeprecise")) {
+                        this.latitude_precise = (json.getDouble("msus_latitudeprecise"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("msus_longitudeprecise")) {
+                        this.longitude_precise = (json.getDouble("msus_longitudeprecise"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public String toString() {
+                return accountName + ", Addy: " + addressComposite;
             }
 
             public LatLng getLatLng() {
@@ -617,6 +643,63 @@ public class CrmEntities {
                 endLoc.setLongitude(this.longitude);
 
                 return startLoc.distanceTo(endLoc);
+            }
+
+        }
+
+    }
+
+    public static class MileageReimbursementAssociations {
+
+        private static final String TAG = "MileageReimbursementAssociations";
+
+        public ArrayList<MileageReimbursementAssociation> list = new ArrayList<>();
+
+        public MileageReimbursementAssociations(String crmResponse) {
+            ArrayList<MileageReimbursementAssociation> associations = new ArrayList<>();
+            try {
+                JSONObject root = new JSONObject(crmResponse);
+                JSONArray rootArray = root.getJSONArray("value");
+                for (int i = 0; i < rootArray.length(); i++) {
+                    MileageReimbursementAssociation association = new MileageReimbursementAssociation(rootArray.getJSONObject(i));
+                    associations.add(association);
+                }
+                this.list = associations;
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public String toJson() {
+            Gson gson = new Gson();
+            return gson.toJson(this);
+        }
+
+        @Override
+        public String toString() {
+            return this.list.size() + " associations, ";
+        }
+
+        public static class MileageReimbursementAssociation {
+            private static final String TAG = "MileageReimbursementAssociation";
+            /*
+            	"@odata.etag": "W/\"304161428\"",
+                "msus_name": "Test association",
+                "createdon": "2020-09-17T16:36:22Z",
+                "_msus_account_value": "59b38951-2337-e711-80d4-005056a36b9b",
+                "_msus_trip_value": "950f1a5c-b5f7-ea11-810b-005056a36b9b",
+                "msus_trip_associationid": "018473eb-03f9-ea11-810b-005056a36b9b"
+            */
+
+            public String etag;
+            public String msus_name;
+            public DateTime createdon;
+            public String accountid;
+            public String trip;
+            public String id;
+
+            public MileageReimbursementAssociation(JSONObject json) {
+                Log.i(TAG, "MileageReimbursementAssociation " + json);
             }
 
         }

@@ -196,8 +196,13 @@ public class MainActivity extends AppCompatActivity {
         if ( MediUser.getMe(this) == null || ! options.hasCachedCredentials()) {
             navController.navigate(R.id.action_HomeFragment_to_HomeSecondFragment);
             Toast.makeText(this, getString(R.string.must_login), Toast.LENGTH_SHORT).show();
-        } else {
-            Crm.userCanAuthenticate(options.getCachedUsername(), options.getCachedPassword(), new MyInterfaces.AuthenticationResult() {
+
+        /* For some reason this authentication check always succeeds!  I think I'll have to send the REST
+           request to the localhost api to evaluate what the server is actually receiving.  For now,
+           i am disabling it here.  What's weird is that it works when called from the authentication
+           fragment.
+        else {
+            Crm.userCanAuthenticate(options.getCachedUsername(), "R3dst4ff^^!", new MyInterfaces.AuthenticationResult() {
                 @Override
                 public void onSuccess() {
                     Log.i(TAG, "onSuccess ");
@@ -213,6 +218,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.w(TAG, "onError: ");
                 }
             });
+        }*/
         }
 
         try {
@@ -504,7 +510,35 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    public void test() {
+
+        String query = Queries.TripAssociation.getAssociationsByAccount("26C4B74D-58F8-EA11-810B-005056A36B9B");
+
+        Requests.Argument arg = new Requests.Argument("query", query);
+        ArrayList<Requests.Argument> args = new ArrayList<>();
+        args.add(arg);
+        Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
+
+        Crm crm = new Crm();
+        crm.makeCrmRequest(getApplicationContext(), request, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                Log.i(TAG, "onSuccess ");
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                Log.w(TAG, "onFailure: ");
+            }
+        });
+
+
+    }
+
     protected void getDistinctUsersWithTrips() {
+
+        test();
+
         QueryFactory factory = new QueryFactory("msus_fulltrip");
         factory.addColumn("ownerid");
         LinkEntity linkEntity = new LinkEntity("systemuser", "systemuserid", "owninguser", "a_79740df757a5e81180e8005056a36b9b");

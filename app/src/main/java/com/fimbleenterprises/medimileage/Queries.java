@@ -708,7 +708,6 @@ public class Queries {
     public static class Addresses {
 
         public static String getAllAccountAddresses() {
-
             // Instantiate a new constructor for the case entity and add the columns we want to see
             QueryFactory query = new QueryFactory("account");
             query.addColumn("name");
@@ -733,13 +732,40 @@ public class Queries {
             String rslt = query.construct();
             return rslt;
         }
-    }
-
-    public static class Metrics {
-
-
 
     }
+
+    public static class TripAssociation {
+        public static String getAssociationsByAccount(String accountid) {
+
+            // Query columns
+            QueryFactory factory = new QueryFactory("msus_mileageassociation");
+            factory.addColumn("msus_name");
+            factory.addColumn("createdon");
+            factory.addColumn("msus_associated_trip");
+            factory.addColumn("msus_associated_opportunity");
+            factory.addColumn("msus_associated_account");
+            factory.addColumn("msus_mileageassociationid");
+
+            // Filter conditions
+            QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter
+                    .FilterCondition("msus_associated_trip", QueryFactory.Filter.Operator.EQUALS,
+                    accountid);
+
+            ArrayList<QueryFactory.Filter.FilterCondition> conditions = new ArrayList<>();
+            conditions.add(condition1);
+
+            // Set filter
+            QueryFactory.Filter filter = new QueryFactory.Filter(AND, conditions);
+            factory.setFilter(filter);
+
+            // Build query
+            String query = factory.construct();
+
+            return query;
+        }
+    }
+
 
 
 
