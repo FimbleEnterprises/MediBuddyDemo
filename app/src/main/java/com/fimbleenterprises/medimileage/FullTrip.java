@@ -41,6 +41,10 @@ public class FullTrip implements Parcelable {
     public int userStoppedTrip = 0;
     public int userStartedTrip = 0;
     public int tripMinderKilled = 0;
+    public String associatedAccountId;
+    public String associatedAccountName;
+    public String associatedOpportunityId;
+    public String associatedOpportunityName;
 
     public static class TripEntries extends ArrayList<TripEntry> {
         public TripEntries(FullTrip trip) {
@@ -574,6 +578,7 @@ public class FullTrip implements Parcelable {
         userStoppedTrip = in.readInt();
         userStartedTrip = in.readInt();
         tripMinderKilled = in.readInt();
+        tripGuid = in.readString();
         if (in.readByte() == 0x01) {
             tripEntries = new ArrayList<TripEntry>();
             in.readList(tripEntries, TripEntry.class.getClassLoader());
@@ -603,6 +608,7 @@ public class FullTrip implements Parcelable {
         dest.writeInt(userStoppedTrip);
         dest.writeInt(userStartedTrip);
         dest.writeInt(tripMinderKilled);
+        dest.writeString(tripGuid);
         if (tripEntries == null) {
             dest.writeByte((byte) (0x00));
         } else {

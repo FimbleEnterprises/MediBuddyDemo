@@ -113,7 +113,7 @@ public class Requests {
         public String name;
         public Object value;
 
-        public Argument(@Nullable String name, String value) {
+        public Argument(@Nullable String name, Object value) {
             if (name == null) name = "not supplied";
             this.name = name;
             this.value = value;

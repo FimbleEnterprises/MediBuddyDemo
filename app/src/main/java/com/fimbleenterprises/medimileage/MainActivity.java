@@ -524,7 +524,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 String response = new String(responseBody);
-                CrmEntities.MileageReimbursementAssociations associations = new CrmEntities.MileageReimbursementAssociations(response);
+                CrmEntities.TripAssociations associations = new CrmEntities.TripAssociations(response);
                 Log.i(TAG, "onSuccess " + associations.list.size() + " associations.");
             }
 

@@ -747,13 +747,7 @@ public class Queries {
             factory.addColumn("msus_associated_account");
             factory.addColumn("msus_mileageassociationid");
             factory.addColumn("ownerid");
-
-            // Related entity
-            QueryFactory.LinkEntity linkEntityTrip = new QueryFactory.LinkEntity("msus_fulltrip", "msus_fulltripid",
-                    "msus_associated_trip", "a_cc3500d91af9ea11810b005056a36b9b");
-            linkEntityTrip.addColumn(new QueryFactory.EntityColumn("msus_dt_tripdate"));
-            linkEntityTrip.addColumn(new QueryFactory.EntityColumn("msus_reimbursement"));
-            factory.addLinkEntity(linkEntityTrip);
+            factory.addColumn("msus_disposition");
 
             // Filter conditions
             QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter

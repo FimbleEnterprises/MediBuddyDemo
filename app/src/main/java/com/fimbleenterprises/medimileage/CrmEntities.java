@@ -1,27 +1,33 @@
 package com.fimbleenterprises.medimileage;
 
+import android.content.Context;
 import android.location.Location;
-import android.location.LocationProvider;
 import android.util.Log;
 
+import com.fimbleenterprises.medimileage.Containers.EntityContainer;
+import com.fimbleenterprises.medimileage.Containers.EntityField;
+import com.fimbleenterprises.medimileage.Requests.Request.Function;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
-import com.google.rpc.Help;
+import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.joda.time.DateTime;
-import org.joda.time.Days;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.math.RoundingMode;
-import java.security.Provider;
 import java.util.ArrayList;
-import java.util.Formatter;
 
 import androidx.annotation.NonNull;
+import cz.msebera.android.httpclient.Header;
 
 public class CrmEntities {
+
+    public interface GetTripAssociationsListener {
+        public void onSuccess(TripAssociations associations);
+        public void onFailure(String msg);
+    }
 
     public static class OrderProducts {
         public ArrayList<OrderProduct> list = new ArrayList<>();
@@ -649,19 +655,23 @@ public class CrmEntities {
 
     }
 
-    public static class MileageReimbursementAssociations {
+    public static class TripAssociations {
 
         private static final String TAG = "MileageReimbursementAssociations";
 
-        public ArrayList<MileageReimbursementAssociation> list = new ArrayList<>();
+        public ArrayList<TripAssociation> list = new ArrayList<>();
 
-        public MileageReimbursementAssociations(String crmResponse) {
-            ArrayList<MileageReimbursementAssociation> associations = new ArrayList<>();
+        public TripAssociations() {
+            this.list = new ArrayList<>();
+        }
+
+        public TripAssociations(String crmResponse) {
+            ArrayList<TripAssociation> associations = new ArrayList<>();
             try {
                 JSONObject root = new JSONObject(crmResponse);
                 JSONArray rootArray = root.getJSONArray("value");
                 for (int i = 0; i < rootArray.length(); i++) {
-                    MileageReimbursementAssociation association = new MileageReimbursementAssociation(rootArray.getJSONObject(i));
+                    TripAssociation association = new TripAssociation(rootArray.getJSONObject(i));
                     associations.add(association);
                 }
                 this.list = associations;
@@ -670,9 +680,129 @@ public class CrmEntities {
             }
         }
 
+        public void addAssociation(TripAssociation association) {
+            this.list.add(association);
+        }
+
+        private static void getAssociationsByTripId(final Context context, String tripid, final GetTripAssociationsListener listener) {
+            String query = Queries.TripAssociation.getAssociationsByTripid(tripid);
+            Requests.Request request = new Requests.Request(Function.GET);
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            Requests.Argument argument1 = new Requests.Argument("query", query);
+            request.arguments.add(argument1);
+
+            Crm crm = new Crm();
+            crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    TripAssociations associations = new TripAssociations(new String(responseBody));
+                    Log.i(TAG, "onSuccess Found: " + associations.list.size() + " associations.");
+                    listener.onSuccess(associations);
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
+                    listener.onFailure(error.getLocalizedMessage());
+                }
+            });
+        }
+
+        private static void deleteCrmAssociations(Context context, TripAssociations associations, final MyInterfaces.EntityUpdateListener listener) {
+            ArrayList<String> guids = new ArrayList<>();
+            for (TripAssociation association : associations.list) {
+                guids.add(association.associated_trip_id);
+            }
+
+            Requests.Request request = new Requests.Request(Function.DELETE_MANY);
+            Requests.Argument argument1 = new Requests.Argument("entityname", "msus_mileageassociation");
+            Requests.Argument argument2 = new Requests.Argument("guids", guids);
+            Requests.Argument argument3 = new Requests.Argument("asuserid", MediUser.getMe().systemuserid);
+            request.arguments.add(argument1);
+            request.arguments.add(argument2);
+            request.arguments.add(argument3);
+
+            Crm crm = new Crm();
+            crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    listener.onSuccess();
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    listener.onFailure(error.getLocalizedMessage());
+                }
+            });
+
+        }
+
+        public static void uploadTripAssociations(Context context, TripAssociations associations, final MyInterfaces.EntityUpdateListener listener) {
+            if (associations.list.size() == 0) {
+                listener.onFailure("No associations to upload!");
+            }
+
+            Requests.Request request = new Requests.Request(Function.CREATE_MANY);
+
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            Requests.Argument argument1 = new Requests.Argument("entityName", "msus_mileageassociation");
+            Requests.Argument argument2 = new Requests.Argument("asUserid", MediUser.getMe().systemuserid);
+            Requests.Argument argument3 = new Requests.Argument("containers", associations.toContainers().toJson());;
+            args.add(argument1);
+            args.add(argument2);
+            args.add(argument3);
+            request.arguments = args;
+
+            Crm crm = new Crm();
+            crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    listener.onSuccess();
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    listener.onFailure(error.getLocalizedMessage());
+                }
+            });
+
+        }
+
+        public static void deleteTripAssociations(final Context context, String tripid, final MyInterfaces.EntityUpdateListener listener) {
+            getAssociationsByTripId(context, tripid, new GetTripAssociationsListener() {
+                @Override
+                public void onSuccess(TripAssociations associations) {
+                    deleteCrmAssociations(context, associations, new MyInterfaces.EntityUpdateListener() {
+                        @Override
+                        public void onSuccess() {
+                            listener.onSuccess();
+                        }
+
+                        @Override
+                        public void onFailure(String msg) {
+                            listener.onFailure(msg);
+                        }
+                    });
+                }
+
+                @Override
+                public void onFailure(String msg) {
+
+                }
+            });
+        }
+
         public String toJson() {
             Gson gson = new Gson();
             return gson.toJson(this);
+        }
+
+        public Containers toContainers() {
+            Containers containers = new Containers();
+            for (TripAssociation association : this.list) {
+                containers.entityContainers.add(association.toContainer());
+            }
+            return containers;
         }
 
         @Override
@@ -680,7 +810,7 @@ public class CrmEntities {
             return this.list.size() + " associations, ";
         }
 
-        public static class MileageReimbursementAssociation {
+        public static class TripAssociation {
             private static final String TAG = "MileageReimbursementAssociation";
             public String etag;
             public String name;
@@ -692,10 +822,20 @@ public class CrmEntities {
             public String associated_trip_id;
             public String associated_account_name;
             public String associated_account_id;
+            public String associated_opportunity_name;
+            public String associated_opportunity_id;
             public float associated_trip_reimbursement;
             public DateTime associated_trip_date;
+            public TripDisposition tripDisposition;
 
-            public MileageReimbursementAssociation(JSONObject json) {
+            public TripAssociation(DateTime tripDate) {
+                this.associated_trip_date = tripDate;
+                this.ownerid = MediUser.getMe().systemuserid;
+                this.ownername = MediUser.getMe().fullname;
+                this.name = tripDate.toLocalDateTime().toString() + " - " + this.ownername;
+            }
+
+            public TripAssociation(JSONObject json) {
                 Log.i(TAG, "MileageReimbursementAssociation " + json);
 
                 try {
@@ -720,11 +860,18 @@ public class CrmEntities {
                     e.printStackTrace();
                 }
                 try {
-                   if (!json.isNull("createdon")) {
-                       this.createdon = (new DateTime(json.getString("createdon")));
-                   }
+                    if (!json.isNull("_msus_disposition_value")) {
+                        setTripDisposition(json.getInt("_msus_disposition_value"));
+                    }
                 } catch (JSONException e) {
-                   e.printStackTrace();
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("createdon")) {
+                        this.createdon = (new DateTime(json.getString("createdon")));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
                 try {
                     if (!json.isNull("_msus_associated_trip_valueFormattedValue")) {
@@ -755,6 +902,20 @@ public class CrmEntities {
                     e.printStackTrace();
                 }
                 try {
+                    if (!json.isNull("_msus_associated_opportunity_valueFormattedValue")) {
+                        this.associated_opportunity_name = (json.getString("_msus_associated_opportunity_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_associated_opportunity_value")) {
+                        this.associated_opportunity_id = (json.getString("_msus_associated_opportunity_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
                     if (!json.isNull("msus_mileageassociationid")) {
                         this.id = (json.getString("msus_mileageassociationid"));
                     }
@@ -776,11 +937,48 @@ public class CrmEntities {
                     e.printStackTrace();
                 }
                 try {
-                   if (!json.isNull("a_cc3500d91af9ea11810b005056a36b9b_msus_dt_tripdate")) {
-                       this.associated_trip_date = (new DateTime(json.getString("a_cc3500d91af9ea11810b005056a36b9b_msus_dt_tripdate")));
-                   }
+                    if (!json.isNull("a_cc3500d91af9ea11810b005056a36b9b_msus_dt_tripdate")) {
+                        this.associated_trip_date = (new DateTime(json.getString("a_cc3500d91af9ea11810b005056a36b9b_msus_dt_tripdate")));
+                    }
                 } catch (JSONException e) {
-                   e.printStackTrace();
+                    e.printStackTrace();
+                }
+            }
+
+            public enum TripDisposition {
+                START, END
+            }
+
+            public String getDispositionTitle() {
+                switch (this.tripDisposition) {
+                    case START :
+                        return "Start";
+                    case END :
+                        return "End";
+                    default:
+                        return "0";
+                }
+            }
+
+            public int getDispositioValue() {
+                switch (this.tripDisposition) {
+                    case START :
+                        return 745820000;
+                    case END :
+                        return 745820001;
+                    default:
+                        return 0;
+                }
+            }
+
+            public void setTripDisposition(int optionSetValue) {
+                switch (optionSetValue) {
+                    case 745820000 :
+                        this.tripDisposition = TripDisposition.START;
+                        break;
+                    case 745820001 :
+                        this.tripDisposition = TripDisposition.END;
+                        break;
                 }
             }
 
@@ -788,6 +986,26 @@ public class CrmEntities {
             public String toString() {
                 return this.name + ", " + this.associated_trip_date.toLocalDateTime().toString() +
                         ", " + this.ownername;
+            }
+
+            public EntityContainer toContainer() {
+                EntityContainer container = new EntityContainer();
+                if (this.name != null) {
+                    container.entityFields.add(new EntityField("msus_name", name));
+                }
+                if (this.associated_trip_id != null) {
+                    container.entityFields.add(new EntityField("msus_associated_trip", this.associated_trip_id));
+                }
+                if (this.associated_account_id != null) {
+                    container.entityFields.add(new EntityField("msus_associated_account", this.associated_account_id));
+                }
+                if (this.associated_opportunity_id != null) {
+                    container.entityFields.add(new EntityField("msus_associated_opportunity", this.associated_opportunity_id));
+                }
+                if (this.tripDisposition != null) {
+                    container.entityFields.add(new EntityField("msus_disposition", Integer.toString(this.getDispositioValue())));
+                }
+                return container;
             }
 
         }

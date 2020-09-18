@@ -29,7 +29,7 @@ public class MyInterfaces {
     }
 
     public interface EntityUpdateListener {
-        void oinSuccess();
+        void onSuccess();
         void onFailure(String msg);
     }
 

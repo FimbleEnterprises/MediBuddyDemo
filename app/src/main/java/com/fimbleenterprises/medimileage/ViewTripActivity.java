@@ -10,6 +10,7 @@ import android.os.Bundle;
 
 import com.fimbleenterprises.medimileage.CrmEntities.CrmAddresses;
 import com.fimbleenterprises.medimileage.CrmEntities.CrmAddresses.CrmAddress;
+import com.fimbleenterprises.medimileage.CrmEntities.TripAssociations.TripAssociation.TripDisposition;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -23,13 +24,11 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import cz.msebera.android.httpclient.Header;
 
 import android.util.Log;
 import android.view.KeyEvent;
@@ -47,8 +46,8 @@ import android.widget.ToggleButton;
 import org.w3c.dom.Document;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+
+import static com.fimbleenterprises.medimileage.CrmEntities.*;
 
 public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -340,7 +339,8 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
         TripEntry startEntry = tripEntries.get(0);
         TripEntry endEntry = tripEntries.get(tripEntries.size() - 1);
 
-        ArrayList<CrmAddress> nearbyAccounts = new ArrayList<>();
+        ArrayList<CrmAddress> nearbyStartAccounts = new ArrayList<>();
+        ArrayList<CrmAddress> nearbyEndAccounts = new ArrayList<>();
 
         CrmAddresses accountAddresses = options.getAllSavedCrmAddresses();
         double thresh = options.getDistanceThreshold();
@@ -356,7 +356,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
             if (distFromStart <= thresh) {
                 Log.i(TAG, "detectAccountsAtStartOrEnd: WITHIN RANGE OF " + address.accountName + "!  Miles: " + milesFromStart);
                 Toast.makeText(this, "Within range of: " + address.accountName + "!", Toast.LENGTH_SHORT).show();
-                nearbyAccounts.add(address);
+                nearbyStartAccounts.add(address);
             } else {
                 Log.i(TAG, "detectAccountsAtStartOrEnd: NOT IN RANGE OF: " + address.accountName + " - distance: " + distFromStart + " meters");
             }
@@ -364,65 +364,49 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
             if (distFromEnd <= thresh) {
                 Log.i(TAG, "detectAccountsAtStartOrEnd: WITHIN RANGE OF " + address.accountName + "!  Miles: " + milesFromEnd);
                 Toast.makeText(this, "Within range of: " + address.accountName + "!", Toast.LENGTH_SHORT).show();
-                nearbyAccounts.add(address);
+                nearbyEndAccounts.add(address);
             } else {
                 Log.i(TAG, "detectAccountsAtStartOrEnd: NOT IN RANGE OF: " + address.accountName + " - distance: " + distFromEnd + " meters");
             }
         }
 
-        if (nearbyAccounts.size() > 0) {
-            Log.i(TAG, "detectAccountsAtStartOrEnd Found: " + nearbyAccounts.size()
+        if (nearbyStartAccounts.size() > 0) {
+            Log.i(TAG, "detectAccountsAtStartOrEnd Found: " + nearbyStartAccounts.size()
                     + " accounts near the beginning and end of this trip!");
 
-
-            Containers containers = new Containers();
-            for (CrmAddress address : nearbyAccounts) {
-                Containers.EntityContainer container = new Containers.EntityContainer();
-                container.entityFields.add(new Containers.EntityField("msus_name", clickedTrip.getEmail() + " - " +
-                        clickedTrip.getPrettyDateTime()));
-                container.entityFields.add(new Containers.EntityField("msus_associated_trip", clickedTrip.tripGuid));
-                container.entityFields.add(new Containers.EntityField("msus_associated_account", address.accountid));
-                containers.entityContainers.add(container);
-
+            final TripAssociations associations = new TripAssociations();
+            for (CrmAddress address : nearbyStartAccounts) {
+                TripAssociations.TripAssociation association =
+                        new TripAssociations.TripAssociation(clickedTrip.getDateTime());
+                association.associated_account_id = address.accountid;
+                association.associated_trip_id = clickedTrip.tripGuid;
+                association.tripDisposition = TripDisposition.START;
+                associations.addAssociation(association);
             }
 
-            if (containers.entityContainers.size() > 0) {
-                /*
-                    entityguid
-                    entityName
-                    containers
-                    asUserid
-                 */
+            TripAssociations.deleteTripAssociations(context, clickedTrip.tripGuid, new MyInterfaces.EntityUpdateListener() {
+                @Override
+                public void onSuccess() {
+                    TripAssociations.uploadTripAssociations(getApplicationContext(), associations, new MyInterfaces.EntityUpdateListener() {
+                        @Override
+                        public void onSuccess() {
+                            Toast.makeText(context, "Successfully updated!", Toast.LENGTH_SHORT).show();
+                            Log.i(TAG, "onSuccess Uploaded associations!");
+                        }
 
-                Requests.Request request = new Requests.Request(Requests.Request.Function.UPDATE_MANY);
+                        @Override
+                        public void onFailure(String msg) {
+                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+                            Log.w(TAG, "onFailure: Failed to upload associations!");
+                        }
+                    });
+                }
 
-                ArrayList<Requests.Argument> args = new ArrayList<>();
-                Requests.Argument argument1 = new Requests.Argument("entityid", null);
-                Requests.Argument argument2 = new Requests.Argument("entityName", "msus_mileageassociation");
-                Requests.Argument argument3 = new Requests.Argument("containers", containers.toJson());
-                Requests.Argument argument4 = new Requests.Argument("asUserid", clickedTrip.getOwnerid());
-                args.add(argument1);
-                args.add(argument2);
-                args.add(argument3);
-                args.add(argument4);
-                request.arguments = args;
-
-                Crm crm = new Crm();
-                crm.makeCrmRequest(getApplicationContext(), request, new AsyncHttpResponseHandler() {
-                    @Override
-                    public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                        String response = new String(responseBody);
-                        Log.i(TAG, "onSuccess ");
-                    }
-
-                    @Override
-                    public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                        Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
-                    }
-                });
-
-            }
-
+                @Override
+                public void onFailure(String msg) {
+                    Log.w(TAG, "onFailure: Failed to delete existing associations!");
+                }
+            });
         }
     }
 
