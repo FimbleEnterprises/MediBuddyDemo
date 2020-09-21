@@ -24,11 +24,6 @@ import cz.msebera.android.httpclient.Header;
 
 public class CrmEntities {
 
-    public interface GetTripAssociationsListener {
-        public void onSuccess(TripAssociations associations);
-        public void onFailure(String msg);
-    }
-
     public static class OrderProducts {
         public ArrayList<OrderProduct> list = new ArrayList<>();
 
@@ -655,6 +650,156 @@ public class CrmEntities {
 
     }
 
+    public static class CreateManyResponses {
+
+        public ArrayList<CreateManyResponse> responses = new ArrayList<>();
+        public String errorMessage;
+        public boolean wasFaulted;
+
+        public CreateManyResponses(String crmResponse) {
+            try {
+                JSONObject rootObject = new JSONObject(crmResponse);
+                try {
+                    if (!rootObject.isNull("ErrorMessage")) {
+                        this.errorMessage = (rootObject.getString("ErrorMessage"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!rootObject.isNull("WasFaulted")) {
+                        this.wasFaulted = (rootObject.getBoolean("WasFaulted"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                JSONArray rootArray = rootObject.getJSONArray("AllResponses");
+                for (int i = 0; i < rootArray.length(); i++) {
+                    this.responses.add(new CreateManyResponse(rootArray.getJSONObject(i)));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public static class CreateManyResponse {
+            public boolean wasSuccessful;
+            public String responseMessage;
+            public String guid;
+
+
+            public CreateManyResponse(JSONObject json) {
+                try {
+                    if (!json.isNull("WasSuccessful")) {
+                        this.wasSuccessful = (json.getBoolean("WasSuccessful"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("ResponseMessage")) {
+                        this.responseMessage = (json.getString("ResponseMessage"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("Guid")) {
+                        this.guid = (json.getString("Guid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public String toString() {
+                return "Was successful: " + this.wasSuccessful + ", Guid: " + this.guid;
+            }
+        }
+
+        @Override
+        public String toString() {
+            return "Response count: " + this.responses.size();
+        }
+    }
+
+    public static class DeleteManyResponses {
+
+        public ArrayList<DeleteManyResponse> responses = new ArrayList<>();
+        public String errorMessage;
+        public boolean wasFaulted;
+
+
+        public DeleteManyResponses(String crmResponse) {
+            try {
+                JSONObject rootObject = new JSONObject(crmResponse);
+                try {
+                    if (!rootObject.isNull("ErrorMessage")) {
+                        this.errorMessage = (rootObject.getString("ErrorMessage"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!rootObject.isNull("WasFaulted")) {
+                        this.wasFaulted = (rootObject.getBoolean("WasFaulted"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                JSONArray rootArray = rootObject.getJSONArray("AllResponses");
+                for (int i = 0; i < rootArray.length(); i++) {
+                    this.responses.add(new DeleteManyResponse(rootArray.getJSONObject(i)));
+            }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public static class DeleteManyResponse {
+            public boolean wasSuccessful;
+            public String responseMessage;
+            public String guid;
+            public boolean wasCreated;
+
+
+            public DeleteManyResponse(JSONObject json) {
+                try {
+                    if (!json.isNull("WasSuccessful")) {
+                        this.wasSuccessful = (json.getBoolean("WasSuccessful"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("ResponseMessage")) {
+                        this.responseMessage = (json.getString("ResponseMessage"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("Guid")) {
+                        this.guid = (json.getString("Guid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public String toString() {
+                return "Was successful: " + this.wasSuccessful + ", Guid: " + this.guid;
+            }
+        }
+
+        @Override
+        public String toString() {
+            return "Response count: " + this.responses.size();
+        }
+    }
+
     public static class TripAssociations {
 
         private static final String TAG = "MileageReimbursementAssociations";
@@ -682,114 +827,6 @@ public class CrmEntities {
 
         public void addAssociation(TripAssociation association) {
             this.list.add(association);
-        }
-
-        private static void getAssociationsByTripId(final Context context, String tripid, final GetTripAssociationsListener listener) {
-            String query = Queries.TripAssociation.getAssociationsByTripid(tripid);
-            Requests.Request request = new Requests.Request(Function.GET);
-            ArrayList<Requests.Argument> args = new ArrayList<>();
-            Requests.Argument argument1 = new Requests.Argument("query", query);
-            request.arguments.add(argument1);
-
-            Crm crm = new Crm();
-            crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                    TripAssociations associations = new TripAssociations(new String(responseBody));
-                    Log.i(TAG, "onSuccess Found: " + associations.list.size() + " associations.");
-                    listener.onSuccess(associations);
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                    Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
-                    listener.onFailure(error.getLocalizedMessage());
-                }
-            });
-        }
-
-        private static void deleteCrmAssociations(Context context, TripAssociations associations, final MyInterfaces.EntityUpdateListener listener) {
-            ArrayList<String> guids = new ArrayList<>();
-            for (TripAssociation association : associations.list) {
-                guids.add(association.associated_trip_id);
-            }
-
-            Requests.Request request = new Requests.Request(Function.DELETE_MANY);
-            Requests.Argument argument1 = new Requests.Argument("entityname", "msus_mileageassociation");
-            Requests.Argument argument2 = new Requests.Argument("guids", guids);
-            Requests.Argument argument3 = new Requests.Argument("asuserid", MediUser.getMe().systemuserid);
-            request.arguments.add(argument1);
-            request.arguments.add(argument2);
-            request.arguments.add(argument3);
-
-            Crm crm = new Crm();
-            crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                    listener.onSuccess();
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                    listener.onFailure(error.getLocalizedMessage());
-                }
-            });
-
-        }
-
-        public static void uploadTripAssociations(Context context, TripAssociations associations, final MyInterfaces.EntityUpdateListener listener) {
-            if (associations.list.size() == 0) {
-                listener.onFailure("No associations to upload!");
-            }
-
-            Requests.Request request = new Requests.Request(Function.CREATE_MANY);
-
-            ArrayList<Requests.Argument> args = new ArrayList<>();
-            Requests.Argument argument1 = new Requests.Argument("entityName", "msus_mileageassociation");
-            Requests.Argument argument2 = new Requests.Argument("asUserid", MediUser.getMe().systemuserid);
-            Requests.Argument argument3 = new Requests.Argument("containers", associations.toContainers().toJson());;
-            args.add(argument1);
-            args.add(argument2);
-            args.add(argument3);
-            request.arguments = args;
-
-            Crm crm = new Crm();
-            crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                    listener.onSuccess();
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                    listener.onFailure(error.getLocalizedMessage());
-                }
-            });
-
-        }
-
-        public static void deleteTripAssociations(final Context context, String tripid, final MyInterfaces.EntityUpdateListener listener) {
-            getAssociationsByTripId(context, tripid, new GetTripAssociationsListener() {
-                @Override
-                public void onSuccess(TripAssociations associations) {
-                    deleteCrmAssociations(context, associations, new MyInterfaces.EntityUpdateListener() {
-                        @Override
-                        public void onSuccess() {
-                            listener.onSuccess();
-                        }
-
-                        @Override
-                        public void onFailure(String msg) {
-                            listener.onFailure(msg);
-                        }
-                    });
-                }
-
-                @Override
-                public void onFailure(String msg) {
-
-                }
-            });
         }
 
         public String toJson() {

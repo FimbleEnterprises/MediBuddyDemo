@@ -10,7 +10,6 @@ import android.os.Bundle;
 
 import com.fimbleenterprises.medimileage.CrmEntities.CrmAddresses;
 import com.fimbleenterprises.medimileage.CrmEntities.CrmAddresses.CrmAddress;
-import com.fimbleenterprises.medimileage.CrmEntities.TripAssociations.TripAssociation.TripDisposition;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -46,8 +45,6 @@ import android.widget.ToggleButton;
 import org.w3c.dom.Document;
 
 import java.util.ArrayList;
-
-import static com.fimbleenterprises.medimileage.CrmEntities.*;
 
 public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -197,7 +194,28 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_evaluate_addresses :
-                detectAccountsAtStartOrEnd();
+                TripAssociationManager tripAssociationManager;
+                try {
+                    tripAssociationManager = new TripAssociationManager(this, clickedTrip);
+                    tripAssociationManager.manageTripAssociations(new MyInterfaces.CreateManyListener() {
+                        @Override
+                        public void onResult(CrmEntities.CreateManyResponses responses) {
+                            Log.i(TAG, "onResult " + responses.responses.size() + " associations were created.");
+                            if (options.getDebugMode()) {
+                                Toast.makeText(context, "Associations created!", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onError(String msg) {
+                            if (options.getDebugMode()) {
+                                Log.w(TAG, "onError: Failed to create associations: " + msg);
+                            }
+                        }
+                    });
+                } catch (TripAssociationManager.TripAssociationExeption tripAssociationExeption) {
+                    tripAssociationExeption.printStackTrace();
+                }
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -335,81 +353,6 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
         });
     }
 
-    void detectAccountsAtStartOrEnd() {
-        TripEntry startEntry = tripEntries.get(0);
-        TripEntry endEntry = tripEntries.get(tripEntries.size() - 1);
-
-        ArrayList<CrmAddress> nearbyStartAccounts = new ArrayList<>();
-        ArrayList<CrmAddress> nearbyEndAccounts = new ArrayList<>();
-
-        CrmAddresses accountAddresses = options.getAllSavedCrmAddresses();
-        double thresh = options.getDistanceThreshold();
-
-        Log.i(TAG, "detectAccountsAtStartOrEnd: Distance threshold: " + thresh + " meters");
-        for (CrmAddress address : accountAddresses.list) {
-            double distFromStart = startEntry.distanceTo(address.getLatLng());
-            double distFromEnd = endEntry.distanceTo(address.getLatLng());
-
-            float milesFromStart = Helpers.Geo.convertMetersToMiles(distFromStart, 4);
-            float milesFromEnd = Helpers.Geo.convertMetersToMiles(distFromEnd, 4);
-
-            if (distFromStart <= thresh) {
-                Log.i(TAG, "detectAccountsAtStartOrEnd: WITHIN RANGE OF " + address.accountName + "!  Miles: " + milesFromStart);
-                Toast.makeText(this, "Within range of: " + address.accountName + "!", Toast.LENGTH_SHORT).show();
-                nearbyStartAccounts.add(address);
-            } else {
-                Log.i(TAG, "detectAccountsAtStartOrEnd: NOT IN RANGE OF: " + address.accountName + " - distance: " + distFromStart + " meters");
-            }
-
-            if (distFromEnd <= thresh) {
-                Log.i(TAG, "detectAccountsAtStartOrEnd: WITHIN RANGE OF " + address.accountName + "!  Miles: " + milesFromEnd);
-                Toast.makeText(this, "Within range of: " + address.accountName + "!", Toast.LENGTH_SHORT).show();
-                nearbyEndAccounts.add(address);
-            } else {
-                Log.i(TAG, "detectAccountsAtStartOrEnd: NOT IN RANGE OF: " + address.accountName + " - distance: " + distFromEnd + " meters");
-            }
-        }
-
-        if (nearbyStartAccounts.size() > 0) {
-            Log.i(TAG, "detectAccountsAtStartOrEnd Found: " + nearbyStartAccounts.size()
-                    + " accounts near the beginning and end of this trip!");
-
-            final TripAssociations associations = new TripAssociations();
-            for (CrmAddress address : nearbyStartAccounts) {
-                TripAssociations.TripAssociation association =
-                        new TripAssociations.TripAssociation(clickedTrip.getDateTime());
-                association.associated_account_id = address.accountid;
-                association.associated_trip_id = clickedTrip.tripGuid;
-                association.tripDisposition = TripDisposition.START;
-                associations.addAssociation(association);
-            }
-
-            TripAssociations.deleteTripAssociations(context, clickedTrip.tripGuid, new MyInterfaces.EntityUpdateListener() {
-                @Override
-                public void onSuccess() {
-                    TripAssociations.uploadTripAssociations(getApplicationContext(), associations, new MyInterfaces.EntityUpdateListener() {
-                        @Override
-                        public void onSuccess() {
-                            Toast.makeText(context, "Successfully updated!", Toast.LENGTH_SHORT).show();
-                            Log.i(TAG, "onSuccess Uploaded associations!");
-                        }
-
-                        @Override
-                        public void onFailure(String msg) {
-                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
-                            Log.w(TAG, "onFailure: Failed to upload associations!");
-                        }
-                    });
-                }
-
-                @Override
-                public void onFailure(String msg) {
-                    Log.w(TAG, "onFailure: Failed to delete existing associations!");
-                }
-            });
-        }
-    }
-
     void populateAllAddresses() {
         try {
             myMapMarkers = new ArrayList<>();
@@ -456,6 +399,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
                 MySqlDatasource ds = new MySqlDatasource();
                 Log.i(TAG, "doWork Getting trip entries...");
                 tripEntries = ds.getAllTripEntries(clickedTrip.getTripcode());
+                clickedTrip.tripEntries = tripEntries;
                 Log.i(TAG, "doWork Trip entries retrieved.");
                 return null;
             }

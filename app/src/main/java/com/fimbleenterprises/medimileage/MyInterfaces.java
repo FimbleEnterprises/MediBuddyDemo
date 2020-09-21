@@ -23,6 +23,21 @@ public class MyInterfaces {
         void onFailure(String message);
     }
 
+    public interface DeleteManyListener {
+        void onResult(CrmEntities.DeleteManyResponses responses);
+        void onError(String msg);
+    }
+
+    public interface CreateManyListener {
+        void onResult(CrmEntities.CreateManyResponses responses);
+        void onError(String msg);
+    }
+
+    public interface TripAssociationsListener {
+        public void onSuccess(CrmEntities.TripAssociations associations);
+        public void onFailure(String msg);
+    }
+
     public interface MetricUpdateListener {
         void onSuccess();
         void onFailure(String msg);
