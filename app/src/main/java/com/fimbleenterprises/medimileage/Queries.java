@@ -708,7 +708,7 @@ public class Queries {
     public static class Addresses {
 
         public static String getAllAccountAddresses() {
-            // Instantiate a new constructor for the case entity and add the columns we want to see
+
             QueryFactory query = new QueryFactory("account");
             query.addColumn("name");
             query.addColumn("customertypecode");

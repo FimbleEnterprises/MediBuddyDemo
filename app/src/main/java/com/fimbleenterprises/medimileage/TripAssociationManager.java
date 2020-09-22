@@ -13,13 +13,13 @@ import java.util.ArrayList;
 import androidx.annotation.Nullable;
 import cz.msebera.android.httpclient.Header;
 
-class TripAssociationManager {
-    private static final String TAG = "AssociatedTripManager";
+public class TripAssociationManager {
+    private static final String TAG = "AssociatedTripManager";/*
     FullTrip fullTrip;
     Context context;
-    MySettingsHelper options;
+    MySettingsHelper options;*/
     
-    public TripAssociationManager(Context context, FullTrip fullTrip) throws TripAssociationExeption {
+    /*public TripAssociationManager(Context context, FullTrip fullTrip) throws TripAssociationExeption {
 
         // Must have a FullTrip guid (meaning the trip has been submitted) to proceed.
         if (fullTrip == null || fullTrip.getTripGuid() == null) {
@@ -35,16 +35,17 @@ class TripAssociationManager {
         this.options = new MySettingsHelper(context);
         this.fullTrip = fullTrip;
 
-    }
+    }*/
 
     /**
      * This function will evaluate accounts and opportunities near the start and end locations
      * of a trip.  It will then add or update trip associations on the server.  Existing associations
      * are deleted and recreated so there is no need to check for pre-existing associations.
      */
-    public void manageTripAssociations(final MyInterfaces.CreateManyListener listener) {
+    public static void manageTripAssociations(FullTrip fullTrip, final MyInterfaces.CreateManyListener listener) {
 
         try {
+            MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
             TripEntry startEntry = fullTrip.tripEntries.get(0);
             TripEntry endEntry = fullTrip.tripEntries.get(fullTrip.tripEntries.size() - 1);
 
@@ -73,7 +74,6 @@ class TripAssociationManager {
                             new CrmEntities.TripAssociations.TripAssociation(fullTrip.getDateTime());
                     association.associated_account_id = address.accountid;
                     association.associated_trip_id = fullTrip.tripGuid;
-                    pendingAssociations.addAssociation(association);
                     association.tripDisposition = CrmEntities.TripAssociations.TripAssociation
                             .TripDisposition.START;
                     pendingAssociations.addAssociation(association);
@@ -96,7 +96,7 @@ class TripAssociationManager {
                 Log.i(TAG, "createAssociations Found: " + pendingAssociations.list.size() + " nearby accounts.");
 
                 // Retrieve any existing server-side associations so they can be deleted if necessary
-                retrieveAssociations(new MyInterfaces.TripAssociationsListener() {
+                retrieveAssociations(fullTrip.getTripGuid(), new MyInterfaces.TripAssociationsListener() {
                     @Override
                     public void onSuccess(CrmEntities.TripAssociations associations) {
                         if (associations != null && associations.list.size() > 0) {
@@ -170,15 +170,12 @@ class TripAssociationManager {
         }
     }
 
-    /**
-     * This will simply remove any and all TripAssociation entity entries from the server containing
-     * this trip's TripAssociationId.
-     * @param listener A simple yes or no result listener.
-     */
-    public void removeAssociations(final MyInterfaces.DeleteManyListener listener) {
+    /** THIS IS DONE AUTOMATICALLY BY SERVER-SIDE WORKFLOW WHEN ASSOCIATED TRIP IS DELETED
+     ***********************************************************************************************/
+    /*public static void removeAssociations(String tripid,  final MyInterfaces.DeleteManyListener listener) {
         try {
             // First get the server-side associations
-            retrieveAssociations(new MyInterfaces.TripAssociationsListener() {
+            retrieveAssociations(tripid, new MyInterfaces.TripAssociationsListener() {
                 @Override
                 public void onSuccess(CrmEntities.TripAssociations associations) {
                     // Now delete the from the server.
@@ -207,17 +204,17 @@ class TripAssociationManager {
             e.printStackTrace();
             listener.onError(e.getLocalizedMessage());
         }
-    }
+    }*/
 
-    public void retrieveAssociations(final MyInterfaces.TripAssociationsListener listener) {
-        String query = Queries.TripAssociation.getAssociationsByTripid(this.fullTrip.tripGuid);
+    public static void retrieveAssociations(String tripid, final MyInterfaces.TripAssociationsListener listener) {
+        String query = Queries.TripAssociation.getAssociationsByTripid(tripid);
         Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
         ArrayList<Requests.Argument> args = new ArrayList<>();
         Requests.Argument argument1 = new Requests.Argument("query", query);
         request.arguments.add(argument1);
 
         Crm crm = new Crm();
-        crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+        crm.makeCrmRequest(MyApp.getAppContext(), request, new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 CrmEntities.TripAssociations associations = new CrmEntities.TripAssociations(new String(responseBody));
@@ -233,7 +230,7 @@ class TripAssociationManager {
         });
     }
 
-    private void deleteCrmAssociations(CrmEntities.TripAssociations associations, final MyInterfaces.DeleteManyListener listener) {
+    private static void deleteCrmAssociations(CrmEntities.TripAssociations associations, final MyInterfaces.DeleteManyListener listener) {
 
         String[] guids = new String[associations.list.size()];
         for (int i = 0; i < associations.list.size(); i++) {
@@ -249,7 +246,7 @@ class TripAssociationManager {
         request.arguments.add(argument3);
 
         Crm crm = new Crm();
-        crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+        crm.makeCrmRequest(MyApp.getAppContext(), request, new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 CrmEntities.DeleteManyResponses responses = new CrmEntities.DeleteManyResponses(new String(responseBody));
@@ -264,7 +261,7 @@ class TripAssociationManager {
 
     }
 
-    private void uploadCrmAssociations(CrmEntities.TripAssociations associations, final MyInterfaces.CreateManyListener listener) {
+    private static void uploadCrmAssociations(CrmEntities.TripAssociations associations, final MyInterfaces.CreateManyListener listener) {
         if (associations.list.size() == 0) {
             listener.onError("No associations to upload!");
         }
@@ -281,7 +278,7 @@ class TripAssociationManager {
         request.arguments = args;
 
         Crm crm = new Crm();
-        crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+        crm.makeCrmRequest(MyApp.getAppContext(), request, new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 CrmEntities.CreateManyResponses responses = new CrmEntities.CreateManyResponses(new String(responseBody));

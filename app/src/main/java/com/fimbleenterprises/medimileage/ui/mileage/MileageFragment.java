@@ -12,8 +12,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.location.Address;
-import android.location.Geocoder;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -33,7 +31,6 @@ import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -54,7 +51,6 @@ import com.fimbleenterprises.medimileage.Activity_ManualTrip;
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.CrmEntities;
 import com.fimbleenterprises.medimileage.FullTrip;
-import com.fimbleenterprises.medimileage.GoalSummary;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.LocationContainer;
 import com.fimbleenterprises.medimileage.MediUser;
@@ -74,12 +70,10 @@ import com.fimbleenterprises.medimileage.QueryFactory.Filter;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.Requests;
 import com.fimbleenterprises.medimileage.Requests.Request;
-import com.fimbleenterprises.medimileage.RestResponse;
+import com.fimbleenterprises.medimileage.TripAssociationManager;
 import com.fimbleenterprises.medimileage.TripListRecyclerAdapter;
 import com.fimbleenterprises.medimileage.ViewTripActivity;
-import com.google.android.gms.maps.model.LatLng;
 import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.scwang.smart.refresh.footer.ClassicsFooter;
 import com.scwang.smart.refresh.header.MaterialHeader;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
 import com.scwang.smart.refresh.layout.listener.OnLoadMoreListener;
@@ -89,16 +83,12 @@ import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class MileageFragment extends Fragment implements TripListRecyclerAdapter.ItemClickListener {
 
@@ -480,7 +470,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         }
 
         try {
-            getAllAddresses();
+            getAllAccountAddresses();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1212,7 +1202,30 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
     }
 
-    public void getAllAddresses() {
+    public void getAllAccountAddresses() {
+        Requests.Argument argument = new Requests.Argument("query", Queries.Addresses.getAllAccountAddresses());
+        ArrayList<Requests.Argument> args = new ArrayList<>();
+        args.add(argument);
+        Request request = new Request(Request.Function.GET, args);
+        Crm crm = new Crm();
+        crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                // Construct an array of CrmAddresses
+                String response = new String(responseBody);
+                CrmEntities.CrmAddresses addresses = new CrmEntities.CrmAddresses(response);
+                options.saveAllCrmAddresses(addresses);
+                Log.i(TAG, "onSuccess response: " + response.length());
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                Log.w(TAG, "onFailure: error: " + error.getLocalizedMessage());
+            }
+        });
+    }
+
+    public void getAllOpportunityAddresses() {
         Requests.Argument argument = new Requests.Argument("query", Queries.Addresses.getAllAccountAddresses());
         ArrayList<Requests.Argument> args = new ArrayList<>();
         args.add(argument);
@@ -1496,6 +1509,23 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                         populateTripList();
                         Toast.makeText(getContext(), "Trip was updated", Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
+
+                        TripAssociationManager.manageTripAssociations(clickedTrip, new MyInterfaces.CreateManyListener() {
+                            @Override
+                            public void onResult(CrmEntities.CreateManyResponses responses) {
+                                if (options.getDebugMode()) {
+                                    Toast.makeText(getContext(), "Created " + responses.responses.size() + " associations", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+
+                            @Override
+                            public void onError(String msg) {
+                                if (options.getDebugMode()) {
+                                    Toast.makeText(getContext(), "Failed to do trip associations\n" + msg, Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+
                     } else {
                         try {
                             dialog.dismiss();
@@ -1523,43 +1553,6 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         });
     }
 
-    public void submitTripWithoutDialog(final FullTrip clickedTrip, final MyInterfaces.TripSubmitListener listener) throws UnsupportedEncodingException {
-
-        Crm crm = new Crm();
-        Request request = clickedTrip.packageForCrm();
-
-        Log.i(TAG, "submitTrip JSON LENGTH: " + clickedTrip.tripEntriesJson.length());
-
-        crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                String result = new String(responseBody);
-                try {
-                    if (!new JSONObject(result).isNull("Guid")) {
-                        clickedTrip.setIsSubmitted(true);
-                        clickedTrip.setTripGuid(new JSONObject(result).getString("Guid"));
-                        clickedTrip.setIsSubmitted(true);
-                        clickedTrip.save();
-                        listener.onSuccess(clickedTrip);
-                    }
-                } catch (Exception e) {
-                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
-                    e.printStackTrace();
-                    listener.onFailure(e.getMessage());
-                }
-                Log.i(TAG, "onSuccess " + new String(responseBody));
-                Toast.makeText(getContext(), "Trip was submitted", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                Log.w(TAG, "onFailure: " + new String(responseBody));
-                Toast.makeText(getContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
-                listener.onFailure(error.getMessage());
-            }
-        });
-    }
-
     public void submitTrip(final FullTrip clickedTrip) throws UnsupportedEncodingException {
 
         Crm crm = new Crm();
@@ -1581,6 +1574,21 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                         clickedTrip.setIsSubmitted(true);
                         clickedTrip.save();
                         populateTripList();
+                        TripAssociationManager.manageTripAssociations(clickedTrip, new MyInterfaces.CreateManyListener() {
+                            @Override
+                            public void onResult(CrmEntities.CreateManyResponses responses) {
+                                if (options.getDebugMode()) {
+                                    Toast.makeText(getContext(), "Created " + responses.responses.size() + " associations.", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+
+                            @Override
+                            public void onError(String msg) {
+                                if (options.getDebugMode()) {
+                                    Toast.makeText(getContext(), "Failed to associate trips\n" + msg, Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
                     }
                 } catch (Exception e) {
                     dialog.dismiss();
@@ -1603,11 +1611,13 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
     public void unsubmitTrip(final FullTrip clickedTrip) throws UnsupportedEncodingException {
 
+        final String tripGuid = clickedTrip.tripGuid;
+
         Crm crm = new Crm();
         Request request = new Request();
         request.function = Request.Function.DELETE.name();
         request.arguments.add(new Requests.Argument("entity", "msus_fulltrip"));
-        request.arguments.add(new Requests.Argument("entityid", clickedTrip.getTripGuid()));
+        request.arguments.add(new Requests.Argument("entityid", tripGuid));
         request.arguments.add(new Requests.Argument("asuserid", MediUser.getMe().systemuserid));
 
         final MyProgressDialog dialog = new MyProgressDialog(getContext(),
@@ -1618,7 +1628,6 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 String result = new String(responseBody);
-
                 try {
                     JSONObject object = new JSONObject(result);
                     if (object.getBoolean("WasSuccessful") == true ||
@@ -1636,6 +1645,22 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 Log.i(TAG, "onSuccess " + new String(responseBody));
                 Toast.makeText(getContext(), "Trip was recalled", Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
+                // Trip associations are removed at the server by a workflow when the associated trip or opportunity are modified (removed)
+                /*TripAssociationManager.removeAssociations(tripGuid, new MyInterfaces.DeleteManyListener() {
+                    @Override
+                    public void onResult(CrmEntities.DeleteManyResponses responses) {
+                        if (options.getDebugMode()) {
+                            Toast.makeText(getContext(), "Removed " + responses.responses.size() + " associations", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onError(String msg) {
+                        if (options.getDebugMode()) {
+                            Toast.makeText(getContext(), "Failed to disassociate accounts\n" + msg, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });*/
             }
 
             @Override

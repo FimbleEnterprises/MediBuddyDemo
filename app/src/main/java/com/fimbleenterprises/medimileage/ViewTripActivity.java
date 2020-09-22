@@ -195,28 +195,17 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
         switch (item.getItemId()) {
             case R.id.action_evaluate_addresses :
                 TripAssociationManager tripAssociationManager;
-                try {
-                    tripAssociationManager = new TripAssociationManager(this, clickedTrip);
-                    tripAssociationManager.manageTripAssociations(new MyInterfaces.CreateManyListener() {
-                        @Override
-                        public void onResult(CrmEntities.CreateManyResponses responses) {
-                            Log.i(TAG, "onResult " + responses.responses.size() + " associations were created.");
-                            if (options.getDebugMode()) {
-                                Toast.makeText(context, "Associations created!", Toast.LENGTH_SHORT).show();
-                            }
-                        }
+                TripAssociationManager.manageTripAssociations(clickedTrip, new MyInterfaces.CreateManyListener() {
+                    @Override
+                    public void onResult(CrmEntities.CreateManyResponses responses) {
+                        Toast.makeText(context, "Created " + responses.responses.size() + " responses", Toast.LENGTH_SHORT).show();
+                    }
 
-                        @Override
-                        public void onError(String msg) {
-                            if (options.getDebugMode()) {
-                                Log.w(TAG, "onError: Failed to create associations: " + msg);
-                            }
-                        }
-                    });
-                } catch (TripAssociationManager.TripAssociationExeption tripAssociationExeption) {
-                    tripAssociationExeption.printStackTrace();
-                }
-                break;
+                    @Override
+                    public void onError(String msg) {
+                        Toast.makeText(context, "Failed to create associations\n" + msg, Toast.LENGTH_SHORT).show();
+                    }
+                });
         }
         return super.onOptionsItemSelected(item);
     }

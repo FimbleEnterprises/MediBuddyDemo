@@ -869,7 +869,7 @@ public class CrmEntities {
                 this.associated_trip_date = tripDate;
                 this.ownerid = MediUser.getMe().systemuserid;
                 this.ownername = MediUser.getMe().fullname;
-                this.name = tripDate.toLocalDateTime().toString() + " - " + this.ownername;
+                this.name = this.ownername + " was nearby during a MileBuddy trip";
             }
 
             public TripAssociation(JSONObject json) {
