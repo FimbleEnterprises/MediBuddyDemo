@@ -5,6 +5,7 @@ import org.joda.time.DateTime;
 import java.util.ArrayList;
 
 import static com.fimbleenterprises.medimileage.Queries.Operators.getDateOperator;
+import static com.fimbleenterprises.medimileage.QueryFactory.*;
 import static com.fimbleenterprises.medimileage.QueryFactory.Filter.FilterType.AND;
 
 public class Queries {
@@ -23,21 +24,21 @@ public class Queries {
         public static String getDateOperator(DateOperator operator) {
             switch (operator) {
                 case YESTERDAY:
-                    return QueryFactory.Filter.Operator.YESTERDAY;
+                    return Filter.Operator.YESTERDAY;
                 case THIS_WEEK:
-                    return QueryFactory.Filter.Operator.THIS_WEEK;
+                    return Filter.Operator.THIS_WEEK;
                 case THIS_MONTH:
-                    return QueryFactory.Filter.Operator.THIS_MONTH;
+                    return Filter.Operator.THIS_MONTH;
                 case THIS_YEAR:
-                    return QueryFactory.Filter.Operator.THIS_YEAR;
+                    return Filter.Operator.THIS_YEAR;
                 case LAST_WEEK:
-                    return QueryFactory.Filter.Operator.LAST_WEEK;
+                    return Filter.Operator.LAST_WEEK;
                 case LAST_MONTH:
-                    return QueryFactory.Filter.Operator.LAST_MONTH;
+                    return Filter.Operator.LAST_MONTH;
                 case LAST_YEAR:
-                    return QueryFactory.Filter.Operator.LAST_YEAR;
+                    return Filter.Operator.LAST_YEAR;
                 default:
-                    return QueryFactory.Filter.Operator.TODAY;
+                    return Filter.Operator.TODAY;
             }
         }
     }
@@ -72,15 +73,15 @@ public class Queries {
             query.addColumn("casetypecode");
 
             // Filter creation to make use of our conditions
-            QueryFactory.Filter filter = new QueryFactory.Filter(AND);
-            filter.addCondition(new QueryFactory.Filter.FilterCondition("incidentid","eq",caseid));
+            Filter filter = new Filter(AND);
+            filter.addCondition(new Filter.FilterCondition("incidentid","eq",caseid));
             query.setFilter(filter);
 
             // Link entity creation to join to the account entity and apply our territory condition
-            QueryFactory.LinkEntity linkEntity_accountStuff = new QueryFactory.LinkEntity(QueryFactory.LINK_ENTITY_STRINGS.CASES_TO_ACCOUNT);
-            linkEntity_accountStuff.addColumn(new QueryFactory.EntityColumn("territoryid"));
-            linkEntity_accountStuff.addColumn(new QueryFactory.EntityColumn("msus_salesrep"));
-            linkEntity_accountStuff.addColumn(new QueryFactory.EntityColumn("accountnumber"));
+            LinkEntity linkEntity_accountStuff = new LinkEntity(LINK_ENTITY_STRINGS.CASES_TO_ACCOUNT);
+            linkEntity_accountStuff.addColumn(new EntityColumn("territoryid"));
+            linkEntity_accountStuff.addColumn(new EntityColumn("msus_salesrep"));
+            linkEntity_accountStuff.addColumn(new EntityColumn("accountnumber"));
             query.addLinkEntity(linkEntity_accountStuff);
 
             // Spit out the encoded query
@@ -131,24 +132,24 @@ public class Queries {
             query.addColumn("msus_user_salesregion");
 
             // Filter creation to make use of our conditions
-            QueryFactory.Filter filter = new QueryFactory.Filter(AND);
-            filter.addCondition(new QueryFactory.Filter.FilterCondition("internalemailaddress"
+            Filter filter = new Filter(AND);
+            filter.addCondition(new Filter.FilterCondition("internalemailaddress"
                     ,"eq",email));
             query.setFilter(filter);
 
             // Link entity creation to join to the account entity and apply our territory condition
-            QueryFactory.LinkEntity linkEntity_territory =
-                    new QueryFactory.LinkEntity(QueryFactory.LINK_ENTITY_STRINGS.TERRITORY_TO_USER);
-            linkEntity_territory.addColumn(new QueryFactory.EntityColumn("name"));
-            linkEntity_territory.addColumn(new QueryFactory.EntityColumn("new_salesrepresentative"));
-            linkEntity_territory.addColumn(new QueryFactory.EntityColumn("msus_salesregion"));
-            linkEntity_territory.addColumn(new QueryFactory.EntityColumn("managerid"));
-            linkEntity_territory.addColumn(new QueryFactory.EntityColumn("new_businessunit"));
+            LinkEntity linkEntity_territory =
+                    new LinkEntity(LINK_ENTITY_STRINGS.TERRITORY_TO_USER);
+            linkEntity_territory.addColumn(new EntityColumn("name"));
+            linkEntity_territory.addColumn(new EntityColumn("new_salesrepresentative"));
+            linkEntity_territory.addColumn(new EntityColumn("msus_salesregion"));
+            linkEntity_territory.addColumn(new EntityColumn("managerid"));
+            linkEntity_territory.addColumn(new EntityColumn("new_businessunit"));
             query.addLinkEntity(linkEntity_territory);
 
-            QueryFactory.LinkEntity linkEntity_Manager =
-                    new QueryFactory.LinkEntity(QueryFactory.LINK_ENTITY_STRINGS.MANAGER_TO_USER);
-            linkEntity_Manager.addColumn(new QueryFactory.EntityColumn("businessunitid"));
+            LinkEntity linkEntity_Manager =
+                    new LinkEntity(LINK_ENTITY_STRINGS.MANAGER_TO_USER);
+            linkEntity_Manager.addColumn(new EntityColumn("businessunitid"));
             query.addLinkEntity(linkEntity_Manager);
 
             // Spit out the encoded query
@@ -196,24 +197,24 @@ public class Queries {
             query.addColumn("msus_user_salesregion");
 
             // Filter creation to make use of our conditions
-            QueryFactory.Filter filter = new QueryFactory.Filter(AND);
-            filter.addCondition(new QueryFactory.Filter.FilterCondition("msus_is_us_user"
+            Filter filter = new Filter(AND);
+            filter.addCondition(new Filter.FilterCondition("msus_is_us_user"
                     ,"eq","1"));
             query.setFilter(filter);
 
             // Link entity creation to join to the account entity and apply our territory condition
-            QueryFactory.LinkEntity linkEntity_territory =
-                    new QueryFactory.LinkEntity(QueryFactory.LINK_ENTITY_STRINGS.TERRITORY_TO_USER);
-            linkEntity_territory.addColumn(new QueryFactory.EntityColumn("name"));
-            linkEntity_territory.addColumn(new QueryFactory.EntityColumn("new_salesrepresentative"));
-            linkEntity_territory.addColumn(new QueryFactory.EntityColumn("msus_salesregion"));
-            linkEntity_territory.addColumn(new QueryFactory.EntityColumn("managerid"));
-            linkEntity_territory.addColumn(new QueryFactory.EntityColumn("new_businessunit"));
+            LinkEntity linkEntity_territory =
+                    new LinkEntity(LINK_ENTITY_STRINGS.TERRITORY_TO_USER);
+            linkEntity_territory.addColumn(new EntityColumn("name"));
+            linkEntity_territory.addColumn(new EntityColumn("new_salesrepresentative"));
+            linkEntity_territory.addColumn(new EntityColumn("msus_salesregion"));
+            linkEntity_territory.addColumn(new EntityColumn("managerid"));
+            linkEntity_territory.addColumn(new EntityColumn("new_businessunit"));
             query.addLinkEntity(linkEntity_territory);
 
-            QueryFactory.LinkEntity linkEntity_Manager =
-                    new QueryFactory.LinkEntity(QueryFactory.LINK_ENTITY_STRINGS.MANAGER_TO_USER);
-            linkEntity_Manager.addColumn(new QueryFactory.EntityColumn("businessunitid"));
+            LinkEntity linkEntity_Manager =
+                    new LinkEntity(LINK_ENTITY_STRINGS.MANAGER_TO_USER);
+            linkEntity_Manager.addColumn(new EntityColumn("businessunitid"));
             query.addLinkEntity(linkEntity_Manager);
 
             // Spit out the encoded query
@@ -235,18 +236,68 @@ public class Queries {
             query.addColumn("managerid");
 
             // Filter creation to make use of our conditions
-            QueryFactory.Filter filter = new QueryFactory.Filter(AND);
-            filter.addCondition(new QueryFactory.Filter.FilterCondition("managerid",
-                            QueryFactory.Filter.Operator.CONTAINS_DATA));
+            Filter filter = new Filter(AND);
+            filter.addCondition(new Filter.FilterCondition("managerid",
+                            Filter.Operator.CONTAINS_DATA));
             query.setFilter(filter);
 
-            QueryFactory.SortClause sortClause = new QueryFactory.SortClause("name", false, QueryFactory.SortClause.ClausePosition.ONE);
+            SortClause sortClause = new SortClause("name", false, SortClause.ClausePosition.ONE);
             query.addSortClause(sortClause);
 
             // Spit out the encoded query
             String rslt = query.construct();
             return rslt;
         }
+    }
+
+    public static class Opportunities {
+
+        public static String getOpportunitiesByTerritory(String territoryid) {
+
+            // Query columns
+            QueryFactory factory = new QueryFactory("opportunity");
+            factory.addColumn("name");
+            factory.addColumn("estimatedvalue");
+            factory.addColumn("estimatedclosedate");
+            factory.addColumn("col_dealtype");
+            factory.addColumn("ownerid");
+            factory.addColumn("parentaccountid");
+            factory.addColumn("stepname");
+            factory.addColumn("createdon");
+            factory.addColumn("msus_probability");
+            factory.addColumn("opportunityid");
+
+            // Link entities
+            LinkEntity linkEntityAccount = new LinkEntity("account", "accountid", "parentaccountid", "ab");
+            linkEntityAccount.addColumn(new EntityColumn("territoryid"));
+            Filter.FilterCondition linkentityAccountCondition = new Filter.FilterCondition(
+                    "territoryid", Filter.Operator.EQUALS, territoryid);
+            linkEntityAccount.addFilter(new Filter(AND, linkentityAccountCondition));
+            factory.addLinkEntity(linkEntityAccount);
+
+            // Filter conditions
+            Filter.FilterCondition condition1 = new Filter
+                    .FilterCondition("statecode", Filter.Operator.EQUALS,
+                    Integer.toString(0));
+
+            ArrayList<Filter.FilterCondition> conditions = new ArrayList<>();
+            conditions.add(condition1);
+
+            // Set filter
+            Filter filter = new Filter(AND, conditions);
+            factory.setFilter(filter);
+
+            // Sort clause
+            SortClause sortClause = new SortClause("createdon",
+                    true, SortClause.ClausePosition.ONE);
+            factory.addSortClause(sortClause);
+
+            // Build query
+            String query = factory.construct();
+
+            return query;
+        }
+
     }
 
     /**
@@ -260,13 +311,13 @@ public class Queries {
          */
         public static String getMyUser() {
             // Instantiate a new constructor for the case entity and add the columns we want to see
-            QueryFactory query = new QueryFactory(QueryFactory.EntityNames.USER);
+            QueryFactory query = new QueryFactory(EntityNames.USER);
             query.addColumn("fullname");
 
             // Filter creation to make use of our conditions
-            QueryFactory.Filter filter = new QueryFactory.Filter(AND);
-            filter.addCondition(new QueryFactory.Filter.FilterCondition("systemuserid",
-                    QueryFactory.Filter.Operator.EQUALS, MediUser.getMe().systemuserid));
+            Filter filter = new Filter(AND);
+            filter.addCondition(new Filter.FilterCondition("systemuserid",
+                    Filter.Operator.EQUALS, MediUser.getMe().systemuserid));
             query.setFilter(filter);
 
             // Spit out the encoded query
@@ -296,25 +347,25 @@ public class Queries {
             factory.addColumn("salesorderdetailid");
 
             // Create link entities
-            QueryFactory.LinkEntity linkEntitySalesOrder = new QueryFactory.LinkEntity(
+            LinkEntity linkEntitySalesOrder = new LinkEntity(
                     "salesorder",
                     "salesorderid",
                     "salesorderid",
                     "a_6ec0e72e4c104394bc627456c6412838"
             );
-            QueryFactory.LinkEntity linkEntitySystemUser = new QueryFactory.LinkEntity(
+            LinkEntity linkEntitySystemUser = new LinkEntity(
                     "systemuser",
                     "systemuserid",
                     "salesrepid",
                     "a_a1cf96c07c114d478335b8c445651a12"
             );
-            QueryFactory.LinkEntity linkEntityAccount = new QueryFactory.LinkEntity(
+            LinkEntity linkEntityAccount = new LinkEntity(
                     "account",
                     "accountid",
                     "new_customer",
                     "a_db24f99da8fee71180df005056a36b9b"
             );
-            QueryFactory.LinkEntity linkEntityProduct = new QueryFactory.LinkEntity(
+            LinkEntity linkEntityProduct = new LinkEntity(
                     "product",
                     "productid",
                     "productid",
@@ -322,34 +373,34 @@ public class Queries {
             );
 
             // Add columns to link entities
-            linkEntitySalesOrder.addColumn(new QueryFactory.EntityColumn("submitdate"));
-            linkEntitySystemUser.addColumn(new QueryFactory.EntityColumn("employeeid"));
-            linkEntityAccount.addColumn(new QueryFactory.EntityColumn("accountnumber"));
-            linkEntityAccount.addColumn(new QueryFactory.EntityColumn("territoryid"));
-            linkEntityProduct.addColumn(new QueryFactory.EntityColumn("msus_is_capital"));
-            linkEntityProduct.addColumn(new QueryFactory.EntityColumn("productnumber"));
-            linkEntityProduct.addColumn(new QueryFactory.EntityColumn("col_itemgroup"));
-            linkEntityProduct.addColumn(new QueryFactory.EntityColumn("col_producfamily"));
+            linkEntitySalesOrder.addColumn(new EntityColumn("submitdate"));
+            linkEntitySystemUser.addColumn(new EntityColumn("employeeid"));
+            linkEntityAccount.addColumn(new EntityColumn("accountnumber"));
+            linkEntityAccount.addColumn(new EntityColumn("territoryid"));
+            linkEntityProduct.addColumn(new EntityColumn("msus_is_capital"));
+            linkEntityProduct.addColumn(new EntityColumn("productnumber"));
+            linkEntityProduct.addColumn(new EntityColumn("col_itemgroup"));
+            linkEntityProduct.addColumn(new EntityColumn("col_producfamily"));
 
             // Create and populate a condition array for a link entity
-            ArrayList<QueryFactory.Filter.FilterCondition> salesOrderConditions = new ArrayList<>();
-            QueryFactory.Filter.FilterCondition conditionOrderDate = new QueryFactory.Filter.FilterCondition(
+            ArrayList<Filter.FilterCondition> salesOrderConditions = new ArrayList<>();
+            Filter.FilterCondition conditionOrderDate = new Filter.FilterCondition(
                     "submitdate", getDateOperator(operator));
             salesOrderConditions.add(conditionOrderDate);
 
             // Create and populate a condition array for a link entity
-            ArrayList<QueryFactory.Filter.FilterCondition> customerConditions = new ArrayList<>();
-            QueryFactory.Filter.FilterCondition conditionRepId = new QueryFactory.Filter.FilterCondition(
-                    "territoryid", QueryFactory.Filter.Operator.EQUALS, territoryid);
+            ArrayList<Filter.FilterCondition> customerConditions = new ArrayList<>();
+            Filter.FilterCondition conditionRepId = new Filter.FilterCondition(
+                    "territoryid", Filter.Operator.EQUALS, territoryid);
             customerConditions.add(conditionRepId);
 
             // Add new filters to the link entities that have filters
-            linkEntitySalesOrder.addFilter(new QueryFactory.Filter(AND, salesOrderConditions));
-            linkEntityAccount.addFilter(new QueryFactory.Filter(AND, customerConditions));
+            linkEntitySalesOrder.addFilter(new Filter(AND, salesOrderConditions));
+            linkEntityAccount.addFilter(new Filter(AND, customerConditions));
 
             // Create and add a sort clause
-            QueryFactory.SortClause sortClause = new QueryFactory.SortClause("salesorderid",
-                    true, QueryFactory.SortClause.ClausePosition.ONE);
+            SortClause sortClause = new SortClause("salesorderid",
+                    true, SortClause.ClausePosition.ONE);
             factory.addSortClause(sortClause);
 
             // Add the constructed link entities
@@ -383,25 +434,25 @@ public class Queries {
             factory.addColumn("salesorderdetailid");
 
             // Create link entities
-            QueryFactory.LinkEntity linkEntitySalesOrder = new QueryFactory.LinkEntity(
+            LinkEntity linkEntitySalesOrder = new LinkEntity(
                     "salesorder",
                     "salesorderid",
                     "salesorderid",
                     "a_6ec0e72e4c104394bc627456c6412838"
             );
-            QueryFactory.LinkEntity linkEntitySystemUser = new QueryFactory.LinkEntity(
+            LinkEntity linkEntitySystemUser = new LinkEntity(
                     "systemuser",
                     "systemuserid",
                     "salesrepid",
                     "a_a1cf96c07c114d478335b8c445651a12"
             );
-            QueryFactory.LinkEntity linkEntityAccount = new QueryFactory.LinkEntity(
+            LinkEntity linkEntityAccount = new LinkEntity(
                     "account",
                     "accountid",
                     "new_customer",
                     "a_db24f99da8fee71180df005056a36b9b"
             );
-            QueryFactory.LinkEntity linkEntityProduct = new QueryFactory.LinkEntity(
+            LinkEntity linkEntityProduct = new LinkEntity(
                     "product",
                     "productid",
                     "productid",
@@ -409,34 +460,34 @@ public class Queries {
             );
 
             // Add columns to link entities
-            linkEntitySalesOrder.addColumn(new QueryFactory.EntityColumn("submitdate"));
-            linkEntitySystemUser.addColumn(new QueryFactory.EntityColumn("employeeid"));
-            linkEntityAccount.addColumn(new QueryFactory.EntityColumn("accountnumber"));
-            linkEntityAccount.addColumn(new QueryFactory.EntityColumn("territoryid"));
-            linkEntityProduct.addColumn(new QueryFactory.EntityColumn("msus_is_capital"));
-            linkEntityProduct.addColumn(new QueryFactory.EntityColumn("productnumber"));
-            linkEntityProduct.addColumn(new QueryFactory.EntityColumn("col_itemgroup"));
-            linkEntityProduct.addColumn(new QueryFactory.EntityColumn("col_producfamily"));
+            linkEntitySalesOrder.addColumn(new EntityColumn("submitdate"));
+            linkEntitySystemUser.addColumn(new EntityColumn("employeeid"));
+            linkEntityAccount.addColumn(new EntityColumn("accountnumber"));
+            linkEntityAccount.addColumn(new EntityColumn("territoryid"));
+            linkEntityProduct.addColumn(new EntityColumn("msus_is_capital"));
+            linkEntityProduct.addColumn(new EntityColumn("productnumber"));
+            linkEntityProduct.addColumn(new EntityColumn("col_itemgroup"));
+            linkEntityProduct.addColumn(new EntityColumn("col_producfamily"));
 
             // Create and populate a condition array for a link entity
-            ArrayList<QueryFactory.Filter.FilterCondition> salesOrderConditions = new ArrayList<>();
-            QueryFactory.Filter.FilterCondition conditionOrderDate = new QueryFactory.Filter.FilterCondition(
-                    "submitdate", QueryFactory.Filter.Operator.IN_FISCAL_PERIOD, Integer.toString(monthNum));
+            ArrayList<Filter.FilterCondition> salesOrderConditions = new ArrayList<>();
+            Filter.FilterCondition conditionOrderDate = new Filter.FilterCondition(
+                    "submitdate", Filter.Operator.IN_FISCAL_PERIOD, Integer.toString(monthNum));
             salesOrderConditions.add(conditionOrderDate);
 
             // Create and populate a condition array for a link entity
-            ArrayList<QueryFactory.Filter.FilterCondition> customerConditions = new ArrayList<>();
-            QueryFactory.Filter.FilterCondition conditionRepId = new QueryFactory.Filter.FilterCondition(
-                    "territoryid", QueryFactory.Filter.Operator.EQUALS, territoryid);
+            ArrayList<Filter.FilterCondition> customerConditions = new ArrayList<>();
+            Filter.FilterCondition conditionRepId = new Filter.FilterCondition(
+                    "territoryid", Filter.Operator.EQUALS, territoryid);
             customerConditions.add(conditionRepId);
 
             // Add new filters to the link entities that have filters
-            linkEntitySalesOrder.addFilter(new QueryFactory.Filter(AND, salesOrderConditions));
-            linkEntityAccount.addFilter(new QueryFactory.Filter(AND, customerConditions));
+            linkEntitySalesOrder.addFilter(new Filter(AND, salesOrderConditions));
+            linkEntityAccount.addFilter(new Filter(AND, customerConditions));
 
             // Create and add a sort clause
-            QueryFactory.SortClause sortClause = new QueryFactory.SortClause("salesorderid",
-                    true, QueryFactory.SortClause.ClausePosition.ONE);
+            SortClause sortClause = new SortClause("salesorderid",
+                    true, SortClause.ClausePosition.ONE);
             factory.addSortClause(sortClause);
 
             // Add the constructed link entities
@@ -467,16 +518,16 @@ public class Queries {
             factory.addColumn("ownerid");
             factory.addColumn("col_salesterritory");
 
-            ArrayList<QueryFactory.Filter.FilterCondition> conditions = new ArrayList<>();
-            QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter.FilterCondition("datefulfilled", getDateOperator(operator));
-            QueryFactory.Filter.FilterCondition condition2 = new QueryFactory.Filter.FilterCondition("ownerid", QueryFactory.Filter.Operator.EQUALS, repid);
+            ArrayList<Filter.FilterCondition> conditions = new ArrayList<>();
+            Filter.FilterCondition condition1 = new Filter.FilterCondition("datefulfilled", getDateOperator(operator));
+            Filter.FilterCondition condition2 = new Filter.FilterCondition("ownerid", Filter.Operator.EQUALS, repid);
             conditions.add(condition1);
             conditions.add(condition2);
 
-            QueryFactory.Filter filter1 = new QueryFactory.Filter(AND, conditions);
+            Filter filter1 = new Filter(AND, conditions);
             factory.setFilter(filter1);
 
-            QueryFactory.SortClause sortClause = new QueryFactory.SortClause("submitdate", true, QueryFactory.SortClause.ClausePosition.ONE);
+            SortClause sortClause = new SortClause("submitdate", true, SortClause.ClausePosition.ONE);
             factory.addSortClause(sortClause);
 
             String query = factory.construct();
@@ -505,30 +556,30 @@ public class Queries {
             factory.addColumn("msus_fiscalfirstdayofmonth");
 
             // Link entities
-            QueryFactory.LinkEntity linkEntityOwner = new QueryFactory.LinkEntity("systemuser", "systemuserid", "owninguser", "a_1124b4bdf013df11a16e00155d7aa40d");
-            linkEntityOwner.addColumn(new QueryFactory.EntityColumn("territoryid"));
-            linkEntityOwner.addColumn(new QueryFactory.EntityColumn("employeeid"));
+            LinkEntity linkEntityOwner = new LinkEntity("systemuser", "systemuserid", "owninguser", "a_1124b4bdf013df11a16e00155d7aa40d");
+            linkEntityOwner.addColumn(new EntityColumn("territoryid"));
+            linkEntityOwner.addColumn(new EntityColumn("employeeid"));
             factory.addLinkEntity(linkEntityOwner);
 
 
             // Filter conditions
-            QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter
-                    .FilterCondition("goalstartdate", QueryFactory.Filter.Operator.IN_FISCAL_YEAR, Integer.toString(yearNum));
-            QueryFactory.Filter.FilterCondition condition2 = new QueryFactory.Filter
-                    .FilterCondition("goalenddate", QueryFactory.Filter.Operator.IN_FISCAL_YEAR, Integer.toString(yearNum));
-            QueryFactory.Filter.FilterCondition condition3 = new QueryFactory.Filter
-                    .FilterCondition("title", QueryFactory.Filter.Operator.NOT_CONTAINS, "month");
-            QueryFactory.Filter.FilterCondition condition4 = new QueryFactory.Filter
-                    .FilterCondition("goalownerid", QueryFactory.Filter.Operator.EQUALS, repid);
+            Filter.FilterCondition condition1 = new Filter
+                    .FilterCondition("goalstartdate", Filter.Operator.IN_FISCAL_YEAR, Integer.toString(yearNum));
+            Filter.FilterCondition condition2 = new Filter
+                    .FilterCondition("goalenddate", Filter.Operator.IN_FISCAL_YEAR, Integer.toString(yearNum));
+            Filter.FilterCondition condition3 = new Filter
+                    .FilterCondition("title", Filter.Operator.NOT_CONTAINS, "month");
+            Filter.FilterCondition condition4 = new Filter
+                    .FilterCondition("goalownerid", Filter.Operator.EQUALS, repid);
 
-            ArrayList<QueryFactory.Filter.FilterCondition> conditions = new ArrayList<>();
+            ArrayList<Filter.FilterCondition> conditions = new ArrayList<>();
             conditions.add(condition1);
             conditions.add(condition2);
             conditions.add(condition3);
             conditions.add(condition4);
 
             // Set filter
-            QueryFactory.Filter filter = new QueryFactory.Filter(AND, conditions);
+            Filter filter = new Filter(AND, conditions);
             factory.setFilter(filter);
 
             // Build query
@@ -557,30 +608,30 @@ public class Queries {
             factory.addColumn("msus_fiscalfirstdayofmonth");
 
             // Link entities
-            QueryFactory.LinkEntity linkEntityOwner = new QueryFactory.LinkEntity("systemuser", "systemuserid", "owninguser", "a_1124b4bdf013df11a16e00155d7aa40d");
-            linkEntityOwner.addColumn(new QueryFactory.EntityColumn("territoryid"));
-            linkEntityOwner.addColumn(new QueryFactory.EntityColumn("employeeid"));
+            LinkEntity linkEntityOwner = new LinkEntity("systemuser", "systemuserid", "owninguser", "a_1124b4bdf013df11a16e00155d7aa40d");
+            linkEntityOwner.addColumn(new EntityColumn("territoryid"));
+            linkEntityOwner.addColumn(new EntityColumn("employeeid"));
             factory.addLinkEntity(linkEntityOwner);
 
 
             // Filter conditions
-            QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter
-                    .FilterCondition("title", QueryFactory.Filter.Operator.CONTAINS, "month");
-            QueryFactory.Filter.FilterCondition condition2 = new QueryFactory.Filter
-                    .FilterCondition("goalownerid", QueryFactory.Filter.Operator.EQUALS, repid);
-            QueryFactory.Filter.FilterCondition condition3 = new QueryFactory.Filter
-                    .FilterCondition("msus_fiscalfirstdayofmonth", QueryFactory.Filter.Operator.IN_FISCAL_YEAR, Integer.toString(yearNum));
-            QueryFactory.Filter.FilterCondition condition4 = new QueryFactory.Filter
-                    .FilterCondition("msus_fiscalfirstdayofmonth", QueryFactory.Filter.Operator.IN_FISCAL_PERIOD, Integer.toString(monthNum));
+            Filter.FilterCondition condition1 = new Filter
+                    .FilterCondition("title", Filter.Operator.CONTAINS, "month");
+            Filter.FilterCondition condition2 = new Filter
+                    .FilterCondition("goalownerid", Filter.Operator.EQUALS, repid);
+            Filter.FilterCondition condition3 = new Filter
+                    .FilterCondition("msus_fiscalfirstdayofmonth", Filter.Operator.IN_FISCAL_YEAR, Integer.toString(yearNum));
+            Filter.FilterCondition condition4 = new Filter
+                    .FilterCondition("msus_fiscalfirstdayofmonth", Filter.Operator.IN_FISCAL_PERIOD, Integer.toString(monthNum));
 
-            ArrayList<QueryFactory.Filter.FilterCondition> conditions = new ArrayList<>();
+            ArrayList<Filter.FilterCondition> conditions = new ArrayList<>();
             conditions.add(condition1);
             conditions.add(condition2);
             conditions.add(condition3);
             conditions.add(condition4);
 
             // Set filter
-            QueryFactory.Filter filter = new QueryFactory.Filter(AND, conditions);
+            Filter filter = new Filter(AND, conditions);
             factory.setFilter(filter);
 
             // Build query
@@ -609,35 +660,35 @@ public class Queries {
             factory.addColumn("msus_fiscalfirstdayofmonth");
 
             // Link entities
-            QueryFactory.LinkEntity linkEntityOwner = new QueryFactory.LinkEntity("systemuser", "systemuserid", "owninguser", "a_1124b4bdf013df11a16e00155d7aa40d");
-            linkEntityOwner.addColumn(new QueryFactory.EntityColumn("territoryid"));
-            linkEntityOwner.addColumn(new QueryFactory.EntityColumn("employeeid"));
+            LinkEntity linkEntityOwner = new LinkEntity("systemuser", "systemuserid", "owninguser", "a_1124b4bdf013df11a16e00155d7aa40d");
+            linkEntityOwner.addColumn(new EntityColumn("territoryid"));
+            linkEntityOwner.addColumn(new EntityColumn("employeeid"));
             factory.addLinkEntity(linkEntityOwner);
 
             // Filter conditions
-            QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter
-                    .FilterCondition("goalstartdate", QueryFactory.Filter.Operator.IN_FISCAL_YEAR,
+            Filter.FilterCondition condition1 = new Filter
+                    .FilterCondition("goalstartdate", Filter.Operator.IN_FISCAL_YEAR,
                         Integer.toString(yearNum));
-            QueryFactory.Filter.FilterCondition condition2 = new QueryFactory.Filter
-                    .FilterCondition("goalenddate", QueryFactory.Filter.Operator.IN_FISCAL_YEAR,
+            Filter.FilterCondition condition2 = new Filter
+                    .FilterCondition("goalenddate", Filter.Operator.IN_FISCAL_YEAR,
                         Integer.toString(yearNum));
-            QueryFactory.Filter.FilterCondition condition3 = new QueryFactory.Filter
-                    .FilterCondition("title", QueryFactory.Filter.Operator.NOT_CONTAINS, "month");
-            QueryFactory.Filter.FilterCondition condition4 = new QueryFactory.Filter
-                    .FilterCondition("msus_region", QueryFactory.Filter.Operator.EQUALS, regionid);
+            Filter.FilterCondition condition3 = new Filter
+                    .FilterCondition("title", Filter.Operator.NOT_CONTAINS, "month");
+            Filter.FilterCondition condition4 = new Filter
+                    .FilterCondition("msus_region", Filter.Operator.EQUALS, regionid);
 
-            ArrayList<QueryFactory.Filter.FilterCondition> conditions = new ArrayList<>();
+            ArrayList<Filter.FilterCondition> conditions = new ArrayList<>();
             conditions.add(condition1);
             conditions.add(condition2);
             conditions.add(condition3);
             conditions.add(condition4);
 
             // Set filter
-            QueryFactory.Filter filter = new QueryFactory.Filter(AND, conditions);
+            Filter filter = new Filter(AND, conditions);
             factory.setFilter(filter);
 
             // Sort clause
-            QueryFactory.SortClause sortClause = new QueryFactory.SortClause("percentage", true, QueryFactory.SortClause.ClausePosition.ONE);
+            SortClause sortClause = new SortClause("percentage", true, SortClause.ClausePosition.ONE);
             factory.addSortClause(sortClause);
 
             // Build query
@@ -665,36 +716,36 @@ public class Queries {
             factory.addColumn("msus_fiscalfirstdayofmonth");
 
             // Link entities
-            QueryFactory.LinkEntity linkEntityOwner = new QueryFactory.LinkEntity("systemuser", "systemuserid", "owninguser", "a_1124b4bdf013df11a16e00155d7aa40d");
-            linkEntityOwner.addColumn(new QueryFactory.EntityColumn("territoryid"));
-            linkEntityOwner.addColumn(new QueryFactory.EntityColumn("employeeid"));
+            LinkEntity linkEntityOwner = new LinkEntity("systemuser", "systemuserid", "owninguser", "a_1124b4bdf013df11a16e00155d7aa40d");
+            linkEntityOwner.addColumn(new EntityColumn("territoryid"));
+            linkEntityOwner.addColumn(new EntityColumn("employeeid"));
             factory.addLinkEntity(linkEntityOwner);
 
             // Create filter conditions
-            QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter
-                    .FilterCondition("title", QueryFactory.Filter.Operator.CONTAINS, "month");
-            QueryFactory.Filter.FilterCondition condition2 = new QueryFactory.Filter
-                    .FilterCondition("msus_region", QueryFactory.Filter.Operator.EQUALS, regionid);
-            QueryFactory.Filter.FilterCondition condition3 = new QueryFactory.Filter
+            Filter.FilterCondition condition1 = new Filter
+                    .FilterCondition("title", Filter.Operator.CONTAINS, "month");
+            Filter.FilterCondition condition2 = new Filter
+                    .FilterCondition("msus_region", Filter.Operator.EQUALS, regionid);
+            Filter.FilterCondition condition3 = new Filter
                     .FilterCondition("msus_fiscalfirstdayofmonth",
-                        QueryFactory.Filter.Operator.IN_FISCAL_YEAR, Integer.toString(yearNum));
-            QueryFactory.Filter.FilterCondition condition4 = new QueryFactory.Filter
+                        Filter.Operator.IN_FISCAL_YEAR, Integer.toString(yearNum));
+            Filter.FilterCondition condition4 = new Filter
                     .FilterCondition("msus_fiscalfirstdayofmonth",
-                        QueryFactory.Filter.Operator.IN_FISCAL_PERIOD, Integer.toString(monthNum));
+                        Filter.Operator.IN_FISCAL_PERIOD, Integer.toString(monthNum));
 
             // Add filter conditions
-            ArrayList<QueryFactory.Filter.FilterCondition> conditions = new ArrayList<>();
+            ArrayList<Filter.FilterCondition> conditions = new ArrayList<>();
             conditions.add(condition1);
             conditions.add(condition2);
             conditions.add(condition3);
             conditions.add(condition4);
 
             // Create and set filter
-            QueryFactory.Filter filter = new QueryFactory.Filter(AND, conditions);
+            Filter filter = new Filter(AND, conditions);
             factory.setFilter(filter);
 
             // Sort clause
-            QueryFactory.SortClause sortClause = new QueryFactory.SortClause("percentage", true, QueryFactory.SortClause.ClausePosition.ONE);
+            SortClause sortClause = new SortClause("percentage", true, SortClause.ClausePosition.ONE);
             factory.addSortClause(sortClause);
 
             // Build query
@@ -720,11 +771,11 @@ public class Queries {
             query.addColumn("accountnumber");
             query.addColumn("msus_loc_updated");
 
-            ArrayList<QueryFactory.Filter.FilterCondition> conditions = new ArrayList<>();
-            QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter.FilterCondition
-                    ("msus_loc_updated", QueryFactory.Filter.Operator.EQUALS, "true");
+            ArrayList<Filter.FilterCondition> conditions = new ArrayList<>();
+            Filter.FilterCondition condition1 = new Filter.FilterCondition
+                    ("msus_loc_updated", Filter.Operator.EQUALS, "true");
             conditions.add(condition1);
-            QueryFactory.Filter filter = new QueryFactory.Filter(AND, conditions);
+            Filter filter = new Filter(AND, conditions);
 
             query.setFilter(filter);
 
@@ -750,15 +801,53 @@ public class Queries {
             factory.addColumn("msus_disposition");
 
             // Filter conditions
-            QueryFactory.Filter.FilterCondition condition1 = new QueryFactory.Filter
-                    .FilterCondition("msus_associated_trip", QueryFactory.Filter.Operator.EQUALS,
+            Filter.FilterCondition condition1 = new Filter
+                    .FilterCondition("msus_associated_trip", Filter.Operator.EQUALS,
                     tripid);
 
-            ArrayList<QueryFactory.Filter.FilterCondition> conditions = new ArrayList<>();
+            ArrayList<Filter.FilterCondition> conditions = new ArrayList<>();
             conditions.add(condition1);
 
             // Set filter
-            QueryFactory.Filter filter = new QueryFactory.Filter(AND, conditions);
+            Filter filter = new Filter(AND, conditions);
+            factory.setFilter(filter);
+
+            // Build query
+            String query = factory.construct();
+
+            return query;
+        }
+
+        public static String getAssociationsLastXMonths(int months) {
+
+            // Query columns
+            QueryFactory factory = new QueryFactory("msus_mileageassociation");
+            factory.addColumn("msus_name");
+            factory.addColumn("createdon");
+            factory.addColumn("msus_associated_trip");
+            factory.addColumn("msus_associated_opportunity");
+            factory.addColumn("msus_associated_account");
+            factory.addColumn("msus_mileageassociationid");
+            factory.addColumn("ownerid");
+            factory.addColumn("msus_disposition");
+
+            // Filter conditions
+            Filter.FilterCondition condition2 = new Filter
+                    .FilterCondition("ownerid", Filter.Operator.EQUALS,
+                    MediUser.getMe().systemuserid);
+
+            ArrayList<Filter.FilterCondition> conditions = new ArrayList<>();
+            conditions.add(condition2);
+
+            LinkEntity linkEntityTrip = new LinkEntity("msus_fulltrip", "msus_fulltripid",
+                    "msus_associated_trip", "af");
+            linkEntityTrip.addFilter(new Filter(AND, new Filter.FilterCondition(
+                    "msus_dt_tripdate", Filter.Operator.LAST_X_MONTHS, Integer.toString(months))));
+
+            factory.addLinkEntity(linkEntityTrip);
+
+            // Set filter
+            Filter filter = new Filter(AND, conditions);
             factory.setFilter(filter);
 
             // Build query

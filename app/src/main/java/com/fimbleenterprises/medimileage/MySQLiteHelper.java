@@ -46,6 +46,11 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     public static final String COLUMN_USER_STARTED_TRIP = "userstartedtrip";
     public static final String COLUMN_USER_STOPPED_TRIP = "userstoppedtrip";
     public static final String COLUMN_TRIP_MINDER_KILLED = "tripminderkilled";
+    public static final String COLUMN_TRIP_ASSOCIATED_ACCOUNTID = "associatedaccountid";
+    public static final String COLUMN_TRIP_ASSOCIATED_ACCOUNTNAME = "associatedaccountname";
+    public static final String COLUMN_TRIP_ASSOCIATED_OPPORTUNITYID = "associatedopportunityid";
+    public static final String COLUMN_TRIP_ASSOCIATED_OPPORTUNITYNAME = "associatedopportunityname";
+    public static final String COLUMN_HAS_ASSOCIATIONS = "hasassociations";
 
     public static final String TABLE_ADDYS = "useraddresses";
     public static final String COLUMN_ADDY_ADDRESS = "address";
@@ -163,7 +168,12 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         COLUMN_USER_STOPPED_TRIP,
         COLUMN_USER_STARTED_TRIP,
         COLUMN_TRIP_MINDER_KILLED,
-        COLUMN_TRIP_GUID
+        COLUMN_TRIP_ASSOCIATED_ACCOUNTID,
+        COLUMN_TRIP_ASSOCIATED_ACCOUNTNAME,
+        COLUMN_TRIP_ASSOCIATED_OPPORTUNITYID,
+        COLUMN_TRIP_ASSOCIATED_OPPORTUNITYNAME,
+        COLUMN_TRIP_GUID,
+        COLUMN_HAS_ASSOCIATIONS
     };
 
     public static final String[] ALL_TRIPENTRY_COLUMNS = {
@@ -265,7 +275,12 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
             COLUMN_USER_STOPPED_TRIP + " integer" + ", " +
             COLUMN_USER_STARTED_TRIP + " integer" + ", " +
             COLUMN_TRIP_MINDER_KILLED + " integer" + ", " +
+            COLUMN_TRIP_ASSOCIATED_OPPORTUNITYID + " text" + ", " +
+            COLUMN_TRIP_ASSOCIATED_OPPORTUNITYNAME + " text" + ", " +
+            COLUMN_TRIP_ASSOCIATED_ACCOUNTID + " text" + ", " +
+            COLUMN_TRIP_ASSOCIATED_ACCOUNTNAME + " text" + ", " +
             COLUMN_TRIP_GUID + " text" + ", " +
+            COLUMN_HAS_ASSOCIATIONS + " integer" + ", " +
             COLUMN_GUID + " text);";
 
     private static final String CURRENTLOCATIONS_TABLE_CREATE = "create table " + TABLE_CURRENT_LOCATIONS + "(" +
@@ -454,6 +469,11 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         addColumnIfMissing(TABLE_FULL_TRIP, COLUMN_USER_STOPPED_TRIP, TYPE_INTEGER, db);
         addColumnIfMissing(TABLE_FULL_TRIP, COLUMN_USER_STARTED_TRIP, TYPE_INTEGER, db);
         addColumnIfMissing(TABLE_FULL_TRIP, COLUMN_TRIP_MINDER_KILLED, TYPE_INTEGER, db);
+        addColumnIfMissing(TABLE_FULL_TRIP, COLUMN_TRIP_ASSOCIATED_ACCOUNTNAME, TYPE_TEXT, db);
+        addColumnIfMissing(TABLE_FULL_TRIP, COLUMN_TRIP_ASSOCIATED_ACCOUNTID, TYPE_TEXT, db);
+        addColumnIfMissing(TABLE_FULL_TRIP, COLUMN_TRIP_ASSOCIATED_OPPORTUNITYNAME, TYPE_TEXT, db);
+        addColumnIfMissing(TABLE_FULL_TRIP, COLUMN_TRIP_ASSOCIATED_OPPORTUNITYID, TYPE_TEXT, db);
+        addColumnIfMissing(TABLE_FULL_TRIP, COLUMN_HAS_ASSOCIATIONS, TYPE_INTEGER, db);
         
         // Users table
         addColumnIfMissing(TABLE_USERS, COLUMN_ID, TYPE_INTEGER, db);

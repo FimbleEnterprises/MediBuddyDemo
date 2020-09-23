@@ -93,29 +93,15 @@
         android:visibility="visible" />
 
     <ImageView
-        android:id="@+id/imageView_started"
+        android:id="@+id/imageView_has_associations"
         android:layout_width="18dp"
         android:layout_height="18dp"
         android:layout_marginStart="2dp"
         android:layout_marginTop="2dp"
         android:layout_marginEnd="2dp"
         android:layout_marginBottom="2dp"
-        android:layout_toRightOf="@id/textView_FullTripRowMainText"
-        android:visibility="invisible"
-        app:srcCompat="@drawable/green_dot_32x32"
-        tools:visibility="invisible" />
-
-    <ImageView
-        android:id="@+id/imageView_stopped"
-        android:layout_width="18dp"
-        android:layout_height="18dp"
-        android:layout_marginStart="2dp"
-        android:layout_marginTop="2dp"
-        android:layout_marginEnd="2dp"
-        android:layout_marginBottom="2dp"
-        android:layout_toRightOf="@id/imageView_started"
-        android:visibility="invisible"
-        app:srcCompat="@drawable/red_dot_32x32"
+        android:visibility="visible"
+        app:srcCompat="@drawable/exclamation_blue_64"
         tools:visibility="invisible" />
 
 </RelativeLayout>

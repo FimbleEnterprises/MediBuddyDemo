@@ -261,6 +261,12 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        try {
+            retrieveAndSaveOpportunities();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override
@@ -534,7 +540,26 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
 
+    public void retrieveAndSaveOpportunities() {
+        CrmEntities.Opportunities.retrieveAndSaveOpportunities(new MyInterfaces.YesNoResult() {
+            @Override
+            public void onYes(@Nullable Object object) {
+                Log.i(TAG, "onYes " + object.toString());
+                if (options.getDebugMode()) {
+                    Toast.makeText(activity, object.toString() + " were saved locally", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onNo(@Nullable Object object) {
+                Log.w(TAG, "onNo: " + object.toString());
+                if (options.getDebugMode()) {
+                    Toast.makeText(activity, "Failed to retrieve and save opportunities", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     protected void getDistinctUsersWithTrips() {

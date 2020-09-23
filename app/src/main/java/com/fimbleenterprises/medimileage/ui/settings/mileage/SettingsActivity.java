@@ -87,6 +87,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String EXPLICIT_MODE = "EXPLICIT_MODE";
     public static final String SET_DEFAULTS = "SET_DEFAULTS";
     public static final String SERVER_BASE_URL = "SERVER_BASE_URL";
+    public static final String OPPORTUNITIES_KEY = "updateOpportunities";
 
     public static String DEFAULT_DATABASE_NAME = "mileagetracking.db";
 
@@ -159,6 +160,16 @@ public class SettingsActivity extends AppCompatActivity {
             Preference prefExplicitMode;
             Preference prefSetDefaults;
             final Preference prefSetServerBaseUrl;
+            Preference prefUpdateOpportunities;
+
+            prefUpdateOpportunities = findPreference(OPPORTUNITIES_KEY);
+            prefUpdateOpportunities.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    retrieveAndSaveOpportunities();
+                    return true;
+                }
+            });
 
             prefSetDefaults = findPreference(SET_DEFAULTS);
             prefSetDefaults.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
@@ -474,6 +485,36 @@ public class SettingsActivity extends AppCompatActivity {
             startActivity(i);
         }
 
+        public void retrieveAndSaveOpportunities() {
+            final MyProgressDialog dialog = new MyProgressDialog(getContext(), "Retrieving opportunities...");
+            dialog.show();
+            String query = Queries.Opportunities.getOpportunitiesByTerritory(MediUser.getMe().territoryid);
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            Requests.Argument argument = new Requests.Argument("query", query);
+            args.add(argument);
+            Requests.Request request = new Requests.Request(Requests.Request.GET, args);
+            Crm crm = new Crm();
+            crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    dialog.dismiss();
+                    String response = new String(responseBody);
+                    CrmEntities.Opportunities opportunities = new CrmEntities.Opportunities(response);
+                    opportunities.save();
+                    CrmEntities.Opportunities savedOpportunities = options.getSavedOpportunities();
+                    Log.i(TAG, "onSuccess " + response);
+                    Toast.makeText(getContext(), opportunities.toString() + " were saved", Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    dialog.dismiss();
+                    Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
+                    Toast.makeText(getContext(), error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
         @Override
         public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                                @NonNull int[] grantResults) {
@@ -515,6 +556,7 @@ public class SettingsActivity extends AppCompatActivity {
             findPreference(UPDATE_USER_ADDYS).setTitle(R.string.settings_update_addresses_explicit);
 
             findPreference(UPDATE_ACT_ADDYS).setTitle(R.string.settings_update_account_addresses_explicit);
+            findPreference(OPPORTUNITIES_KEY).setTitle(getString(R.string.update_opportunities_explicit));
 
             findPreference(DELETE_ALL_TRIP_DATA).setTitle(R.string.settings_delete_mileage_explicit);
 

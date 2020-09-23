@@ -43,6 +43,7 @@ public class MySettingsHelper {
     public static final String EXPLICIT_MODE = "EXPLICIT_MODE";
     public static final String SET_DEFAULTS = "SET_DEFAULTS";
     public static final String SERVER_BASE_URL = "SERVER_BASE_URL";
+    public static final String OPPORTUNITIES_JSON = "OPPORTUNITIES_JSON";
 
     public static final String RECEIPT_FORMAT_PNG = ".png";
     public static final String RECEIPT_FORMAT_JPEG = ".jpeg";
@@ -117,11 +118,15 @@ public class MySettingsHelper {
     }
 
     public void saveAllCrmAddresses(CrmEntities.CrmAddresses addresses) {
-        prefs.edit().putString(ALL_ADDRESSES_JSON, addresses.toJson()).commit();
+        prefs.edit().putString(ALL_ADDRESSES_JSON, addresses.toGson()).commit();
     }
 
     public boolean hasSavedAddresses() {
         return (getAllSavedCrmAddresses() != null);
+    }
+
+    public boolean hasSavedOpportunities() {
+        return (getSavedOpportunities() != null);
     }
 
     public boolean addressIsSaved(CrmEntities.CrmAddresses.CrmAddress address) {
@@ -233,6 +238,14 @@ public class MySettingsHelper {
     public String getPrettyReimbursementRate() {
         float val = prefs.getFloat(REIMBURSEMENT_RATE, 0);
         return "$" + val;
+    }
+
+    public CrmEntities.Opportunities getSavedOpportunities() {
+        return CrmEntities.Opportunities.fromGson(prefs.getString(OPPORTUNITIES_JSON, null));
+    }
+
+    public void saveOpportunities(CrmEntities.Opportunities opportunities) {
+        prefs.edit().putString(OPPORTUNITIES_JSON, opportunities.toGson()).commit();
     }
 
     public void setLastPage(int lastPage) {

@@ -1,11 +1,13 @@
 package com.fimbleenterprises.medimileage;
 
 import android.annotation.SuppressLint;
+import android.location.Location;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
 import com.fimbleenterprises.medimileage.Requests.Request;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 
 import org.joda.time.DateTime;
@@ -45,6 +47,7 @@ public class FullTrip implements Parcelable {
     public String associatedAccountName;
     public String associatedOpportunityId;
     public String associatedOpportunityName;
+    public int hasNearbyAssociations;
 
     public static class TripEntries extends ArrayList<TripEntry> {
         public TripEntries(FullTrip trip) {
@@ -204,6 +207,106 @@ public class FullTrip implements Parcelable {
     String toGson() {
         Gson gson = new Gson();
         return gson.toJson(this);
+    }
+
+    public boolean hasAssociations() {
+        return this.hasNearbyAssociations == 1;
+    }
+
+    public void hasAssociations(boolean val) {
+        this.hasNearbyAssociations  = (val == true ? 1 : 0);
+    }
+
+    public String getAssociatedAccountId() {
+        return associatedAccountId;
+    }
+
+    public void setAssociatedAccountId(String associatedAccountId) {
+        this.associatedAccountId = associatedAccountId;
+    }
+
+    public String getAssociatedAccountName() {
+        return associatedAccountName;
+    }
+
+    public void setAssociatedAccountName(String associatedAccountName) {
+        this.associatedAccountName = associatedAccountName;
+    }
+
+    public String getAssociatedOpportunityId() {
+        return associatedOpportunityId;
+    }
+
+    public void setAssociatedOpportunityId(String associatedOpportunityId) {
+        this.associatedOpportunityId = associatedOpportunityId;
+    }
+
+    public String getAssociatedOpportunityName() {
+        return associatedOpportunityName;
+    }
+
+    public void setAssociatedOpportunityName(String associatedOpportunityName) {
+        this.associatedOpportunityName = associatedOpportunityName;
+    }
+
+    public LatLng getStartLatLng() {
+        if (this.hasEntries()) {
+            return this.tripEntries.get(0).getLatLng();
+        }
+        return null;
+    }
+
+    public LatLng getEndLatLng() {
+        if (this.hasEntries()) {
+            return this.tripEntries.get(this.tripEntries.size() - 1).getLatLng();
+        }
+        return null;
+    }
+
+    public Location getStartLoc() {
+        if (this.hasEntries()) {
+            Location location = new Location("GPS");
+            location.setLatitude(this.getStartLatLng().latitude);
+            location.setLongitude(this.getStartLatLng().longitude);
+            return location;
+        }
+        return null;
+    }
+
+    public Location getEndLoc() {
+        if (this.hasEntries()) {
+            Location location = new Location("GPS");
+            location.setLatitude(this.getEndLatLng().latitude);
+            location.setLongitude(this.getEndLatLng().longitude);
+            return location;
+        }
+        return null;
+    }
+
+    public boolean hasEntries() {
+        return this.tripEntries != null && this.tripEntries.size() > 1;
+    }
+
+    public boolean startedNear(LatLng latLng) {
+        Location targetLocation = new Location("GPS");
+        targetLocation.setLatitude(latLng.latitude);
+        targetLocation.setLongitude(latLng.longitude);
+        MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+        if (this.hasEntries()) {
+            return targetLocation.distanceTo(getStartLoc()) <= options.getDistanceThreshold();
+        }
+        return false;
+    }
+
+    public boolean endedNear(LatLng latLng) {
+        Location targetLocation = new Location("GPS");
+        targetLocation.setLatitude(latLng.latitude);
+        targetLocation.setLongitude(latLng.longitude);
+        MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+        if (this.hasEntries()) {
+            return targetLocation.distanceTo(getEndLoc()) <= options.getDistanceThreshold();
+        }
+        return false;
     }
 
     public String getSafeTripEntriesJson() {
@@ -579,6 +682,11 @@ public class FullTrip implements Parcelable {
         userStartedTrip = in.readInt();
         tripMinderKilled = in.readInt();
         tripGuid = in.readString();
+        associatedOpportunityId = in.readString();
+        associatedOpportunityName = in.readString();
+        associatedAccountId = in.readString();
+        associatedAccountName = in.readString();
+        hasNearbyAssociations = in.readInt();
         if (in.readByte() == 0x01) {
             tripEntries = new ArrayList<TripEntry>();
             in.readList(tripEntries, TripEntry.class.getClassLoader());
@@ -609,6 +717,11 @@ public class FullTrip implements Parcelable {
         dest.writeInt(userStartedTrip);
         dest.writeInt(tripMinderKilled);
         dest.writeString(tripGuid);
+        dest.writeString(associatedOpportunityId);
+        dest.writeString(associatedOpportunityName);
+        dest.writeString(associatedAccountId);
+        dest.writeString(associatedAccountName);
+        dest.writeInt(hasNearbyAssociations);
         if (tripEntries == null) {
             dest.writeByte((byte) (0x00));
         } else {

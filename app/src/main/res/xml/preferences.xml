@@ -74,7 +74,7 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="Users"
+        android:title="Crm Data"
         android:fontFamily="casual">
 
         <Preference
@@ -100,6 +100,14 @@
             app:summary="Updates all account addresses"
             android:fontFamily="casual"
             app:title="Update account addresses" />
+
+        <Preference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
+            app:key="updateOpportunities"
+            app:summary="Updates and saves all territory opportunities"
+            android:fontFamily="casual"
+            app:title="@string/update_opportunities" />
 
     </PreferenceCategory>
 

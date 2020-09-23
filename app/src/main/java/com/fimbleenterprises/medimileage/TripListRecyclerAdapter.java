@@ -117,14 +117,18 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
         holder.txtIsEditedOrManual.setVisibility((trip.isSeparator) ? View.GONE : View.VISIBLE);
         holder.txtIsAutoStoppedTrip.setVisibility((trip.isSeparator) ? View.GONE : View.VISIBLE);
         holder.imgSubmitStatus.setVisibility((trip.isSeparator) ? View.GONE : View.VISIBLE);
+        if (options.getDebugMode()) {
+            holder.imgHasAssociations.setVisibility(trip.hasAssociations() ? View.VISIBLE : View.GONE);
+        } else {
+            holder.imgHasAssociations.setVisibility(View.GONE);
+        }
 
         if (trip.isSeparator) {
             holder.txtMainText.setText(trip.getTitle());
             holder.txtMainText.setTypeface(originalTypeface, Typeface.BOLD);
             holder.chkbxSelectTrip.setVisibility(View.GONE);
             holder.layout.setBackground(null);
-            holder.imgUserStarted.setVisibility(View.GONE);
-            holder.imgUserStopped.setVisibility(View.GONE);
+            holder.imgHasAssociations.setVisibility(View.GONE);
         } else {
             holder.txtMainText.setTypeface(originalTypeface);
             ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) holder.layout.getLayoutParams();
@@ -166,8 +170,7 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
         ImageView imgSubmitStatus;
         TextView txtMainText;
         TextView txtSubtext;
-        ImageView imgUserStarted;
-        ImageView imgUserStopped;
+        ImageView imgHasAssociations;
         TextView txtIsEditedOrManual;
         TextView txtIsAutoStoppedTrip;
         CheckBox chkbxSelectTrip;
@@ -180,8 +183,7 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
             imgSubmitStatus = itemView.findViewById(R.id.imageView_FullTripRowLeftIcon);
             txtMainText = itemView.findViewById(R.id.textView_FullTripRowMainText);
             txtSubtext = itemView.findViewById(R.id.textView_FullTripRowSubtext);
-            imgUserStarted = itemView.findViewById(R.id.imageView_started);
-            imgUserStopped = itemView.findViewById(R.id.imageView_stopped);
+            imgHasAssociations = itemView.findViewById(R.id.imageView_has_associations);
             txtIsEditedOrManual = itemView.findViewById(R.id.txtIsEditedOrManual);
             txtIsAutoStoppedTrip = itemView.findViewById(R.id.txtIsAutoStopped);
             chkbxSelectTrip = itemView.findViewById(R.id.checkBox_selectTrip);

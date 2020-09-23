@@ -73,6 +73,9 @@ import com.fimbleenterprises.medimileage.Requests.Request;
 import com.fimbleenterprises.medimileage.TripAssociationManager;
 import com.fimbleenterprises.medimileage.TripListRecyclerAdapter;
 import com.fimbleenterprises.medimileage.ViewTripActivity;
+import static com.fimbleenterprises.medimileage.CrmEntities.TripAssociations;
+import static com.fimbleenterprises.medimileage.CrmEntities.TripAssociations.TripAssociation;
+import com.fimbleenterprises.medimileage.CrmEntities;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.scwang.smart.refresh.header.MaterialHeader;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
@@ -482,6 +485,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     public void onStart() {
         super.onStart();
 
+        parseTripsForAssociations();
         populateTripList();
         // Do some mileage database maintenance
         datasource.deleteUnreferencedTripEntries(new MyInterfaces.TripDeleteCallback() {
@@ -1202,6 +1206,38 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
     }
 
+    void parseTripsForAssociations() {
+        String query = Queries.TripAssociation.getAssociationsLastXMonths(3);
+        ArrayList<Requests.Argument> args = new ArrayList<>();
+        args.add(new Requests.Argument("query", query));
+        Request request = new Request(Request.Function.GET, args);
+        Crm crm = new Crm();
+        Log.i(TAG, "parseTripsForAssociations - querying server...");
+        crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                String response = new String(responseBody);
+                TripAssociations associations = new TripAssociations(response);
+                for (FullTrip trip : allTrips) {
+                    if (associations.getAssociation(trip) != null) {
+                        Log.i(TAG, "onSuccess Found an association!");
+                        TripAssociation association = associations.getAssociation(trip);
+                        trip.hasAssociations(true);
+                        trip.save();
+                    }
+                }
+                Log.i(TAG, "onSuccess Finished parsing " + associations.list.size() + " associations for " +
+                        allTrips.size() + " trips.");
+                populateTripList();
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
+            }
+        });
+    }
+
     public void getAllAccountAddresses() {
         Requests.Argument argument = new Requests.Argument("query", Queries.Addresses.getAllAccountAddresses());
         ArrayList<Requests.Argument> args = new ArrayList<>();
@@ -1633,6 +1669,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                     if (object.getBoolean("WasSuccessful") == true ||
                             object.getString("ResponseMessage").toLowerCase().contains("not exist")) {
                         clickedTrip.setIsSubmitted(false);
+                        clickedTrip.hasAssociations(false);
                         clickedTrip.setTripGuid(null);
                         clickedTrip.save();
                         populateTripList();

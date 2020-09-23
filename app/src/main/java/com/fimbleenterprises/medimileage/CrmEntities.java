@@ -1,7 +1,10 @@
 package com.fimbleenterprises.medimileage;
 
 import android.content.Context;
+import android.graphics.Path;
 import android.location.Location;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import com.fimbleenterprises.medimileage.Containers.EntityContainer;
@@ -20,6 +23,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import cz.msebera.android.httpclient.Header;
 
 public class CrmEntities {
@@ -493,12 +497,388 @@ public class CrmEntities {
 
     }
 
-    public static class CrmAddresses {
-        public ArrayList<CrmAddress> list = new ArrayList<>();
+    public static class Opportunities {
+        private static final String TAG = "Opportunities";
+        public ArrayList<Opportunity> list = new ArrayList<>();
 
-        public String toJson() {
+        public Opportunities(String crmResponse) {
+            try {
+                JSONObject rootObject = new JSONObject(crmResponse);
+                JSONArray rootArray = rootObject.getJSONArray("value");
+                for (int i = 0; i < rootArray.length(); i++) {
+                    list.add(new Opportunity(rootArray.getJSONObject(i)));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public String toString() {
+            return list.size() + " opportunities";
+        }
+
+        public String toGson() {
             Gson gson = new Gson();
             return gson.toJson(this);
+        }
+
+        public static Opportunities fromGson(String gsonString) {
+            Gson gson = new Gson();
+            return gson.fromJson(gsonString, Opportunities.class);
+        }
+
+        public static Opportunities getSaved() {
+            MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+            return options.getSavedOpportunities();
+        }
+
+        public void save() {
+            MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+            options.saveOpportunities(this);
+        }
+
+        /**
+         * Will query CRM using the current user's territory id and retrieve all opportunities in their
+         * territory.  When obtained they will be saved locally as JSON to shared preferences.
+         * @param listener A basic YesNo listener which will return a populated Opportunities object
+         *                 on success (cast the returned object to CrmEntities.Opportunities) or the
+         *                 error message as a string on failure (cast returned object to string).
+         */
+        public static void retrieveAndSaveOpportunities(final MyInterfaces.YesNoResult listener) {
+            final MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+            String query = Queries.Opportunities.getOpportunitiesByTerritory(MediUser.getMe().territoryid);
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            Requests.Argument argument = new Requests.Argument("query", query);
+            args.add(argument);
+            Requests.Request request = new Requests.Request(Requests.Request.GET, args);
+            Crm crm = new Crm();
+            crm.makeCrmRequest(MyApp.getAppContext(), request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    String response = new String(responseBody);
+                    CrmEntities.Opportunities opportunities = new CrmEntities.Opportunities(response);
+                    opportunities.save();
+                    CrmEntities.Opportunities savedOpportunities = options.getSavedOpportunities();
+                    Log.i(TAG, "onSuccess " + response);
+                    if (savedOpportunities != null) {
+                        listener.onYes(opportunities);
+                    } else {
+                        listener.onNo(null);
+                    }
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
+                    listener.onNo(null);
+                }
+            });
+        }
+
+        /**
+         * Will query CRM using the current user's territory id and retrieve all opportunities in their
+         * territory.  When obtained they will be saved locally as JSON to shared preferences.
+         */
+        public static void retrieveAndSaveOpportunities() {
+            retrieveAndSaveOpportunities(new MyInterfaces.YesNoResult() {
+                @Override
+                public void onYes(@Nullable Object object) { }
+
+                @Override
+                public void onNo(@Nullable Object object) { }
+            });
+        }
+
+        public static class Opportunity {
+            public String etag;
+            public String accountid;
+            public String accountname;
+            public String probabilityPretty;
+            public int probabilityOptionsetValue;
+            public String ownername;
+            public String ownerid;
+            private double estimatedCloseDate;
+            private double createdon;
+            public String stepName;
+            public String dealTypePretty;
+            public int dealTypeOptionsetValue;
+            public String territoryid;
+            public String opportunityid;
+            public String name;
+            public float floatEstimatedValue;
+
+            @Override
+            public String toString() {
+                return this.name;
+            }
+
+            public DateTime getCreatedOn() {
+                return new DateTime(createdon);
+            }
+
+            public DateTime getEstimatedClose() {
+                return new DateTime(estimatedCloseDate);
+            }
+
+            public Opportunity(JSONObject json) {
+                try {
+                    if (!json.isNull("name")) {
+                        this.name = (json.getString("name"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("etag")) {
+                        this.etag = (json.getString("etag"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_parentaccountid_value")) {
+                        this.accountid = (json.getString("_parentaccountid_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("ab_territoryid")) {
+                        this.territoryid = (json.getString("ab_territoryid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_parentaccountid_valueFormattedValue")) {
+                        this.accountname = (json.getString("_parentaccountid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("msus_probabilityFormattedValue")) {
+                        this.probabilityPretty = (json.getString("msus_probabilityFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("msus_probability")) {
+                        this.probabilityOptionsetValue = (json.getInt("msus_probability"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_ownerid_valueFormattedValue")) {
+                        this.ownername = (json.getString("_ownerid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_ownerid_value")) {
+                        this.ownerid = (json.getString("_ownerid_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                   if (!json.isNull("estimatedclosedate")) {
+                       this.estimatedCloseDate = (new DateTime(json.getString("estimatedclosedate")).getMillis());
+                   }
+                } catch (JSONException e) {
+                   e.printStackTrace();
+                }
+                try {
+                   if (!json.isNull("createdon")) {
+                       this.createdon = (new DateTime(json.getString("createdon")).getMillis());
+                   }
+                } catch (JSONException e) {
+                   e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("stepname")) {
+                        this.stepName = (json.getString("stepname"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("col_dealtypeFormattedValue")) {
+                        this.dealTypePretty = (json.getString("col_dealtypeFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("col_dealtype")) {
+                        this.dealTypeOptionsetValue = (json.getInt("col_dealtype"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("opportunityid")) {
+                        this.opportunityid = (json.getString("opportunityid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("estimatedvalue")) {
+                        this.floatEstimatedValue = (json.getLong("estimatedvalue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            /**
+             * Returns the address of the account this opportunity is associated with
+             * @return A CrmAddress object
+             */
+            public CrmAddresses.CrmAddress tryGetCrmAddress() {
+                try {
+                    MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+                    if (options.hasSavedAddresses()) {
+                        CrmAddresses addresses = options.getAllSavedCrmAddresses();
+                        return addresses.getAddress(this.accountid);
+                    }
+                    return null;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+
+            /**
+             * Evaluates if this opportunity's account is nearby another account based on the
+             * distance threshold stipulated in shared preferences.
+             * @param accountid The account to compare to.
+             * @return True or false as to whether they are near each other.
+             */
+            public boolean isNearby(String accountid) {
+                try {
+                    MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+                    if (!options.hasSavedAddresses()) {
+                        return false;
+                    }
+
+                    CrmAddresses.CrmAddress thisAddress, targetAddress;
+                    CrmAddresses savedAddys = options.getAllSavedCrmAddresses();
+                    thisAddress = savedAddys.getAddress(this.accountid);
+                    targetAddress = savedAddys.getAddress(accountid);
+
+                    return thisAddress.isNearby(targetAddress);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
+            }
+
+            /**
+             * Evaluates if this opportunity's account is nearby another account based on the
+             * distance threshold stipulated in shared preferences.
+             * @param addy The account to compare to.
+             * @return True or false as to whether they are near each other.
+             */
+            public boolean isNearby(CrmAddresses.CrmAddress addy) {
+                try {
+                    MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+                    if (!options.hasSavedAddresses()) {
+                        return false;
+                    }
+
+                    CrmAddresses.CrmAddress thisAddress, targetAddress;
+                    CrmAddresses savedAddys = options.getAllSavedCrmAddresses();
+                    thisAddress = savedAddys.getAddress(this.accountid);
+                    targetAddress = savedAddys.getAddress(addy.accountid);
+
+                    return thisAddress.isNearby(targetAddress);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
+            }
+
+        }
+    }
+
+    public static class CrmAddresses {
+        private static final String TAG = "CrmAddresses";
+        public ArrayList<CrmAddress> list = new ArrayList<>();
+
+        public String toGson() {
+            Gson gson = new Gson();
+            return gson.toJson(this);
+        }
+
+        public static CrmAddresses fromGson(String gsonString) {
+            Gson gson = new Gson();
+            return gson.fromJson(gsonString, CrmAddresses.class);
+        }
+
+        public CrmAddress getAddress(String accountid) {
+            for (CrmAddress address : this.list) {
+                if (address.accountid.equals(accountid)) {
+                    return address;
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Will query CRM and retrieve all account addresses in the system.
+         * When obtained they will be saved locally as JSON to shared preferences.
+         * @param listener A basic YesNo listener which will return a populated CrmAddresses object
+         *                 on success (cast the returned object to CrmEntities.CrmAddresses) or the
+         *                 error message as a string on failure (cast returned object to string).
+         */
+        public static void retrieveAndSaveCrmAddresses(final MyInterfaces.YesNoResult listener) {
+            final MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+            Requests.Argument argument = new Requests.Argument("query", Queries.Addresses.getAllAccountAddresses());
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            args.add(argument);
+            Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
+            Crm crm = new Crm();
+            crm.makeCrmRequest(MyApp.getAppContext(), request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    // Construct an array of CrmAddresses
+                    String response = new String(responseBody);
+                    CrmEntities.CrmAddresses addresses = new CrmEntities.CrmAddresses(response);
+                    options.saveAllCrmAddresses(addresses);
+                    Log.i(TAG, "onSuccess response: " + response.length());
+                    listener.onYes(addresses);
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    Log.w(TAG, "onFailure: error: " + error.getLocalizedMessage());
+                    listener.onNo(error.getLocalizedMessage());
+                }
+            });
+        }
+
+        /**
+         * Will query CRM and retrieve all account addresses in the system.
+         * When obtained they will be saved locally as JSON to shared preferences.
+         */
+        public static void retrieveAndSaveCrmAddresses() {
+            retrieveAndSaveCrmAddresses(new MyInterfaces.YesNoResult() {
+                @Override
+                public void onYes(@Nullable Object object) {
+                    // nothing to do, homie
+                }
+
+                @Override
+                public void onNo(@Nullable Object object) {
+                    // nothing to do, homie
+                }
+            });
         }
 
         @Override
@@ -644,6 +1024,27 @@ public class CrmEntities {
                 endLoc.setLongitude(this.longitude);
 
                 return startLoc.distanceTo(endLoc);
+            }
+
+            /**
+             * Evaluates two addresses and determines if they are within the distance threshold
+             * stipulated in preferences.
+             * @param targetAddy The address to compare to this one.
+             * @return True if the distance is less than or equal to the preference value saved in shared preferences.
+             */
+            public boolean isNearby(CrmAddress targetAddy) {
+                try {
+                    try {
+                        MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+                        return targetAddy.distanceTo(this.getLatLng()) <= options.getDistanceThreshold();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return false;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
             }
 
         }
@@ -800,11 +1201,20 @@ public class CrmEntities {
         }
     }
 
-    public static class TripAssociations {
+    public static class TripAssociations implements Parcelable {
 
         private static final String TAG = "MileageReimbursementAssociations";
 
         public ArrayList<TripAssociation> list = new ArrayList<>();
+
+        public TripAssociation getAssociation(FullTrip trip) {
+            for (TripAssociation a : this.list) {
+                if (a.associated_trip_id.equals(trip.tripGuid)) {
+                    return a;
+                }
+            }
+            return null;
+        }
 
         public TripAssociations() {
             this.list = new ArrayList<>();
@@ -847,7 +1257,7 @@ public class CrmEntities {
             return this.list.size() + " associations, ";
         }
 
-        public static class TripAssociation {
+        public static class TripAssociation implements Parcelable {
             private static final String TAG = "MileageReimbursementAssociation";
             public String etag;
             public String name;
@@ -862,11 +1272,19 @@ public class CrmEntities {
             public String associated_opportunity_name;
             public String associated_opportunity_id;
             public float associated_trip_reimbursement;
-            public DateTime associated_trip_date;
+            public long associated_trip_date;
             public TripDisposition tripDisposition;
 
+            public DateTime getAssociatedTripDate() {
+                return new DateTime(associated_trip_date);
+            }
+
+            public void setAssociatedTripDate(DateTime dateTime) {
+                this.associated_trip_date = dateTime.getMillis();
+            }
+
             public TripAssociation(DateTime tripDate) {
-                this.associated_trip_date = tripDate;
+                this.associated_trip_date = tripDate.getMillis();
                 this.ownerid = MediUser.getMe().systemuserid;
                 this.ownername = MediUser.getMe().fullname;
                 this.name = this.ownername + " was nearby during a MileBuddy trip";
@@ -975,7 +1393,7 @@ public class CrmEntities {
                 }
                 try {
                     if (!json.isNull("a_cc3500d91af9ea11810b005056a36b9b_msus_dt_tripdate")) {
-                        this.associated_trip_date = (new DateTime(json.getString("a_cc3500d91af9ea11810b005056a36b9b_msus_dt_tripdate")));
+                        this.associated_trip_date = (new DateTime(json.getString("a_cc3500d91af9ea11810b005056a36b9b_msus_dt_tripdate")).getMillis());
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -1021,7 +1439,7 @@ public class CrmEntities {
 
             @Override
             public String toString() {
-                return this.name + ", " + this.associated_trip_date.toLocalDateTime().toString() +
+                return this.name + ", " + new DateTime(this.associated_trip_date).toLocalDateTime().toString() +
                         ", " + this.ownername;
             }
 
@@ -1045,8 +1463,100 @@ public class CrmEntities {
                 return container;
             }
 
+
+            protected TripAssociation(Parcel in) {
+                etag = in.readString();
+                name = in.readString();
+                id = in.readString();
+                ownerid = in.readString();
+                ownername = in.readString();
+                createdon = (DateTime) in.readValue(DateTime.class.getClassLoader());
+                associated_trip_name = in.readString();
+                associated_trip_id = in.readString();
+                associated_account_name = in.readString();
+                associated_account_id = in.readString();
+                associated_opportunity_name = in.readString();
+                associated_opportunity_id = in.readString();
+                associated_trip_reimbursement = in.readFloat();
+                associated_trip_date = in.readLong();
+                tripDisposition = (TripDisposition) in.readValue(TripDisposition.class.getClassLoader());
+            }
+
+            @Override
+            public int describeContents() {
+                return 0;
+            }
+
+            @Override
+            public void writeToParcel(Parcel dest, int flags) {
+                dest.writeString(etag);
+                dest.writeString(name);
+                dest.writeString(id);
+                dest.writeString(ownerid);
+                dest.writeString(ownername);
+                dest.writeValue(createdon);
+                dest.writeString(associated_trip_name);
+                dest.writeString(associated_trip_id);
+                dest.writeString(associated_account_name);
+                dest.writeString(associated_account_id);
+                dest.writeString(associated_opportunity_name);
+                dest.writeString(associated_opportunity_id);
+                dest.writeFloat(associated_trip_reimbursement);
+                dest.writeLong(associated_trip_date);
+                dest.writeValue(tripDisposition);
+            }
+
+            @SuppressWarnings("unused")
+            public static final Parcelable.Creator<TripAssociation> CREATOR = new Parcelable.Creator<TripAssociation>() {
+                @Override
+                public TripAssociation createFromParcel(Parcel in) {
+                    return new TripAssociation(in);
+                }
+
+                @Override
+                public TripAssociation[] newArray(int size) {
+                    return new TripAssociation[size];
+                }
+            };
         }
 
+
+        protected TripAssociations(Parcel in) {
+            if (in.readByte() == 0x01) {
+                list = new ArrayList<TripAssociation>();
+                in.readList(list, TripAssociation.class.getClassLoader());
+            } else {
+                list = null;
+            }
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            if (list == null) {
+                dest.writeByte((byte) (0x00));
+            } else {
+                dest.writeByte((byte) (0x01));
+                dest.writeList(list);
+            }
+        }
+
+        @SuppressWarnings("unused")
+        public static final Parcelable.Creator<TripAssociations> CREATOR = new Parcelable.Creator<TripAssociations>() {
+            @Override
+            public TripAssociations createFromParcel(Parcel in) {
+                return new TripAssociations(in);
+            }
+
+            @Override
+            public TripAssociations[] newArray(int size) {
+                return new TripAssociations[size];
+            }
+        };
     }
 
 }
