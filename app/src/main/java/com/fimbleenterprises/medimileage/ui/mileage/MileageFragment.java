@@ -1207,35 +1207,42 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     }
 
     void parseTripsForAssociations() {
-        String query = Queries.TripAssociation.getAssociationsLastXMonths(3);
-        ArrayList<Requests.Argument> args = new ArrayList<>();
-        args.add(new Requests.Argument("query", query));
-        Request request = new Request(Request.Function.GET, args);
-        Crm crm = new Crm();
-        Log.i(TAG, "parseTripsForAssociations - querying server...");
-        crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                String response = new String(responseBody);
-                TripAssociations associations = new TripAssociations(response);
-                for (FullTrip trip : allTrips) {
-                    if (associations.getAssociation(trip) != null) {
-                        Log.i(TAG, "onSuccess Found an association!");
-                        TripAssociation association = associations.getAssociation(trip);
-                        trip.hasAssociations(true);
-                        trip.save();
-                    }
-                }
-                Log.i(TAG, "onSuccess Finished parsing " + associations.list.size() + " associations for " +
-                        allTrips.size() + " trips.");
-                populateTripList();
-            }
 
-            @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
-            }
-        });
+        String query = Queries.TripAssociation.getAssociationsLastXMonths(3);
+
+        if (allTrips != null && allTrips.size() > 0) {
+            // String query = Queries.TripAssociation.getAssociationsLastXMonths(3);
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            args.add(new Requests.Argument("query", query));
+            Request request = new Request(Request.Function.GET, args);
+            Crm crm = new Crm();
+            Log.i(TAG, "parseTripsForAssociations - querying server...");
+            crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    String response = new String(responseBody);
+                    TripAssociations associations = new TripAssociations(response);
+                    for (FullTrip trip : allTrips) {
+                        if (associations.getAssociation(trip) != null) {
+                            Log.i(TAG, "onSuccess Found an association!");
+                            TripAssociation association = associations.getAssociation(trip);
+                            trip.hasAssociations(true);
+                            trip.save();
+                        }
+                    }
+                    Log.i(TAG, "onSuccess Finished parsing " + associations.list.size() + " associations for " +
+                            allTrips.size() + " trips.");
+                    populateTripList();
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
+                }
+            });
+        } else {
+            Log.i(TAG, "parseTripsForAssociations Not enough local trips to check for associations!");
+        }
     }
 
     public void getAllAccountAddresses() {

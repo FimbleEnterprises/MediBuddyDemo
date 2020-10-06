@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="casual"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
-        android:text="MediMileage"
+        android:text="@string/app_name"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
         android:textColor="#000000" />
 

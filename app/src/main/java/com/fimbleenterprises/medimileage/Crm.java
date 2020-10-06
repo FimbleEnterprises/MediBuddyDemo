@@ -20,7 +20,7 @@ public class Crm {
     public static final String TRUE = "true";
     public static final String FALSE = "false";
     // public static final String DEFAULT_BASE_URL = MyApp.getAppContext().getString(R.string.base_server_url);
-    private static final String FCM_URL = "https://mediproxyrestapi.azurewebsites.net/api/crm/Fcm/";
+    // private static final String FCM_URL = "https://mediproxyrestapi.azurewebsites.net/api/crm/Fcm/";
     // public static final String BASE_URL = "http://192.168.16.135:44341/";
     private static AsyncHttpClient client = new AsyncHttpClient();
     private MySettingsHelper options;

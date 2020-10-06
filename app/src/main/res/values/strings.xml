@@ -187,6 +187,7 @@
     <string name="server_url_validated_successfully">Server url validated successfully.</string>
     <string name="server_url_validated_unsuccessfully">Failed!  Server url NOT updated!</string>
     <string name="base_server_url">https://mediproxyrestapi.azurewebsites.net/api/crm/PerformCrmAction/</string>
+    <!--<string name="base_server_url">https://localhost:44341/api/crm/PerformCrmAction/</string>-->
     <string name="update_opportunities_explicit">Update fucking opportunities</string>
     <string name="update_opportunities">Update opportunities</string>
 
