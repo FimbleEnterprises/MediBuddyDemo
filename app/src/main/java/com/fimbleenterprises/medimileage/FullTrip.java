@@ -60,10 +60,6 @@ public class FullTrip implements Parcelable {
         }
     }
 
-    public interface GetTripEntriesCallback {
-        public void onRetrieved(ArrayList<TripEntry> entries);
-}
-
     public FullTrip() {
 
     }

@@ -1331,51 +1331,12 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         final MyProgressDialog dialog = new MyProgressDialog(getContext(), "Getting submitted trips from server...",
                 MyProgressDialog.PROGRESS_TYPE);
         dialog.show();
-
         Log.i(TAG, "syncTrips Beginning sync...");
-
-        QueryFactory factory = new QueryFactory("msus_fulltrip");
-        factory.addColumn("msus_name");
-        factory.addColumn("msus_tripcode");
-        factory.addColumn("msus_dt_tripdate");
-        factory.addColumn("msus_reimbursement_rate");
-        factory.addColumn("msus_reimbursement");
-        factory.addColumn("msus_totaldistance");
-        factory.addColumn("msus_trip_duration");
-        factory.addColumn("msus_is_manual");
-        factory.addColumn("msus_edited");
-        factory.addColumn("msus_trip_minder_killed");
-        factory.addColumn("msus_fulltripid");
-        factory.addColumn("msus_trip_entries_json");
-        factory.addColumn("msus_is_submitted");
-        factory.addColumn("ownerid");
-
-        DateTime now = DateTime.now();
-        int lastDayOfMonth = now.plusMonths(1).minusDays(1).getDayOfMonth();
-        long startMillis = new DateTime(now.getYear(), now.getMonthOfYear(), 1, 1, 1).getMillis();
-        long endMillis = new DateTime(now.getYear(), now.getMonthOfYear(), lastDayOfMonth, 1, 1).getMillis();
-
-        Filter filter = new Filter(Filter.FilterType.AND);
-
-        Filter.FilterCondition condition1 = new Filter.FilterCondition("msus_dt_tripdate",
-                Filter.Operator.LAST_X_MONTHS, "2");
-        Filter.FilterCondition condition2 = new Filter.FilterCondition("ownerid",
-                Filter.Operator.EQUALS, MediUser.getMe().systemuserid);
-
-        filter.addCondition(condition1);
-        filter.addCondition(condition2);
-
-        factory.setFilter(filter);
-
-        QueryFactory.SortClause sortby = new QueryFactory.SortClause("msus_tripcode", false, QueryFactory.SortClause.ClausePosition.ONE);
-        factory.addSortClause(sortby);
-
-        String query = factory.construct();
 
         Crm crm = new Crm();
         Request request = new Request();
         request.function = Request.Function.GET.name();
-        request.arguments.add(new Requests.Argument("query", query));
+        request.arguments.add(new Requests.Argument("query", Queries.Trips.getAllTripsByOwnerForLastXmonths(2, MediUser.getMe().systemuserid)));
 
         // Log a metric
         MileBuddyMetrics.updateMetric(getContext(), MileBuddyMetrics.MetricName.LAST_ACCESSED_MILEAGE_SYNC, DateTime.now());
@@ -1523,17 +1484,11 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
         Crm crm = new Crm();
 
-        QueryFactory queryFactory = new QueryFactory("msus_fulltrip");
-        queryFactory.addColumn("msus_fulltripid");
-        Filter filter = new Filter(Filter.FilterType.AND);
-        filter.addCondition(new Filter.FilterCondition("msus_tripcode", Filter.Operator.EQUALS,
-                Long.toString(clickedTrip.getTripcode())));
-        queryFactory.setFilter(filter);
-        String query = queryFactory.construct();
+        String query = Queries.Trips.getTripidByTripcode(clickedTrip.getTripcode());
 
         Request request = new Request();
         request.function = Request.Function.GET.name();
-        request.arguments.add(new Requests.Argument("getshit", query));
+        request.arguments.add(new Requests.Argument("query", query));
 
         final MyProgressDialog dialog = new MyProgressDialog(getContext(), "Checking if trip is already submitted...", MyProgressDialog.PROGRESS_TYPE);
         dialog.show();
