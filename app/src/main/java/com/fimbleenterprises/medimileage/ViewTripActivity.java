@@ -10,6 +10,7 @@ import android.os.Bundle;
 
 import com.fimbleenterprises.medimileage.CrmEntities.CrmAddresses;
 import com.fimbleenterprises.medimileage.CrmEntities.CrmAddresses.CrmAddress;
+import com.fimbleenterprises.medimileage.CrmEntities.Opportunities.Opportunity;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -194,18 +195,12 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_evaluate_addresses :
-                TripAssociationManager tripAssociationManager;
-                TripAssociationManager.manageTripAssociations(clickedTrip, new MyInterfaces.CreateManyListener() {
-                    @Override
-                    public void onResult(CrmEntities.CreateManyResponses responses) {
-                        Toast.makeText(context, "Created " + responses.responses.size() + " responses", Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onError(String msg) {
-                        Toast.makeText(context, "Failed to create associations\n" + msg, Toast.LENGTH_SHORT).show();
-                    }
-                });
+                ArrayList<Opportunity> nearbyOpps = TripAssociationManager.getNearbyOpportunities(clickedTrip);
+                if (nearbyOpps != null) {
+                    Log.i(TAG, "onOptionsItemSelected Found " + nearbyOpps.size() + " nearby opportunities");
+                } else {
+                    Log.w(TAG, "onOptionsItemSelected: No nearby opportunities found");
+                }
         }
         return super.onOptionsItemSelected(item);
     }

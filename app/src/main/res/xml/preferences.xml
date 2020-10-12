@@ -35,6 +35,15 @@
         <SwitchPreference
             android:foreground="#000000"
             android:theme="@style/AppTheme"
+            app:key="SHOW_OPPORTUNITY_MGR"
+            app:defaultValue="true"
+            android:fontFamily="casual"
+            android:summary="Allows the ability to manage opportunities based on trips."
+            app:title="Manage opportunities" />
+
+        <SwitchPreference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
             app:key="TRIP_MINDER"
             android:fontFamily="casual"
             app:defaultValue="true"

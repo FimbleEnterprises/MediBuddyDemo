@@ -1,41 +1,176 @@
 package com.fimbleenterprises.medimileage;
 
-import android.content.Context;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.fimbleenterprises.medimileage.TripAssociationManager.TripAssociationExeption.TripHasNoIdException;
-import com.fimbleenterprises.medimileage.TripAssociationManager.TripAssociationExeption.TripMissingRequiredEntriesException;
+import com.fimbleenterprises.medimileage.CrmEntities.Opportunities.Opportunity;
+import com.fimbleenterprises.medimileage.CrmEntities.TripAssociations;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import java.util.ArrayList;
 
-import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.preference.Preference;
 import cz.msebera.android.httpclient.Header;
 
+/**
+ * A class containing static methods used to manage trip associations both locally and server-side.
+ */
 public class TripAssociationManager {
-    private static final String TAG = "AssociatedTripManager";/*
-    FullTrip fullTrip;
-    Context context;
-    MySettingsHelper options;*/
-    
-    /*public TripAssociationManager(Context context, FullTrip fullTrip) throws TripAssociationExeption {
+    private static final String TAG = "AssociatedTripManager";
 
-        // Must have a FullTrip guid (meaning the trip has been submitted) to proceed.
-        if (fullTrip == null || fullTrip.getTripGuid() == null) {
-            throw new TripHasNoIdException("Supplied trip must have a server-side entity id!");
+    /**
+     * Creates TripAssociation objects using cached account addresses.
+     * This method does not query the CRM server and will only be useful if there are saved account
+     * addresses. Also, as this queries only local data it is fast and can be called as often as
+     * needed without worry.  <b>Will return null if there are no cached account addresses.</b>
+     *
+     * @param trip The FullTrip object to use when determining associations.
+     * @return A new TripAssociations object containing all associations or null if no
+     * associations were found.
+     */
+    public static TripAssociations getNearbyAccountsAndOpportunities(@NonNull FullTrip trip) {
+
+        // Get shared preferences and identify the departure and destination locations for the specified trip
+        MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+        TripEntry startEntry = trip.tripEntries.get(0);
+        TripEntry endEntry = trip.tripEntries.get(trip.tripEntries.size() - 1);
+
+        // Retrieve the cached account addresses
+        CrmEntities.CrmAddresses accountAddresses = options.getAllSavedCrmAddresses();
+        CrmEntities.Opportunities savedOpportunities = options.getSavedOpportunities();
+
+        // Verify that there are indeed saved addresses - we can not proceed without them.
+        if (accountAddresses == null || accountAddresses.list.size() < 1) {
+            Log.w(TAG, "getNearbyAssociationsFromCache: Could not do associations - no cached " +
+                    "addresses were found.");
+            return null;
         }
 
-        if (fullTrip.tripEntries == null || fullTrip.tripEntries.size() < 2) {
-            throw new TripMissingRequiredEntriesException("Not enough trip entries in supplied trip." +
-                    "  Must have at least two entries (start and end, presumably).");
+        // This is the distance threshold that will be used to determine what is considered, "nearby"
+        double thresh = options.getDistanceThreshold();
+
+        // See if anything is close to the start and end of the trip
+        Log.i(TAG, "detectAccountsAtStartOrEnd: Distance threshold: " + thresh + " meters");
+
+        // Create a new arraylist of associated accounts that are within the start and end distance thresholds
+        final TripAssociations pendingAssociations = new TripAssociations();
+
+        // populate the array
+        for (CrmEntities.CrmAddresses.CrmAddress address : accountAddresses.list) {
+            double distFromStart = startEntry.distanceTo(address.getLatLng());
+            double distFromEnd = endEntry.distanceTo(address.getLatLng());
+
+            float milesFromStart = Helpers.Geo.convertMetersToMiles(distFromStart, 4);
+            float milesFromEnd = Helpers.Geo.convertMetersToMiles(distFromEnd, 4);
+
+            Log.i(TAG, "manageTripAssociations milesFromStart: " + milesFromStart + " miles");
+            Log.i(TAG, "manageTripAssociations milesFromEnd: " + milesFromEnd + " miles");
+
+            // Evaluate the distances from the start and end of the trip and create a TripAssociation
+            // object if the locations are within the threshold
+            if (distFromStart <= thresh) { // Trip departure location
+                // First see if there are opportunities saved for this address' accountid and create
+                // pending associations accordingly
+                if (savedOpportunities.accountHasOpportunity(address.accountid)) {
+                    for (Opportunity opp : savedOpportunities.getOpportunities(address.accountid)) {
+                        TripAssociations.TripAssociation association2 =
+                                new TripAssociations.TripAssociation(trip.getDateTime());
+                        association2.associated_account_id = address.accountid;
+                        association2.associated_trip_id = trip.tripGuid;
+                        association2.associated_opportunity_name = opp.name;
+                        association2.associated_opportunity_id = opp.opportunityid;
+                        association2.tripDisposition = TripAssociations.TripAssociation
+                                .TripDisposition.START;
+                        pendingAssociations.addAssociation(association2);
+                    }
+                } else { // No opportunities found
+                    // Since there are no opportunities found just create an association without referenced opportunities
+                    TripAssociations.TripAssociation association =
+                            new TripAssociations.TripAssociation(trip.getDateTime());
+                    association.associated_account_id = address.accountid;
+                    association.associated_trip_id = trip.tripGuid;
+                    association.tripDisposition = TripAssociations.TripAssociation
+                            .TripDisposition.START;
+                    pendingAssociations.addAssociation(association);
+                }
+
+                Log.i(TAG, "createAssociations Added an account close to the trip's start");
+            } else if(distFromEnd <= thresh) { // Trip destination location
+                // First see if there are opportunities saved for this address' accountid and create
+                // pending associations accordingly
+                if (savedOpportunities.accountHasOpportunity(address.accountid)) {
+                    for (Opportunity opp : savedOpportunities.getOpportunities(address.accountid)) {
+                        TripAssociations.TripAssociation association2 =
+                                new TripAssociations.TripAssociation(trip.getDateTime());
+                        association2.associated_account_id = address.accountid;
+                        association2.associated_trip_id = trip.tripGuid;
+                        association2.associated_opportunity_name = opp.name;
+                        association2.associated_opportunity_id = opp.opportunityid;
+                        association2.tripDisposition = TripAssociations.TripAssociation
+                                .TripDisposition.END;
+                        pendingAssociations.addAssociation(association2);
+                    }
+                } else { // No opportunities found
+                    // Since there are no opportunities found just create an association without referenced opportunities
+                    TripAssociations.TripAssociation association =
+                            new TripAssociations.TripAssociation(trip.getDateTime());
+                    association.associated_account_id = address.accountid;
+                    association.associated_trip_id = trip.tripGuid;
+                    association.tripDisposition = TripAssociations.TripAssociation
+                            .TripDisposition.END;
+                    pendingAssociations.addAssociation(association);
+                }
+            }
+        } // for each saved address on file
+
+        // If even one association was created, return a TripAssociations object containing it/them
+        if (pendingAssociations != null && pendingAssociations.list.size() > 0) {
+            return pendingAssociations;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Looks for opportunities near the start or end of a trip
+     * @param trip The trip to evaluate
+     * @return An arraylist of opportunity objects or null if none were found nearby (or if something
+     * went wrong that prevented evaluation).
+     */
+    public static ArrayList<Opportunity> getNearbyOpportunities(@NonNull FullTrip trip) {
+
+        MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+        CrmEntities.CrmAddresses accountAddresses = options.getAllSavedCrmAddresses();
+        CrmEntities.Opportunities savedOpportunities = options.getSavedOpportunities();
+        ArrayList<Opportunity> nearbyOpportunities = new ArrayList<>();
+
+        if (    // Validate parameters before evaluating them
+                trip.getTripEntries() == null ||
+                trip.getTripEntries().size() < 1 ||
+                accountAddresses == null ||
+                accountAddresses.list.size() < 1 ||
+                savedOpportunities == null ||
+                savedOpportunities.list.size() < 1
+        ) { return null; }
+
+        TripEntry startEntry = trip.tripEntries.get(0);
+        TripEntry endEntry = trip.tripEntries.get(trip.tripEntries.size() - 1);
+
+        for (Opportunity opp : savedOpportunities.list) {
+            CrmEntities.CrmAddresses.CrmAddress oppAddy = opp.tryGetCrmAddress();
+            if (oppAddy != null) {
+                if (oppAddy.isNearby(startEntry)) {
+                    nearbyOpportunities.add(opp);
+                }
+            }
         }
 
-        this.context = context;
-        this.options = new MySettingsHelper(context);
-        this.fullTrip = fullTrip;
-
-    }*/
+        if (nearbyOpportunities.size() > 0) {
+            return nearbyOpportunities;
+        } else {
+            return null;
+        }
+    }
 
     /**
      * This function will evaluate accounts and opportunities near the start and end locations
@@ -45,60 +180,18 @@ public class TripAssociationManager {
     public static void manageTripAssociations(FullTrip fullTrip, final MyInterfaces.CreateManyListener listener) {
 
         try {
-            MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
-            TripEntry startEntry = fullTrip.tripEntries.get(0);
-            TripEntry endEntry = fullTrip.tripEntries.get(fullTrip.tripEntries.size() - 1);
+            // Use the cached addresses and opportunities to try to build trip associations based on
+            // the departure and destination locations of the specified trip.
+            final TripAssociations pendingAssociations = getNearbyAccountsAndOpportunities(fullTrip);
 
-            CrmEntities.CrmAddresses accountAddresses = options.getAllSavedCrmAddresses();
-            double thresh = options.getDistanceThreshold();
-
-            // See if anything is close to the start and end of the trip
-            Log.i(TAG, "detectAccountsAtStartOrEnd: Distance threshold: " + thresh + " meters");
-
-            // Create a new arraylist of associated accounts that are within the start and end distance thresholds
-            final CrmEntities.TripAssociations pendingAssociations = new CrmEntities.TripAssociations();
-
-            // populate the array
-            for (CrmEntities.CrmAddresses.CrmAddress address : accountAddresses.list) {
-                double distFromStart = startEntry.distanceTo(address.getLatLng());
-                double distFromEnd = endEntry.distanceTo(address.getLatLng());
-
-                float milesFromStart = Helpers.Geo.convertMetersToMiles(distFromStart, 4);
-                float milesFromEnd = Helpers.Geo.convertMetersToMiles(distFromEnd, 4);
-
-                Log.i(TAG, "manageTripAssociations milesFromStart: " + milesFromStart + " miles");
-                Log.i(TAG, "manageTripAssociations milesFromEnd: " + milesFromEnd + " miles");
-
-                if (distFromStart <= thresh) {
-                    CrmEntities.TripAssociations.TripAssociation association =
-                            new CrmEntities.TripAssociations.TripAssociation(fullTrip.getDateTime());
-                    association.associated_account_id = address.accountid;
-                    association.associated_trip_id = fullTrip.tripGuid;
-                    association.tripDisposition = CrmEntities.TripAssociations.TripAssociation
-                            .TripDisposition.START;
-                    pendingAssociations.addAssociation(association);
-                    Log.i(TAG, "createAssociations Added an account close to the trip's start");
-                } else if(distFromEnd <= thresh) {
-                    CrmEntities.TripAssociations.TripAssociation association =
-                            new CrmEntities.TripAssociations.TripAssociation(fullTrip.getDateTime());
-                    association.associated_account_id = address.accountid;
-                    association.associated_trip_id = fullTrip.tripGuid;
-                    pendingAssociations.addAssociation(association);
-                    association.tripDisposition = CrmEntities.TripAssociations.TripAssociation
-                            .TripDisposition.END;
-                    pendingAssociations.addAssociation(association);
-                    Log.i(TAG, "createAssociations Added an account close to the trip's end");
-                }
-            } // for each saved address on file
-
-            // If we have any close accounts...
+            // If we have any close accounts then delete and recreate them in CRM.
             if (pendingAssociations.list.size() > 0) {
                 Log.i(TAG, "createAssociations Found: " + pendingAssociations.list.size() + " nearby accounts.");
 
                 // Retrieve any existing server-side associations so they can be deleted if necessary
                 retrieveAssociations(fullTrip.getTripGuid(), new MyInterfaces.TripAssociationsListener() {
                     @Override
-                    public void onSuccess(CrmEntities.TripAssociations associations) {
+                    public void onSuccess(TripAssociations associations) {
                         if (associations != null && associations.list.size() > 0) {
                             // First remove any existing TripAssociation entities on the server
                             Log.i(TAG, "createAssociations Deleting any existing server-side associations...");
@@ -152,17 +245,16 @@ public class TripAssociationManager {
                             });
                         }
                     }
-
                     @Override
                     public void onFailure(String msg) {
-
+                        listener.onError(msg);
                     }
                 });
 
             } else {
                 Log.i(TAG, "createAssociations No nearby accounts were found for this trip.");
+                listener.onError("No associations were found.");
             }
-
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -170,42 +262,12 @@ public class TripAssociationManager {
         }
     }
 
-    /** THIS IS DONE AUTOMATICALLY BY SERVER-SIDE WORKFLOW WHEN ASSOCIATED TRIP IS DELETED
-     ***********************************************************************************************/
-    /*public static void removeAssociations(String tripid,  final MyInterfaces.DeleteManyListener listener) {
-        try {
-            // First get the server-side associations
-            retrieveAssociations(tripid, new MyInterfaces.TripAssociationsListener() {
-                @Override
-                public void onSuccess(CrmEntities.TripAssociations associations) {
-                    // Now delete the from the server.
-                    deleteCrmAssociations(associations, new MyInterfaces.DeleteManyListener() {
-                        @Override
-                        public void onResult(CrmEntities.DeleteManyResponses responses) {
-                            listener.onResult(responses);
-                        }
-
-                        @Override
-                        public void onError(String msg) {
-                            listener.onError(msg);
-                        }
-                    });
-                }
-
-                @Override
-                public void onFailure(String msg) {
-
-                }
-            });
-
-            // First remove any existing TripAssociation entities on the server
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            listener.onError(e.getLocalizedMessage());
-        }
-    }*/
-
+    /**
+     * Retrieves trip associations that exist on the server.
+     * @param tripid The trip guid to use when querying associations on the server.
+     * @param listener A callback that will return a TripAssociations object (which will be null if
+     *                 none were found but no errors occured) or an error message if an error was thrown.
+     */
     public static void retrieveAssociations(String tripid, final MyInterfaces.TripAssociationsListener listener) {
         String query = Queries.TripAssociation.getAssociationsByTripid(tripid);
         Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
@@ -217,7 +279,7 @@ public class TripAssociationManager {
         crm.makeCrmRequest(MyApp.getAppContext(), request, new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                CrmEntities.TripAssociations associations = new CrmEntities.TripAssociations(new String(responseBody));
+                TripAssociations associations = new TripAssociations(new String(responseBody));
                 Log.i(TAG, "onSuccess Found: " + associations.list.size() + " associations.");
                 listener.onSuccess(associations);
             }
@@ -230,7 +292,16 @@ public class TripAssociationManager {
         });
     }
 
-    private static void deleteCrmAssociations(CrmEntities.TripAssociations associations, final MyInterfaces.DeleteManyListener listener) {
+    /**
+     * Deletes any trip associations on the server.
+     * @param associations A TripAssociations object that contains TripAssociation objects which <i>must
+     *                     have</i> msus_mileageassociationid values.  That is the only value that is needed
+     *                     for each TripAssociation object within - no other attributes are evaluated.
+     * @param listener A simple success/failure type of listener that onSuccess will return a DeleteManyResponses
+     *                 object containing the associated DeleteManyResponse objects (one for each
+     *                 delete attempt) or a string error message on error.
+     */
+    private static void deleteCrmAssociations(TripAssociations associations, final MyInterfaces.DeleteManyListener listener) {
 
         String[] guids = new String[associations.list.size()];
         for (int i = 0; i < associations.list.size(); i++) {
@@ -261,7 +332,14 @@ public class TripAssociationManager {
 
     }
 
-    private static void uploadCrmAssociations(CrmEntities.TripAssociations associations, final MyInterfaces.CreateManyListener listener) {
+    /**
+     * Uploads constructed TripAssociation objects to the server.  This method will do zero validation
+     * as to whether these associations already exist.  If they do exist they will be (effectively) duplicated.
+     * @param associations A TripAssociations object containing TripAssociation objects.
+     * @param listener A basic success/failure listener that will return a populated CreateManyResponses
+     *                 object that contains a CreateManyResponse for each trip association that was created.
+     */
+    private static void uploadCrmAssociations(TripAssociations associations, final MyInterfaces.CreateManyListener listener) {
         if (associations.list.size() == 0) {
             listener.onError("No associations to upload!");
         }
@@ -291,19 +369,6 @@ public class TripAssociationManager {
             }
         });
 
-    }
-
-    public static class TripAssociationExeption extends Exception {
-
-        public static class TripHasNoIdException extends TripAssociationExeption {
-            public TripHasNoIdException(String msg) {
-            }
-        }
-
-        public static class TripMissingRequiredEntriesException extends TripAssociationExeption {
-            public TripMissingRequiredEntriesException(String msg) {
-            }
-        }
     }
 
 }

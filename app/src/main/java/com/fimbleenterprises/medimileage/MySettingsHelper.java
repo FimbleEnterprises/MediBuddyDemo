@@ -44,6 +44,7 @@ public class MySettingsHelper {
     public static final String SET_DEFAULTS = "SET_DEFAULTS";
     public static final String SERVER_BASE_URL = "SERVER_BASE_URL";
     public static final String OPPORTUNITIES_JSON = "OPPORTUNITIES_JSON";
+    public static final String SHOW_OPPORTUNITY_MGR = "SHOW_OPPORTUNITY_MGR";
 
     public static final String RECEIPT_FORMAT_PNG = ".png";
     public static final String RECEIPT_FORMAT_JPEG = ".jpeg";
@@ -75,6 +76,14 @@ public class MySettingsHelper {
 
     public boolean isExplicitMode() {
         return prefs.getBoolean(EXPLICIT_MODE, false);
+    }
+
+    public boolean showOpportunityOptions() {
+        return prefs.getBoolean(SHOW_OPPORTUNITY_MGR, true);
+    }
+
+    public void setShowOpportunityMgr(Boolean value) {
+        prefs.edit().putBoolean(SHOW_OPPORTUNITY_MGR, value).commit();
     }
 
     public void isExplicitMode(boolean value) {

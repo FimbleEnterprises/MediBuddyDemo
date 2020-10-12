@@ -32,6 +32,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -297,14 +298,11 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                         dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
                             @Override
                             public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-                                if (keyCode == KeyEvent.KEYCODE_BACK) {
-                                    dialog.dismiss();
-                                    return true;
-                                } else {
+                                if (keyCode != KeyEvent.KEYCODE_BACK) {
                                     Helpers.Application.openAppSettings(getContext());
-                                    dialog.dismiss();
-                                    return true;
                                 }
+                                dialog.dismiss();
+                                return true;
                             }
                         });
                         dialog.show();
@@ -779,7 +777,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         }
 
         Uri path = Uri.parse("android.resource://com.fimbleenterprises.medimileage/" + drawable);
-        ImageView imageView = (ImageView) rootView.findViewById(R.id.gifview);
+        ImageView imageView = rootView.findViewById(R.id.gifview);
         Glide.with(getContext()).load(path).into(imageView);
 
     }
@@ -1678,6 +1676,20 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         dialog.setTitle("Trip Options");
         Button btnEditTrip = dialog.findViewById(R.id.edit_trip);
         Button btnDeleteTrip = dialog.findViewById(R.id.btnDelete);
+        Button btnOpportunity = dialog.findViewById(R.id.opportunity);
+        TableRow tableRow = dialog.findViewById(R.id.tableRowopp);
+        tableRow.setVisibility(clickedTrip.associatedOpportunityId == null ? View.GONE : View.VISIBLE);
+        btnOpportunity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                CrmEntities.Opportunities opportunities = options.getSavedOpportunities();
+                for (CrmEntities.Opportunities.Opportunity opportunity : opportunities.list) {
+                    if (opportunity.opportunityid.equals(clickedTrip.associatedOpportunityId)) {
+                        Toast.makeText(getContext(), opportunity.toString(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        });
         Button btnSubmit = dialog.findViewById(R.id.btnSubmit);
         btnSubmit.setOnClickListener(new View.OnClickListener() {
             @Override

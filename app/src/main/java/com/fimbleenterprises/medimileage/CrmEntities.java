@@ -590,7 +590,70 @@ public class CrmEntities {
             });
         }
 
-        public static class Opportunity {
+        /**
+         * Returns an opportunity in the list.
+         * @param accountid The accountid to use when searching for opportunities
+         * @return An arraylist of Opportunity objects (or null if none are found).
+         */
+        public ArrayList<Opportunity> getOpportunities(String accountid) {
+            ArrayList<Opportunity> foundOpps = new ArrayList<>();
+            for (Opportunity opp : this.list) {
+                if (opp.accountid.equals(accountid)) {
+                    foundOpps.add(opp);
+                }
+            }
+            if (foundOpps.size() > 0) {
+                return foundOpps;
+            } else {
+                return null;
+            }
+        }
+
+        /**
+         * Evaluates all opportunities in the list checking if the specified account id exists in one of them.
+         * @param accountid The accountid to look for in the list of opportunities.
+         * @return True on the first accountid match found.
+         */
+        public boolean accountHasOpportunity(String accountid) {
+            for (Opportunity opp : this.list) {
+                if (opp.accountid.equals(accountid)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Evaluates all opportunities in the list checking if the specified account id exists in one of them.
+         * @param address The address to look for in the list of opportunities.  Note that the
+         *                accountid property is the only property that is evaluated in the address object.
+         * @return True on the first accountid match found.
+         */
+        public boolean accountHasOpportunity(CrmAddresses.CrmAddress address) {
+            for (Opportunity opp : this.list) {
+                if (opp.accountid.equals(address.accountid)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Counts how many opportunities reference the specified account id.
+         * @param accountid The accountid to look for in the list of opportunities.
+         * @return The amount of opportunities the accountid was referenced.
+         */
+        public int accountHasXopportunities(String accountid) {
+            int count = 0;
+            for (Opportunity opp : this.list) {
+                if (opp.accountid.equals(accountid)) {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        public static class Opportunity implements Parcelable {
             public String etag;
             public String accountid;
             public String accountname;
@@ -686,18 +749,18 @@ public class CrmEntities {
                     e.printStackTrace();
                 }
                 try {
-                   if (!json.isNull("estimatedclosedate")) {
-                       this.estimatedCloseDate = (new DateTime(json.getString("estimatedclosedate")).getMillis());
-                   }
+                    if (!json.isNull("estimatedclosedate")) {
+                        this.estimatedCloseDate = (new DateTime(json.getString("estimatedclosedate")).getMillis());
+                    }
                 } catch (JSONException e) {
-                   e.printStackTrace();
+                    e.printStackTrace();
                 }
                 try {
-                   if (!json.isNull("createdon")) {
-                       this.createdon = (new DateTime(json.getString("createdon")).getMillis());
-                   }
+                    if (!json.isNull("createdon")) {
+                        this.createdon = (new DateTime(json.getString("createdon")).getMillis());
+                    }
                 } catch (JSONException e) {
-                   e.printStackTrace();
+                    e.printStackTrace();
                 }
                 try {
                     if (!json.isNull("stepname")) {
@@ -738,7 +801,7 @@ public class CrmEntities {
 
             /**
              * Returns the address of the account this opportunity is associated with
-             * @return A CrmAddress object
+             * @return A CrmAddress object or null
              */
             public CrmAddresses.CrmAddress tryGetCrmAddress() {
                 try {
@@ -804,6 +867,62 @@ public class CrmEntities {
                 }
             }
 
+            protected Opportunity(Parcel in) {
+                etag = in.readString();
+                accountid = in.readString();
+                accountname = in.readString();
+                probabilityPretty = in.readString();
+                probabilityOptionsetValue = in.readInt();
+                ownername = in.readString();
+                ownerid = in.readString();
+                estimatedCloseDate = in.readDouble();
+                createdon = in.readDouble();
+                stepName = in.readString();
+                dealTypePretty = in.readString();
+                dealTypeOptionsetValue = in.readInt();
+                territoryid = in.readString();
+                opportunityid = in.readString();
+                name = in.readString();
+                floatEstimatedValue = in.readFloat();
+            }
+
+            @Override
+            public int describeContents() {
+                return 0;
+            }
+
+            @Override
+            public void writeToParcel(Parcel dest, int flags) {
+                dest.writeString(etag);
+                dest.writeString(accountid);
+                dest.writeString(accountname);
+                dest.writeString(probabilityPretty);
+                dest.writeInt(probabilityOptionsetValue);
+                dest.writeString(ownername);
+                dest.writeString(ownerid);
+                dest.writeDouble(estimatedCloseDate);
+                dest.writeDouble(createdon);
+                dest.writeString(stepName);
+                dest.writeString(dealTypePretty);
+                dest.writeInt(dealTypeOptionsetValue);
+                dest.writeString(territoryid);
+                dest.writeString(opportunityid);
+                dest.writeString(name);
+                dest.writeFloat(floatEstimatedValue);
+            }
+
+            @SuppressWarnings("unused")
+            public static final Parcelable.Creator<Opportunity> CREATOR = new Parcelable.Creator<Opportunity>() {
+                @Override
+                public Opportunity createFromParcel(Parcel in) {
+                    return new Opportunity(in);
+                }
+
+                @Override
+                public Opportunity[] newArray(int size) {
+                    return new Opportunity[size];
+                }
+            };
         }
     }
 
@@ -1047,6 +1166,27 @@ public class CrmEntities {
                 }
             }
 
+            /**
+             * Evaluates two addresses and determines if they are within the distance threshold
+             * stipulated in preferences.
+             * @param targetAddy The address to compare to this one.
+             * @return True if the distance is less than or equal to the preference value saved in shared preferences.
+             */
+            public boolean isNearby(TripEntry targetAddy) {
+                try {
+                    try {
+                        MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+                        return targetAddy.distanceTo(this.getLatLng()) <= options.getDistanceThreshold();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return false;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
+            }
+
         }
 
     }
@@ -1203,60 +1343,6 @@ public class CrmEntities {
 
     public static class TripAssociations implements Parcelable {
 
-        private static final String TAG = "MileageReimbursementAssociations";
-
-        public ArrayList<TripAssociation> list = new ArrayList<>();
-
-        public TripAssociation getAssociation(FullTrip trip) {
-            for (TripAssociation a : this.list) {
-                if (a.associated_trip_id.equals(trip.tripGuid)) {
-                    return a;
-                }
-            }
-            return null;
-        }
-
-        public TripAssociations() {
-            this.list = new ArrayList<>();
-        }
-
-        public TripAssociations(String crmResponse) {
-            ArrayList<TripAssociation> associations = new ArrayList<>();
-            try {
-                JSONObject root = new JSONObject(crmResponse);
-                JSONArray rootArray = root.getJSONArray("value");
-                for (int i = 0; i < rootArray.length(); i++) {
-                    TripAssociation association = new TripAssociation(rootArray.getJSONObject(i));
-                    associations.add(association);
-                }
-                this.list = associations;
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-
-        public void addAssociation(TripAssociation association) {
-            this.list.add(association);
-        }
-
-        public String toJson() {
-            Gson gson = new Gson();
-            return gson.toJson(this);
-        }
-
-        public Containers toContainers() {
-            Containers containers = new Containers();
-            for (TripAssociation association : this.list) {
-                containers.entityContainers.add(association.toContainer());
-            }
-            return containers;
-        }
-
-        @Override
-        public String toString() {
-            return this.list.size() + " associations, ";
-        }
-
         public static class TripAssociation implements Parcelable {
             private static final String TAG = "MileageReimbursementAssociation";
             public String etag;
@@ -1404,6 +1490,18 @@ public class CrmEntities {
                 START, END
             }
 
+            /**
+             * Evaluates whether this association references an existing opportunity.
+             * @return True if an association is found
+             */
+            public boolean hasOpportunity() {
+                return this.associated_opportunity_id != null;
+            }
+
+            /**
+             * Returns a pretty string stipulating whether the association is the beginning or end of a trip.
+             * @return "Start" or "End"
+             */
             public String getDispositionTitle() {
                 switch (this.tripDisposition) {
                     case START :
@@ -1518,6 +1616,60 @@ public class CrmEntities {
                     return new TripAssociation[size];
                 }
             };
+        }
+
+        private static final String TAG = "MileageReimbursementAssociations";
+
+        public ArrayList<TripAssociation> list = new ArrayList<>();
+
+        public TripAssociation getAssociation(FullTrip trip) {
+            for (TripAssociation a : this.list) {
+                if (a.associated_trip_id.equals(trip.tripGuid)) {
+                    return a;
+                }
+            }
+            return null;
+        }
+
+        public TripAssociations() {
+            this.list = new ArrayList<>();
+        }
+
+        public TripAssociations(String crmResponse) {
+            ArrayList<TripAssociation> associations = new ArrayList<>();
+            try {
+                JSONObject root = new JSONObject(crmResponse);
+                JSONArray rootArray = root.getJSONArray("value");
+                for (int i = 0; i < rootArray.length(); i++) {
+                    TripAssociation association = new TripAssociation(rootArray.getJSONObject(i));
+                    associations.add(association);
+                }
+                this.list = associations;
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void addAssociation(TripAssociation association) {
+            this.list.add(association);
+        }
+
+        public String toJson() {
+            Gson gson = new Gson();
+            return gson.toJson(this);
+        }
+
+        public Containers toContainers() {
+            Containers containers = new Containers();
+            for (TripAssociation association : this.list) {
+                containers.entityContainers.add(association.toContainer());
+            }
+            return containers;
+        }
+
+        @Override
+        public String toString() {
+            return this.list.size() + " associations, ";
         }
 
 

@@ -355,7 +355,53 @@ public class Queries {
             return query;
         }
 
-    }
+        public static String getOpportunitiesByAccount(String accountid) {
+
+            // Query columns
+            QueryFactory factory = new QueryFactory("opportunity");
+            factory.addColumn("name");
+            factory.addColumn("estimatedvalue");
+            factory.addColumn("estimatedclosedate");
+            factory.addColumn("col_dealtype");
+            factory.addColumn("ownerid");
+            factory.addColumn("parentaccountid");
+            factory.addColumn("stepname");
+            factory.addColumn("createdon");
+            factory.addColumn("msus_probability");
+            factory.addColumn("opportunityid");
+
+            // Link entities
+            LinkEntity linkEntityAccount = new LinkEntity("account", "accountid", "parentaccountid", "ab");
+            linkEntityAccount.addColumn(new EntityColumn("territoryid"));
+            Filter.FilterCondition linkentityAccountCondition = new Filter.FilterCondition(
+                    "accountid", Filter.Operator.EQUALS, accountid);
+            linkEntityAccount.addFilter(new Filter(AND, linkentityAccountCondition));
+            factory.addLinkEntity(linkEntityAccount);
+
+            // Filter conditions
+            Filter.FilterCondition condition1 = new Filter
+                    .FilterCondition("statecode", Filter.Operator.EQUALS,
+                    Integer.toString(0));
+
+            ArrayList<Filter.FilterCondition> conditions = new ArrayList<>();
+            conditions.add(condition1);
+
+            // Set filter
+            Filter filter = new Filter(AND, conditions);
+            factory.setFilter(filter);
+
+            // Sort clause
+            SortClause sortClause = new SortClause("createdon",
+                    true, SortClause.ClausePosition.ONE);
+            factory.addSortClause(sortClause);
+
+            // Build query
+            String query = factory.construct();
+
+            return query;
+        }
+
+}
 
     /**
      * Contains queries designed to test basic functionality and CRM communication

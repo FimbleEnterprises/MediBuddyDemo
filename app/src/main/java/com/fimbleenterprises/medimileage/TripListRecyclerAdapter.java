@@ -3,6 +3,7 @@ package com.fimbleenterprises.medimileage;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.fimbleenterprises.medimileage.ui.mileage.MileageFragment;
 
 import java.util.ArrayList;
@@ -33,7 +35,7 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
     Typeface originalTypeface;
     TextView textView;
 
-
+    Uri imgAssociationPath = Uri.parse("android.resource://com.fimbleenterprises.medimileage/" + R.drawable.exclamation_blue_64);
 
     // data is passed into the constructor
     public TripListRecyclerAdapter(Context context, ArrayList<FullTrip> data) {
@@ -139,7 +141,19 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
             holder.txtMainText.setText(trip.getTitle() + " - " + Helpers.DatesAndTimes.getPrettyDate
                     (trip.getDateTime()));
             holder.chkbxSelectTrip.setVisibility((isInEditMode) ? View.VISIBLE : View.INVISIBLE);
-            // holder.txtMainText.setTypeface(null, Typeface.NORMAL);
+            try {
+                if (options.showOpportunityOptions()) {
+                    if (trip.associatedOpportunityId != null) {
+                        holder.imgHasAssociations.setImageResource(R.drawable.exclamation_blue_64);
+                        holder.imgHasAssociations.setVisibility(View.VISIBLE);
+                        Helpers.Animations.pulseAnimation(holder.layout, 1.01f,
+                                1.01f, 9000, 350);
+                        holder.layout.setBackgroundResource(R.drawable.btn_glass_navy_border);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         holder.itemView.setLongClickable(true);
