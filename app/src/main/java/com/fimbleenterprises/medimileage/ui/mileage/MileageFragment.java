@@ -801,6 +801,9 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         Helpers.Animations.pulseAnimation(txtMilesTotal);
         Helpers.Animations.pulseAnimation(txtMtd);
         startMtdTogglerRunner();
+
+        // Check for opportunities in the background 
+        checkForOpportunities(true);
     }
 
     @Override
@@ -1020,6 +1023,75 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         } else {
             progressDialog.dismiss();
         }
+    }
+
+    void checkForOpportunities(boolean inBackground) {
+
+        class OpportunityChecker extends AsyncTask<Integer, Integer, Integer> {
+
+
+            double start = System.currentTimeMillis();
+            double end = 0;
+            double length = 0;
+
+                @Override
+                protected void onPreExecute() {
+                    super.onPreExecute();
+                }
+
+                @Override
+                protected Integer doInBackground(Integer... ints) {
+                    int foundOpportunities = 0;
+
+                    foundOpportunities = doOppCheckActual();
+
+                    end = System.currentTimeMillis();
+                    length = (end - start) / 1000;
+
+                    Log.i(TAG, "populateTripList Opportunity check took: " + length + " seconds");
+
+                    return foundOpportunities;
+                }
+
+                @Override
+                protected void onPostExecute(Integer s) {
+                    super.onPostExecute(s);
+                    Log.i(TAG, "onPostExecute Found " + s + " opportunities in " + length + " seconds.");
+                }
+            }
+
+        if (inBackground) {
+            new OpportunityChecker().execute();
+        } else {
+            double start = System.currentTimeMillis();
+            double end = 0;
+            double length = 0;
+            Log.i(TAG, "checkForOpportunities Starting...");
+            int foundOpps = doOppCheckActual();
+            end = System.currentTimeMillis();
+            length = (end - start) / 1000;
+
+            Log.d(TAG, "checkForOpportunities Found " + foundOpps + " in " + length + " seconds.");
+
+        }
+    }
+
+    private int doOppCheckActual() {
+
+        int foundOpportunities = 0;
+
+        // Check for opportunities
+        for (FullTrip trip : allTrips) {
+            ArrayList<CrmEntities.Opportunities.Opportunity> associatedOpportunities
+                    = TripAssociationManager.getNearbyOpportunities(trip);
+            if (associatedOpportunities != null && associatedOpportunities.size() > 0) {
+                Log.i(TAG, "populateTripList Found " + associatedOpportunities.size() + " opportunities!");
+                foundOpportunities += associatedOpportunities.size();
+                trip.hasAssociations(true);
+                trip.save();
+            }
+        }
+        return foundOpportunities;
     }
 
     void populateTripList() {

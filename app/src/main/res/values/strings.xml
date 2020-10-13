@@ -190,5 +190,6 @@
     <!--<string name="base_server_url">https://localhost:44341/api/crm/PerformCrmAction/</string>-->
     <string name="update_opportunities_explicit">Update fucking opportunities</string>
     <string name="update_opportunities">Update opportunities</string>
+    <string name="title_activity_opportunity">FullscreenActivity</string>
 
 </resources>
