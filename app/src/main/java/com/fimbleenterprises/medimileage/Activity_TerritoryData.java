@@ -55,6 +55,9 @@ import com.scwang.smart.refresh.layout.api.RefreshLayout;
 import com.scwang.smart.refresh.layout.listener.OnLoadMoreListener;
 import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
+import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts;
+import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts.OrderProduct;
+
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
@@ -462,7 +465,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public RecyclerView recyclerView;
         RefreshLayout refreshLayout;
         OrderLineRecyclerAdapter adapter;
-        ArrayList<CrmEntities.OrderProduct> allOrders = new ArrayList<>();
+        ArrayList<OrderProducts.OrderProduct> allOrders = new ArrayList<>();
 
         @Nullable
         @Override
@@ -555,7 +558,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                     String response = new String(responseBody);
                     Log.i(TAG, "onSuccess " + response);
-                    allOrders = new CrmEntities.OrderProducts(response).list;
+                    allOrders = new OrderProducts(response).list;
                     populateList();
                     refreshLayout.finishRefresh();
                 }
@@ -571,7 +574,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
         protected void populateList() {
 
-            ArrayList<CrmEntities.OrderProduct> orderList = new ArrayList<>();
+            ArrayList<OrderProducts.OrderProduct> orderList = new ArrayList<>();
 
             boolean addedTodayHeader = false;
             boolean addedYesterdayHeader = false;
@@ -593,7 +596,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 // Trip was today
                 if (tripDayOfYear == todayDayOfYear) {
                     if (addedTodayHeader == false) {
-                        CrmEntities.OrderProduct headerObj = new CrmEntities.OrderProduct();
+                        OrderProducts.OrderProduct headerObj = new OrderProducts.OrderProduct();
                         headerObj.isSeparator = true;
                         headerObj.setTitle("Today");
                         orderList.add(headerObj);
@@ -603,7 +606,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     // Trip was yesterday
                 } else if (tripDayOfYear == (todayDayOfYear - 1)) {
                     if (addedYesterdayHeader == false) {
-                        CrmEntities.OrderProduct headerObj = new CrmEntities.OrderProduct();
+                        OrderProduct headerObj = new OrderProduct();
                         headerObj.isSeparator = true;
                         headerObj.setTitle("Yesterday");
                         orderList.add(headerObj);
@@ -614,7 +617,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     // Trip was this week
                 } else if (tripWeekOfYear == todayWeekOfYear) {
                     if (addedThisWeekHeader == false) {
-                        CrmEntities.OrderProduct headerObj = new CrmEntities.OrderProduct();
+                        OrderProduct headerObj = new OrderProduct();
                         headerObj.isSeparator = true;
                         headerObj.setTitle("This week");
                         orderList.add(headerObj);
@@ -625,7 +628,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     // Trip was this month
                 } else if (tripMonthOfYear == todayMonthOfYear) {
                     if (addedThisMonthHeader == false) {
-                        CrmEntities.OrderProduct headerObj = new CrmEntities.OrderProduct();
+                        OrderProduct headerObj = new OrderProduct();
                         headerObj.isSeparator = true;
                         headerObj.setTitle("This month");
                         orderList.add(headerObj);
@@ -636,7 +639,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     // Trip was older than this month
                 } else if (tripMonthOfYear < todayMonthOfYear) {
                     if (addedOlderHeader == false) {
-                        CrmEntities.OrderProduct headerObj = new CrmEntities.OrderProduct();
+                        OrderProduct headerObj = new OrderProduct();
                         headerObj.isSeparator = true;
                         headerObj.setTitle("Last month and older");
                         orderList.add(headerObj);
@@ -645,7 +648,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     }
                 }
 
-                CrmEntities.OrderProduct orderProduct = allOrders.get(i);
+                OrderProducts.OrderProduct orderProduct = allOrders.get(i);
                 orderList.add(orderProduct);
             }
 

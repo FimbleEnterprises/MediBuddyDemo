@@ -106,8 +106,10 @@ public class AuthenticationFragment extends Fragment {
         });
 
         if (BuildConfig.DEBUG) {
-            txtUsername.setText("matt.weber@medistimusa.com");
-            txtPassword.setText("R3dst4ff^^");
+            /*txtUsername.setText("matt.weber@medistimusa.com");
+            txtPassword.setText("R3dst4ff^^");*/
+            txtUsername.setText("amanda.holmes@medistimusa.com");
+            txtPassword.setText("TransitTimeFlowMeasurement1991!");
         } else {
             txtUsername.setText(options.getCachedUsername());
             txtPassword.setText(options.getCachedPassword());

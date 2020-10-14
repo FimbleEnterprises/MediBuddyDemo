@@ -191,5 +191,13 @@
     <string name="update_opportunities_explicit">Update fucking opportunities</string>
     <string name="update_opportunities">Update opportunities</string>
     <string name="title_activity_opportunity">FullscreenActivity</string>
+    <string name="title_activity_fullscreen_choose_opportunity">Choose Opportunity</string>
+    <string name="btn_opportunity_done">Done</string>
+    <string name="loading_opportunity">Loading...</string>
+    <string name="opportunity_status_label">Status:</string>
+    <string name="opportunity_dealstatus_label">Deal status:</string>
+    <string name="opportunity_background_label">Background:</string>
+    <string name="opportunity_close_prob_label">Close probability:</string>
+    <string name="opportunity_dealtype_label">Deal type:</string>
 
 </resources>

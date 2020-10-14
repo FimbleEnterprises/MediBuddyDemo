@@ -36,6 +36,11 @@
             android:label="@string/title_activity_fullscreen_choose_territory"
             android:theme="@style/FullscreenTheme" />
         <activity
+            android:name=".FullscreenActivityChooseOpportunity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_fullscreen_choose_opportunity"
+            android:theme="@style/FullscreenTheme" />
+        <activity
             android:name=".AggregateStatsActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_aggregate_stats"

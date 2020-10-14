@@ -28,6 +28,141 @@ import cz.msebera.android.httpclient.Header;
 
 public class CrmEntities {
 
+    public static class Annotations {
+
+        public ArrayList<Annotation> list = new ArrayList<>();
+        public boolean hasNotes = false;
+
+        public Annotations(String crmResponse) {
+            try {
+                JSONObject rootObject = new JSONObject(crmResponse);
+                JSONArray array = rootObject.getJSONArray("value");
+                hasNotes = array.length() > 0;
+                for (int i = 0; i < array.length(); i++) {
+                    JSONObject json = array.getJSONObject(i);
+                    Annotation annotation = new Annotation(json);
+                    this.list.add(annotation);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public static class Annotation {
+
+            public String etag;
+            public String annotationid;
+            public String objectid;
+            public boolean isDocument;
+            public String subject;
+            public String notetext;
+            public String objectEntityName;
+            public DateTime createdon;
+            public DateTime modifiedon;
+            public String modifiedByValue;
+            public String modifedByName;
+            public String createdByValue;
+            public String createdByName;
+            
+            public Annotation(JSONObject json) {
+                try {
+                    if (!json.isNull("etag")) {
+                        this.etag = (json.getString("etag"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("annotationid")) {
+                        this.annotationid = (json.getString("annotationid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_objectid_value")) {
+                        this.objectid = (json.getString("_objectid_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("objecttypecode")) {
+                        this.objectEntityName = (json.getString("objecttypecode"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("isdocument")) {
+                        this.isDocument = (json.getBoolean("isdocument"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("subject")) {
+                        this.subject = (json.getString("subject"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("notetext")) {
+                        this.notetext = (json.getString("notetext"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_modifiedby_valueFormattedValue")) {
+                        this.modifedByName = (json.getString("_modifiedby_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_modifiedby_value")) {
+                        this.modifiedByValue = (json.getString("_modifiedby_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_createdby_valueFormattedValue")) {
+                        this.createdByName = (json.getString("_createdby_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_createdby_value")) {
+                        this.createdByValue = (json.getString("_createdby_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                   if (!json.isNull("modifiedon")) {
+                       this.modifiedon = (new DateTime(json.getString("modifiedon")));
+                   }
+                } catch (JSONException e) {
+                   e.printStackTrace();
+                }
+                try {
+                   if (!json.isNull("createdon")) {
+                       this.createdon = (new DateTime(json.getString("createdon")));
+                   }
+                } catch (JSONException e) {
+                   e.printStackTrace();
+                }
+            }
+
+        }
+
+
+    }
+
     public static class OrderProducts {
         public ArrayList<OrderProduct> list = new ArrayList<>();
 
@@ -56,232 +191,232 @@ public class CrmEntities {
                 e.printStackTrace();
             }
         }
-    }
 
-    public static class OrderProduct {
+        public static class OrderProduct {
 
-        boolean isSeparator;
-        String etag;
-        String productid;
-        String productidFormatted;
-        String partNumber;
-        float extendedAmt;
-        String extendedAmtFormatted;
-        String customerid;
-        String customeridFormatted;
-        String salesorderid;
-        String salesorderidFormatted;
-        String salesrepid;
-        String salesrepidFormatted;
-        float priceperunit;
-        String priceperunitFormatted;
-        String itemgroup;
-        int qty;
-        boolean isCapital;
-        String territoryid;
-        String territoryidFormatted;
-        String accountnumber;
-        String orderdateFormatted;
-        DateTime orderDate;
-        int productfamilyValue;
-        String productfamilyFormattedValue;
+            boolean isSeparator;
+            String etag;
+            String productid;
+            String productidFormatted;
+            String partNumber;
+            float extendedAmt;
+            String extendedAmtFormatted;
+            String customerid;
+            String customeridFormatted;
+            String salesorderid;
+            String salesorderidFormatted;
+            String salesrepid;
+            String salesrepidFormatted;
+            float priceperunit;
+            String priceperunitFormatted;
+            String itemgroup;
+            int qty;
+            boolean isCapital;
+            String territoryid;
+            String territoryidFormatted;
+            String accountnumber;
+            String orderdateFormatted;
+            DateTime orderDate;
+            int productfamilyValue;
+            String productfamilyFormattedValue;
 
-        @Override
-        public String toString() {
-            return this.partNumber + ", Qty: " + this.qty + ", Amount: " + this.extendedAmtFormatted;
-        }
+            @Override
+            public String toString() {
+                return this.partNumber + ", Qty: " + this.qty + ", Amount: " + this.extendedAmtFormatted;
+            }
 
-        public OrderProduct() { }
+            public OrderProduct() { }
 
-        public OrderProduct(JSONObject json) {
-            try {
-                if (!json.isNull("etag")) {
-                    this.etag = (json.getString("etag"));
+            public OrderProduct(JSONObject json) {
+                try {
+                    if (!json.isNull("etag")) {
+                        this.etag = (json.getString("etag"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("_productid_value")) {
-                    this.productid = (json.getString("_productid_value"));
+                try {
+                    if (!json.isNull("_productid_value")) {
+                        this.productid = (json.getString("_productid_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("_productid_valueFormattedValue")) {
-                    this.productidFormatted = (json.getString("_productid_valueFormattedValue"));
+                try {
+                    if (!json.isNull("_productid_valueFormattedValue")) {
+                        this.productidFormatted = (json.getString("_productid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("extendedamount")) {
-                    this.extendedAmt = (json.getLong("extendedamount"));
+                try {
+                    if (!json.isNull("extendedamount")) {
+                        this.extendedAmt = (json.getLong("extendedamount"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("extendedamountFormattedValue")) {
-                    this.extendedAmtFormatted = (json.getString("extendedamountFormattedValue"));
+                try {
+                    if (!json.isNull("extendedamountFormattedValue")) {
+                        this.extendedAmtFormatted = (json.getString("extendedamountFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("_new_customer_value")) {
-                    this.customerid = (json.getString("_new_customer_value"));
+                try {
+                    if (!json.isNull("_new_customer_value")) {
+                        this.customerid = (json.getString("_new_customer_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("_new_customer_valueFormattedValue")) {
-                    this.customeridFormatted = (json.getString("_new_customer_valueFormattedValue"));
+                try {
+                    if (!json.isNull("_new_customer_valueFormattedValue")) {
+                        this.customeridFormatted = (json.getString("_new_customer_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("_salesrepid_valueFormattedValue")) {
-                    this.salesrepidFormatted = (json.getString("_salesrepid_valueFormattedValue"));
+                try {
+                    if (!json.isNull("_salesrepid_valueFormattedValue")) {
+                        this.salesrepidFormatted = (json.getString("_salesrepid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("_salesrepid_value")) {
-                    this.salesrepid = (json.getString("_salesrepid_value"));
+                try {
+                    if (!json.isNull("_salesrepid_value")) {
+                        this.salesrepid = (json.getString("_salesrepid_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("quantity")) {
-                    this.qty = (json.getInt("quantity"));
+                try {
+                    if (!json.isNull("quantity")) {
+                        this.qty = (json.getInt("quantity"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("_salesorderid_valueFormattedValue")) {
-                    this.salesorderidFormatted = (json.getString("_salesorderid_valueFormattedValue"));
+                try {
+                    if (!json.isNull("_salesorderid_valueFormattedValue")) {
+                        this.salesorderidFormatted = (json.getString("_salesorderid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("_salesorderid")) {
-                    this.salesorderid = (json.getString("_salesorderid"));
+                try {
+                    if (!json.isNull("_salesorderid")) {
+                        this.salesorderid = (json.getString("_salesorderid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_msus_is_capital")) {
-                    this.isCapital = (json.getBoolean("a_070ef9d142cd40d98bebd513e03c7cd1_msus_is_capital"));
+                try {
+                    if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_msus_is_capital")) {
+                        this.isCapital = (json.getBoolean("a_070ef9d142cd40d98bebd513e03c7cd1_msus_is_capital"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_productnumber")) {
-                    this.setTitle(json.getString("a_070ef9d142cd40d98bebd513e03c7cd1_productnumber"));
+                try {
+                    if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_productnumber")) {
+                        this.setTitle(json.getString("a_070ef9d142cd40d98bebd513e03c7cd1_productnumber"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_col_itemgroup")) {
-                    this.itemgroup = (json.getString("a_070ef9d142cd40d98bebd513e03c7cd1_col_itemgroup"));
+                try {
+                    if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_col_itemgroup")) {
+                        this.itemgroup = (json.getString("a_070ef9d142cd40d98bebd513e03c7cd1_col_itemgroup"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_col_producfamily")) {
-                    this.productfamilyValue = (json.getInt("a_070ef9d142cd40d98bebd513e03c7cd1_col_producfamily"));
+                try {
+                    if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_col_producfamily")) {
+                        this.productfamilyValue = (json.getInt("a_070ef9d142cd40d98bebd513e03c7cd1_col_producfamily"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_col_producfamilyFormattedValue")) {
-                    this.productfamilyFormattedValue = (json.getString("a_070ef9d142cd40d98bebd513e03c7cd1_col_producfamilyFormattedValue"));
+                try {
+                    if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_col_producfamilyFormattedValue")) {
+                        this.productfamilyFormattedValue = (json.getString("a_070ef9d142cd40d98bebd513e03c7cd1_col_producfamilyFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("a_db24f99da8fee71180df005056a36b9b_accountnumber")) {
-                    this.accountnumber = (json.getString("a_db24f99da8fee71180df005056a36b9b_accountnumber"));
+                try {
+                    if (!json.isNull("a_db24f99da8fee71180df005056a36b9b_accountnumber")) {
+                        this.accountnumber = (json.getString("a_db24f99da8fee71180df005056a36b9b_accountnumber"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("a_db24f99da8fee71180df005056a36b9b_territoryid")) {
-                    this.territoryid = (json.getString("a_db24f99da8fee71180df005056a36b9b_territoryid"));
+                try {
+                    if (!json.isNull("a_db24f99da8fee71180df005056a36b9b_territoryid")) {
+                        this.territoryid = (json.getString("a_db24f99da8fee71180df005056a36b9b_territoryid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("a_a1cf96c07c114d478335b8c445651a12_employeeid")) {
-                    this.territoryidFormatted = (json.getString("a_a1cf96c07c114d478335b8c445651a12_employeeid"));
+                try {
+                    if (!json.isNull("a_a1cf96c07c114d478335b8c445651a12_employeeid")) {
+                        this.territoryidFormatted = (json.getString("a_a1cf96c07c114d478335b8c445651a12_employeeid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("a_6ec0e72e4c104394bc627456c6412838_submitdate")) {
-                    this.orderDate = (new DateTime(json.getString("a_6ec0e72e4c104394bc627456c6412838_submitdate")));
+                try {
+                    if (!json.isNull("a_6ec0e72e4c104394bc627456c6412838_submitdate")) {
+                        this.orderDate = (new DateTime(json.getString("a_6ec0e72e4c104394bc627456c6412838_submitdate")));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("a_6ec0e72e4c104394bc627456c6412838_submitdateFormattedValue")) {
-                    this.orderdateFormatted = (json.getString("a_6ec0e72e4c104394bc627456c6412838_submitdateFormattedValue"));
+                try {
+                    if (!json.isNull("a_6ec0e72e4c104394bc627456c6412838_submitdateFormattedValue")) {
+                        this.orderdateFormatted = (json.getString("a_6ec0e72e4c104394bc627456c6412838_submitdateFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
             }
-        }
 
-        public enum ProductFamily {
-            AUX_CABLE, FLOWMETER, LEASE_COMPLIANCE, LICENSE_CARD, PROBE, PROBE_PRODUCT, SERVICE_MISC,
-            SPARE_PART, SYSTEM_PRODUCT, SHIPPING_HANDLING
-        }
-
-        public ProductFamily getFamily(int productfamilyValue) {
-            switch (productfamilyValue) {
-                case 100004070 :
-                    return ProductFamily.AUX_CABLE;
-                case 181004050 :
-                    return ProductFamily.FLOWMETER;
-                case 100004040 :
-                    return ProductFamily.LEASE_COMPLIANCE;
-                case 100004030 :
-                    return ProductFamily.LICENSE_CARD;
-                case 181400001 :
-                    return ProductFamily.PROBE_PRODUCT;
-                case 100004010 :
-                    return ProductFamily.SERVICE_MISC;
-                case 100004020 :
-                    return ProductFamily.SHIPPING_HANDLING;
-                case 100004075 :
-                    return ProductFamily.SPARE_PART;
-                case 181400000 :
-                    return ProductFamily.SYSTEM_PRODUCT;
-                default :
-                    return ProductFamily.PROBE;
+            public enum ProductFamily {
+                AUX_CABLE, FLOWMETER, LEASE_COMPLIANCE, LICENSE_CARD, PROBE, PROBE_PRODUCT, SERVICE_MISC,
+                SPARE_PART, SYSTEM_PRODUCT, SHIPPING_HANDLING
             }
-        }
 
-        public void setTitle(String text) {
-            this.partNumber = text;
+            public ProductFamily getFamily(int productfamilyValue) {
+                switch (productfamilyValue) {
+                    case 100004070 :
+                        return ProductFamily.AUX_CABLE;
+                    case 181004050 :
+                        return ProductFamily.FLOWMETER;
+                    case 100004040 :
+                        return ProductFamily.LEASE_COMPLIANCE;
+                    case 100004030 :
+                        return ProductFamily.LICENSE_CARD;
+                    case 181400001 :
+                        return ProductFamily.PROBE_PRODUCT;
+                    case 100004010 :
+                        return ProductFamily.SERVICE_MISC;
+                    case 100004020 :
+                        return ProductFamily.SHIPPING_HANDLING;
+                    case 100004075 :
+                        return ProductFamily.SPARE_PART;
+                    case 181400000 :
+                        return ProductFamily.SYSTEM_PRODUCT;
+                    default :
+                        return ProductFamily.PROBE;
+                }
+            }
+
+            public void setTitle(String text) {
+                this.partNumber = text;
+            }
         }
     }
 
@@ -670,6 +805,7 @@ public class CrmEntities {
             public String opportunityid;
             public String name;
             public float floatEstimatedValue;
+            public boolean isSeparator = false;
 
             @Override
             public String toString() {

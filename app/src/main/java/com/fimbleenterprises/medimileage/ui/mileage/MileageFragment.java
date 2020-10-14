@@ -52,6 +52,7 @@ import com.fimbleenterprises.medimileage.Activity_ManualTrip;
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.CrmEntities;
 import com.fimbleenterprises.medimileage.FullTrip;
+import com.fimbleenterprises.medimileage.FullscreenActivityChooseOpportunity;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.LocationContainer;
 import com.fimbleenterprises.medimileage.MediUser;
@@ -152,8 +153,17 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode == Activity.RESULT_OK) {
-            populateTripList();
-            Toast.makeText(getContext(), "Trip was created.", Toast.LENGTH_SHORT).show();
+            if (data.hasExtra(FullscreenActivityChooseOpportunity.OPPORTUNITY_RESULT)) {
+                CrmEntities.Opportunities.Opportunity opportunity =
+                        data.getParcelableExtra(FullscreenActivityChooseOpportunity.OPPORTUNITY_RESULT);
+                if (opportunity != null) {
+                    Log.i(TAG, "onActivityResult Opportunity was manipulated (" + opportunity.name + ")");
+                }
+                populateTripList();
+            } else {
+                populateTripList();
+                Toast.makeText(getContext(), "Trip was created.", Toast.LENGTH_SHORT).show();
+            }
         }
 
     }
@@ -802,7 +812,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         Helpers.Animations.pulseAnimation(txtMtd);
         startMtdTogglerRunner();
 
-        // Check for opportunities in the background 
+        // Check for opportunities in the background
         checkForOpportunities(true);
     }
 
@@ -1750,16 +1760,13 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         Button btnDeleteTrip = dialog.findViewById(R.id.btnDelete);
         Button btnOpportunity = dialog.findViewById(R.id.opportunity);
         TableRow tableRow = dialog.findViewById(R.id.tableRowopp);
-        tableRow.setVisibility(clickedTrip.associatedOpportunityId == null ? View.GONE : View.VISIBLE);
+        tableRow.setVisibility(clickedTrip.hasAssociations() ? View.VISIBLE : View.GONE);
         btnOpportunity.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                CrmEntities.Opportunities opportunities = options.getSavedOpportunities();
-                for (CrmEntities.Opportunities.Opportunity opportunity : opportunities.list) {
-                    if (opportunity.opportunityid.equals(clickedTrip.associatedOpportunityId)) {
-                        Toast.makeText(getContext(), opportunity.toString(), Toast.LENGTH_SHORT).show();
-                    }
-                }
+                Intent intent = new Intent(getContext(), FullscreenActivityChooseOpportunity.class);
+                intent.putExtra(FullscreenActivityChooseOpportunity.FULLTRIP, clickedTrip);
+                startActivityForResult(intent, FullscreenActivityChooseOpportunity.REQUESTCODE);
             }
         });
         Button btnSubmit = dialog.findViewById(R.id.btnSubmit);

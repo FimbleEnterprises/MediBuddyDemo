@@ -251,7 +251,7 @@ public abstract class Helpers {
          * @param c  The myContext the object is being used in
          * @return The Bitmap object .
          */
-        public static Bitmap getImageIconForPart(CrmEntities.OrderProduct orderProduct, Context c) {
+        public static Bitmap getImageIconForPart(CrmEntities.OrderProducts.OrderProduct orderProduct, Context c) {
 
             if (orderProduct.partNumber.startsWith("PQ")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.quickfit64);

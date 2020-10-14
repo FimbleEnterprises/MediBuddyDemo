@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/row_annotation"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/btn_glass_gray_orange_border"
+    android:orientation="vertical"
+    android:padding="5dp">
+
+
+    <ImageView
+        android:id="@+id/img_NoteLeftIcon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_alignParentStart="false"
+        android:layout_alignParentLeft="true"
+        android:layout_centerInParent="false"
+        app:srcCompat="@drawable/sms_64" />
+
+    <TextView
+        android:id="@+id/txt_NoteSubject"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginRight="3dp"
+        android:layout_toStartOf="@+id/txt_orderDate"
+        android:layout_toEndOf="@id/img_NoteLeftIcon"
+        android:fontFamily="@font/casual"
+        android:singleLine="true"
+        android:text="Note subject"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/txt_NoteBody"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/txt_NoteSubject"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="-2dp"
+        android:layout_marginRight="3dp"
+        android:layout_toRightOf="@id/img_NoteLeftIcon"
+        android:layout_weight="0"
+        android:fontFamily="@font/casual"
+        android:text="Note body"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:id="@+id/layout_metadata"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txt_NoteBody"
+        android:orientation="vertical">
+
+
+        <TextView
+            android:id="@+id/txt_NoteCreatedOn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="4dp"
+            android:layout_marginRight="3dp"
+            android:layout_toStartOf="@+id/txt_orderDate"
+            android:layout_toEndOf="@id/img_NoteLeftIcon"
+            android:fontFamily="@font/casual"
+            android:singleLine="true"
+            android:text="10/15/2020 4:55 PM"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/txt_NoteCreatedBy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/txt_NoteSubject"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="-2dp"
+            android:layout_marginRight="3dp"
+            android:layout_toRightOf="@id/img_NoteLeftIcon"
+            android:layout_weight="0"
+            android:fontFamily="@font/casual"
+            android:text="Matt Weber"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</RelativeLayout>

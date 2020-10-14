@@ -23,7 +23,7 @@ public class MileBuddyMetrics {
         LAST_ACCESSED_MILEAGE_SYNC,
         LAST_ACCESSED_MILEAGE_STATS,
         LAST_ACCESSED_IS_DRIVING,
-        LAST_ACCESSED_APP_SETTINGS
+        LAST_ACCESSED_APP_SETTINGS;
     }
 
     private static String getMetricName(MetricName metricName) {

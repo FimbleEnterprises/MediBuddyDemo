@@ -11,6 +11,8 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts.OrderProduct;
+
 import java.util.ArrayList;
 
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,7 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class OrderLineRecyclerAdapter extends RecyclerView.Adapter<OrderLineRecyclerAdapter.ViewHolder> {
     private static final String TAG="OrderLineAdapter";
-    public ArrayList<CrmEntities.OrderProduct> mData;
+    public ArrayList<OrderProduct> mData;
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
     MySettingsHelper options;
@@ -29,7 +31,7 @@ public class OrderLineRecyclerAdapter extends RecyclerView.Adapter<OrderLineRecy
 
 
     // data is passed into the constructor
-    public OrderLineRecyclerAdapter(Context context, ArrayList<CrmEntities.OrderProduct> data) {
+    public OrderLineRecyclerAdapter(Context context, ArrayList<OrderProduct> data) {
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
         this.context = context;
@@ -50,7 +52,7 @@ public class OrderLineRecyclerAdapter extends RecyclerView.Adapter<OrderLineRecy
     // binds the data to the TextView in each row
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
-        final CrmEntities.OrderProduct orderProduct = mData.get(position);
+        final OrderProduct orderProduct = mData.get(position);
 
         if (orderProduct.isSeparator) {
             // Display
@@ -138,7 +140,7 @@ public class OrderLineRecyclerAdapter extends RecyclerView.Adapter<OrderLineRecy
 
         @Override
         public boolean onLongClick(View view) {
-            CrmEntities.OrderProduct orderProduct = mData.get(getAdapterPosition());
+            OrderProduct orderProduct = mData.get(getAdapterPosition());
             if (! orderProduct.isSeparator) {
                 Log.i(TAG, "onLongClick " + orderProduct.toString());
             }
@@ -147,7 +149,7 @@ public class OrderLineRecyclerAdapter extends RecyclerView.Adapter<OrderLineRecy
     }
 
     // convenience method for getting data at click position
-    public CrmEntities.OrderProduct getItem(int pos) {
+    public OrderProduct getItem(int pos) {
         return mData.get(pos);
     }
 
