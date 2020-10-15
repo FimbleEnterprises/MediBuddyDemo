@@ -24,22 +24,22 @@
             android:name=".OpportunityActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_opportunity"
-            android:theme="@style/FullscreenTheme"></activity>
+            android:theme="@style/AppThemeAlt" />
         <activity
             android:name=".FullscreenActivityChooseTerritory"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen_choose_territory"
-            android:theme="@style/FullscreenTheme" />
+            android:theme="@style/FullscreenAltTheme" />
         <activity
             android:name=".FullscreenActivityChooseRep"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen_choose_territory"
-            android:theme="@style/FullscreenTheme" />
+            android:theme="@style/FullscreenAltTheme" />
         <activity
             android:name=".FullscreenActivityChooseOpportunity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen_choose_opportunity"
-            android:theme="@style/FullscreenTheme" />
+            android:theme="@style/FullscreenAltTheme" />
         <activity
             android:name=".AggregateStatsActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"

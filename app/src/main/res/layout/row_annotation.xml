@@ -1,90 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/row_annotation"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@drawable/btn_glass_gray_orange_border"
-    android:orientation="vertical"
-    android:padding="5dp">
+                android:layout_height="match_parent">
 
-
-    <ImageView
-        android:id="@+id/img_NoteLeftIcon"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_alignParentStart="false"
-        android:layout_alignParentLeft="true"
-        android:layout_centerInParent="false"
-        app:srcCompat="@drawable/sms_64" />
-
-    <TextView
-        android:id="@+id/txt_NoteSubject"
-        android:layout_width="wrap_content"
+    <RelativeLayout
+        android:id="@+id/layoutNoteMeat"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="4dp"
-        android:layout_marginRight="3dp"
-        android:layout_toStartOf="@+id/txt_orderDate"
-        android:layout_toEndOf="@id/img_NoteLeftIcon"
-        android:fontFamily="@font/casual"
-        android:singleLine="true"
-        android:text="Note subject"
-        android:textSize="16sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/txt_NoteBody"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/txt_NoteSubject"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="-2dp"
-        android:layout_marginRight="3dp"
-        android:layout_toRightOf="@id/img_NoteLeftIcon"
-        android:layout_weight="0"
-        android:fontFamily="@font/casual"
-        android:text="Note body"
-        android:textSize="16sp"
-        android:textStyle="bold" />
-
-    <LinearLayout
-        android:id="@+id/layout_metadata"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/txt_NoteBody"
-        android:orientation="vertical">
-
+        android:orientation="horizontal"
+        android:padding="10dp">
 
         <TextView
-            android:id="@+id/txt_NoteCreatedOn"
+            android:id="@+id/note_createdBy2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="4dp"
-            android:layout_marginRight="3dp"
-            android:layout_toStartOf="@+id/txt_orderDate"
-            android:layout_toEndOf="@id/img_NoteLeftIcon"
-            android:fontFamily="@font/casual"
-            android:singleLine="true"
-            android:text="10/15/2020 4:55 PM"
-            android:textSize="12sp"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="7dp"
+            android:layout_toStartOf="@+id/note_createdOn"
+            android:text="Created by:"
+            android:textColor="#FF7F3A"
+            android:textSize="10sp"
+            android:textStyle="bold|italic" />
+
+        <TextView
+            android:id="@+id/note_createdOn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:text="Created on:"
+            android:textColor="#FF7F3A"
+            android:textSize="10sp"
+            android:textStyle="bold|italic" />
+
+        <ImageView
+            android:id="@+id/note_user_icon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_below="@+id/note_createdBy2"
+            android:layout_gravity="center"
+            android:layout_marginBottom="5dp"
+            android:layout_marginRight="15dp"
+            android:layout_marginTop="5dp"
+            android:gravity="center_vertical"
+            android:scaleType="fitXY"
+            android:src="@drawable/contactphoto_square_48x48" />
+
+        <TextView
+            android:id="@+id/note_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/note_user_icon"
+            android:layout_marginBottom="5dp"
+            android:layout_toRightOf="@+id/note_user_icon"
+            android:layout_weight="0.59"
+            android:gravity="center_vertical"
+            android:text="Note title"
+            android:textColor="#000000"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/txt_NoteCreatedBy"
+            android:id="@+id/note_body"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/txt_NoteSubject"
-            android:layout_marginLeft="10dp"
-            android:layout_marginTop="-2dp"
-            android:layout_marginRight="3dp"
-            android:layout_toRightOf="@id/img_NoteLeftIcon"
-            android:layout_weight="0"
-            android:fontFamily="@font/casual"
-            android:text="Matt Weber"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-    </LinearLayout>
+            android:layout_alignParentEnd="true"
+            android:layout_below="@+id/note_title"
+            android:layout_margin="3dp"
+            android:layout_toEndOf="@+id/note_user_icon"
+            android:text="Note Body" />
 
+
+        <RelativeLayout
+            android:id="@+id/relativeLayout2"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="false"
+            android:layout_below="@+id/note_body"
+            android:layout_margin="1dp"
+            android:background="#0000FF">
+
+            <RelativeLayout
+                android:id="@+id/note_attachment_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="false"
+                android:layout_margin="1dp"
+                android:background="#FFFFFF"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:id="@+id/note_attachmemt_text"
+                    style="?android:attr/textAppearanceButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="3dp"
+                    android:layout_marginLeft="3dp"
+                    android:layout_marginTop="7dp"
+                    android:layout_toRightOf="@+id/note_attachment_icon"
+                    android:layout_weight="1"
+                    android:background="@drawable/btn_mileage_kickoff"
+                    android:gravity="center_horizontal"
+                    android:paddingBottom="3dp"
+                    android:text="some_file.pdf"
+                    android:textColor="#00137F"
+                    android:textSize="12sp"
+                    android:textStyle="bold|italic" />
+
+                <ImageView
+                    android:id="@+id/note_attachment_icon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_margin="3dp"
+                    android:background="#FFFFFFFF"
+                    android:scaleType="fitCenter"
+                    app:srcCompat="@drawable/paperclip_icon_32x32_italicized" />
+            </RelativeLayout>
+        </RelativeLayout>
+
+    </RelativeLayout>
 </RelativeLayout>

@@ -36,7 +36,7 @@ public class AnnotationsAdapter extends RecyclerView.Adapter<AnnotationsAdapter.
     // inflates the row layout from xml when needed
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = mInflater.inflate(R.layout.row_annotation, parent, false);
+        View view = mInflater.inflate(R.layout.row_annotation_simple, parent, false);
         return new ViewHolder(view);
     }
 

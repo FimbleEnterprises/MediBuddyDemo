@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/rounded_container_white">
+
+        <EditText
+            android:id="@+id/body_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/titleText"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:gravity="top|left"
+            android:hint="Write your message here..."
+            android:inputType="textAutoComplete|textMultiLine|textImeMultiLine"
+            android:lines="10"
+            android:linksClickable="true"
+            android:minLines="4" />
+
+        <RelativeLayout
+            android:id="@+id/rl_orange_separator2"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_below="@+id/titleText"
+            android:layout_marginLeft="3dp"
+            android:layout_marginRight="3dp"
+            android:background="#B1BCBE"></RelativeLayout>
+
+        <Button
+            android:id="@+id/button_submit"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/body_text"
+            android:layout_alignParentEnd="true"
+            android:layout_marginLeft="12dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="12dp"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/btn_glass_gray"
+            android:padding="5dp"
+            android:text="Submit" />
+
+        <TextView
+            android:id="@+id/titleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@+id/body_text"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="5dp"
+            android:gravity="left"
+            android:text="@string/add_note_dialog_title"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/attach_file"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_alignStart="@+id/titleText"
+            android:layout_alignTop="@+id/button_submit"
+            android:layout_alignBottom="@+id/button_submit"
+            android:adjustViewBounds="true"
+            android:background="#00FFFFFF"
+            android:cropToPadding="false"
+            android:defaultFocusHighlightEnabled="true"
+            android:elevation="0dp"
+            android:fadeScrollbars="false"
+            android:fadingEdge="vertical"
+            android:focusable="auto"
+            android:outlineProvider="paddedBounds"
+            android:requiresFadingEdge="vertical"
+            android:scaleType="fitCenter"
+            android:src="@drawable/paperclip_icon_32x32_italicized"
+            android:visibility="invisible" />
+
+        <TextView
+            android:id="@+id/filename"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/attach_file"
+            android:layout_alignBottom="@+id/attach_file"
+            android:layout_toStartOf="@+id/button_submit"
+            android:layout_toEndOf="@+id/attach_file"
+            android:gravity="center_vertical"
+            android:textSize="10sp"
+            android:textStyle="italic"
+            android:visibility="visible" />
+</RelativeLayout>

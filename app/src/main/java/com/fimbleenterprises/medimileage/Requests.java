@@ -14,6 +14,7 @@ public class Requests {
         public static final String GET = "get";
         public static final String CREATE = "create";
         public static final String CREATE_MANY = "createmany";
+        public static final String CREATE_NOTE = "createnote";
         public static final String UPDATE = "update";
         public static final String UPDATE_MANY = "updatemany";
         public static final String UPSERT = "upsert";
@@ -33,7 +34,7 @@ public class Requests {
 
         public enum Function {
             GET, CREATE, CREATE_MANY, UPDATE, UPDATE_MANY, UPSERT, UPSERT_MANY, ASSIGN, ASSIGN_MANY, ASSOCIATE, ASSOCIATE_MANY,
-            DELETE, DELETE_MANY, DISASSOCIATE, DISASSOCIATE_MANY, SET_STATE, SET_STATE_MANY, CAN_AUTHENTICATE
+            DELETE, DELETE_MANY, DISASSOCIATE, DISASSOCIATE_MANY, SET_STATE, SET_STATE_MANY, CAN_AUTHENTICATE, CREATE_NOTE;
         }
 
         private String getFunctionName(Enum<Function> function) {
@@ -72,6 +73,8 @@ public class Requests {
                     return SET_STATE_MANY;
                 case 17 :
                     return CAN_AUTHENTICATE;
+                case 18 :
+                    return CREATE_NOTE;
                 default:
                     return GET;
 

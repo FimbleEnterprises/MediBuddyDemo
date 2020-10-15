@@ -58,4 +58,29 @@ public class Containers {
         Gson gson = new Gson();
         return gson.fromJson(json, Containers.class);
     }
+
+    /**
+     * This class should be used when creating a note in CRM.  It is a specialized entity container
+     * that can be deserialized by the C# API receiving the request.  Note creation is slightly
+     * different than traditional entity creation and this class simplifies the handling of those particularities.
+     */
+    public static class Annotation {
+        public String annotaionid;
+        public String notetext;
+        public String subject;
+        public String documentbody;
+        public String filename;
+        public boolean isdocument;
+        public String mimetype;
+        public String objectid;
+        public String objecttypecode;
+        public String ownerid;
+        public String owneridtype = "systemuser";
+
+        public String toJson() {
+            Gson gson = new Gson();
+            return gson.toJson(this);
+        }
+    }
+
 }

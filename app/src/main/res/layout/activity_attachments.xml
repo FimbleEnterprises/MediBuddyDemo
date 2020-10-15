@@ -1,0 +1,74 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin"
+                android:paddingTop="@dimen/activity_vertical_margin"
+                android:paddingBottom="@dimen/activity_vertical_margin"
+                android:id="@+id/relative_layout_attachments_main"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#EEECECEC"
+                tools:mContext="com.example.medibuddy.Activity_Attachments"
+                android:padding="10dp">
+
+<TextView
+    android:id="@+id/textView_accountName"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_alignParentLeft="true"
+    android:layout_alignParentRight="true"
+    android:gravity="center"
+    android:text="@string/loading"
+    android:textAppearance="?android:attr/textAppearanceMedium"
+    android:textColor="#656464"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="These attachments are ordered by date but other than that there is no rhyme nor reason to how they&apos;re grouped."
+        android:id="@+id/textView_disclaimer"
+        android:layout_below="@+id/textView_accountName"
+        android:gravity="center"
+        android:textColor="#757474"
+        android:layout_marginTop="10dp"
+        android:textAlignment="center"/>
+
+    <View
+    android:id="@+id/rl_orange_separator2"
+    android:layout_width="fill_parent"
+    android:layout_height="1dip"
+    android:layout_below="@+id/textView_accountName"
+    android:background="#000000" />
+
+<ListView
+    android:id="@android:id/list"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:layout_alignParentLeft="true"
+    android:background="#00FFFFFF"
+    android:divider="#44F37021"
+    android:dividerHeight="1dp"
+    android:drawSelectorOnTop="true"
+    android:fastScrollAlwaysVisible="false"
+    android:fastScrollEnabled="true"
+    android:footerDividersEnabled="true"
+    android:layoutAnimation = "@anim/my_layout_animation"
+    android:headerDividersEnabled="false"
+    android:layout_below="@+id/textView_disclaimer"
+    android:layout_marginTop="10dp">
+
+</ListView>
+
+<ProgressBar
+    android:id="@+id/account_attachments_progressBar1"
+    style="?android:attr/progressBarStyleLarge"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_centerHorizontal="true"
+    android:layout_centerInParent="true"
+    android:layout_centerVertical="true"
+    android:visibility="gone" />
+
+
+</RelativeLayout>

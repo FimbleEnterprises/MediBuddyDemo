@@ -159,8 +159,6 @@ public class CrmEntities {
             }
 
         }
-
-
     }
 
     public static class OrderProducts {
@@ -682,7 +680,7 @@ public class CrmEntities {
          */
         public static void retrieveAndSaveOpportunities(final MyInterfaces.YesNoResult listener) {
             final MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
-            String query = Queries.Opportunities.getOpportunitiesByTerritory(MediUser.getMe().territoryid);
+            String query = Queries.Opportunities.getAllOpenOpportunities();
             ArrayList<Requests.Argument> args = new ArrayList<>();
             Requests.Argument argument = new Requests.Argument("query", query);
             args.add(argument);
@@ -805,6 +803,9 @@ public class CrmEntities {
             public String opportunityid;
             public String name;
             public float floatEstimatedValue;
+            public String currentSituation;
+            public String status;
+            public String dealStatus;
             public boolean isSeparator = false;
 
             @Override
@@ -824,6 +825,13 @@ public class CrmEntities {
                 try {
                     if (!json.isNull("name")) {
                         this.name = (json.getString("name"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("statecodeFormattedValue")) {
+                        this.status = (json.getString("statecodeFormattedValue"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -864,8 +872,22 @@ public class CrmEntities {
                     e.printStackTrace();
                 }
                 try {
+                    if (!json.isNull("statuscodeFormattedValue")) {
+                        this.dealStatus = (json.getString("statuscodeFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
                     if (!json.isNull("msus_probability")) {
                         this.probabilityOptionsetValue = (json.getInt("msus_probability"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("currentsituation")) {
+                        this.currentSituation = (json.getString("currentsituation"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -1020,6 +1042,9 @@ public class CrmEntities {
                 opportunityid = in.readString();
                 name = in.readString();
                 floatEstimatedValue = in.readFloat();
+                dealStatus = in.readString();
+                currentSituation = in.readString();
+                status = in.readString();
             }
 
             @Override
@@ -1045,6 +1070,9 @@ public class CrmEntities {
                 dest.writeString(opportunityid);
                 dest.writeString(name);
                 dest.writeFloat(floatEstimatedValue);
+                dest.writeString(dealStatus);
+                dest.writeString(currentSituation);
+                dest.writeString(status);
             }
 
             @SuppressWarnings("unused")
