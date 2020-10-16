@@ -65,6 +65,7 @@ public class Containers {
      * different than traditional entity creation and this class simplifies the handling of those particularities.
      */
     public static class Annotation {
+
         public String annotaionid;
         public String notetext;
         public String subject;
@@ -73,9 +74,9 @@ public class Containers {
         public boolean isdocument;
         public String mimetype;
         public String objectid;
-        public String objecttypecode;
+        public String objectidtypecode;
         public String ownerid;
-        public String owneridtype = "systemuser";
+        public String owneridtype;
 
         public String toJson() {
             Gson gson = new Gson();

@@ -6,6 +6,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.google.rpc.Help;
 
 import org.joda.time.DateTime;
 import org.joda.time.Days;
@@ -115,6 +116,11 @@ public class MySettingsHelper {
     public double getDistanceThreshold() {
         String dist = prefs.getString(DISTANCE_THRESHOLD, "1609");
         return Double.parseDouble(dist);
+    }
+
+    public double getDistanceThresholdInMiles() {
+        double dist = Double.parseDouble(prefs.getString(DISTANCE_THRESHOLD, "1609"));
+        return Helpers.Geo.convertMetersToMiles(dist, 1);
     }
 
     public CrmEntities.CrmAddresses getAllSavedCrmAddresses() {

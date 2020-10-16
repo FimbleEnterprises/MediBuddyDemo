@@ -22,6 +22,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.fimbleenterprises.medimileage.CrmEntities.Annotations.Annotation;
 import com.fimbleenterprises.medimileage.CrmEntities.Opportunities.Opportunity;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.scwang.smart.refresh.layout.SmartRefreshLayout;
@@ -55,6 +56,9 @@ public class OpportunityActivity extends AppCompatActivity {
     ProgressBar pbNotesLoading;
     ImageButton btnAddNote;
 
+    public enum NoteAction {
+        CREATE, EDIT, DELETE
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,16 +106,31 @@ public class OpportunityActivity extends AppCompatActivity {
         btnAddNote.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(OpportunityActivity.this, "Adding note...", Toast.LENGTH_SHORT).show();
+                showAddEditNote(NoteAction.CREATE, null);
+            }
+        });
 
-                final Dialog dialog = new Dialog(OpportunityActivity.this);
-                final Context c = getApplicationContext();
-                dialog.setContentView(R.layout.dialog_note);
-                final EditText noteBody = dialog.findViewById(R.id.body_text);
-                Button btnSubmit = dialog.findViewById(R.id.button_submit);
-                btnSubmit.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
+        txtAccount.setText(opportunity.accountname);
+        txtTopic.setText(opportunity.name);
+        txtStatus.setText(opportunity.status);
+        txtDealStatus.setText(opportunity.dealStatus);
+        txtDealType.setText(opportunity.dealTypePretty);
+        txtCloseProb.setText(opportunity.probabilityPretty);
+        txtBackground.setText(opportunity.currentSituation);
+    }
+
+    void showAddEditNote(final NoteAction action, @Nullable final Annotation clickedNote) {
+
+        final Dialog dialog = new Dialog(OpportunityActivity.this);
+        dialog.setContentView(R.layout.dialog_note);
+        final EditText noteBody = dialog.findViewById(R.id.body_text);
+        Button btnSubmit = dialog.findViewById(R.id.button_submit);
+        btnSubmit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                switch (action) {
+                    case CREATE:
                         String notetext = noteBody.getText().toString();
                         submitNewNote(notetext, new MyInterfaces.YesNoResult() {
                             @Override
@@ -126,33 +145,71 @@ public class OpportunityActivity extends AppCompatActivity {
                                 Toast.makeText(context, "Failed to create note!", Toast.LENGTH_SHORT).show();
                             }
                         });
-                    }
-                });
-                dialog.setTitle("Add note");
-                dialog.setCancelable(true);
-                dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
-                    @Override
-                    public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-                        if (keyCode == KeyEvent.KEYCODE_BACK) {
-                            dialog.dismiss();
-                            return true;
-                        } else {
-                            return false;
-                        }
-                    }
-                });
-                dialog.show();
+                        break;
+                    case EDIT:
+                        clickedNote.notetext = noteBody.getText().toString();
+                        editExistingNote(clickedNote, new MyInterfaces.YesNoResult() {
+                            @Override
+                            public void onYes(@Nullable Object object) {
+                                Toast.makeText(context, "Note was updated.", Toast.LENGTH_SHORT).show();
+                                dialog.dismiss();
+                                getOpportunityNotes();
+                            }
 
+                            @Override
+                            public void onNo(@Nullable Object object) {
+                                Toast.makeText(context, "Failed to update note\n\n" + object.toString(), Toast.LENGTH_LONG).show();
+                            }
+                        });
+                        break;
+                }
+            }
+        });
+        dialog.setTitle("Note");
+        dialog.setCancelable(true);
+        dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+            @Override
+            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    dialog.dismiss();
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        });
+        dialog.show();
+    }
+
+    void editExistingNote(Annotation note, final MyInterfaces.YesNoResult listener) {
+
+        // Entity values to update
+        Containers.EntityContainer container = new Containers.EntityContainer();
+        container.entityFields.add(new Containers.EntityField("notetext", note.notetext));
+
+        // Start constructing request object adding arguments based on function to perform
+        Requests.Request request = new Requests.Request(Requests.Request.Function.UPDATE);
+        request.arguments.add(new Requests.Argument("entityid", note.annotationid));
+        request.arguments.add(new Requests.Argument("entityname", "annotation"));
+        request.arguments.add(new Requests.Argument("json", container.toJson()));
+        request.arguments.add(new Requests.Argument("asuserid", MediUser.getMe().systemuserid));
+
+        Crm crm = new Crm();
+        crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                String response = new String(responseBody);
+                Log.i(TAG, "onSuccess " + response);
+                listener.onYes(response);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                Toast.makeText(context, error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                listener.onNo(error);
             }
         });
 
-        txtAccount.setText(opportunity.accountname);
-        txtTopic.setText(opportunity.name);
-        txtStatus.setText(opportunity.status);
-        txtDealStatus.setText(opportunity.dealStatus);
-        txtDealType.setText(opportunity.dealTypePretty);
-        txtCloseProb.setText(opportunity.probabilityPretty);
-        txtBackground.setText(opportunity.currentSituation);
     }
 
     void submitNewNote(String noteBody, final MyInterfaces.YesNoResult listener) {
@@ -161,6 +218,7 @@ public class OpportunityActivity extends AppCompatActivity {
         annotation.notetext = noteBody;
         annotation.ownerid = MediUser.getMe().systemuserid;
         annotation.isdocument = false;
+        annotation.objectidtypecode = "opportunity";
         annotation.objectid = opportunity.opportunityid;
 
         Requests.Request request = new Requests.Request(Requests.Request.Function.CREATE_NOTE);
@@ -183,6 +241,8 @@ public class OpportunityActivity extends AppCompatActivity {
             public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
                 Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
                 listener.onNo(error.getLocalizedMessage());
+                dialog.dismiss();
+                listener.onNo(error.getLocalizedMessage());
             }
         });
     }
@@ -194,7 +254,7 @@ public class OpportunityActivity extends AppCompatActivity {
         Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
 
         // Show the pulldown refresh progressbar
-        refreshLayout.autoRefreshAnimationOnly();
+        // refreshLayout.autoRefreshAnimationOnly();
         txtNotesLoading.setVisibility(View.VISIBLE);
         txtNotesLoading.setText("Loading notes...");
         pbNotesLoading.setVisibility(View.VISIBLE);
@@ -204,13 +264,22 @@ public class OpportunityActivity extends AppCompatActivity {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 String response = new String(responseBody);
-                CrmEntities.Annotations annotations = new CrmEntities.Annotations(response);
+                final CrmEntities.Annotations annotations = new CrmEntities.Annotations(response);
                 adapterNotes = new AnnotationsAdapter(getApplicationContext(), annotations.list);
                 notesListView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
                 notesListView.setAdapter(adapterNotes);
                 notesListView.addItemDecoration(new DividerItemDecoration(getApplicationContext(),
                         DividerItemDecoration.VERTICAL));
-                Toast.makeText(OpportunityActivity.this, "Notes: " + annotations.list.size(), Toast.LENGTH_SHORT).show();
+                adapterNotes.setClickListener(new AnnotationsAdapter.ItemClickListener() {
+                    @Override
+                    public void onItemClick(View view, int position) {
+                        Annotation note = annotations.list.get(position);
+                        Toast.makeText(context, note.subject, Toast.LENGTH_SHORT).show();
+                        showNoteOptions(note);
+                    }
+                });
+                Toast.makeText(OpportunityActivity.this, "Notes: " + annotations.list.size(),
+                        Toast.LENGTH_SHORT).show();
                 refreshLayout.finishRefresh();
                 txtNotesLoading.setVisibility(View.GONE);
                 pbNotesLoading.setVisibility(View.GONE);
@@ -225,6 +294,46 @@ public class OpportunityActivity extends AppCompatActivity {
                 pbNotesLoading.setVisibility(View.GONE);
             }
         });
+    }
+    
+    void showNoteOptions(final Annotation clickedNote) {
+        final Dialog dialog = new Dialog(context);
+        final Context c = context;
+        dialog.setContentView(R.layout.dialog_note_options);
+        Button btnEdit = dialog.findViewById(R.id.btn_edit_note);
+        btnEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showAddEditNote(NoteAction.EDIT, clickedNote);
+            }
+        });
+        Button btnDelete = dialog.findViewById(R.id.btn_delete_note);
+        btnDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+
+        dialog.setTitle("");
+        dialog.setCancelable(true);
+        dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+            @Override
+            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    dialog.dismiss();
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        });
+        dialog.show();
+
+        // See if the current user is the author of the clicked note
+        btnEdit.setEnabled(clickedNote.createdByValue.equals(MediUser.getMe().systemuserid) ? true : false);
+        btnDelete.setEnabled(clickedNote.createdByValue.equals(MediUser.getMe().systemuserid) ? true : false);
+
     }
 
     @Override

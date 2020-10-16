@@ -563,7 +563,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_below="@id/tableLayout_oppotunitydetails"
-                        android:nestedScrollingEnabled="false"></com.fimbleenterprises.medimileage.NonScrollRecyclerView>
+                        android:nestedScrollingEnabled="false" />
 
                 </RelativeLayout>
 

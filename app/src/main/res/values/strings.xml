@@ -200,5 +200,8 @@
     <string name="opportunity_close_prob_label">Close probability:</string>
     <string name="opportunity_dealtype_label">Deal type:</string>
     <string name="add_note_dialog_title">Add note</string>
+    <string name="note_options_dialog_title">Note options</string>
+    <string name="delete_note_button">Delete</string>
+    <string name="edit_note_button">Edit</string>
 
 </resources>

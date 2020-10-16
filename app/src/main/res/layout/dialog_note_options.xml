@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/btn_glass_gray">
+
+    <LinearLayout
+        android:id="@+id/linearLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="2dp"
+        android:orientation="vertical"/>
+
+    <RelativeLayout
+        android:id="@+id/LinearLayout02"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/linearLayout1"
+        android:layout_alignParentLeft="true"
+        android:layout_marginTop="50dp"></RelativeLayout>
+
+    <Button
+        android:id="@+id/btn_edit_note"
+        style="@style/ButtonTextWhiteShadow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/LinearLayout02"
+        android:layout_alignParentLeft="true"
+        android:layout_margin="5dp"
+        android:background="@drawable/btn_glass_gray_black_border"
+        android:drawablePadding="0dp"
+        android:paddingLeft="5dp"
+        android:text="@string/edit_note_button"
+        android:textColor="#000000" />
+
+    <Button
+        android:id="@+id/btn_delete_note"
+        style="@style/ButtonTextWhiteShadow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/LinearLayout02"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginBottom="5dp"
+        android:background="@drawable/btn_glass_gray_black_border"
+        android:paddingLeft="5dp"
+        android:text="@string/delete_note_button"
+        android:textColor="#000000" />
+
+
+</RelativeLayout>
