@@ -1,7 +1,6 @@
 package com.fimbleenterprises.medimileage;
 
 import android.content.Context;
-import android.graphics.Path;
 import android.location.Location;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -29,7 +28,7 @@ import cz.msebera.android.httpclient.Header;
 public class CrmEntities {
 
     public static class Annotations {
-
+        private static final String TAG = "Annotations";
         public ArrayList<Annotation> list = new ArrayList<>();
         public boolean hasNotes = false;
 
@@ -50,6 +49,8 @@ public class CrmEntities {
 
         public static class Annotation {
 
+            private static final String TAG = "Annotation";
+
             public String etag;
             public String annotationid;
             public String objectid;
@@ -63,8 +64,12 @@ public class CrmEntities {
             public String modifedByName;
             public String createdByValue;
             public String createdByName;
-            
+            public String mimetype;
+
+            public Annotation() { }
+
             public Annotation(JSONObject json) {
+
                 try {
                     if (!json.isNull("etag")) {
                         this.etag = (json.getString("etag"));
@@ -158,7 +163,113 @@ public class CrmEntities {
                 }
             }
 
+            /**
+             * Creates a new or edits an existing note on the CRM server.  Add/Edit is determined
+             * based on whether or not the annotation object has an annotationid or not (is null).
+             * @param context A context suitable to execute a Crm request.
+             * @param listener A simple listener to handle the callback.
+             */
+            public void submit(Context context, final MyInterfaces.YesNoResult listener) {
+
+                if (this.annotationid == null) {
+                    // Create new note
+
+                    // The annotation entity is slightly different so instead of a basic EntityContainer
+                    // we create an AnnotationCreationContainer for the creation request
+                    Containers.AnnotationCreationContainer annotationContainer =
+                            new Containers.AnnotationCreationContainer();
+                    annotationContainer.notetext = this.notetext;
+                    annotationContainer.subject = this.subject;
+                    annotationContainer.objectidtypecode = "opportunity";
+                    annotationContainer.objectid = objectid;
+
+                    Requests.Request request = new Requests.Request(Requests.Request.Function.CREATE_NOTE);
+                    request.arguments.add(new Requests.Argument("noteobject", annotationContainer.toJson()));
+
+                    Crm crm = new Crm();
+                    crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+                        @Override
+                        public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                            String response = new String(responseBody);
+                            Log.i(TAG, "onSuccess " + response);
+                            listener.onYes(response);
+                        }
+
+                        @Override
+                        public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                            Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
+                            listener.onNo(error.getLocalizedMessage());
+                            listener.onNo(error.getLocalizedMessage());
+                        }
+                    });
+                } else {
+
+                    EntityContainer entityContainer = new EntityContainer();
+                    entityContainer.entityFields.add(new EntityField("notetext", this.notetext));
+                    entityContainer.entityFields.add(new EntityField("subject", this.subject));
+                    // entityContainer.entityFields.add(new EntityField("isdocument", Boolean.toString(this.isDocument)));
+                    // entityContainer.entityFields.add(new EntityField("documentbody", this.documentBody));
+                    // entityContainer.entityFields.add(new EntityField("mimetype", this.mimetype));
+                    // entityContainer.entityFields.add(new EntityField("filename", this.filename));
+
+                    // Update existing note
+                    Requests.Request request = new Requests.Request(Function.UPDATE);
+                    request.arguments.add(new Requests.Argument("guid", this.annotationid));
+                    request.arguments.add(new Requests.Argument("entityname", "annotation"));
+                    request.arguments.add(new Requests.Argument("container", entityContainer.toJson()));
+                    request.arguments.add(new Requests.Argument("asuserid", MediUser.getMe().systemuserid));
+
+                    Crm crm = new Crm();
+                    crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+                        @Override
+                        public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                            listener.onYes(new String(responseBody));
+                        }
+
+                        @Override
+                        public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                            listener.onNo(error.getLocalizedMessage());
+                        }
+                    });
+
+                    /*
+                    string guid = (string)value.Arguments[0].value;
+                    entityName = (string)value.Arguments[1].value;
+                    container = JsonConvert.DeserializeObject<EntityContainer>((string)value.Arguments[2].value);
+                    asUserid = (string)value.Arguments[3].value;
+                     */
+                }
+            }
+
+            public void delete(Context context, final MyInterfaces.YesNoResult listener) {
+                // Args:
+                // 0: Entity name
+                // 1: Entityid
+                // 2: AsUserid
+
+                Requests.Request request = new Requests.Request(Function.DELETE);
+                request.arguments.add(new Requests.Argument("entityname", "annotation"));
+                request.arguments.add(new Requests.Argument("entityid", this.annotationid));
+                request.arguments.add(new Requests.Argument("asuserid", MediUser.getMe().systemuserid));
+
+                Crm crm = new Crm();
+                crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                        Log.i(TAG, "onSuccess Note was deleted (" + new String(responseBody) + ")");
+                        listener.onYes(new String(responseBody));
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                        Log.w(TAG, "onFailure: Failed to delete note (" + new String(responseBody) + ")");
+                        listener.onNo(error.getLocalizedMessage());
+                    }
+                });
+            }
+
         }
+
     }
 
     public static class OrderProducts {
@@ -1502,6 +1613,50 @@ public class CrmEntities {
         @Override
         public String toString() {
             return "Response count: " + this.responses.size();
+        }
+    }
+
+    public static class UpdateResponse {
+        public boolean wasSuccessful;
+        public String responseMessage;
+        public String guid;
+        public boolean wasCreated;
+
+        public UpdateResponse(String crmResponse) {
+            // {"WasSuccessful":true,"ResponseMessage":"Existing record was updated!","Guid":"00000000-0000-0000-0000-000000000000","WasCreated":false}
+            try {
+                JSONObject json = new JSONObject(crmResponse);
+                try {
+                    if (!json.isNull("WasSuccessful")) {
+                        this.wasSuccessful = (json.getBoolean("WasSuccessful"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("ResponseMessage")) {
+                        this.responseMessage = (json.getString("ResponseMessage"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("Guid")) {
+                        this.guid = (json.getString("Guid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("WasCreated")) {
+                        this.wasCreated = (json.getBoolean("WasCreated"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

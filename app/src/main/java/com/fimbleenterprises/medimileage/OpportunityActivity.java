@@ -29,6 +29,8 @@ import com.scwang.smart.refresh.layout.SmartRefreshLayout;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
 import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
+import org.joda.time.DateTime;
+
 import java.util.ArrayList;
 
 /**
@@ -93,6 +95,21 @@ public class OpportunityActivity extends AppCompatActivity {
 
     void populateOppDetails() {
 
+        txtNotesLoading = findViewById(R.id.textViewopportunityNotesLoading);
+        btnAddNote = findViewById(R.id.btnAddNote);
+        pbNotesLoading = findViewById(R.id.progressBarWorking);
+        btnAddNote.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Annotation newNote = new Annotation();
+                newNote.subject = "MileBuddy added note";
+                newNote.objectid = opportunity.opportunityid;
+                newNote.isDocument = false;
+                newNote.objectEntityName = "opportunity";
+                showAddEditNote(newNote);
+            }
+        });
+
         txtAccount = findViewById(R.id.textView_OppAccount);
         txtTopic = findViewById(R.id.textView_OppTopic);
         txtStatus = findViewById(R.id.textView_OppStatus);
@@ -100,16 +117,6 @@ public class OpportunityActivity extends AppCompatActivity {
         txtDealType = findViewById(R.id.textView_OppDealType);
         txtCloseProb = findViewById(R.id.textView_OppCloseProb);
         txtBackground = findViewById(R.id.textView_OppBackground);
-        txtNotesLoading = findViewById(R.id.textViewopportunityNotesLoading);
-        btnAddNote = findViewById(R.id.btnAddNote);
-        pbNotesLoading = findViewById(R.id.progressBarWorking);
-        btnAddNote.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showAddEditNote(NoteAction.CREATE, null);
-            }
-        });
-
         txtAccount.setText(opportunity.accountname);
         txtTopic.setText(opportunity.name);
         txtStatus.setText(opportunity.status);
@@ -119,132 +126,68 @@ public class OpportunityActivity extends AppCompatActivity {
         txtBackground.setText(opportunity.currentSituation);
     }
 
-    void showAddEditNote(final NoteAction action, @Nullable final Annotation clickedNote) {
+    void showAddEditNote(@Nullable final Annotation clickedNote) {
 
         final Dialog dialog = new Dialog(OpportunityActivity.this);
         dialog.setContentView(R.layout.dialog_note);
         final EditText noteBody = dialog.findViewById(R.id.body_text);
+        dialog.setTitle("Note");
+        dialog.setCancelable(true);
+        // Set the note's initial text to the note's actual text which shouldn't be null if we are editing.
+        noteBody.setText(clickedNote.notetext);
         Button btnSubmit = dialog.findViewById(R.id.button_submit);
         btnSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                dialog.dismiss();
 
-                switch (action) {
-                    case CREATE:
-                        String notetext = noteBody.getText().toString();
-                        submitNewNote(notetext, new MyInterfaces.YesNoResult() {
-                            @Override
-                            public void onYes(@Nullable Object object) {
-                                dialog.dismiss();
-                                getOpportunityNotes();
-                                Toast.makeText(context, "Note created!", Toast.LENGTH_SHORT).show();
-                            }
+                clickedNote.notetext = noteBody.getText().toString();
 
-                            @Override
-                            public void onNo(@Nullable Object object) {
-                                Toast.makeText(context, "Failed to create note!", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                        break;
-                    case EDIT:
-                        clickedNote.notetext = noteBody.getText().toString();
-                        editExistingNote(clickedNote, new MyInterfaces.YesNoResult() {
-                            @Override
-                            public void onYes(@Nullable Object object) {
-                                Toast.makeText(context, "Note was updated.", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                                getOpportunityNotes();
-                            }
+                final MyProgressDialog addEditNoteProgressDialog = new MyProgressDialog(context, "Working...");
+                addEditNoteProgressDialog.show();
 
-                            @Override
-                            public void onNo(@Nullable Object object) {
-                                Toast.makeText(context, "Failed to update note\n\n" + object.toString(), Toast.LENGTH_LONG).show();
+                clickedNote.submit(context, new MyInterfaces.YesNoResult() {
+                    @Override
+                    public void onYes(@Nullable Object object) {
+                        Toast.makeText(context, "Note was added/edited!", Toast.LENGTH_SHORT).show();
+                        addEditNoteProgressDialog.dismiss();
+                        // Create result example (note the quotes): "1cd8d874-3412-eb11-810f-005056a36b9b"
+                        // Update result example: {"WasSuccessful":true,"ResponseMessage":"Existing record was updated!","Guid":"00000000-0000-0000-0000-000000000000","WasCreated":false}
+
+                        // Try to create an UpdateResponse object with the returned result.  If it
+                        // succeeds then we know that it was an update operation that was executed.
+                        // If it fails then it was almost certainly a successful create operation
+                        // (create returns just the GUID of the new note)
+                        CrmEntities.UpdateResponse updateResponse = new CrmEntities.UpdateResponse(object.toString());
+                        if (updateResponse.wasSuccessful) {
+                            Log.i(TAG, "onYes Note was updated!");
+                            if (updateResponse.wasCreated) {
+                                Toast.makeText(context, "Note was created!", Toast.LENGTH_SHORT).show();
+                                clickedNote.annotationid = updateResponse.guid;
+                                clickedNote.createdon = DateTime.now();
+                                clickedNote.modifiedon = DateTime.now();
+                                clickedNote.createdByValue = MediUser.getMe().systemuserid;
+                                clickedNote.modifiedByValue = MediUser.getMe().systemuserid;
+                                clickedNote.modifedByName = MediUser.getMe().fullname;
+                                clickedNote.createdByName = MediUser.getMe().fullname;
+                                adapterNotes.mData.add(0, clickedNote);
+                                adapterNotes.notifyDataSetChanged();
+                            } else {
+                                Toast.makeText(context, "Note was updated!", Toast.LENGTH_SHORT).show();
+                                adapterNotes.updateAnnotationAndReload(clickedNote);
                             }
-                        });
-                        break;
-                }
-            }
-        });
-        dialog.setTitle("Note");
-        dialog.setCancelable(true);
-        dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
-            @Override
-            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-                if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    dialog.dismiss();
-                    return true;
-                } else {
-                    return false;
-                }
+                        }
+                    }
+
+                    @Override
+                    public void onNo(@Nullable Object object) {
+                        Toast.makeText(context, "Failed to add/edit note!\n\n" + object.toString(), Toast.LENGTH_SHORT).show();
+                        addEditNoteProgressDialog.dismiss();
+                    }
+                });
             }
         });
         dialog.show();
-    }
-
-    void editExistingNote(Annotation note, final MyInterfaces.YesNoResult listener) {
-
-        // Entity values to update
-        Containers.EntityContainer container = new Containers.EntityContainer();
-        container.entityFields.add(new Containers.EntityField("notetext", note.notetext));
-
-        // Start constructing request object adding arguments based on function to perform
-        Requests.Request request = new Requests.Request(Requests.Request.Function.UPDATE);
-        request.arguments.add(new Requests.Argument("entityid", note.annotationid));
-        request.arguments.add(new Requests.Argument("entityname", "annotation"));
-        request.arguments.add(new Requests.Argument("json", container.toJson()));
-        request.arguments.add(new Requests.Argument("asuserid", MediUser.getMe().systemuserid));
-
-        Crm crm = new Crm();
-        crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                String response = new String(responseBody);
-                Log.i(TAG, "onSuccess " + response);
-                listener.onYes(response);
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                Toast.makeText(context, error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-                listener.onNo(error);
-            }
-        });
-
-    }
-
-    void submitNewNote(String noteBody, final MyInterfaces.YesNoResult listener) {
-        Containers.Annotation annotation = new Containers.Annotation();
-        annotation.subject = "MileBuddy Note";
-        annotation.notetext = noteBody;
-        annotation.ownerid = MediUser.getMe().systemuserid;
-        annotation.isdocument = false;
-        annotation.objectidtypecode = "opportunity";
-        annotation.objectid = opportunity.opportunityid;
-
-        Requests.Request request = new Requests.Request(Requests.Request.Function.CREATE_NOTE);
-        request.arguments.add(new Requests.Argument("noteobject", annotation.toJson()));
-
-        final MyProgressDialog dialog = new MyProgressDialog(this, "Creating note...");
-        dialog.show();
-
-        Crm crm = new Crm();
-        crm.makeCrmRequest(this, request, new AsyncHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                String response = new String(responseBody);
-                Log.i(TAG, "onSuccess " + response);
-                dialog.dismiss();
-                listener.onYes(null);
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
-                listener.onNo(error.getLocalizedMessage());
-                dialog.dismiss();
-                listener.onNo(error.getLocalizedMessage());
-            }
-        });
     }
 
     void getOpportunityNotes() {
@@ -268,18 +211,15 @@ public class OpportunityActivity extends AppCompatActivity {
                 adapterNotes = new AnnotationsAdapter(getApplicationContext(), annotations.list);
                 notesListView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
                 notesListView.setAdapter(adapterNotes);
-                notesListView.addItemDecoration(new DividerItemDecoration(getApplicationContext(),
-                        DividerItemDecoration.VERTICAL));
+                /*notesListView.addItemDecoration(new DividerItemDecoration(getApplicationContext(),
+                        DividerItemDecoration.VERTICAL));*/
                 adapterNotes.setClickListener(new AnnotationsAdapter.ItemClickListener() {
                     @Override
                     public void onItemClick(View view, int position) {
                         Annotation note = annotations.list.get(position);
-                        Toast.makeText(context, note.subject, Toast.LENGTH_SHORT).show();
                         showNoteOptions(note);
                     }
                 });
-                Toast.makeText(OpportunityActivity.this, "Notes: " + annotations.list.size(),
-                        Toast.LENGTH_SHORT).show();
                 refreshLayout.finishRefresh();
                 txtNotesLoading.setVisibility(View.GONE);
                 pbNotesLoading.setVisibility(View.GONE);
@@ -304,30 +244,36 @@ public class OpportunityActivity extends AppCompatActivity {
         btnEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showAddEditNote(NoteAction.EDIT, clickedNote);
+                showAddEditNote(clickedNote);
+                dialog.dismiss();
             }
         });
         Button btnDelete = dialog.findViewById(R.id.btn_delete_note);
         btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                final MyProgressDialog deleteProgressDialog = new MyProgressDialog(context, "Deleting note...");
+                deleteProgressDialog.show();
+                clickedNote.delete(context, new MyInterfaces.YesNoResult() {
+                    @Override
+                    public void onYes(@Nullable Object object) {
+                        Toast.makeText(context, "Note was deleted.", Toast.LENGTH_SHORT).show();
+                        deleteProgressDialog.dismiss();
+                        adapterNotes.removeAnnotationAndReload(clickedNote);
+                    }
 
+                    @Override
+                    public void onNo(@Nullable Object object) {
+                        Toast.makeText(context, "Failed to delete note!\n" + object.toString(), Toast.LENGTH_SHORT).show();
+                        deleteProgressDialog.dismiss();
+                    }
+                });
+                dialog.dismiss();
             }
         });
 
         dialog.setTitle("");
         dialog.setCancelable(true);
-        dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
-            @Override
-            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-                if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    dialog.dismiss();
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        });
         dialog.show();
 
         // See if the current user is the author of the clicked note

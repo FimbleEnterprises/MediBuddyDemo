@@ -1,6 +1,9 @@
 package com.fimbleenterprises.medimileage;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +12,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.fimbleenterprises.medimileage.CrmEntities.Annotations.Annotation;
+import com.google.rpc.Help;
+
+import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 
@@ -22,8 +28,7 @@ public class AnnotationsAdapter extends RecyclerView.Adapter<AnnotationsAdapter.
     private ItemClickListener mClickListener;
     MySettingsHelper options;
     Context context;
-
-
+    MediUser curUser = MediUser.getMe();
 
     // data is passed into the constructor
     public AnnotationsAdapter(Context context, ArrayList<Annotation> data) {
@@ -33,6 +38,27 @@ public class AnnotationsAdapter extends RecyclerView.Adapter<AnnotationsAdapter.
         this.options = new MySettingsHelper(context);
     }
 
+    public void updateAnnotationAndReload(CrmEntities.Annotations.Annotation modifiedAnnotation) {
+        for (Annotation annotation : this.mData) {
+            if (annotation.annotationid.equals(modifiedAnnotation.annotationid)) {
+                annotation = modifiedAnnotation;
+                Log.i(TAG, "updateAnnotationAndReload Updated local list, notifying recycler that data has changed...");
+                notifyDataSetChanged();
+            }
+        }
+    }
+
+    public void removeAnnotationAndReload(CrmEntities.Annotations.Annotation modifiedAnnotation) {
+        for (int i = 0; i < mData.size(); i++) {
+            Annotation annotation = mData.get(i);
+            if (annotation.annotationid.equals(modifiedAnnotation.annotationid)) {
+                mData.remove(i);
+                notifyDataSetChanged();
+                return;
+            }
+        }
+    }
+
     // inflates the row layout from xml when needed
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -40,17 +66,31 @@ public class AnnotationsAdapter extends RecyclerView.Adapter<AnnotationsAdapter.
         return new ViewHolder(view);
     }
 
-
-
     // binds the data to the TextView in each row
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         final Annotation annootation = mData.get(position);
 
+        DateTime nowTime = DateTime.now();
+        DateTime modified = annootation.modifiedon;
+
+        int days = Helpers.DatesAndTimes.daysBetween(modified);
+        if (days <= 3) {
+            holder.txtNew.setVisibility(View.VISIBLE);
+            Helpers.Animations.pulseAnimation(holder.txtNew, 1.15f, 1.25f, 9999, 900);
+        } else {
+            holder.txtNew.setVisibility(View.GONE);
+        }
+
+        if (annootation.createdByValue.equals(curUser.systemuserid)) {
+            holder.txtCreatedBy.setTextColor(Color.parseColor("#19870A"));
+        }
+
         holder.txtSubject.setText(annootation.subject);
         holder.txtNoteText.setText(annootation.notetext);
         holder.txtCreatedBy.setText(annootation.createdByName);
-        holder.txtCreatedOn.setText(annootation.createdon.toString());
+        holder.txtCreatedOn.setText(Helpers.DatesAndTimes.getPrettyDateAndTime(annootation.createdon));
+        holder.imgLeftIcon.setImageResource(R.drawable.sms_64);
     }
 
     // total number of rows
@@ -66,6 +106,7 @@ public class AnnotationsAdapter extends RecyclerView.Adapter<AnnotationsAdapter.
         TextView txtNoteText;
         TextView txtCreatedOn;
         TextView txtCreatedBy;
+        TextView txtNew;
         RelativeLayout layout;
 
 
@@ -77,6 +118,7 @@ public class AnnotationsAdapter extends RecyclerView.Adapter<AnnotationsAdapter.
             txtNoteText = itemView.findViewById(R.id.txt_NoteBody);
             txtCreatedOn = itemView.findViewById(R.id.txt_NoteCreatedOn);
             txtCreatedBy = itemView.findViewById(R.id.txt_NoteCreatedBy);
+            txtNew = itemView.findViewById(R.id.txt_New);
 
             itemView.setOnClickListener(this);
             itemView.setOnLongClickListener(this);

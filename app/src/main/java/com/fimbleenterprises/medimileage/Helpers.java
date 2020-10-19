@@ -565,6 +565,14 @@ public abstract class Helpers {
             return c.get(Calendar.MONTH);
         }
 
+        public static int daysBetween(DateTime start, DateTime end) {
+            return Days.daysBetween(start, end).getDays();
+        }
+
+        public static int daysBetween(DateTime start) {
+            return Days.daysBetween(start, DateTime.now()).getDays();
+        }
+
         public static String returnMonthName(int monthNumber, boolean abbreviateMonthName) {
             String monthString = "";
 

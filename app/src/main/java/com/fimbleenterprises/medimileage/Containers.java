@@ -62,9 +62,9 @@ public class Containers {
     /**
      * This class should be used when creating a note in CRM.  It is a specialized entity container
      * that can be deserialized by the C# API receiving the request.  Note creation is slightly
-     * different than traditional entity creation and this class simplifies the handling of those particularities.
+     * different than traditional entity creation and this class simplifies the handling of those peculiarities.
      */
-    public static class Annotation {
+    public static class AnnotationCreationContainer {
 
         public String annotaionid;
         public String notetext;
@@ -78,9 +78,27 @@ public class Containers {
         public String ownerid;
         public String owneridtype;
 
+        public AnnotationCreationContainer() {
+            this.ownerid = MediUser.getMe().systemuserid;
+        }
+
         public String toJson() {
             Gson gson = new Gson();
             return gson.toJson(this);
+        }
+
+        /**
+         * Converts this EntityContainer representation of an annotation to a CrmEntity representation of an annotation.
+         * @return A well enoughly populated CrmEntity, Annotation object.
+         */
+        public CrmEntities.Annotations.Annotation toNoteObject() {
+            CrmEntities.Annotations.Annotation newNote = new CrmEntities.Annotations.Annotation();
+            newNote.subject = this.subject;
+            newNote.notetext = this.notetext;
+            newNote.isDocument = this.isdocument;
+            newNote.objectEntityName = this.objectidtypecode;
+            newNote.objectid = this.objectid;
+            return newNote;
         }
     }
 

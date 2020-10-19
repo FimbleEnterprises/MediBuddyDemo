@@ -203,5 +203,10 @@
     <string name="note_options_dialog_title">Note options</string>
     <string name="delete_note_button">Delete</string>
     <string name="edit_note_button">Edit</string>
+    <string name="opportunities_about_this_list">These opportunities have been determined to be within dead cat swinging distance of this trip.  \n\nYou can view and even update these opportunities if you find that convenient.</string>
+    <string name="opportunities_about_this_list_explicit">These fucking opportunities have been determined to be kinda close to this dumbass trip.  \n\nYou can view and even update them if you find that convenient or otherwise agreeable to your lazy ass.</string>
+    <string name="opp_name_label">Topic:</string>
+    <string name="add_quick_note_button">Add quick note...</string>
+    <string name="view_opportunity_button">See more</string>
 
 </resources>

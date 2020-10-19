@@ -38,6 +38,32 @@
                         android:paddingBottom="2dp">
 
                         <TableRow
+                            android:id="@+id/tableRow_0"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content">
+
+                            <FrameLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1">
+
+                                <TextView
+                                    android:id="@+id/txtOppName"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginLeft="5dp"
+                                    android:layout_marginRight="5dp"
+                                    android:fontFamily="@font/casual"
+                                    android:gravity="left"
+                                    android:text="@string/opp_name_label"
+                                    android:textAppearance="?android:attr/textAppearanceSmall"
+                                    android:textColor="#454545"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+                            </FrameLayout>
+                        </TableRow>
+
+                        <TableRow
                             android:id="@+id/tableRow_1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content">
@@ -58,8 +84,7 @@
                                     android:text="@string/loading_opportunity"
                                     android:textAppearance="?android:attr/textAppearanceSmall"
                                     android:textColor="#454545"
-                                    android:textSize="16sp"
-                                    android:textStyle="bold" />
+                                    android:textSize="14sp" />
                             </FrameLayout>
                         </TableRow>
 
@@ -77,6 +102,7 @@
                                     android:id="@+id/textView_OppAccount"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
+                                    android:layout_marginBottom="4dp"
                                     android:layout_marginLeft="5dp"
                                     android:layout_marginRight="5dp"
                                     android:fontFamily="@font/casual"
@@ -86,48 +112,6 @@
                                     android:textColor="#454545"
                                     android:textSize="14sp"
                                     android:textStyle="italic" />
-                            </FrameLayout>
-                        </TableRow>
-
-                        <TableRow
-                            android:id="@+id/tableRow_separator3"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content">
-
-                            <FrameLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
-
-                                <TextView
-                                    android:id="@+id/textView_null3"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginLeft="5dp"
-                                    android:layout_marginRight="5dp"
-                                    android:gravity="left"
-                                    android:text=""
-                                    android:textAppearance="?android:attr/textAppearanceSmall"
-                                    android:textColor="#454545"
-                                    android:textSize="13sp"
-                                    android:textStyle="bold" />
-                            </FrameLayout>
-
-                            <FrameLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
-
-                                <TextView
-                                    android:id="@+id/textView_null4"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginLeft="5dp"
-                                    android:layout_marginRight="5dp"
-                                    android:text=""
-                                    android:textAppearance="?android:attr/textAppearanceSmall"
-                                    android:textColor="#454545"
-                                    android:textSize="15sp" />
                             </FrameLayout>
                         </TableRow>
 
@@ -160,51 +144,10 @@
                         </TableRow>
 
                         <TableRow
-                            android:id="@+id/tableRow_separator2"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content">
-
-                            <FrameLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
-
-                                <TextView
-                                    android:id="@+id/textView_null1"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginLeft="5dp"
-                                    android:layout_marginRight="5dp"
-                                    android:gravity="left"
-                                    android:text=""
-                                    android:textAppearance="?android:attr/textAppearanceSmall"
-                                    android:textColor="#454545"
-                                    android:textSize="13sp"
-                                    android:textStyle="bold" />
-                            </FrameLayout>
-
-                            <FrameLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
-
-                                <TextView
-                                    android:id="@+id/textView_null2"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginLeft="5dp"
-                                    android:layout_marginRight="5dp"
-                                    android:text=""
-                                    android:textAppearance="?android:attr/textAppearanceSmall"
-                                    android:textColor="#454545"
-                                    android:textSize="15sp" />
-                            </FrameLayout>
-                        </TableRow>
-
-                        <TableRow
                             android:id="@+id/tableRow_3"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content">
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp">
 
                             <FrameLayout
                                 android:layout_width="0dp"
@@ -439,36 +382,6 @@
                         </TableRow>
 
                         <TableRow
-                            android:id="@+id/tableRow_blank"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content">
-
-                            <FrameLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
-
-                                <TextView
-                                    android:id="@+id/textView_blank"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginLeft="5dp"
-                                    android:layout_marginRight="5dp"
-                                    android:gravity="left"
-                                    android:text=""
-                                    android:textAppearance="?android:attr/textAppearanceSmall"
-                                    android:textColor="#454545"
-                                    android:textSize="13sp"
-                                    android:textStyle="bold" />
-                            </FrameLayout>
-
-                            <FrameLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"></FrameLayout>
-                        </TableRow>
-
-                        <TableRow
                             android:id="@+id/tableRow_row_notes"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content">
@@ -482,9 +395,9 @@
                                     android:id="@+id/layout_notes"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:layout_alignParentStart="true"
                                     android:layout_below="@+id/entity_title"
-                                    android:layout_marginTop="26dp"
+                                    android:layout_alignParentStart="true"
+                                    android:layout_marginTop="5dp"
                                     android:orientation="horizontal">
 
                                     <ImageButton
@@ -525,8 +438,8 @@
                                         android:id="@+id/layout_notes_progress"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:layout_alignParentBottom="false"
                                         android:layout_alignParentTop="false"
+                                        android:layout_alignParentBottom="false"
                                         android:layout_centerHorizontal="false"
                                         android:layout_centerVertical="true"
                                         android:layout_toEndOf="@+id/txtName"
