@@ -8,11 +8,17 @@
         android:id="@+id/linearLayout1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="5sp"
         android:layout_marginBottom="2dp"
         android:orientation="vertical">
 
 
-
+        <TextView
+            android:id="@+id/txtNoteOptions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Note options:"
+            android:textSize="24sp" />
     </LinearLayout>
 
     <RelativeLayout
@@ -51,6 +57,72 @@
         android:paddingLeft="5dp"
         android:text="@string/delete_note_button"
         android:textColor="#000000" />
+
+    <LinearLayout
+        android:id="@+id/layout_attachments_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btn_delete_note"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/txtNotYourNote2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/btn_delete_note"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_marginBottom="4dp"
+            android:text="attachment"
+            android:textAlignment="center"
+            android:textAllCaps="true"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnViewAttachment"
+            style="@style/ButtonTextWhiteShadow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/LinearLayout02"
+            android:layout_alignParentLeft="true"
+            android:layout_margin="5dp"
+            android:background="@drawable/btn_glass_gray_black_border"
+            android:drawablePadding="0dp"
+            android:paddingLeft="5dp"
+            android:text="@string/edit_note_view_attachment"
+            android:textColor="#000000" />
+
+        <Button
+            android:id="@+id/btn_delete_note2"
+            style="@style/ButtonTextWhiteShadow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/LinearLayout02"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginBottom="5dp"
+            android:background="@drawable/btn_glass_gray_black_border"
+            android:paddingLeft="5dp"
+            android:text="@string/delete_note_share_attachment"
+            android:textColor="#000000" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/txtNotYourNote"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/layout_attachments_container"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginBottom="4dp"
+        android:text="( This is not your note )"
+        android:textAlignment="center"
+        android:textAllCaps="true"
+        android:textColor="@color/quantum_error_light" />
 
 
 </RelativeLayout>

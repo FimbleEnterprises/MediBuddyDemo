@@ -552,10 +552,54 @@ public class Queries {
             factory.addColumn("objectid");
             factory.addColumn("objecttypecode");
             factory.addColumn("subject");
+            factory.addColumn("filename");
+            factory.addColumn("filesize");
 
             // Filter conditions
             Filter.FilterCondition condition1 = new Filter
                     .FilterCondition("objectid", Filter.Operator.EQUALS, associatedentityid);
+
+            ArrayList<Filter.FilterCondition> conditions = new ArrayList<>();
+            conditions.add(condition1);
+
+            // Set filter
+            Filter filter = new Filter(AND, conditions);
+            factory.setFilter(filter);
+
+            // Sort clause
+            SortClause sortClause = new SortClause("createdon",
+                    true, SortClause.ClausePosition.ONE);
+            factory.addSortClause(sortClause);
+
+            // Build query
+            String query = factory.construct();
+
+            return query;
+        }
+
+        public static String getAnnotation(String annotationid, boolean includeAttachment) {
+            // Query columns
+            QueryFactory factory = new QueryFactory("annotation");
+            factory.addColumn("annotationid");
+            factory.addColumn("createdby");
+            factory.addColumn("createdon");
+            factory.addColumn("isdocument");
+            factory.addColumn("mimetype");
+            factory.addColumn("modifiedby");
+            factory.addColumn("modifiedon");
+            factory.addColumn("notetext");
+            factory.addColumn("objectid");
+            factory.addColumn("objecttypecode");
+            factory.addColumn("subject");
+            factory.addColumn("filename");
+            factory.addColumn("filesize");
+            if (includeAttachment) {
+                factory.addColumn("documentbody");
+            }
+
+            // Filter conditions
+            Filter.FilterCondition condition1 = new Filter
+                    .FilterCondition("annotationid", Filter.Operator.EQUALS, annotationid);
 
             ArrayList<Filter.FilterCondition> conditions = new ArrayList<>();
             conditions.add(condition1);

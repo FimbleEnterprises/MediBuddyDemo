@@ -199,7 +199,7 @@
     <string name="opportunity_background_label">Background:</string>
     <string name="opportunity_close_prob_label">Close probability:</string>
     <string name="opportunity_dealtype_label">Deal type:</string>
-    <string name="add_note_dialog_title">Add note</string>
+    <string name="add_note_dialog_title">Note</string>
     <string name="note_options_dialog_title">Note options</string>
     <string name="delete_note_button">Delete</string>
     <string name="edit_note_button">Edit</string>
@@ -208,5 +208,8 @@
     <string name="opp_name_label">Topic:</string>
     <string name="add_quick_note_button">Add quick note...</string>
     <string name="view_opportunity_button">See more</string>
+    <string name="btn_opportunity_showtripoptions">Opportunities</string>
+    <string name="edit_note_view_attachment">View</string>
+    <string name="delete_note_share_attachment">Share...</string>
 
 </resources>

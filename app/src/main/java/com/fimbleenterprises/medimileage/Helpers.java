@@ -5,6 +5,7 @@ import android.animation.PropertyValuesHolder;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -17,7 +18,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.Typeface;
 import android.location.Location;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -42,6 +42,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
 import android.view.animation.AnimationUtils;
 import android.view.animation.TranslateAnimation;
+import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -59,8 +60,8 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.lang.reflect.Field;
 import java.math.RoundingMode;
 import java.nio.channels.FileChannel;
 import java.text.DateFormat;
@@ -68,8 +69,6 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Month;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
@@ -80,6 +79,7 @@ import java.util.Random;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.RequiresApi;
+import cz.msebera.android.httpclient.io.HttpMessageParser;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -1722,6 +1722,67 @@ public abstract class Helpers {
 
     public static class Files {
 
+        /**
+         * Encodes a file to a base64 string.
+         * @param filePath The file to encode.
+         * @return A base64 string representation of the supplied file.
+         */
+        public static String base64Encode(String filePath) {
+            String base64File = "";
+            File file = new File(filePath);
+            try (FileInputStream imageInFile = new FileInputStream(file)) {
+                // Reading a file from file system
+                byte fileData[] = new byte[(int) file.length()];
+                imageInFile.read(fileData);
+                base64File = Base64.getEncoder().encodeToString(fileData);
+            } catch (FileNotFoundException e) {
+                System.out.println("File not found" + e);
+            } catch (IOException ioe) {
+                System.out.println("Exception while reading the file " + ioe);
+            }
+            return base64File;
+        }
+
+        /**
+         * Converts a base64 string into its constituent file.  The file is stored in the a
+         * subdirectory of the application's temp directory
+         * @param base64string The string to decode
+         * @param outputFile The location to store the decoded file.
+         * @return A MyFile file that by default exists in the app's temp directory.
+         */
+        public static File base64Decode(String base64string, File outputFile) {
+
+            try {
+                Base64.Decoder dec = Base64.getDecoder();
+                byte[] strdec = dec.decode(base64string);
+                OutputStream out = new FileOutputStream(outputFile);
+                out.write(strdec);
+                out.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return outputFile;
+        }
+
+        /**
+         * Tries to open a file using the default viewer.
+         * @param file The file to open.
+         * @param mimeType The file's mime type.
+         */
+        public static void openFile(File file,  String mimeType) {
+            MimeTypeMap myMime = MimeTypeMap.getSingleton();
+            Intent newIntent = new Intent(Intent.ACTION_VIEW);
+            newIntent.setDataAndType(Uri.fromFile(file), mimeType);
+            newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            Context context = MyApp.getAppContext();
+            try {
+                context.startActivity(newIntent);
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(context, "No handler for this type of file.", Toast.LENGTH_LONG).show();
+            }
+        }
+
         private static final String TAG = "Files";
 
         public static boolean copy(File source, File dest) {
@@ -1899,12 +1960,94 @@ public abstract class Helpers {
             return result;
         }
 
-        /*public static File getBackupDirectory() {
-            makeAppDirectory();
-            File dir = new File(getAppDirectory(), "Backups");
-            Log.i(TAG, "getBackupDirectory: " + dir.getAbsolutePath());
-            return dir;
-        }*/
+        public static class AttachmentTempFiles {
+            /**
+             * Creates a subdirectory to the application's temp directory named, "attachments" if it doesn't
+             * already exist.
+             */
+            public static void makeDirectory() {
+                File tmp = new File(getAppDirectory().getAbsolutePath() + File.separator + "attachments");
+                if (!tmp.exists()) {
+                    Log.i(TAG, "makeDirectory " + tmp.getAbsolutePath() + " doesn't exist, creating...");
+                    tmp.mkdirs();
+                    Log.i(TAG, "makeDirectory Attachments directory created: " + tmp.exists());
+                } else {
+                    Log.i(TAG, "makeDirectory " + tmp.getAbsolutePath() + " already exists.");
+                }
+            }
+
+            /**
+             * Clears all files from the application's attachment temp directory (assuming it exists)
+             */
+            public static void clear() {
+                File tmp = new File(getAppDirectory().getAbsolutePath() + File.separator + "attachments");
+                Log.i(TAG, "Clearing attachments directory...");
+                if (tmp.exists()) {
+                    Log.i(TAG, "clear " + tmp.getAbsolutePath() + " exists!");
+                    File[] contents = tmp.listFiles();
+                    for (int i = 0; i < contents.length; i++) {
+                        contents[i].delete();
+                        Log.i(TAG, "clearAttachmentTempDirectory Deleted: " + contents[i].getName());
+                    }
+                } else {
+                    Log.i(TAG, "clear " + tmp.getAbsolutePath() + " didn't exist.");
+                }
+            }
+
+            /**
+             * Returns the attachments temp directory.  The directory will be created if it doesn't
+             * already exist.
+             * @return The application's attachment temp directory.
+             */
+            public static File getDirectory() {
+                makeDirectory();
+                File file = new File(getAppDirectory().getAbsolutePath() + File.separator + "attachments");
+                Log.i(TAG, "getDirectory " + file.getAbsolutePath() + " exists: " + file.exists());
+                Log.i(TAG, "getDirectory Attachments directory: " + file.getAbsolutePath());
+                return file;
+            }
+
+            /**
+             * Searches the application's attachment temp directory for the specified filename
+             * @param filename The name of the file to look for.
+             * @return The file (or null if not found)
+             */
+            public static File retrieve(String filename) {
+                Log.i(TAG, "retrieve Looking for file in attachments temp dir (" + filename + ")");
+                File tmp = getDirectory();
+                File[] files = tmp.listFiles();
+                for (int i = 0; i < files.length; i++) {
+                    File file = files[i];
+                    if (file.getName().equals(filename)) {
+                        Log.i(TAG, file.getAbsolutePath() + " found!");
+                        return file;
+                    }
+                }
+                Log.i(TAG, "retrieve File not found in " + tmp.getAbsolutePath() + "!");
+                return null;
+            }
+
+            /**
+             * Checks if the specified filename exists in the application's attachment temp directory.
+             * @param filename The filenasme to look for.
+             * @return True or false if the file exists.
+             */
+            public static boolean fileExists(String filename) {
+                Log.i(TAG, "fileExists: " + filename + " = " + (retrieve(filename) != null));
+                return retrieve(filename) != null;
+            }
+
+            /**
+             * Returns all files that exist in the application's attachment temp directory.
+             * @return
+             */
+            public static File[] getFiles() {
+                File tmp = getDirectory();
+                File[] files = tmp.listFiles();
+                Log.i(TAG, "getFiles Found " + files.length + " files in the attachments temp directory.");
+                return files;
+            }
+        }
     }
 
     public static class Fonts {

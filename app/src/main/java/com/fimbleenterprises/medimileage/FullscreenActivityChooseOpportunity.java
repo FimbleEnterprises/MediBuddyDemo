@@ -3,11 +3,13 @@ package com.fimbleenterprises.medimileage;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -49,6 +51,9 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
     RefreshLayout refreshLayout;
     MySettingsHelper options;
     String baseMsg;
+
+    String pendingNotetext;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -229,6 +234,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         });
 
         dialog.setCancelable(true);
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         dialog.show();
     }
 
@@ -248,8 +254,11 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
                 CrmEntities.Annotations.Annotation newNote = new CrmEntities.Annotations.Annotation();
                 newNote.subject = "MileBuddy added note";
                 newNote.objectEntityName = "opportunity";
-                newNote.objectid = opportunity.opportunityid;
+                newNote.objectid = opportunity.opportunityid + "fuckyou";
                 newNote.notetext = noteBody.getText().toString();
+
+                // Cache the pending note text in case the operation fails
+                pendingNotetext = noteBody.getText().toString();
 
                 final MyProgressDialog addEditNoteProgressDialog = new MyProgressDialog(context, "Working...");
                 addEditNoteProgressDialog.show();
@@ -272,17 +281,32 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
                             Toast.makeText(context, "Note was created.", Toast.LENGTH_SHORT).show();
                             dialog.dismiss();
                         }
+
+                        // Clear the cached note text
+                        pendingNotetext = null;
+                        if (pendingNotetext == null) {
+                            Log.i(TAG, "onYes Pending note cache was null'd");
+                        }
+
                     }
 
                     @Override
                     public void onNo(@Nullable Object object) {
-                        Toast.makeText(context, "Failed to add/edit note!\n\n" + object.toString(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, "Failed to add/edit note!\n\nError: " + object.toString(), Toast.LENGTH_SHORT).show();
                         addEditNoteProgressDialog.dismiss();
+                        dialog.show();
                     }
                 });
             }
         });
         dialog.show();
+
+        // Check if there is a cached note from a failed note add
+        if (pendingNotetext != null) {
+            noteBody.setText(pendingNotetext);
+            Log.i(TAG, "showAddNoteDialog Found a cached note that must have been a failed note add.  Gon' use it!");
+        }
+
     }
 
 }

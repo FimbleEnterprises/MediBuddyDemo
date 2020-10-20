@@ -133,7 +133,8 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
             holder.imgHasAssociations.setVisibility(View.GONE);
         } else {
             holder.txtMainText.setTypeface(originalTypeface);
-            ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) holder.layout.getLayoutParams();
+            ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams)
+                    holder.layout.getLayoutParams();
             layoutParams.bottomMargin = 6;
             layoutParams.topMargin = 6;
             holder.layout.setLayoutParams(layoutParams);
@@ -143,7 +144,7 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
             holder.chkbxSelectTrip.setVisibility((isInEditMode) ? View.VISIBLE : View.INVISIBLE);
             try {
                 if (options.showOpportunityOptions()) {
-                    if (trip.associatedOpportunityId != null) {
+                    if (trip.hasNearbyAssociations == 1) {
                         holder.imgHasAssociations.setImageResource(R.drawable.exclamation_blue_64);
                         holder.imgHasAssociations.setVisibility(View.VISIBLE);
                         Helpers.Animations.pulseAnimation(holder.layout, 1.01f,

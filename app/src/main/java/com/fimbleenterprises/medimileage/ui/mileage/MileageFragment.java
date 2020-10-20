@@ -77,7 +77,7 @@ import com.fimbleenterprises.medimileage.TripListRecyclerAdapter;
 import com.fimbleenterprises.medimileage.ViewTripActivity;
 import static com.fimbleenterprises.medimileage.CrmEntities.TripAssociations;
 import static com.fimbleenterprises.medimileage.CrmEntities.TripAssociations.TripAssociation;
-import com.fimbleenterprises.medimileage.CrmEntities;
+
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.scwang.smart.refresh.header.MaterialHeader;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
@@ -153,7 +153,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode == Activity.RESULT_OK) {
-            if (data.hasExtra(FullscreenActivityChooseOpportunity.OPPORTUNITY_RESULT)) {
+            if (data != null && data.hasExtra(FullscreenActivityChooseOpportunity.OPPORTUNITY_RESULT)) {
                 CrmEntities.Opportunities.Opportunity opportunity =
                         data.getParcelableExtra(FullscreenActivityChooseOpportunity.OPPORTUNITY_RESULT);
                 if (opportunity != null) {
@@ -1758,9 +1758,10 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         dialog.setTitle("Trip Options");
         Button btnEditTrip = dialog.findViewById(R.id.edit_trip);
         Button btnDeleteTrip = dialog.findViewById(R.id.btnDelete);
-        Button btnOpportunity = dialog.findViewById(R.id.opportunity);
+        Button btnOpportunity = dialog.findViewById(R.id.btn_opportunities);
         TableRow tableRow = dialog.findViewById(R.id.tableRowopp);
         tableRow.setVisibility(clickedTrip.hasAssociations() ? View.VISIBLE : View.GONE);
+        btnOpportunity.setEnabled(clickedTrip.getIsSubmitted());
         btnOpportunity.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

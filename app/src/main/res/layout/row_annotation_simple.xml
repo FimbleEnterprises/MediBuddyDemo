@@ -69,10 +69,41 @@
         android:textStyle="bold" />
 
     <LinearLayout
-        android:id="@+id/layout_metadata"
+        android:id="@+id/layout_attachments"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/txt_NoteBody"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:id="@+id/layout_attachments_inner"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageButton
+                android:id="@+id/imgFileIcon"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/about_icon_black_48x48" />
+
+            <TextView
+                android:id="@+id/txtFilename"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_toRightOf="@id/imgFileIcon"
+                android:text="some_fucking_file.png"
+                android:textSize="12sp"
+                android:textStyle="italic" />
+        </RelativeLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_metadata"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/layout_attachments"
         android:orientation="vertical">
 
 

@@ -3,21 +3,19 @@ package com.fimbleenterprises.medimileage;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import cz.msebera.android.httpclient.Header;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,6 +29,7 @@ import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
 import org.joda.time.DateTime;
 
+import java.io.File;
 import java.util.ArrayList;
 
 /**
@@ -43,6 +42,7 @@ public class OpportunityActivity extends AppCompatActivity {
     public Opportunity opportunity;
     NonScrollRecyclerView notesListView;
     AnnotationsAdapter adapterNotes;
+    String pendingNote;
     Context context;
 
     // Fields
@@ -90,6 +90,9 @@ public class OpportunityActivity extends AppCompatActivity {
             populateOppDetails();
             getOpportunityNotes();
         }
+
+        Helpers.Files.AttachmentTempFiles.makeDirectory();
+        Helpers.Files.AttachmentTempFiles.clear();
 
     }
 
@@ -144,6 +147,7 @@ public class OpportunityActivity extends AppCompatActivity {
                 clickedNote.notetext = noteBody.getText().toString();
 
                 final MyProgressDialog addEditNoteProgressDialog = new MyProgressDialog(context, "Working...");
+                dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
                 addEditNoteProgressDialog.show();
 
                 clickedNote.submit(context, new MyInterfaces.YesNoResult() {
@@ -177,17 +181,30 @@ public class OpportunityActivity extends AppCompatActivity {
                                 adapterNotes.updateAnnotationAndReload(clickedNote);
                             }
                         }
+
+                        // Clearing the notetext cache since this operation succeeded.
+                        pendingNote = null;
                     }
 
                     @Override
                     public void onNo(@Nullable Object object) {
                         Toast.makeText(context, "Failed to add/edit note!\n\n" + object.toString(), Toast.LENGTH_SHORT).show();
                         addEditNoteProgressDialog.dismiss();
+
+                        dialog.dismiss();
+                        dialog.show();
+
                     }
                 });
             }
         });
         dialog.show();
+
+        if (pendingNote != null) {
+            noteBody.setText(pendingNote);
+            Log.i(TAG, "showAddEditNote Found a pending note from a presumably failed note creation - using it.");
+        }
+
     }
 
     void getOpportunityNotes() {
@@ -240,7 +257,48 @@ public class OpportunityActivity extends AppCompatActivity {
         final Dialog dialog = new Dialog(context);
         final Context c = context;
         dialog.setContentView(R.layout.dialog_note_options);
+        LinearLayout layoutAttachments = dialog.findViewById(R.id.layout_attachments_container);
+        layoutAttachments.setVisibility(clickedNote.isDocument ? View.VISIBLE : View.GONE);
+        TextView txtNoteYourNote = dialog.findViewById(R.id.txtNotYourNote);
         Button btnEdit = dialog.findViewById(R.id.btn_edit_note);
+        Button btnViewAttachment = dialog.findViewById(R.id.btnViewAttachment);
+        btnViewAttachment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (!Helpers.Files.AttachmentTempFiles.fileExists(clickedNote.filename)) {
+                    final MyProgressDialog getNoteProgress = new MyProgressDialog(context, "Retrieving attachment...");
+                    getNoteProgress.show();
+
+                    CrmEntities.Annotations.getAnnotationFromCrm(clickedNote.annotationid,
+                    true, new AsyncHttpResponseHandler() {
+                        @Override
+                        public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                            String response = new String(responseBody);
+                            CrmEntities.Annotations annotations = new CrmEntities.Annotations(response);
+                            Annotation annotation;
+                            if (annotations.list.size() > 0) {
+                                annotation = annotations.list.get(0);
+                                Log.i(TAG, "onSuccess Annotation retrieved: " + annotation.toString());
+                                getNoteProgress.dismiss();
+
+                                File attachment = Helpers.Files.base64Decode(annotation.documentBody,
+                                        new File(Helpers.Files.AttachmentTempFiles.getDirectory() + File.separator +
+                                                annotation.filename));
+                                Helpers.Files.openFile(attachment, annotation.mimetype);
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                            Toast.makeText(context, "Failed to retrieve note!\nError: " + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                            getNoteProgress.dismiss();
+                        }
+                    });
+                } else {
+                    Helpers.Files.openFile(Helpers.Files.AttachmentTempFiles.retrieve(clickedNote.filename), clickedNote.mimetype);
+                }
+            }
+        });
         btnEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -274,11 +332,13 @@ public class OpportunityActivity extends AppCompatActivity {
 
         dialog.setTitle("");
         dialog.setCancelable(true);
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         dialog.show();
 
         // See if the current user is the author of the clicked note
         btnEdit.setEnabled(clickedNote.createdByValue.equals(MediUser.getMe().systemuserid) ? true : false);
         btnDelete.setEnabled(clickedNote.createdByValue.equals(MediUser.getMe().systemuserid) ? true : false);
+        txtNoteYourNote.setVisibility(clickedNote.createdByValue.equals(MediUser.getMe().systemuserid) ? View.GONE : View.VISIBLE);
 
     }
 

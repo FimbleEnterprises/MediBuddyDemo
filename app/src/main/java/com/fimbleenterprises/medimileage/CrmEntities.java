@@ -47,6 +47,32 @@ public class CrmEntities {
             }
         }
 
+        /**
+         * Returns a single annotation from CRM.
+         * @param annotationid The annotation id.
+         * @param includeAttachment Whether or not to retrieve the attachment if applicable
+         * @param listener A callback.
+        */
+        public static void getAnnotationFromCrm(String annotationid, boolean includeAttachment, final AsyncHttpResponseHandler listener) {
+            String query = Queries.Annotations.getAnnotation(annotationid, includeAttachment);
+            Crm crm = new Crm();
+
+            Requests.Request request = new Requests.Request(Function.GET);
+            request.arguments.add(new Requests.Argument("query", query));
+
+            crm.makeCrmRequest(MyApp.getAppContext(), request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    listener.onSuccess(statusCode, headers, responseBody);
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    listener.onFailure(statusCode, headers, responseBody, error);
+                }
+            });
+        }
+
         public static class Annotation {
 
             private static final String TAG = "Annotation";
@@ -54,6 +80,9 @@ public class CrmEntities {
             public String etag;
             public String annotationid;
             public String objectid;
+            public String filename;
+            public String documentBody;
+            public int filesize;
             public boolean isDocument;
             public String subject;
             public String notetext;
@@ -73,6 +102,27 @@ public class CrmEntities {
                 try {
                     if (!json.isNull("etag")) {
                         this.etag = (json.getString("etag"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("documentbody")) {
+                        this.documentBody = (json.getString("documentbody"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("filesize")) {
+                        this.filesize = (json.getInt("filesize"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("filename")) {
+                        this.filename = (json.getString("filename"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -148,6 +198,13 @@ public class CrmEntities {
                     e.printStackTrace();
                 }
                 try {
+                    if (!json.isNull("mimetype")) {
+                        this.mimetype = (json.getString("mimetype"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
                    if (!json.isNull("modifiedon")) {
                        this.modifiedon = (new DateTime(json.getString("modifiedon")));
                    }
@@ -161,6 +218,11 @@ public class CrmEntities {
                 } catch (JSONException e) {
                    e.printStackTrace();
                 }
+            }
+
+            @Override
+            public String toString() {
+                return this.subject + " (attachment: " + isDocument + ")";
             }
 
             /**

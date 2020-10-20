@@ -7,7 +7,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -71,10 +73,9 @@ public class AnnotationsAdapter extends RecyclerView.Adapter<AnnotationsAdapter.
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         final Annotation annootation = mData.get(position);
 
-        DateTime nowTime = DateTime.now();
-        DateTime modified = annootation.modifiedon;
+        DateTime created = annootation.createdon;
 
-        int days = Helpers.DatesAndTimes.daysBetween(modified);
+        int days = Helpers.DatesAndTimes.daysBetween(created);
         if (days <= 3) {
             holder.txtNew.setVisibility(View.VISIBLE);
             Helpers.Animations.pulseAnimation(holder.txtNew, 1.15f, 1.25f, 9999, 900);
@@ -86,11 +87,15 @@ public class AnnotationsAdapter extends RecyclerView.Adapter<AnnotationsAdapter.
             holder.txtCreatedBy.setTextColor(Color.parseColor("#19870A"));
         }
 
+        // Show/hide the attachment layout accordingly
+        holder.layout_attachments_inner.setVisibility(annootation.isDocument ? View.VISIBLE : View.INVISIBLE);
+
         holder.txtSubject.setText(annootation.subject);
         holder.txtNoteText.setText(annootation.notetext);
         holder.txtCreatedBy.setText(annootation.createdByName);
         holder.txtCreatedOn.setText(Helpers.DatesAndTimes.getPrettyDateAndTime(annootation.createdon));
         holder.imgLeftIcon.setImageResource(R.drawable.sms_64);
+        holder.txtFilename.setText(annootation.filename);
     }
 
     // total number of rows
@@ -107,6 +112,10 @@ public class AnnotationsAdapter extends RecyclerView.Adapter<AnnotationsAdapter.
         TextView txtCreatedOn;
         TextView txtCreatedBy;
         TextView txtNew;
+        LinearLayout layout_attachments_outer;
+        RelativeLayout layout_attachments_inner;
+        TextView txtFilename;
+        ImageButton imgFileIcon;
         RelativeLayout layout;
 
 
@@ -119,6 +128,10 @@ public class AnnotationsAdapter extends RecyclerView.Adapter<AnnotationsAdapter.
             txtCreatedOn = itemView.findViewById(R.id.txt_NoteCreatedOn);
             txtCreatedBy = itemView.findViewById(R.id.txt_NoteCreatedBy);
             txtNew = itemView.findViewById(R.id.txt_New);
+            layout_attachments_outer = itemView.findViewById(R.id.layout_attachments);
+            layout_attachments_inner = itemView.findViewById(R.id.layout_attachments_inner);
+            txtFilename = itemView.findViewById(R.id.txtFilename);
+            imgFileIcon = itemView.findViewById(R.id.imgFileIcon);
 
             itemView.setOnClickListener(this);
             itemView.setOnLongClickListener(this);

@@ -568,6 +568,7 @@ public class MainActivity extends AppCompatActivity {
 
         QueryFactory factory = new QueryFactory("msus_fulltrip");
         factory.addColumn("ownerid");
+
         LinkEntity linkEntity = new LinkEntity("systemuser", "systemuserid", "owninguser", "a_79740df757a5e81180e8005056a36b9b");
         linkEntity.addColumn(new EntityColumn("territoryid"));
         linkEntity.addColumn(new EntityColumn("address1_stateorprovince"));
@@ -596,7 +597,8 @@ public class MainActivity extends AppCompatActivity {
 
         factory.isDistinct(true);
 
-        factory.addSortClause(new QueryFactory.SortClause("ownerid", false, QueryFactory.SortClause.ClausePosition.ONE));
+        factory.addSortClause(new QueryFactory.SortClause("ownerid", false,
+                QueryFactory.SortClause.ClausePosition.ONE));
         String query = factory.construct();
 
         Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
