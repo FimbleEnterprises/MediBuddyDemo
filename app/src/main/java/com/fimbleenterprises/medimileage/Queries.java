@@ -309,7 +309,7 @@ public class Queries {
 
     public static class Opportunities {
 
-        public static String getAllOpenOpportunities() {
+        /*public static String getAllOpenOpportunities() {
 
             // Query columns
             QueryFactory factory = new QueryFactory("opportunity");
@@ -357,7 +357,7 @@ public class Queries {
             String query = factory.construct();
 
             return query;
-        }
+        }*/
 
         public static String getOpportunitiesByTerritory(String territoryid) {
 

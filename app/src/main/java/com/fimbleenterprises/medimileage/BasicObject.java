@@ -7,6 +7,7 @@ class BasicObject {
     Object object;
     int iconResource = -1;
     boolean isSelected = false;
+    boolean isHeader = false;
 
     public BasicObject() {  }
 
@@ -15,6 +16,11 @@ class BasicObject {
         this.subtitle = subtitle;
         this.object = object;
         this.iconResource = R.drawable.car_icon_circular;
+    }
+
+    public BasicObject(String name) {
+        this.isHeader = true;
+        this.title = name;
     }
 
     @Override

@@ -43,10 +43,6 @@ public class FullTrip implements Parcelable {
     public int userStoppedTrip = 0;
     public int userStartedTrip = 0;
     public int tripMinderKilled = 0;
-    public String associatedAccountId;
-    public String associatedAccountName;
-    public String associatedOpportunityId;
-    public String associatedOpportunityName;
     public int hasNearbyAssociations;
 
     public static class TripEntries extends ArrayList<TripEntry> {
@@ -211,38 +207,6 @@ public class FullTrip implements Parcelable {
 
     public void hasAssociations(boolean val) {
         this.hasNearbyAssociations  = (val == true ? 1 : 0);
-    }
-
-    public String getAssociatedAccountId() {
-        return associatedAccountId;
-    }
-
-    public void setAssociatedAccountId(String associatedAccountId) {
-        this.associatedAccountId = associatedAccountId;
-    }
-
-    public String getAssociatedAccountName() {
-        return associatedAccountName;
-    }
-
-    public void setAssociatedAccountName(String associatedAccountName) {
-        this.associatedAccountName = associatedAccountName;
-    }
-
-    public String getAssociatedOpportunityId() {
-        return associatedOpportunityId;
-    }
-
-    public void setAssociatedOpportunityId(String associatedOpportunityId) {
-        this.associatedOpportunityId = associatedOpportunityId;
-    }
-
-    public String getAssociatedOpportunityName() {
-        return associatedOpportunityName;
-    }
-
-    public void setAssociatedOpportunityName(String associatedOpportunityName) {
-        this.associatedOpportunityName = associatedOpportunityName;
     }
 
     public LatLng getStartLatLng() {
@@ -678,10 +642,6 @@ public class FullTrip implements Parcelable {
         userStartedTrip = in.readInt();
         tripMinderKilled = in.readInt();
         tripGuid = in.readString();
-        associatedOpportunityId = in.readString();
-        associatedOpportunityName = in.readString();
-        associatedAccountId = in.readString();
-        associatedAccountName = in.readString();
         hasNearbyAssociations = in.readInt();
         if (in.readByte() == 0x01) {
             tripEntries = new ArrayList<TripEntry>();
@@ -713,10 +673,6 @@ public class FullTrip implements Parcelable {
         dest.writeInt(userStartedTrip);
         dest.writeInt(tripMinderKilled);
         dest.writeString(tripGuid);
-        dest.writeString(associatedOpportunityId);
-        dest.writeString(associatedOpportunityName);
-        dest.writeString(associatedAccountId);
-        dest.writeString(associatedAccountName);
         dest.writeInt(hasNearbyAssociations);
         if (tripEntries == null) {
             dest.writeByte((byte) (0x00));

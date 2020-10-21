@@ -469,10 +469,6 @@ public class MySqlDatasource {
         fullTrip.userStoppedTrip = cursor.getInt(getColumnIndex(COLUMN_USER_STOPPED_TRIP, cursor));
         fullTrip.userStartedTrip = cursor.getInt(getColumnIndex(COLUMN_USER_STARTED_TRIP, cursor));
         fullTrip.tripMinderKilled = cursor.getInt(getColumnIndex(COLUMN_TRIP_MINDER_KILLED, cursor));
-        fullTrip.setAssociatedAccountName(cursor.getString(getColumnIndex(COLUMN_TRIP_ASSOCIATED_ACCOUNTNAME, cursor)));
-        fullTrip.setAssociatedAccountId(cursor.getString(getColumnIndex(COLUMN_TRIP_ASSOCIATED_ACCOUNTID, cursor)));
-        fullTrip.setAssociatedOpportunityName(cursor.getString(getColumnIndex(COLUMN_TRIP_ASSOCIATED_OPPORTUNITYNAME, cursor)));
-        fullTrip.setAssociatedOpportunityId(cursor.getString(getColumnIndex(COLUMN_TRIP_ASSOCIATED_OPPORTUNITYID, cursor)));
         fullTrip.hasNearbyAssociations = cursor.getInt(getColumnIndex(COLUMN_HAS_ASSOCIATIONS, cursor));
         return fullTrip;
     }
@@ -694,10 +690,6 @@ public class MySqlDatasource {
             values.put(COLUMN_USER_STOPPED_TRIP, trip.userStoppedTrip);
             values.put(COLUMN_USER_STARTED_TRIP, trip.userStartedTrip);
             values.put(COLUMN_TRIP_MINDER_KILLED, trip.tripMinderKilled);
-            values.put(COLUMN_TRIP_ASSOCIATED_ACCOUNTID, trip.associatedAccountId);
-            values.put(COLUMN_TRIP_ASSOCIATED_ACCOUNTNAME, trip.associatedAccountName);
-            values.put(COLUMN_TRIP_ASSOCIATED_OPPORTUNITYID, trip.associatedOpportunityId);
-            values.put(COLUMN_TRIP_ASSOCIATED_OPPORTUNITYNAME, trip.associatedOpportunityName);
             values.put(COLUMN_HAS_ASSOCIATIONS, trip.hasNearbyAssociations);
 
             String whereClause = COLUMN_TRIPCODE + " = ?";
@@ -893,10 +885,6 @@ public class MySqlDatasource {
             values.put(COLUMN_USER_STOPPED_TRIP, trip.userStoppedTrip);
             values.put(COLUMN_USER_STARTED_TRIP, trip.userStartedTrip);
             values.put(COLUMN_TRIP_MINDER_KILLED, trip.tripMinderKilled);
-            values.put(COLUMN_TRIP_ASSOCIATED_ACCOUNTID, trip.associatedAccountId);
-            values.put(COLUMN_TRIP_ASSOCIATED_ACCOUNTNAME, trip.associatedAccountName);
-            values.put(COLUMN_TRIP_ASSOCIATED_OPPORTUNITYID, trip.associatedOpportunityId);
-            values.put(COLUMN_TRIP_ASSOCIATED_OPPORTUNITYNAME, trip.associatedOpportunityName);
             values.put(COLUMN_HAS_ASSOCIATIONS, trip.hasNearbyAssociations);
 
 
@@ -940,10 +928,6 @@ public class MySqlDatasource {
             values.put(COLUMN_USER_STOPPED_TRIP, trip.userStoppedTrip);
             values.put(COLUMN_USER_STARTED_TRIP, trip.userStartedTrip);
             values.put(COLUMN_TRIP_MINDER_KILLED, trip.tripMinderKilled);
-            values.put(COLUMN_TRIP_ASSOCIATED_ACCOUNTID, trip.associatedAccountId);
-            values.put(COLUMN_TRIP_ASSOCIATED_ACCOUNTNAME, trip.associatedAccountName);
-            values.put(COLUMN_TRIP_ASSOCIATED_OPPORTUNITYID, trip.associatedOpportunityId);
-            values.put(COLUMN_TRIP_ASSOCIATED_OPPORTUNITYNAME, trip.associatedOpportunityName);
             values.put(COLUMN_HAS_ASSOCIATIONS, trip.hasNearbyAssociations);
 
             result = (database.insert(TABLE_FULL_TRIP, null, values) > 0);

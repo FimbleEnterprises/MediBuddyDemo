@@ -132,47 +132,6 @@ public class TripAssociationManager {
     }
 
     /**
-     * Looks for opportunities near the start or end of a trip
-     * @param trip The trip to evaluate
-     * @return An arraylist of opportunity objects or null if none were found nearby (or if something
-     * went wrong that prevented evaluation).
-     */
-    public static ArrayList<Opportunity> getNearbyOpportunities(@NonNull FullTrip trip) {
-
-        MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
-        CrmEntities.CrmAddresses accountAddresses = options.getAllSavedCrmAddresses();
-        CrmEntities.Opportunities savedOpportunities = options.getSavedOpportunities();
-        ArrayList<Opportunity> nearbyOpportunities = new ArrayList<>();
-
-        if (    // Validate parameters before evaluating them
-                trip.getTripEntries() == null ||
-                trip.getTripEntries().size() < 1 ||
-                accountAddresses == null ||
-                accountAddresses.list.size() < 1 ||
-                savedOpportunities == null ||
-                savedOpportunities.list.size() < 1
-        ) { return null; }
-
-        TripEntry startEntry = trip.tripEntries.get(0);
-        TripEntry endEntry = trip.tripEntries.get(trip.tripEntries.size() - 1);
-
-        for (Opportunity opp : savedOpportunities.list) {
-            CrmEntities.CrmAddresses.CrmAddress oppAddy = opp.tryGetCrmAddress();
-            if (oppAddy != null) {
-                if (oppAddy.isNearby(startEntry)) {
-                    nearbyOpportunities.add(opp);
-                }
-            }
-        }
-
-        if (nearbyOpportunities.size() > 0) {
-            return nearbyOpportunities;
-        } else {
-            return null;
-        }
-    }
-
-    /**
      * This function will evaluate accounts and opportunities near the start and end locations
      * of a trip.  It will then add or update trip associations on the server.  Existing associations
      * are deleted and recreated so there is no need to check for pre-existing associations.

@@ -3,7 +3,6 @@
 	android:id="@+id/layout_main"
 	android:layout_width="match_parent"
 	android:layout_height="wrap_content"
-	android:layout_margin="4dp"
 	android:background="@drawable/btn_glass_gray">
 
 	<RelativeLayout
@@ -117,10 +116,10 @@
 						android:layout_height="wrap_content"
 						android:layout_marginLeft="5dp"
 						android:layout_marginRight="5dp"
+						android:fontFamily="casual"
 						android:gravity="left"
 						android:text="Distance:"
 						android:textAppearance="?android:attr/textAppearanceSmall"
-						android:fontFamily="casual"
 						android:textColor="#454545"
 						android:textSize="13sp"
 						android:textStyle="bold" />
@@ -184,20 +183,22 @@
 				android:id="@+id/tableRow_datelabel"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content">
+
 				<FrameLayout
 					android:layout_width="0dp"
 					android:layout_height="wrap_content"
 					android:layout_weight="1">
+
 					<TextView
 						android:id="@+id/textView_df"
 						android:layout_width="match_parent"
 						android:layout_height="wrap_content"
 						android:layout_marginLeft="5dp"
 						android:layout_marginRight="5dp"
+						android:fontFamily="casual"
 						android:gravity="left"
 						android:text="Trip date:"
 						android:textAppearance="?android:attr/textAppearanceSmall"
-						android:fontFamily="casual"
 						android:textColor="#454545"
 						android:textSize="13sp"
 						android:textStyle="bold" />
@@ -208,16 +209,19 @@
 				android:id="@+id/tableRow_"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content">
+
 				<FrameLayout
 					android:layout_width="0dp"
 					android:layout_height="wrap_content"
 					android:layout_weight="1">
+
 					<CalendarView
 						android:id="@+id/calendarView"
 						android:layout_width="match_parent"
 						android:layout_height="wrap_content" />
 				</FrameLayout>
 			</TableRow>
+
 			<TableRow
 				android:id="@+id/tableRow_4a"
 				android:layout_width="wrap_content"
@@ -239,7 +243,6 @@
 
 				</FrameLayout>
 			</TableRow>
-
 
 
 			<TableRow

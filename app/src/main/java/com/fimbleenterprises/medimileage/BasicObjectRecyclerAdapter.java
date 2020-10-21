@@ -44,7 +44,7 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
         final BasicObject object = mData.get(position);
 
         holder.txtMainText.setText(object.title);
-        holder.txtSubtext.setText(object.subtitle.toString());
+        holder.txtSubtext.setText(object.subtitle);
         holder.itemView.setLongClickable(true);
 
         // Hide the icon if it is not explicitly set

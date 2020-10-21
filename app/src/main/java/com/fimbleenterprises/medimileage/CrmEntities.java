@@ -853,7 +853,7 @@ public class CrmEntities {
          */
         public static void retrieveAndSaveOpportunities(final MyInterfaces.YesNoResult listener) {
             final MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
-            String query = Queries.Opportunities.getAllOpenOpportunities();
+            String query = Queries.Opportunities.getOpportunitiesByTerritory(MediUser.getMe().territoryid);
             ArrayList<Requests.Argument> args = new ArrayList<>();
             Requests.Argument argument = new Requests.Argument("query", query);
             args.add(argument);

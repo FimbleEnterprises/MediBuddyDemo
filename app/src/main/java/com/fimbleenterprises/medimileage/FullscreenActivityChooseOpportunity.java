@@ -51,7 +51,6 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
     RefreshLayout refreshLayout;
     MySettingsHelper options;
     String baseMsg;
-
     String pendingNotetext;
 
 
@@ -103,18 +102,21 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
 
             @Override
             protected String doInBackground(String... strings) {
-                objects.clear();
-                ArrayList<Opportunity> opportunities = TripAssociationManager.getNearbyOpportunities(fulltrip);
-                for (Opportunity opportunity : opportunities) {
-                    BasicObject object = new BasicObject(opportunity.name, opportunity.accountname, opportunity);
-                    object.iconResource = R.drawable.about;
-                    objects.add(object);
+                objects = buildOpportunityList();
+                for (BasicObject o : objects) {
+                    o.iconResource = (o.isHeader ? -1 : R.drawable.about_icon_black_48x48);
                 }
-                return null;
+                return "";
             }
 
             @Override
             protected void onPostExecute(String s) {
+
+                if (s==null) {
+                    Toast.makeText(context, "No opportunities found.", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+
                 super.onPostExecute(s);
                 populateOpportunities();
                 refreshLayout.finishRefresh();
@@ -130,6 +132,55 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
             task.execute();
         }
 
+    }
+
+    ArrayList<BasicObject> buildOpportunityList() {
+
+        objects.clear();
+
+        MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+        CrmEntities.CrmAddresses accountAddresses = options.getAllSavedCrmAddresses();
+        CrmEntities.Opportunities savedOpportunities = options.getSavedOpportunities();
+
+        ArrayList<Opportunity> nearbyOpportunities = new ArrayList<>();
+        ArrayList<Opportunity> notNearbyOpportunities = new ArrayList<>();
+        ArrayList<BasicObject> fullList = new ArrayList<>();
+
+        if (    // Validate parameters before evaluating them
+                fulltrip.getTripEntries() == null ||
+                        fulltrip.getTripEntries().size() < 1 ||
+                        accountAddresses == null ||
+                        accountAddresses.list.size() < 1 ||
+                        savedOpportunities == null ||
+                        savedOpportunities.list.size() < 1
+        ) { return null; }
+
+        TripEntry startEntry = fulltrip.tripEntries.get(0);
+        TripEntry endEntry = fulltrip.tripEntries.get(fulltrip.tripEntries.size() - 1);
+
+        for (Opportunity opp : savedOpportunities.list) {
+            CrmEntities.CrmAddresses.CrmAddress oppAddy = opp.tryGetCrmAddress();
+            if (oppAddy != null) {
+                if (oppAddy.isNearby(startEntry)) {
+                    nearbyOpportunities.add(opp);
+                } else {
+                    notNearbyOpportunities.add(opp);
+                }
+            }
+        }
+
+        objects.add(new BasicObject("Nearby"));
+        for (Opportunity nearbyOpp : nearbyOpportunities) {
+            BasicObject obj = new BasicObject(nearbyOpp.name, nearbyOpp.accountname, nearbyOpp);
+            objects.add(obj);
+        }
+        objects.add(new BasicObject("Other"));
+        for (Opportunity otherOpp : notNearbyOpportunities) {
+            BasicObject obj = new BasicObject(otherOpp.name, otherOpp.accountname, otherOpp);
+            objects.add(obj);
+        }
+
+        return objects;
     }
 
     void populateOpportunities() {

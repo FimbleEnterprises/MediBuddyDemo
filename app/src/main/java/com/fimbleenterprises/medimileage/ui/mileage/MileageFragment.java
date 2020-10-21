@@ -812,8 +812,6 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         Helpers.Animations.pulseAnimation(txtMtd);
         startMtdTogglerRunner();
 
-        // Check for opportunities in the background
-        checkForOpportunities(true);
     }
 
     @Override
@@ -1033,75 +1031,6 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         } else {
             progressDialog.dismiss();
         }
-    }
-
-    void checkForOpportunities(boolean inBackground) {
-
-        class OpportunityChecker extends AsyncTask<Integer, Integer, Integer> {
-
-
-            double start = System.currentTimeMillis();
-            double end = 0;
-            double length = 0;
-
-                @Override
-                protected void onPreExecute() {
-                    super.onPreExecute();
-                }
-
-                @Override
-                protected Integer doInBackground(Integer... ints) {
-                    int foundOpportunities = 0;
-
-                    foundOpportunities = doOppCheckActual();
-
-                    end = System.currentTimeMillis();
-                    length = (end - start) / 1000;
-
-                    Log.i(TAG, "populateTripList Opportunity check took: " + length + " seconds");
-
-                    return foundOpportunities;
-                }
-
-                @Override
-                protected void onPostExecute(Integer s) {
-                    super.onPostExecute(s);
-                    Log.i(TAG, "onPostExecute Found " + s + " opportunities in " + length + " seconds.");
-                }
-            }
-
-        if (inBackground) {
-            new OpportunityChecker().execute();
-        } else {
-            double start = System.currentTimeMillis();
-            double end = 0;
-            double length = 0;
-            Log.i(TAG, "checkForOpportunities Starting...");
-            int foundOpps = doOppCheckActual();
-            end = System.currentTimeMillis();
-            length = (end - start) / 1000;
-
-            Log.d(TAG, "checkForOpportunities Found " + foundOpps + " in " + length + " seconds.");
-
-        }
-    }
-
-    private int doOppCheckActual() {
-
-        int foundOpportunities = 0;
-
-        // Check for opportunities
-        for (FullTrip trip : allTrips) {
-            ArrayList<CrmEntities.Opportunities.Opportunity> associatedOpportunities
-                    = TripAssociationManager.getNearbyOpportunities(trip);
-            if (associatedOpportunities != null && associatedOpportunities.size() > 0) {
-                Log.i(TAG, "populateTripList Found " + associatedOpportunities.size() + " opportunities!");
-                foundOpportunities += associatedOpportunities.size();
-                trip.hasAssociations(true);
-                trip.save();
-            }
-        }
-        return foundOpportunities;
     }
 
     void populateTripList() {
@@ -1759,15 +1688,20 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         Button btnEditTrip = dialog.findViewById(R.id.edit_trip);
         Button btnDeleteTrip = dialog.findViewById(R.id.btnDelete);
         Button btnOpportunity = dialog.findViewById(R.id.btn_opportunities);
-        TableRow tableRow = dialog.findViewById(R.id.tableRowopp);
+        /*TableRow tableRow = dialog.findViewById(R.id.tableRowopp);
         tableRow.setVisibility(clickedTrip.hasAssociations() ? View.VISIBLE : View.GONE);
-        btnOpportunity.setEnabled(clickedTrip.getIsSubmitted());
+        btnOpportunity.setEnabled(clickedTrip.getIsSubmitted());*/
         btnOpportunity.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(getContext(), FullscreenActivityChooseOpportunity.class);
-                intent.putExtra(FullscreenActivityChooseOpportunity.FULLTRIP, clickedTrip);
-                startActivityForResult(intent, FullscreenActivityChooseOpportunity.REQUESTCODE);
+
+                if (clickedTrip.getIsSubmitted()) {
+                    Intent intent = new Intent(getContext(), FullscreenActivityChooseOpportunity.class);
+                    intent.putExtra(FullscreenActivityChooseOpportunity.FULLTRIP, clickedTrip);
+                    startActivityForResult(intent, FullscreenActivityChooseOpportunity.REQUESTCODE);
+                } else {
+                    Toast.makeText(getContext(), "You have to submit this trip first.", Toast.LENGTH_SHORT).show();
+                }
             }
         });
         Button btnSubmit = dialog.findViewById(R.id.btnSubmit);

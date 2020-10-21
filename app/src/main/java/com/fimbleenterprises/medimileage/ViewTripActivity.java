@@ -195,12 +195,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_evaluate_addresses :
-                ArrayList<Opportunity> nearbyOpps = TripAssociationManager.getNearbyOpportunities(clickedTrip);
-                if (nearbyOpps != null) {
-                    Log.i(TAG, "onOptionsItemSelected Found " + nearbyOpps.size() + " nearby opportunities");
-                } else {
-                    Log.w(TAG, "onOptionsItemSelected: No nearby opportunities found");
-                }
+
         }
         return super.onOptionsItemSelected(item);
     }
