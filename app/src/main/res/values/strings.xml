@@ -211,5 +211,7 @@
     <string name="btn_opportunity_showtripoptions">Opportunities</string>
     <string name="edit_note_view_attachment">View</string>
     <string name="delete_note_share_attachment">Share...</string>
+    <string name="delete_note_remove_attachment">Remove</string>
+    <string name="delete_note_add_attachment">Add...</string>
 
 </resources>

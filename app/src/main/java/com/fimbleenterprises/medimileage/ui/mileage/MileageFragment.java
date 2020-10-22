@@ -493,67 +493,75 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     public void onStart() {
         super.onStart();
 
-        parseTripsForAssociations();
-        populateTripList();
-        // Do some mileage database maintenance
-        datasource.deleteUnreferencedTripEntries(new MyInterfaces.TripDeleteCallback() {
-            @Override
-            public void onSuccess(int entriesDeleted) {
-                if (entriesDeleted > 0) {
-                    Toast.makeText(getContext(), "Cleaned up unreferenced trips.", Toast.LENGTH_SHORT).show();
+        // This shit only works if the user actually exists in the database
+        if (MediUser.getMe() != null && MediUser.getMe().systemuserid != null) {
+
+            parseTripsForAssociations();
+            populateTripList();
+            // Do some mileage database maintenance
+            datasource.deleteUnreferencedTripEntries(new MyInterfaces.TripDeleteCallback() {
+                @Override
+                public void onSuccess(int entriesDeleted) {
+                    if (entriesDeleted > 0) {
+                        Toast.makeText(getContext(), "Cleaned up unreferenced trips.", Toast.LENGTH_SHORT).show();
+                    }
+                    adapter.notifyDataSetChanged();
                 }
-                adapter.notifyDataSetChanged();
+
+                @Override
+                public void onFailure(String message) {
+                    Toast.makeText(getContext(), "Something went wrong cleaning unreferenced trips.", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            getActivity().registerReceiver(locReceiver, locFilter);
+            Log.i(TAG, "onStart Registered the location receiver");
+            Log.i(TAG, "onStart Registered the back press receiver.");
+
+            if (MyLocationService.isRunning) {
+                txtStatus.setText("Trip is running");
+                MyLocationService.sendUpdateBroadcast(getContext());
+                startTripDurationRunner();
+            } else {
+                txtStatus.setText("Trip not started");
             }
 
-            @Override
-            public void onFailure(String message) {
-                Toast.makeText(getContext(), "Something went wrong cleaning unreferenced trips.", Toast.LENGTH_SHORT).show();
-            }
-        });
+            this.getView().setFocusableInTouchMode(true);
+            this.getView().requestFocus();
+            this.getView().setOnKeyListener(new View.OnKeyListener() {
+                @Override
+                public boolean onKey(View v, int keyCode, KeyEvent event) {
+                    if (keyCode == KeyEvent.KEYCODE_BACK) {
+                        if (adapter.isInEditMode) {
+                            // adapter.setEditModeEnabled(false);
+                            setEditMode(false);
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            });
 
-        getActivity().registerReceiver(locReceiver, locFilter);
-        Log.i(TAG, "onStart Registered the location receiver");
-        Log.i(TAG, "onStart Registered the back press receiver.");
-
-        if (MyLocationService.isRunning) {
-            txtStatus.setText("Trip is running");
-            MyLocationService.sendUpdateBroadcast(getContext());
-            startTripDurationRunner();
-        } else {
-            txtStatus.setText("Trip not started");
-        }
-
-        this.getView().setFocusableInTouchMode(true);
-        this.getView().requestFocus();
-        this.getView().setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    if (adapter.isInEditMode) {
-                        // adapter.setEditModeEnabled(false);
-                        setEditMode(false);
-                        return true;
+            datasource.deleteEmptyTrips(true, new MyInterfaces.TripDeleteCallback() {
+                @Override
+                public void onSuccess(int entriesDeleted) {
+                    if (entriesDeleted > 0) {
+                        Log.w(TAG, "onSuccess: Deleted " + entriesDeleted + " empty trips.");
+                        Toast.makeText(getContext(), "Removed " + entriesDeleted + " empty trips.", Toast.LENGTH_SHORT).show();
+                        populateTripList();
                     }
                 }
-                return false;
-            }
-        });
 
-        datasource.deleteEmptyTrips(true, new MyInterfaces.TripDeleteCallback() {
-            @Override
-            public void onSuccess(int entriesDeleted) {
-                if (entriesDeleted > 0) {
-                    Log.w(TAG, "onSuccess: Deleted " + entriesDeleted + " empty trips.");
-                    Toast.makeText(getContext(), "Removed " + entriesDeleted + " empty trips.", Toast.LENGTH_SHORT).show();
-                    populateTripList();
+                @Override
+                public void onFailure(String message) {
+                    Toast.makeText(getContext(), "Failed to delete empty trips\n" + message, Toast.LENGTH_SHORT).show();
                 }
+            });
+        } else {
+            if (options.getDebugMode()) {
+                Toast.makeText(getContext(), "User is not yet saved and doesn't exist!", Toast.LENGTH_SHORT).show();
             }
-
-            @Override
-            public void onFailure(String message) {
-                Toast.makeText(getContext(), "Failed to delete empty trips\n" + message, Toast.LENGTH_SHORT).show();
-            }
-        });
+        }
 
     }
 

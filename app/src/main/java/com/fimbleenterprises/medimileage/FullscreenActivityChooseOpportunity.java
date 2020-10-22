@@ -58,6 +58,9 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.context = this;
+
+        objects = new ArrayList<>();
+
         options = new MySettingsHelper(context);
         setContentView(R.layout.activity_fullscreen_choose_opportunity);
         listView = findViewById(R.id.rvBasicObjects);
@@ -91,6 +94,13 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
     @SuppressLint("StaticFieldLeak")
     void getOpportunities() {
 
+        if (!options.hasSavedOpportunities()) {
+            Toast.makeText(context, "Retrieving your opportunities - try again in a minute or so.", Toast.LENGTH_LONG).show();
+            CrmEntities.Opportunities.retrieveAndSaveOpportunities();
+            finish();
+            return;
+        }
+
         final MyProgressDialog dialog = new MyProgressDialog(context , baseMsg);
 
         AsyncTask<String, String, String> task = new AsyncTask<String, String, String>() {
@@ -99,6 +109,8 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
                 super.onPreExecute();
                 dialog.show();
             }
+
+
 
             @Override
             protected String doInBackground(String... strings) {
@@ -118,9 +130,15 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
                 }
 
                 super.onPostExecute(s);
-                populateOpportunities();
-                refreshLayout.finishRefresh();
-                dialog.dismiss();
+
+                if (objects.size() == 0) {
+                    Toast.makeText(context, "No opportunities found!", Toast.LENGTH_SHORT).show();
+                    finish();
+                } else {
+                    populateOpportunities();
+                    refreshLayout.finishRefresh();
+                    dialog.dismiss();
+                }
             }
         };
 
@@ -135,7 +153,9 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
     }
 
     ArrayList<BasicObject> buildOpportunityList() {
-
+        if (objects == null) {
+            objects = new ArrayList<>();
+        }
         objects.clear();
 
         MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
@@ -153,7 +173,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
                         accountAddresses.list.size() < 1 ||
                         savedOpportunities == null ||
                         savedOpportunities.list.size() < 1
-        ) { return null; }
+        ) { return objects; }
 
         TripEntry startEntry = fulltrip.tripEntries.get(0);
         TripEntry endEntry = fulltrip.tripEntries.get(fulltrip.tripEntries.size() - 1);
@@ -170,6 +190,14 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         }
 
         objects.add(new BasicObject("Nearby"));
+        // If there are no nearby opportunities then create an empty one
+        if (nearbyOpportunities.size() == 0) {
+            BasicObject emptyObject = new BasicObject();
+            emptyObject.title = "No opportunities";
+            emptyObject.isEmpty = true;
+            emptyObject.isHeader = false;
+            objects.add(emptyObject);
+        }
         for (Opportunity nearbyOpp : nearbyOpportunities) {
             BasicObject obj = new BasicObject(nearbyOpp.name, nearbyOpp.accountname, nearbyOpp);
             objects.add(obj);
@@ -179,6 +207,8 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
             BasicObject obj = new BasicObject(otherOpp.name, otherOpp.accountname, otherOpp);
             objects.add(obj);
         }
+
+
 
         return objects;
     }
@@ -194,8 +224,10 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
             @Override
             public void onItemClick(View view, int position) {
                 Log.i(TAG, "onItemClick Position: " + position);
-                Opportunity opportunity = (Opportunity) objects.get(position).object;
-                showOppOptions(opportunity);
+                if (!objects.get(position).isEmpty) {
+                    Opportunity opportunity = (Opportunity) objects.get(position).object;
+                    showOppOptions(opportunity);
+                }
             }
         });
 
@@ -291,72 +323,17 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
 
     void showAddNoteDialog(final Opportunity opportunity) {
 
-        final Dialog dialog = new Dialog(context);
-        dialog.setContentView(R.layout.dialog_note);
-        final EditText noteBody = dialog.findViewById(R.id.body_text);
-        dialog.setTitle("Note");
-        dialog.setCancelable(true);
-        Button btnSubmit = dialog.findViewById(R.id.button_submit);
-        btnSubmit.setOnClickListener(new View.OnClickListener() {
+        CrmEntities.Annotations.showAddNoteDialog(context, opportunity.opportunityid, new MyInterfaces.YesNoResult() {
             @Override
-            public void onClick(View view) {
-                dialog.dismiss();
+            public void onYes(@Nullable Object object) {
+                Log.i(TAG, "onYes ");
+            }
 
-                CrmEntities.Annotations.Annotation newNote = new CrmEntities.Annotations.Annotation();
-                newNote.subject = "MileBuddy added note";
-                newNote.objectEntityName = "opportunity";
-                newNote.objectid = opportunity.opportunityid + "fuckyou";
-                newNote.notetext = noteBody.getText().toString();
-
-                // Cache the pending note text in case the operation fails
-                pendingNotetext = noteBody.getText().toString();
-
-                final MyProgressDialog addEditNoteProgressDialog = new MyProgressDialog(context, "Working...");
-                addEditNoteProgressDialog.show();
-
-                newNote.submit(context, new MyInterfaces.YesNoResult() {
-                    @Override
-                    public void onYes(@Nullable Object object) {
-                        Toast.makeText(context, "Note was added/edited!", Toast.LENGTH_SHORT).show();
-                        addEditNoteProgressDialog.dismiss();
-                        // Create result example (note the quotes): "1cd8d874-3412-eb11-810f-005056a36b9b"
-                        // Update result example: {"WasSuccessful":true,"ResponseMessage":"Existing record was updated!","Guid":"00000000-0000-0000-0000-000000000000","WasCreated":false}
-
-                        // Try to create an UpdateResponse object with the returned result.  If it
-                        // succeeds then we know that it was an update operation that was executed.
-                        // If it fails then it was almost certainly a successful create operation
-                        // (create returns just the GUID of the new note)
-                        CrmEntities.UpdateResponse updateResponse = new CrmEntities.UpdateResponse(object.toString());
-                        if (updateResponse.wasSuccessful) {
-                            Log.i(TAG, "onYes Note was updated!");
-                            Toast.makeText(context, "Note was created.", Toast.LENGTH_SHORT).show();
-                            dialog.dismiss();
-                        }
-
-                        // Clear the cached note text
-                        pendingNotetext = null;
-                        if (pendingNotetext == null) {
-                            Log.i(TAG, "onYes Pending note cache was null'd");
-                        }
-
-                    }
-
-                    @Override
-                    public void onNo(@Nullable Object object) {
-                        Toast.makeText(context, "Failed to add/edit note!\n\nError: " + object.toString(), Toast.LENGTH_SHORT).show();
-                        addEditNoteProgressDialog.dismiss();
-                        dialog.show();
-                    }
-                });
+            @Override
+            public void onNo(@Nullable Object object) {
+                Log.i(TAG, "onNo ");
             }
         });
-        dialog.show();
-
-        // Check if there is a cached note from a failed note add
-        if (pendingNotetext != null) {
-            noteBody.setText(pendingNotetext);
-            Log.i(TAG, "showAddNoteDialog Found a cached note that must have been a failed note add.  Gon' use it!");
-        }
 
     }
 

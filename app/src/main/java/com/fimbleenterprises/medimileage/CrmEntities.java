@@ -1,10 +1,15 @@
 package com.fimbleenterprises.medimileage;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.location.Location;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.Containers.EntityContainer;
 import com.fimbleenterprises.medimileage.Containers.EntityField;
@@ -73,7 +78,64 @@ public class CrmEntities {
             });
         }
 
-        public static class Annotation {
+        public static void showAddNoteDialog(final Context context, final String objectid, final MyInterfaces.YesNoResult listener) {
+
+            final Dialog dialog = new Dialog(context);
+            dialog.setContentView(R.layout.dialog_note);
+            final EditText noteBody = dialog.findViewById(R.id.body_text);
+            dialog.setTitle("Note");
+            dialog.setCancelable(true);
+            Button btnSubmit = dialog.findViewById(R.id.button_submit);
+            btnSubmit.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    dialog.dismiss();
+
+                    CrmEntities.Annotations.Annotation newNote = new CrmEntities.Annotations.Annotation();
+                    newNote.subject = "MileBuddy added note";
+                    newNote.objectEntityName = "opportunity";
+                    newNote.objectid = objectid;
+                    newNote.notetext = noteBody.getText().toString();
+
+                    final MyProgressDialog addEditNoteProgressDialog = new MyProgressDialog(context, "Working...");
+                    addEditNoteProgressDialog.show();
+
+                    newNote.submit(context, new MyInterfaces.YesNoResult() {
+                        @Override
+                        public void onYes(@Nullable Object object) {
+                            Toast.makeText(context, "Note was added/edited!", Toast.LENGTH_SHORT).show();
+                            addEditNoteProgressDialog.dismiss();
+                            // Create result example (note the quotes): "1cd8d874-3412-eb11-810f-005056a36b9b"
+                            // Update result example: {"WasSuccessful":true,"ResponseMessage":"Existing record was updated!","Guid":"00000000-0000-0000-0000-000000000000","WasCreated":false}
+
+                            // Try to create an UpdateResponse object with the returned result.  If it
+                            // succeeds then we know that it was an update operation that was executed.
+                            // If it fails then it was almost certainly a successful create operation
+                            // (create returns just the GUID of the new note)
+                            CrmEntities.UpdateResponse updateResponse = new CrmEntities.UpdateResponse(object.toString());
+                            if (updateResponse.wasSuccessful) {
+                                Log.i(TAG, "onYes Note was updated!");
+                                Toast.makeText(context, "Note was created.", Toast.LENGTH_SHORT).show();
+                                dialog.dismiss();
+                                listener.onYes(updateResponse);
+                            }
+                        }
+
+                        @Override
+                        public void onNo(@Nullable Object object) {
+                            Toast.makeText(context, "Failed to add/edit note!\n\nError: " + object.toString(), Toast.LENGTH_SHORT).show();
+                            addEditNoteProgressDialog.dismiss();
+                            dialog.show();
+                            listener.onNo(object);
+                        }
+                    });
+                }
+            });
+            dialog.show();
+
+        }
+
+        public static class Annotation implements Parcelable {
 
             private static final String TAG = "Annotation";
 
@@ -205,18 +267,18 @@ public class CrmEntities {
                     e.printStackTrace();
                 }
                 try {
-                   if (!json.isNull("modifiedon")) {
-                       this.modifiedon = (new DateTime(json.getString("modifiedon")));
-                   }
+                    if (!json.isNull("modifiedon")) {
+                        this.modifiedon = (new DateTime(json.getString("modifiedon")));
+                    }
                 } catch (JSONException e) {
-                   e.printStackTrace();
+                    e.printStackTrace();
                 }
                 try {
-                   if (!json.isNull("createdon")) {
-                       this.createdon = (new DateTime(json.getString("createdon")));
-                   }
+                    if (!json.isNull("createdon")) {
+                        this.createdon = (new DateTime(json.getString("createdon")));
+                    }
                 } catch (JSONException e) {
-                   e.printStackTrace();
+                    e.printStackTrace();
                 }
             }
 
@@ -330,6 +392,115 @@ public class CrmEntities {
                 });
             }
 
+            public void removeAttachment(Context context, final MyInterfaces.YesNoResult listener) {
+                // Args:
+                // 0: Entity name
+                // 1: Entityid
+                // 2: AsUserid
+
+                /*
+                string guid = (string)value.Arguments[0].value;
+                entityName = (string)value.Arguments[1].value;
+                container = JsonConvert.DeserializeObject<EntityContainer>((string)value.Arguments[2].value);
+                asUserid = (string)value.Arguments[3].value;
+                */
+
+                EntityContainer container = new EntityContainer();
+                container.entityFields.add(new EntityField("documentbody", null));
+                container.entityFields.add(new EntityField("isdocument", "false"));
+                container.entityFields.add(new EntityField("filesize", "0"));
+                container.entityFields.add(new EntityField("filename", ""));
+                container.entityFields.add(new EntityField("mimetype", ""));
+
+                Requests.Request request = new Requests.Request(Function.UPDATE);
+                request.arguments.add(new Requests.Argument("entityid", this.annotationid));
+                request.arguments.add(new Requests.Argument("entityname", "annotation"));
+                request.arguments.add(new Requests.Argument("container", container.toJson()));
+                request.arguments.add(new Requests.Argument("asuserid", MediUser.getMe().systemuserid));
+
+                Crm crm = new Crm();
+                crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                        Log.i(TAG, "onSuccess Attachment was deleted (" + new String(responseBody) + ")");
+                        listener.onYes(new String(responseBody));
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                        Log.w(TAG, "onFailure: Failed to delete note (" + new String(responseBody) + ")");
+                        listener.onNo(error.getLocalizedMessage());
+                    }
+                });
+            }
+
+            public boolean belongsTo(String systemuserid) {
+                if (systemuserid == null || this.createdByValue == null) {
+                    return false;
+                }
+
+                return (systemuserid.equals(this.createdByValue));
+            }
+
+
+            protected Annotation(Parcel in) {
+                etag = in.readString();
+                annotationid = in.readString();
+                objectid = in.readString();
+                filename = in.readString();
+                documentBody = in.readString();
+                filesize = in.readInt();
+                isDocument = in.readByte() != 0x00;
+                subject = in.readString();
+                notetext = in.readString();
+                objectEntityName = in.readString();
+                createdon = (DateTime) in.readValue(DateTime.class.getClassLoader());
+                modifiedon = (DateTime) in.readValue(DateTime.class.getClassLoader());
+                modifiedByValue = in.readString();
+                modifedByName = in.readString();
+                createdByValue = in.readString();
+                createdByName = in.readString();
+                mimetype = in.readString();
+            }
+
+            @Override
+            public int describeContents() {
+                return 0;
+            }
+
+            @Override
+            public void writeToParcel(Parcel dest, int flags) {
+                dest.writeString(etag);
+                dest.writeString(annotationid);
+                dest.writeString(objectid);
+                dest.writeString(filename);
+                dest.writeString(documentBody);
+                dest.writeInt(filesize);
+                dest.writeByte((byte) (isDocument ? 0x01 : 0x00));
+                dest.writeString(subject);
+                dest.writeString(notetext);
+                dest.writeString(objectEntityName);
+                dest.writeValue(createdon);
+                dest.writeValue(modifiedon);
+                dest.writeString(modifiedByValue);
+                dest.writeString(modifedByName);
+                dest.writeString(createdByValue);
+                dest.writeString(createdByName);
+                dest.writeString(mimetype);
+            }
+
+            @SuppressWarnings("unused")
+            public static final Parcelable.Creator<Annotation> CREATOR = new Parcelable.Creator<Annotation>() {
+                @Override
+                public Annotation createFromParcel(Parcel in) {
+                    return new Annotation(in);
+                }
+
+                @Override
+                public Annotation[] newArray(int size) {
+                    return new Annotation[size];
+                }
+            };
         }
 
     }

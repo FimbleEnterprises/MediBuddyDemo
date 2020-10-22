@@ -369,6 +369,21 @@ public class MediUser implements Parcelable {
         return ds.getMe();
     }
 
+    /**
+     * Rudimentary evaluation that compares this object's systemuserid to the supplied systemuserid.
+     * @param systemuserid The guid to compare to.
+     * @return True if they match.
+     */
+    public boolean isMe(String systemuserid) {
+
+        // Don't fuck with nulls
+        if (this.systemuserid == null && systemuserid == null) {
+            return false;
+        }
+
+        return this.systemuserid.equals(systemuserid);
+    }
+
     protected MediUser(Parcel in) {
         etag = in.readString();
         territoryname = in.readString();

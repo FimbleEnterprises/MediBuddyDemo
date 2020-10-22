@@ -1722,6 +1722,8 @@ public abstract class Helpers {
 
     public static class Files {
 
+        private static final String TAG = "Files";
+
         /**
          * Encodes a file to a base64 string.
          * @param filePath The file to encode.
@@ -1783,7 +1785,21 @@ public abstract class Helpers {
             }
         }
 
-        private static final String TAG = "Files";
+        public static void shareFile(Context context, File file) {
+            Intent intentShareFile = new Intent(Intent.ACTION_SEND);
+            File fileWithinMyDir = file;
+
+            if(fileWithinMyDir.exists()) {
+                intentShareFile.setType("application/pdf");
+                intentShareFile.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://"+file));
+
+                intentShareFile.putExtra(Intent.EXTRA_SUBJECT,
+                        "Sharing File...");
+                intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...");
+
+                context.startActivity(Intent.createChooser(intentShareFile, "Share File"));
+            }
+        }
 
         public static boolean copy(File source, File dest) {
             try {

@@ -8,6 +8,7 @@ class BasicObject {
     int iconResource = -1;
     boolean isSelected = false;
     boolean isHeader = false;
+    boolean isEmpty = false;
 
     public BasicObject() {  }
 

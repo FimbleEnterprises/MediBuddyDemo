@@ -76,6 +76,24 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
             holder.txtSubtext.setVisibility(View.VISIBLE);
         }
 
+        // Hide/show fields based on whether this object is being used as a header/title row
+        holder.txtSubtext.setVisibility(object.isHeader ? View.GONE : View.VISIBLE);
+        holder.img.setVisibility(object.isHeader ? View.GONE : View.VISIBLE);
+        if (object.isHeader) {
+            holder.txtMainText.setTypeface(null, Typeface.BOLD);
+        } else {
+            holder.txtMainText.setTypeface(null, Typeface.NORMAL);
+        }
+
+        if (object.isEmpty) {
+            holder.txtMiddleText.setTypeface(null, Typeface.NORMAL);
+            holder.txtMiddleText.setText(object.title);
+            holder.txtMiddleText.setVisibility(View.VISIBLE);
+            holder.img.setVisibility(View.INVISIBLE);
+            holder.txtMainText.setVisibility(View.INVISIBLE);
+            holder.txtSubtext.setVisibility(View.INVISIBLE);
+        }
+
     }
 
     // total number of rows
@@ -87,6 +105,7 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
     // stores and recycles views as they are scrolled off screen
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
         TextView txtMainText;
+        TextView txtMiddleText;
         TextView txtSubtext;
         RelativeLayout layout;
         ImageView img;
@@ -96,6 +115,7 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
             super(itemView);
             layout = itemView.findViewById(R.id.layout);
             txtMainText = itemView.findViewById(R.id.textView_BasicObjectMainText);
+            txtMiddleText = itemView.findViewById(R.id.textView_BasicObjectRowMiddleText);
             txtSubtext = itemView.findViewById(R.id.textView_BasicObjectRowSubtext);
             img = itemView.findViewById(R.id.imageView_BasicObjectIcon);
 

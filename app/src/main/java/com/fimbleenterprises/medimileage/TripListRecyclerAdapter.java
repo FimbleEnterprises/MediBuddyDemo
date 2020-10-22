@@ -142,7 +142,7 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
             holder.txtMainText.setText(trip.getTitle() + " - " + Helpers.DatesAndTimes.getPrettyDate
                     (trip.getDateTime()));
             holder.chkbxSelectTrip.setVisibility((isInEditMode) ? View.VISIBLE : View.INVISIBLE);
-            try {
+            /*try {
                 if (options.showOpportunityOptions()) {
                     if (trip.hasNearbyAssociations == 1) {
                         holder.imgHasAssociations.setImageResource(R.drawable.exclamation_blue_64);
@@ -154,7 +154,7 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-            }
+            }*/
         }
 
         holder.itemView.setLongClickable(true);

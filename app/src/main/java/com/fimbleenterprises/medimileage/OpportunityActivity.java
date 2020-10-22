@@ -22,6 +22,9 @@ import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.CrmEntities.Annotations.Annotation;
 import com.fimbleenterprises.medimileage.CrmEntities.Opportunities.Opportunity;
+import com.jaiselrahman.filepicker.activity.FilePickerActivity;
+import com.jaiselrahman.filepicker.config.Configurations;
+import com.jaiselrahman.filepicker.model.MediaFile;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.scwang.smart.refresh.layout.SmartRefreshLayout;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
@@ -31,6 +34,7 @@ import org.joda.time.DateTime;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -39,11 +43,15 @@ import java.util.ArrayList;
 public class OpportunityActivity extends AppCompatActivity {
     private static final String TAG = "OpportunityActivity";
     public static final String OPPORTUNITY_TAG = "OPPORTUNITY_TAG";
+    private static final int FILE_REQUEST_CODE = 88;
+    private static final String ATTACHMENT_ANNOTATION = "ATTACHMENT_ANNOTATION";
     public Opportunity opportunity;
     NonScrollRecyclerView notesListView;
     AnnotationsAdapter adapterNotes;
     String pendingNote;
     Context context;
+    Annotation newImageBaseAnnotation;
+    Dialog dialogNoteOptions;
 
     // Fields
     TextView txtAccount;
@@ -95,6 +103,44 @@ public class OpportunityActivity extends AppCompatActivity {
         Helpers.Files.AttachmentTempFiles.clear();
 
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == FILE_REQUEST_CODE
+                && resultCode == RESULT_OK
+                && data != null) {
+            List<MediaFile> mediaFiles = data.<MediaFile>getParcelableArrayListExtra(FilePickerActivity.MEDIA_FILES);
+            if(mediaFiles != null && newImageBaseAnnotation != null) {
+                MediaFile file = mediaFiles.get(0);
+                newImageBaseAnnotation.documentBody = Helpers.Files.base64Encode(file.getPath());
+                newImageBaseAnnotation.filename = file.getName();
+                newImageBaseAnnotation.mimetype = file.getMimeType();
+                newImageBaseAnnotation.isDocument = true;
+                newImageBaseAnnotation.submit(context, new MyInterfaces.YesNoResult() {
+                    @Override
+                    public void onYes(@Nullable Object object) {
+                        try {
+                            dialogNoteOptions.dismiss();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        getOpportunityNotes();
+                    }
+
+                    @Override
+                    public void onNo(@Nullable Object object) {
+                        Log.w(TAG, "onNo: ");
+                    }
+                });
+                Log.i(TAG, "onActivityResult ");
+            } else {
+                Toast.makeText(context, "Image not selected", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+     }
 
     void populateOppDetails() {
 
@@ -234,7 +280,14 @@ public class OpportunityActivity extends AppCompatActivity {
                     @Override
                     public void onItemClick(View view, int position) {
                         Annotation note = annotations.list.get(position);
-                        showNoteOptions(note);
+
+                        // If the note belongs to the user or if it has an attachment, show the note
+                        // options dialog
+                        if (note.belongsTo(MediUser.getMe().systemuserid) || (note.isDocument) ) {
+                            showNoteOptions(note);
+                        } else {
+                            Toast.makeText(context, "No", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 });
                 refreshLayout.finishRefresh();
@@ -254,62 +307,27 @@ public class OpportunityActivity extends AppCompatActivity {
     }
     
     void showNoteOptions(final Annotation clickedNote) {
-        final Dialog dialog = new Dialog(context);
+        dialogNoteOptions = new Dialog(context);
         final Context c = context;
-        dialog.setContentView(R.layout.dialog_note_options);
-        LinearLayout layoutAttachments = dialog.findViewById(R.id.layout_attachments_container);
-        layoutAttachments.setVisibility(clickedNote.isDocument ? View.VISIBLE : View.GONE);
-        TextView txtNoteYourNote = dialog.findViewById(R.id.txtNotYourNote);
-        Button btnEdit = dialog.findViewById(R.id.btn_edit_note);
-        Button btnViewAttachment = dialog.findViewById(R.id.btnViewAttachment);
-        btnViewAttachment.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (!Helpers.Files.AttachmentTempFiles.fileExists(clickedNote.filename)) {
-                    final MyProgressDialog getNoteProgress = new MyProgressDialog(context, "Retrieving attachment...");
-                    getNoteProgress.show();
+        dialogNoteOptions.setContentView(R.layout.dialog_note_options);
+        LinearLayout layoutAttachments = dialogNoteOptions.findViewById(R.id.layout_attachments_container);
+        // layoutAttachments.setVisibility(clickedNote.isDocument ? View.VISIBLE : View.GONE);
+        TextView txtNoteYourNote = dialogNoteOptions.findViewById(R.id.txtNotYourNote);
 
-                    CrmEntities.Annotations.getAnnotationFromCrm(clickedNote.annotationid,
-                    true, new AsyncHttpResponseHandler() {
-                        @Override
-                        public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                            String response = new String(responseBody);
-                            CrmEntities.Annotations annotations = new CrmEntities.Annotations(response);
-                            Annotation annotation;
-                            if (annotations.list.size() > 0) {
-                                annotation = annotations.list.get(0);
-                                Log.i(TAG, "onSuccess Annotation retrieved: " + annotation.toString());
-                                getNoteProgress.dismiss();
 
-                                File attachment = Helpers.Files.base64Decode(annotation.documentBody,
-                                        new File(Helpers.Files.AttachmentTempFiles.getDirectory() + File.separator +
-                                                annotation.filename));
-                                Helpers.Files.openFile(attachment, annotation.mimetype);
-                            }
-                        }
-
-                        @Override
-                        public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                            Toast.makeText(context, "Failed to retrieve note!\nError: " + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-                            getNoteProgress.dismiss();
-                        }
-                    });
-                } else {
-                    Helpers.Files.openFile(Helpers.Files.AttachmentTempFiles.retrieve(clickedNote.filename), clickedNote.mimetype);
-                }
-            }
-        });
+        Button btnEdit = dialogNoteOptions.findViewById(R.id.btn_edit_note);
         btnEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 showAddEditNote(clickedNote);
-                dialog.dismiss();
+                dialogNoteOptions.dismiss();
             }
         });
-        Button btnDelete = dialog.findViewById(R.id.btn_delete_note);
+        Button btnDelete = dialogNoteOptions.findViewById(R.id.btn_delete_note);
         btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 final MyProgressDialog deleteProgressDialog = new MyProgressDialog(context, "Deleting note...");
                 deleteProgressDialog.show();
                 clickedNote.delete(context, new MyInterfaces.YesNoResult() {
@@ -326,14 +344,155 @@ public class OpportunityActivity extends AppCompatActivity {
                         deleteProgressDialog.dismiss();
                     }
                 });
-                dialog.dismiss();
+                dialogNoteOptions.dismiss();
+            }
+        });
+        Button btnViewAttachment = dialogNoteOptions.findViewById(R.id.btnViewAttachment);
+        btnViewAttachment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (!Helpers.Files.AttachmentTempFiles.fileExists(clickedNote.filename)) {
+                    final MyProgressDialog getNoteProgress = new MyProgressDialog(context, "Retrieving attachment...");
+                    getNoteProgress.show();
+
+                    CrmEntities.Annotations.getAnnotationFromCrm(clickedNote.annotationid,
+                            true, new AsyncHttpResponseHandler() {
+                                @Override
+                                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                                    String response = new String(responseBody);
+                                    CrmEntities.Annotations annotations = new CrmEntities.Annotations(response);
+                                    Annotation annotation;
+                                    if (annotations.list.size() > 0) {
+                                        annotation = annotations.list.get(0);
+                                        Log.i(TAG, "onSuccess Annotation retrieved: " + annotation.toString());
+                                        getNoteProgress.dismiss();
+
+                                        File attachment = Helpers.Files.base64Decode(annotation.documentBody,
+                                                new File(Helpers.Files.AttachmentTempFiles.getDirectory() + File.separator +
+                                                        annotation.filename));
+                                        Helpers.Files.openFile(attachment, annotation.mimetype);
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                                    Toast.makeText(context, "Failed to retrieve note!\nError: " + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                                    getNoteProgress.dismiss();
+                                }
+                            });
+                } else {
+                    Helpers.Files.openFile(Helpers.Files.AttachmentTempFiles.retrieve(clickedNote.filename), clickedNote.mimetype);
+                }
+            }
+        });
+        Button btnShareAttachment = dialogNoteOptions.findViewById(R.id.btn_share_attachment);
+        btnShareAttachment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (!Helpers.Files.AttachmentTempFiles.fileExists(clickedNote.filename)) {
+                    final MyProgressDialog getNoteProgress = new MyProgressDialog(context, "Retrieving attachment...");
+                    getNoteProgress.show();
+
+                    CrmEntities.Annotations.getAnnotationFromCrm(clickedNote.annotationid,
+                            true, new AsyncHttpResponseHandler() {
+                                @Override
+                                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                                    String response = new String(responseBody);
+                                    CrmEntities.Annotations annotations = new CrmEntities.Annotations(response);
+                                    Annotation annotation;
+                                    if (annotations.list.size() > 0) {
+                                        annotation = annotations.list.get(0);
+                                        Log.i(TAG, "onSuccess Annotation retrieved: " + annotation.toString());
+                                        getNoteProgress.dismiss();
+
+                                        File attachment = Helpers.Files.base64Decode(annotation.documentBody,
+                                                new File(Helpers.Files.AttachmentTempFiles.getDirectory() + File.separator +
+                                                        annotation.filename));
+                                        Helpers.Files.shareFile(context, attachment);
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                                    Toast.makeText(context, "Failed to retrieve note!\nError: " + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                                    getNoteProgress.dismiss();
+                                }
+                            });
+                } else {
+                    Helpers.Files.openFile(Helpers.Files.AttachmentTempFiles.retrieve(clickedNote.filename), clickedNote.mimetype);
+                }
+            }
+        });
+        Button btnRemoveAttachment = dialogNoteOptions.findViewById(R.id.btn_remove_attachment);
+        btnRemoveAttachment.setEnabled(MediUser.getMe().isMe(clickedNote.createdByValue));
+        btnRemoveAttachment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogNoteOptions.dismiss();
+                clickedNote.isDocument = false;
+                clickedNote.filename = null;
+                clickedNote.filesize = 0;
+                clickedNote.documentBody = null;
+                adapterNotes.notifyDataSetChanged();
+                Toast.makeText(context, "Updating server...", Toast.LENGTH_SHORT).show();
+                clickedNote.removeAttachment(context, new MyInterfaces.YesNoResult() {
+                    @Override
+                    public void onYes(@Nullable Object object) {
+                        Log.i(TAG, "onYes ");
+                        Toast.makeText(context, "Attachment was removed!", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onNo(@Nullable Object object) {
+                        Log.i(TAG, "onNo ");
+                        Toast.makeText(context, "Failed to remove attachment\nError: " + object.toString(), Toast.LENGTH_SHORT).show();
+                        getOpportunityNotes();
+                    }
+                });
+            }
+        });
+        Button btnAddAttachment = dialogNoteOptions.findViewById(R.id.btn_add_attachment);
+        btnAddAttachment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.i(TAG, "onClick ");
+                Intent intent = new Intent(context, FilePickerActivity.class);
+                intent.putExtra(FilePickerActivity.CONFIGS, new Configurations.Builder()
+                        .setCheckPermission(true)
+                        .setShowImages(true)
+                        .enableImageCapture(true)
+                        .setMaxSelection(1)
+                        .setSkipZeroSizeFiles(true)
+                        .build());
+                startActivityForResult(intent, FILE_REQUEST_CODE);
+                newImageBaseAnnotation = clickedNote;
             }
         });
 
-        dialog.setTitle("");
-        dialog.setCancelable(true);
-        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        dialog.show();
+        // show/hide/enable attachment buttons
+        if (clickedNote.belongsTo(MediUser.getMe().systemuserid)) {
+            // belongs to me and has attachment
+            if (clickedNote.isDocument) {
+                btnAddAttachment.setEnabled(false);
+                btnRemoveAttachment.setEnabled(true);
+            } else {
+                // belongs to me but no attachment
+                btnAddAttachment.setEnabled(true);
+                btnRemoveAttachment.setEnabled(false);
+            }
+        } else {
+            // Doesn't belong to me
+            btnAddAttachment.setEnabled(false);
+            btnRemoveAttachment.setEnabled(false);
+        }
+
+        btnShareAttachment.setEnabled(clickedNote.isDocument);
+        btnViewAttachment.setEnabled(clickedNote.isDocument);
+
+        dialogNoteOptions.setTitle("");
+        dialogNoteOptions.setCancelable(true);
+        dialogNoteOptions.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        dialogNoteOptions.show();
 
         // See if the current user is the author of the clicked note
         btnEdit.setEnabled(clickedNote.createdByValue.equals(MediUser.getMe().systemuserid) ? true : false);
