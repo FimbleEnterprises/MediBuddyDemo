@@ -2,17 +2,15 @@ package com.fimbleenterprises.medimileage;
 
 import android.content.Context;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestHandle;
 import com.loopj.android.http.RequestParams;
 
-import java.io.UnsupportedEncodingException;
+import java.sql.Time;
 
 import cz.msebera.android.httpclient.Header;
-import cz.msebera.android.httpclient.client.HttpClient;
 import cz.msebera.android.httpclient.entity.StringEntity;
 
 public class Crm {
@@ -95,10 +93,65 @@ public class Crm {
                     }
 
                     @Override
+                    public void onProgress(long bytesWritten, long totalSize) {
+                        super.onProgress(bytesWritten, totalSize);
+                        responseHandler.onProgress(bytesWritten, totalSize);
+                        Log.d(TAG, "onProgress | bytesWritten: " + bytesWritten + ", totalSize: " + totalSize);
+                    }
+
+                    @Override
                     public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
                         Log.w(TAG, "onFailure: code: " + statusCode);
                         responseHandler.onFailure(statusCode, headers, responseBody, error);
                     }
+                });
+    }
+
+    public RequestHandle makeCrmRequest(Context context, Requests.Request request, Timeout timeout,
+                                        final MyInterfaces.CrmRequestListener listener) {
+
+        String argString = "";
+        for (Requests.Argument arg : request.arguments) {
+            argString = arg.toString() + "\n";
+        }
+
+        Log.i(TAG, "makeCrmRequest: Request function: " + request.function + " Request arguments: " + argString);
+
+        StringEntity payload = null;
+        try {
+            payload = new StringEntity(request.toJson());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (timeout == Timeout.LONG) {
+            client.setTimeout(1000000);
+        } else if (timeout == Timeout.SHORT){
+            client.setTimeout(10000);
+        }
+
+        return client.post(context, options.getServerBaseUrl(), payload, "application/json",
+                new AsyncHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                        Log.i(TAG, "onSuccess : code = " + statusCode);
+                        listener.onComplete(new String(responseBody));
+                    }
+
+                    @Override
+                    public void onProgress(long bytesWritten, long totalSize) {
+                        super.onProgress(bytesWritten, totalSize);
+                        AsyncProgress proggy = new AsyncProgress(bytesWritten, totalSize);
+                        listener.onProgress(proggy);
+                        Log.d(TAG, "onProgress | KB written: " + proggy.getCompletedKb());
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                        Log.w(TAG, "onFailure: code: " + statusCode);
+                        listener.onFail(error.getLocalizedMessage());
+                    }
+
                 });
     }
 
@@ -113,6 +166,54 @@ public class Crm {
     private static String getAbsoluteUrl(String relativeUrl) {
         MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
         return options.getServerBaseUrl() + relativeUrl;
+    }
+
+    public enum Timeout {
+        SHORT, LONG
+    }
+
+    public class AsyncProgress {
+        private double bytesWritten = 1;
+        private double totalSize = 1;
+
+        public AsyncProgress(double bytesWritten, double totalSize) {
+
+            try {
+                this.bytesWritten = bytesWritten;
+                this.totalSize = totalSize;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public double getCompletedBytes() {
+            try {
+                return this.bytesWritten;
+            } catch (Exception e) {
+                Log.w(TAG, "getCompletedBytes: " + e.getLocalizedMessage());
+                return -1;
+            }
+        }
+
+        public double getCompletedKb() {
+            try {
+                double completed = Helpers.Numbers.formatAsTwoDecimalPointNumber(Helpers.Files.convertBytesToKb(this.bytesWritten));
+                return completed;
+            } catch (Exception e) {
+                Log.w(TAG, "getCompletedBytes: " + e.getLocalizedMessage());
+                return -1;
+            }
+        }
+
+        public double getCompletedMb() {
+            try {
+                double completed = Helpers.Numbers.formatAsTwoDecimalPointNumber(Helpers.Files.convertBytesToMb(this.bytesWritten));
+                return completed;
+            } catch (Exception e) {
+                Log.w(TAG, "getCompletedBytes: " + e.getLocalizedMessage());
+                return -1;
+            }
+        }
     }
 
 }

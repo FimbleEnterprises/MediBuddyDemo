@@ -92,4 +92,10 @@ public class MyInterfaces {
         void onFailure();
         void onError(String msg, Throwable exception);
     }
+
+    public interface CrmRequestListener {
+        void onComplete(Object result);
+        void onProgress(Crm.AsyncProgress progress);
+        void onFail(String error);
+    }
 }

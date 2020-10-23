@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -1820,7 +1821,15 @@ public abstract class Helpers {
             return total / (1024);
         }
 
+        public static double convertBytesToKb(double total) {
+            return total / (1024);
+        }
+
         public static long convertBytesToMb(long total) {
+            return total / (1024 * 1024);
+        }
+
+        public static double convertBytesToMb(double total) {
             return total / (1024 * 1024);
         }
 
@@ -1928,6 +1937,20 @@ public abstract class Helpers {
             } else {
                 Log.i(TAG, "makeAppDirectory: App directory exists");
             }
+        }
+
+        public static String getMimeType(Context context, Uri uri) {
+            String mimeType = null;
+            if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
+                ContentResolver cr = context.getContentResolver();
+                mimeType = cr.getType(uri);
+            } else {
+                String fileExtension = MimeTypeMap.getFileExtensionFromUrl(uri
+                        .toString());
+                mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(
+                        fileExtension.toLowerCase());
+            }
+            return mimeType;
         }
 
         /*

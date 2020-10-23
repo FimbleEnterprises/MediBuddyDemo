@@ -3,13 +3,14 @@ package com.fimbleenterprises.medimileage;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -20,12 +21,14 @@ import com.fimbleenterprises.medimileage.CrmEntities.Opportunities.Opportunity;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
 import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
-import org.joda.time.DateTime;
-
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -52,6 +55,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
     MySettingsHelper options;
     String baseMsg;
     String pendingNotetext;
+    boolean isLaunchedFromExternalApp = false;
 
 
     @Override
@@ -65,7 +69,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         setContentView(R.layout.activity_fullscreen_choose_opportunity);
         listView = findViewById(R.id.rvBasicObjects);
 
-        txtAbout = findViewById(R.id.txtAboutActivity);
+        txtAbout = findViewById(R.id.txtDescription);
         txtAbout.setText(options.isExplicitMode() ? R.string.opportunities_about_this_list_explicit :
                 R.string.opportunities_about_this_list);
 
@@ -81,14 +85,114 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
             }
         });
 
-        Intent intent = getIntent();
-        if (intent != null) {
-            fulltrip = intent.getParcelableExtra(FULLTRIP);
+        Intent receivedIntent = getIntent();
+        String receivedAction = receivedIntent.getAction();
+
+        if (receivedIntent != null) {
+            isLaunchedFromExternalApp = (receivedAction != null && receivedAction.equals(Intent.ACTION_SEND));
+            fulltrip = receivedIntent.getParcelableExtra(FULLTRIP);
             this.setTitle("Choose opportunity");
             getOpportunities();
         } else {
             finish();
         }
+
+
+        this.setTitle("Choose opportunity");
+        getOpportunities();
+    }
+
+    private CrmEntities.Annotations.Annotation buildAnnotation(Opportunity opportunity) {
+        Intent receiverdIntent = getIntent();
+        String receivedAction = receiverdIntent.getAction();
+        String receivedType = receiverdIntent.getType();
+
+        if (receivedAction.equals(Intent.ACTION_SEND)) {
+
+            // check mime type
+            if (receivedType.startsWith("text/")) {
+
+                return null;
+            }
+
+            else if (receivedType.startsWith("image/")) {
+
+
+
+                Uri receiveUri = (Uri) receiverdIntent
+                        .getParcelableExtra(Intent.EXTRA_STREAM);
+
+                final File file = new File(Helpers.Files.AttachmentTempFiles.getDirectory(), "test.jpg");
+
+                try {
+                    InputStream in =  getContentResolver().openInputStream(receiveUri);
+                    OutputStream out = new FileOutputStream(file);
+                    byte[] buf = new byte[1024];
+                    int len;
+                    while((len=in.read(buf))>0){
+                        out.write(buf,0,len);
+                    }
+                    out.close();
+                    in.close();
+
+                final String mimetype = Helpers.Files.getMimeType(this, receiveUri);
+
+                final CrmEntities.Annotations.Annotation annotation = new CrmEntities.Annotations.Annotation();
+                annotation.objectid = opportunity.opportunityid;
+                annotation.subject = "Shared from MileBuddy";
+                annotation.notetext = "I added this note from MileBuddy!";
+                annotation.submit(this, new MyInterfaces.CrmRequestListener() {
+                    @Override
+                    public void onComplete(Object result) {
+                        Toast.makeText(context, "Created!  Adding attachment...", Toast.LENGTH_SHORT).show();
+                        CrmEntities.Annotations.Annotation annotation1 = new CrmEntities.Annotations.Annotation();
+                        annotation1.annotationid = new CrmEntities.UpdateResponse(result.toString()).guid;
+                        annotation1.isDocument = true;
+                        annotation1.mimetype = mimetype;
+                        annotation1.filename = "someshit.jpg";
+                        annotation1.documentBody = Helpers.Files.base64Encode(file.getPath());
+                        annotation1.submit(context, new MyInterfaces.CrmRequestListener() {
+                            @Override
+                            public void onComplete(Object result) {
+                                Log.i(TAG, "onComplete ");
+                            }
+
+                            @Override
+                            public void onProgress(Crm.AsyncProgress progress) {
+
+                            }
+
+                            @Override
+                            public void onFail(String error) {
+                                Log.i(TAG, "onFail ");
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onProgress(Crm.AsyncProgress progress) {
+                        Log.i(TAG, "onProgress " + progress.getCompletedKb());
+                    }
+
+                    @Override
+                    public void onFail(String error) {
+                        Log.w(TAG, "onFail: " + error);
+                        Toast.makeText(context, "Failed!\n" + error, Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                return annotation;
+
+                }  catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+        } else if (receivedAction.equals(Intent.ACTION_MAIN)) {
+            return null;
+        }
+
+        return null;
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -110,11 +214,15 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
                 dialog.show();
             }
 
-
-
             @Override
             protected String doInBackground(String... strings) {
-                objects = buildOpportunityList();
+
+                if (isLaunchedFromExternalApp) {
+                    objects = buildOpportunityListBasedOnExternalApp();
+                } else {
+                    objects = buildOpportunityListBasedOnTrip();
+                }
+
                 for (BasicObject o : objects) {
                     o.iconResource = (o.isHeader ? -1 : R.drawable.about_icon_black_48x48);
                 }
@@ -152,7 +260,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
 
     }
 
-    ArrayList<BasicObject> buildOpportunityList() {
+    ArrayList<BasicObject> buildOpportunityListBasedOnTrip() {
         if (objects == null) {
             objects = new ArrayList<>();
         }
@@ -213,7 +321,35 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         return objects;
     }
 
+    ArrayList<BasicObject> buildOpportunityListBasedOnExternalApp() {
+        if (objects == null) {
+            objects = new ArrayList<>();
+        }
+        objects.clear();
+
+        MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+        CrmEntities.CrmAddresses accountAddresses = options.getAllSavedCrmAddresses();
+        CrmEntities.Opportunities savedOpportunities = options.getSavedOpportunities();
+
+        for (Opportunity opp : savedOpportunities.list) {
+            BasicObject obj = new BasicObject(opp.name, opp.accountname, opp);
+            objects.add(obj);
+        }
+
+        return objects;
+    }
+
     void populateOpportunities() {
+
+        TextView txtMain = findViewById(R.id.txtDescription);
+
+        if (isLaunchedFromExternalApp) {
+            if (options.isExplicitMode()) {
+                txtMain.setText(getString(R.string.opportunity_picker_main_text_external_launch_explicit));
+            } else {
+                txtMain.setText(getString(R.string.opportunity_picker_main_text_external_launch));
+            }
+        }
 
         adapter = new BasicObjectRecyclerAdapter(this, objects);
         listView.setAdapter(adapter);
@@ -226,7 +362,12 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
                 Log.i(TAG, "onItemClick Position: " + position);
                 if (!objects.get(position).isEmpty) {
                     Opportunity opportunity = (Opportunity) objects.get(position).object;
-                    showOppOptions(opportunity);
+                    if (!isLaunchedFromExternalApp) {
+                        showOppOptions(opportunity);
+                    } else {
+                        Toast.makeText(context, "Uploading..." + opportunity.name, Toast.LENGTH_SHORT).show();
+                        buildAnnotation(opportunity);
+                    }
                 }
             }
         });
@@ -323,15 +464,20 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
 
     void showAddNoteDialog(final Opportunity opportunity) {
 
-        CrmEntities.Annotations.showAddNoteDialog(context, opportunity.opportunityid, new MyInterfaces.YesNoResult() {
+        CrmEntities.Annotations.showAddNoteDialog(context, opportunity.opportunityid, new MyInterfaces.CrmRequestListener() {
             @Override
-            public void onYes(@Nullable Object object) {
-                Log.i(TAG, "onYes ");
+            public void onComplete(Object result) {
+                Log.i(TAG, "onComplete ");
             }
 
             @Override
-            public void onNo(@Nullable Object object) {
-                Log.i(TAG, "onNo ");
+            public void onProgress(Crm.AsyncProgress progress) {
+                Log.i(TAG, "onProgress ");
+            }
+
+            @Override
+            public void onFail(String error) {
+                Log.i(TAG, "onFail ");
             }
         });
 

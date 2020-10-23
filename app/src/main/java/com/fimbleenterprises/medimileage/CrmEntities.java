@@ -58,27 +58,32 @@ public class CrmEntities {
          * @param includeAttachment Whether or not to retrieve the attachment if applicable
          * @param listener A callback.
         */
-        public static void getAnnotationFromCrm(String annotationid, boolean includeAttachment, final AsyncHttpResponseHandler listener) {
+        public static void getAnnotationFromCrm(String annotationid, boolean includeAttachment, final MyInterfaces.CrmRequestListener listener) {
             String query = Queries.Annotations.getAnnotation(annotationid, includeAttachment);
             Crm crm = new Crm();
 
             Requests.Request request = new Requests.Request(Function.GET);
             request.arguments.add(new Requests.Argument("query", query));
 
-            crm.makeCrmRequest(MyApp.getAppContext(), request, new AsyncHttpResponseHandler() {
+            crm.makeCrmRequest(MyApp.getAppContext(), request, Crm.Timeout.LONG, new MyInterfaces.CrmRequestListener() {
                 @Override
-                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                    listener.onSuccess(statusCode, headers, responseBody);
+                public void onComplete(Object result) {
+                    listener.onComplete(result);
                 }
 
                 @Override
-                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                    listener.onFailure(statusCode, headers, responseBody, error);
+                public void onProgress(Crm.AsyncProgress progress) {
+                    listener.onProgress(progress);
+                }
+
+                @Override
+                public void onFail(String error) {
+                    listener.onFail(error);
                 }
             });
         }
 
-        public static void showAddNoteDialog(final Context context, final String objectid, final MyInterfaces.YesNoResult listener) {
+        public static void showAddNoteDialog(final Context context, final String objectid, final MyInterfaces.CrmRequestListener listener) {
 
             final Dialog dialog = new Dialog(context);
             dialog.setContentView(R.layout.dialog_note);
@@ -100,9 +105,9 @@ public class CrmEntities {
                     final MyProgressDialog addEditNoteProgressDialog = new MyProgressDialog(context, "Working...");
                     addEditNoteProgressDialog.show();
 
-                    newNote.submit(context, new MyInterfaces.YesNoResult() {
+                    newNote.submit(context, new MyInterfaces.CrmRequestListener() {
                         @Override
-                        public void onYes(@Nullable Object object) {
+                        public void onComplete(Object result) {
                             Toast.makeText(context, "Note was added/edited!", Toast.LENGTH_SHORT).show();
                             addEditNoteProgressDialog.dismiss();
                             // Create result example (note the quotes): "1cd8d874-3412-eb11-810f-005056a36b9b"
@@ -112,21 +117,26 @@ public class CrmEntities {
                             // succeeds then we know that it was an update operation that was executed.
                             // If it fails then it was almost certainly a successful create operation
                             // (create returns just the GUID of the new note)
-                            CrmEntities.UpdateResponse updateResponse = new CrmEntities.UpdateResponse(object.toString());
+                            CrmEntities.UpdateResponse updateResponse = new CrmEntities.UpdateResponse(result.toString());
                             if (updateResponse.wasSuccessful) {
                                 Log.i(TAG, "onYes Note was updated!");
                                 Toast.makeText(context, "Note was created.", Toast.LENGTH_SHORT).show();
                                 dialog.dismiss();
-                                listener.onYes(updateResponse);
+                                listener.onComplete(updateResponse);
                             }
                         }
 
                         @Override
-                        public void onNo(@Nullable Object object) {
-                            Toast.makeText(context, "Failed to add/edit note!\n\nError: " + object.toString(), Toast.LENGTH_SHORT).show();
+                        public void onProgress(Crm.AsyncProgress progress) {
+                            listener.onProgress(progress);
+                        }
+
+                        @Override
+                        public void onFail(String error) {
+                            Toast.makeText(context, "Failed to add/edit note!\n\nError: " + error.toString(), Toast.LENGTH_SHORT).show();
                             addEditNoteProgressDialog.dismiss();
                             dialog.show();
-                            listener.onNo(object);
+                            listener.onFail(error);
                         }
                     });
                 }
@@ -156,6 +166,7 @@ public class CrmEntities {
             public String createdByValue;
             public String createdByName;
             public String mimetype;
+            public boolean inUse = false;
 
             public Annotation() { }
 
@@ -293,7 +304,7 @@ public class CrmEntities {
              * @param context A context suitable to execute a Crm request.
              * @param listener A simple listener to handle the callback.
              */
-            public void submit(Context context, final MyInterfaces.YesNoResult listener) {
+            public void submit(Context context, final MyInterfaces.CrmRequestListener listener) {
 
                 if (this.annotationid == null) {
                     // Create new note
@@ -306,24 +317,28 @@ public class CrmEntities {
                     annotationContainer.subject = this.subject;
                     annotationContainer.objectidtypecode = "opportunity";
                     annotationContainer.objectid = objectid;
+                    if (this.documentBody != null) {
+                        annotationContainer.documentbody = this.documentBody;
+                    }
 
-                    Requests.Request request = new Requests.Request(Requests.Request.Function.CREATE_NOTE);
+                    final Requests.Request request = new Requests.Request(Requests.Request.Function.CREATE_NOTE);
                     request.arguments.add(new Requests.Argument("noteobject", annotationContainer.toJson()));
 
                     Crm crm = new Crm();
-                    crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+                    crm.makeCrmRequest(context, request, Crm.Timeout.LONG, new MyInterfaces.CrmRequestListener() {
                         @Override
-                        public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                            String response = new String(responseBody);
-                            Log.i(TAG, "onSuccess " + response);
-                            listener.onYes(response);
+                        public void onComplete(Object result) {
+                            listener.onComplete(result);
                         }
 
                         @Override
-                        public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                            Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
-                            listener.onNo(error.getLocalizedMessage());
-                            listener.onNo(error.getLocalizedMessage());
+                        public void onProgress(Crm.AsyncProgress progress) {
+                            listener.onProgress(progress);
+                        }
+
+                        @Override
+                        public void onFail(String error) {
+                            listener.onFail(error);
                         }
                     });
                 } else {
@@ -331,10 +346,10 @@ public class CrmEntities {
                     EntityContainer entityContainer = new EntityContainer();
                     entityContainer.entityFields.add(new EntityField("notetext", this.notetext));
                     entityContainer.entityFields.add(new EntityField("subject", this.subject));
-                    // entityContainer.entityFields.add(new EntityField("isdocument", Boolean.toString(this.isDocument)));
-                    // entityContainer.entityFields.add(new EntityField("documentbody", this.documentBody));
-                    // entityContainer.entityFields.add(new EntityField("mimetype", this.mimetype));
-                    // entityContainer.entityFields.add(new EntityField("filename", this.filename));
+                    entityContainer.entityFields.add(new EntityField("isdocument", Boolean.toString(this.isDocument)));
+                    entityContainer.entityFields.add(new EntityField("documentbody", this.documentBody));
+                    entityContainer.entityFields.add(new EntityField("mimetype", this.mimetype));
+                    entityContainer.entityFields.add(new EntityField("filename", this.filename));
 
                     // Update existing note
                     Requests.Request request = new Requests.Request(Function.UPDATE);
@@ -344,17 +359,22 @@ public class CrmEntities {
                     request.arguments.add(new Requests.Argument("asuserid", MediUser.getMe().systemuserid));
 
                     Crm crm = new Crm();
-                    crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
-                        @Override
-                        public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                            listener.onYes(new String(responseBody));
-                        }
+                    crm.makeCrmRequest(context, request, Crm.Timeout.LONG, new MyInterfaces.CrmRequestListener() {
+                                @Override
+                                public void onComplete(Object result) {
+                                    listener.onComplete(result);
+                                }
 
-                        @Override
-                        public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                            listener.onNo(error.getLocalizedMessage());
-                        }
-                    });
+                                @Override
+                                public void onProgress(Crm.AsyncProgress progress) {
+                                    listener.onProgress(progress);
+                                }
+
+                                @Override
+                                public void onFail(String error) {
+                                    listener.onFail(error);
+                                }
+                            });
 
                     /*
                     string guid = (string)value.Arguments[0].value;

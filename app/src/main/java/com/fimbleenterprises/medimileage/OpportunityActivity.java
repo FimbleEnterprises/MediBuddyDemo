@@ -94,7 +94,6 @@ public class OpportunityActivity extends AppCompatActivity {
         if (intent != null && intent.hasExtra(OPPORTUNITY_TAG)) {
             opportunity = intent.getParcelableExtra(OPPORTUNITY_TAG);
             Log.i(TAG, "onCreate Opportunity was passed (" + opportunity.name + ")");
-            Toast.makeText(this,  opportunity.name, Toast.LENGTH_SHORT).show();
             populateOppDetails();
             getOpportunityNotes();
         }
@@ -113,28 +112,51 @@ public class OpportunityActivity extends AppCompatActivity {
                 && data != null) {
             List<MediaFile> mediaFiles = data.<MediaFile>getParcelableArrayListExtra(FilePickerActivity.MEDIA_FILES);
             if(mediaFiles != null && newImageBaseAnnotation != null) {
-                MediaFile file = mediaFiles.get(0);
+                final MediaFile file = mediaFiles.get(0);
                 newImageBaseAnnotation.documentBody = Helpers.Files.base64Encode(file.getPath());
                 newImageBaseAnnotation.filename = file.getName();
                 newImageBaseAnnotation.mimetype = file.getMimeType();
                 newImageBaseAnnotation.isDocument = true;
-                newImageBaseAnnotation.submit(context, new MyInterfaces.YesNoResult() {
+                newImageBaseAnnotation.inUse = true;
+                adapterNotes.notifyDataSetChanged();
+                newImageBaseAnnotation.submit(context, new MyInterfaces.CrmRequestListener() {
                     @Override
-                    public void onYes(@Nullable Object object) {
+                    public void onComplete(Object result) {
                         try {
                             dialogNoteOptions.dismiss();
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                        getOpportunityNotes();
+                        newImageBaseAnnotation.inUse = false;
+                        newImageBaseAnnotation.filename = file.getName();
+                        adapterNotes.notifyDataSetChanged();
                     }
 
                     @Override
-                    public void onNo(@Nullable Object object) {
+                    public void onProgress(Crm.AsyncProgress progress) {
+                        // Upload percents are fucky.  Ignore!
+                    }
+
+                    @Override
+                    public void onFail(String error) {
                         Log.w(TAG, "onNo: ");
+                        newImageBaseAnnotation.isDocument = false;
+                        newImageBaseAnnotation.documentBody = null;
+                        newImageBaseAnnotation.filename = null;
+                        newImageBaseAnnotation.inUse = false;
+                        adapterNotes.notifyDataSetChanged();
+                        Toast.makeText(context, "Failed!\n" + error, Toast.LENGTH_SHORT).show();
                     }
                 });
                 Log.i(TAG, "onActivityResult ");
+
+                // While we wait for the attachment to be attached we can insert a placeholder
+                newImageBaseAnnotation.filename = "uploading attachment...";
+                newImageBaseAnnotation.documentBody = "";
+                newImageBaseAnnotation.isDocument = true;
+                newImageBaseAnnotation.inUse = true;
+                adapterNotes.notifyDataSetChanged();
+
             } else {
                 Toast.makeText(context, "Image not selected", Toast.LENGTH_SHORT).show();
             }
@@ -173,6 +195,8 @@ public class OpportunityActivity extends AppCompatActivity {
         txtDealType.setText(opportunity.dealTypePretty);
         txtCloseProb.setText(opportunity.probabilityPretty);
         txtBackground.setText(opportunity.currentSituation);
+
+        Helpers.Animations.pulseAnimation(btnAddNote);
     }
 
     void showAddEditNote(@Nullable final Annotation clickedNote) {
@@ -196,9 +220,9 @@ public class OpportunityActivity extends AppCompatActivity {
                 dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
                 addEditNoteProgressDialog.show();
 
-                clickedNote.submit(context, new MyInterfaces.YesNoResult() {
+                clickedNote.submit(context, new MyInterfaces.CrmRequestListener() {
                     @Override
-                    public void onYes(@Nullable Object object) {
+                    public void onComplete(Object result) {
                         Toast.makeText(context, "Note was added/edited!", Toast.LENGTH_SHORT).show();
                         addEditNoteProgressDialog.dismiss();
                         // Create result example (note the quotes): "1cd8d874-3412-eb11-810f-005056a36b9b"
@@ -208,7 +232,7 @@ public class OpportunityActivity extends AppCompatActivity {
                         // succeeds then we know that it was an update operation that was executed.
                         // If it fails then it was almost certainly a successful create operation
                         // (create returns just the GUID of the new note)
-                        CrmEntities.UpdateResponse updateResponse = new CrmEntities.UpdateResponse(object.toString());
+                        CrmEntities.UpdateResponse updateResponse = new CrmEntities.UpdateResponse(result.toString());
                         if (updateResponse.wasSuccessful) {
                             Log.i(TAG, "onYes Note was updated!");
                             if (updateResponse.wasCreated) {
@@ -233,13 +257,18 @@ public class OpportunityActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onNo(@Nullable Object object) {
-                        Toast.makeText(context, "Failed to add/edit note!\n\n" + object.toString(), Toast.LENGTH_SHORT).show();
-                        addEditNoteProgressDialog.dismiss();
+                    public void onProgress(Crm.AsyncProgress progress) {
+                        clickedNote.filename = "uploading... " + progress.getCompletedMb() + ")";
+                        adapterNotes.notifyDataSetChanged();
+                    }
 
+                    @Override
+                    public void onFail(String error) {
+                        Toast.makeText(context, "Failed to add/edit note!\n\n" + error.toString(), Toast.LENGTH_SHORT).show();
+                        addEditNoteProgressDialog.dismiss();
+                        getOpportunityNotes();
                         dialog.dismiss();
                         dialog.show();
-
                     }
                 });
             }
@@ -328,20 +357,26 @@ public class OpportunityActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                final MyProgressDialog deleteProgressDialog = new MyProgressDialog(context, "Deleting note...");
-                deleteProgressDialog.show();
+                // final MyProgressDialog deleteProgressDialog = new MyProgressDialog(context, "Deleting note...");
+                // deleteProgressDialog.show();
+                Toast.makeText(context, "Removing note...", Toast.LENGTH_SHORT).show();
+                clickedNote.subject = "(deleting...) " + clickedNote.subject;
+                clickedNote.inUse = true;
+                adapterNotes.notifyDataSetChanged();
+                dialogNoteOptions.dismiss();
+
                 clickedNote.delete(context, new MyInterfaces.YesNoResult() {
                     @Override
                     public void onYes(@Nullable Object object) {
                         Toast.makeText(context, "Note was deleted.", Toast.LENGTH_SHORT).show();
-                        deleteProgressDialog.dismiss();
                         adapterNotes.removeAnnotationAndReload(clickedNote);
                     }
 
                     @Override
                     public void onNo(@Nullable Object object) {
                         Toast.makeText(context, "Failed to delete note!\n" + object.toString(), Toast.LENGTH_SHORT).show();
-                        deleteProgressDialog.dismiss();
+                        clickedNote.inUse = false;
+                        getOpportunityNotes();
                     }
                 });
                 dialogNoteOptions.dismiss();
@@ -354,32 +389,41 @@ public class OpportunityActivity extends AppCompatActivity {
                 if (!Helpers.Files.AttachmentTempFiles.fileExists(clickedNote.filename)) {
                     final MyProgressDialog getNoteProgress = new MyProgressDialog(context, "Retrieving attachment...");
                     getNoteProgress.show();
+                    clickedNote.inUse = true;
+                    adapterNotes.notifyDataSetChanged();
+                    CrmEntities.Annotations.getAnnotationFromCrm(clickedNote.annotationid, true, new MyInterfaces.CrmRequestListener() {
+                        @Override
+                        public void onComplete(Object result) {
+                            String response = result.toString();
+                            CrmEntities.Annotations annotations = new CrmEntities.Annotations(response);
+                            Annotation annotation;
+                            if (annotations.list.size() > 0) {
+                                annotation = annotations.list.get(0);
+                                Log.i(TAG, "onSuccess Annotation retrieved: " + annotation.toString());
+                                getNoteProgress.dismiss();
 
-                    CrmEntities.Annotations.getAnnotationFromCrm(clickedNote.annotationid,
-                            true, new AsyncHttpResponseHandler() {
-                                @Override
-                                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                                    String response = new String(responseBody);
-                                    CrmEntities.Annotations annotations = new CrmEntities.Annotations(response);
-                                    Annotation annotation;
-                                    if (annotations.list.size() > 0) {
-                                        annotation = annotations.list.get(0);
-                                        Log.i(TAG, "onSuccess Annotation retrieved: " + annotation.toString());
-                                        getNoteProgress.dismiss();
+                                File attachment = Helpers.Files.base64Decode(annotation.documentBody,
+                                        new File(Helpers.Files.AttachmentTempFiles.getDirectory() + File.separator +
+                                                annotation.filename));
+                                Helpers.Files.openFile(attachment, annotation.mimetype);
+                            }
+                            clickedNote.inUse = false;
+                            adapterNotes.notifyDataSetChanged();
+                        }
 
-                                        File attachment = Helpers.Files.base64Decode(annotation.documentBody,
-                                                new File(Helpers.Files.AttachmentTempFiles.getDirectory() + File.separator +
-                                                        annotation.filename));
-                                        Helpers.Files.openFile(attachment, annotation.mimetype);
-                                    }
-                                }
+                        @Override
+                        public void onProgress(Crm.AsyncProgress progress) {
+                            getNoteProgress.setTitleText("Retrieving attachment (" + progress.getCompletedMb() + " mb)");
+                        }
 
-                                @Override
-                                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                                    Toast.makeText(context, "Failed to retrieve note!\nError: " + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-                                    getNoteProgress.dismiss();
-                                }
-                            });
+                        @Override
+                        public void onFail(String error) {
+                            Toast.makeText(context, "Failed to retrieve note!\nError: " + error, Toast.LENGTH_SHORT).show();
+                            getNoteProgress.dismiss();
+                            clickedNote.inUse = false;
+                            adapterNotes.notifyDataSetChanged();
+                        }
+                    });
                 } else {
                     Helpers.Files.openFile(Helpers.Files.AttachmentTempFiles.retrieve(clickedNote.filename), clickedNote.mimetype);
                 }
@@ -392,34 +436,46 @@ public class OpportunityActivity extends AppCompatActivity {
                 if (!Helpers.Files.AttachmentTempFiles.fileExists(clickedNote.filename)) {
                     final MyProgressDialog getNoteProgress = new MyProgressDialog(context, "Retrieving attachment...");
                     getNoteProgress.show();
+                    clickedNote.inUse = true;
+                    adapterNotes.notifyDataSetChanged();
+                    CrmEntities.Annotations.getAnnotationFromCrm(clickedNote.annotationid, true, new MyInterfaces.CrmRequestListener() {
+                        @Override
+                        public void onComplete(Object result) {
+                            String response = new String(result.toString());
+                            CrmEntities.Annotations annotations = new CrmEntities.Annotations(response);
+                            Annotation annotation;
+                            if (annotations.list.size() > 0) {
+                                annotation = annotations.list.get(0);
+                                Log.i(TAG, "onSuccess Annotation retrieved: " + annotation.toString());
+                                getNoteProgress.dismiss();
 
-                    CrmEntities.Annotations.getAnnotationFromCrm(clickedNote.annotationid,
-                            true, new AsyncHttpResponseHandler() {
-                                @Override
-                                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                                    String response = new String(responseBody);
-                                    CrmEntities.Annotations annotations = new CrmEntities.Annotations(response);
-                                    Annotation annotation;
-                                    if (annotations.list.size() > 0) {
-                                        annotation = annotations.list.get(0);
-                                        Log.i(TAG, "onSuccess Annotation retrieved: " + annotation.toString());
-                                        getNoteProgress.dismiss();
+                                File attachment = Helpers.Files.base64Decode(annotation.documentBody,
+                                        new File(Helpers.Files.AttachmentTempFiles.getDirectory() + File.separator +
+                                                annotation.filename));
+                                Helpers.Files.shareFile(context, attachment);
+                            }
+                            clickedNote.inUse = false;
+                            adapterNotes.notifyDataSetChanged();
+                        }
 
-                                        File attachment = Helpers.Files.base64Decode(annotation.documentBody,
-                                                new File(Helpers.Files.AttachmentTempFiles.getDirectory() + File.separator +
-                                                        annotation.filename));
-                                        Helpers.Files.shareFile(context, attachment);
-                                    }
-                                }
+                        @Override
+                        public void onProgress(Crm.AsyncProgress progress) {
+                            getNoteProgress.setTitleText("Retrieving attachment (" + progress.getCompletedMb() + ")");
+                        }
 
-                                @Override
-                                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                                    Toast.makeText(context, "Failed to retrieve note!\nError: " + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-                                    getNoteProgress.dismiss();
-                                }
-                            });
+                        @Override
+                        public void onFail(String error) {
+                            Toast.makeText(context, "Failed to retrieve note!\nError: " + error, Toast.LENGTH_SHORT).show();
+                            getNoteProgress.dismiss();
+                            clickedNote.inUse = false;
+                            adapterNotes.notifyDataSetChanged();
+                        }
+                    });
                 } else {
-                    Helpers.Files.openFile(Helpers.Files.AttachmentTempFiles.retrieve(clickedNote.filename), clickedNote.mimetype);
+                    File attachment = Helpers.Files.base64Decode(clickedNote.documentBody,
+                            new File(Helpers.Files.AttachmentTempFiles.getDirectory() + File.separator +
+                                    clickedNote.filename));
+                    Helpers.Files.shareFile(context, attachment);
                 }
             }
         });
@@ -435,20 +491,35 @@ public class OpportunityActivity extends AppCompatActivity {
                 clickedNote.documentBody = null;
                 adapterNotes.notifyDataSetChanged();
                 Toast.makeText(context, "Updating server...", Toast.LENGTH_SHORT).show();
+                clickedNote.inUse = true;
+                adapterNotes.notifyDataSetChanged();
                 clickedNote.removeAttachment(context, new MyInterfaces.YesNoResult() {
                     @Override
                     public void onYes(@Nullable Object object) {
                         Log.i(TAG, "onYes ");
                         Toast.makeText(context, "Attachment was removed!", Toast.LENGTH_SHORT).show();
+                        clickedNote.isDocument = false;
+                        clickedNote.filename = null;
+                        clickedNote.filesize = 0;
+                        clickedNote.documentBody = null;
+                        clickedNote.inUse = false;
+                        adapterNotes.notifyDataSetChanged();
                     }
 
                     @Override
                     public void onNo(@Nullable Object object) {
                         Log.i(TAG, "onNo ");
                         Toast.makeText(context, "Failed to remove attachment\nError: " + object.toString(), Toast.LENGTH_SHORT).show();
+                        clickedNote.inUse = false;
+                        adapterNotes.notifyDataSetChanged();
                         getOpportunityNotes();
                     }
                 });
+                clickedNote.isDocument = true;
+                clickedNote.filename = "removing attachment...";
+                clickedNote.filesize = 0;
+                clickedNote.documentBody = "";
+                adapterNotes.notifyDataSetChanged();
             }
         });
         Button btnAddAttachment = dialogNoteOptions.findViewById(R.id.btn_add_attachment);
@@ -466,6 +537,9 @@ public class OpportunityActivity extends AppCompatActivity {
                         .build());
                 startActivityForResult(intent, FILE_REQUEST_CODE);
                 newImageBaseAnnotation = clickedNote;
+                dialogNoteOptions.dismiss();
+                clickedNote.inUse = true;
+                adapterNotes.notifyDataSetChanged();
             }
         });
 

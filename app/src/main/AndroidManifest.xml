@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -18,10 +18,16 @@
         android:allowBackup="true"
         android:icon="@drawable/milebuddy_gif_icon_fullsize"
         android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/car2_static_round_tparent_icon"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
-        android:requestLegacyExternalStorage="true">
+        android:theme="@style/AppTheme">
+        <activity
+            android:name=".ReceiveShareForOppNote"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_receive_share_for_opp_note"
+            android:theme="@style/FullscreenTheme">
+        </activity>
         <activity
             android:name=".OpportunityActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
@@ -41,7 +47,14 @@
             android:name=".FullscreenActivityChooseOpportunity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen_choose_opportunity"
-            android:theme="@style/FullscreenAltTheme" />
+            android:theme="@style/FullscreenAltTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+                <data android:mimeType="text/*" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".AggregateStatsActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"

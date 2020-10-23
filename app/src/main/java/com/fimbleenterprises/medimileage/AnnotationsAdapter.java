@@ -85,6 +85,10 @@ public class AnnotationsAdapter extends RecyclerView.Adapter<AnnotationsAdapter.
 
         if (annootation.createdByValue.equals(curUser.systemuserid)) {
             holder.txtCreatedBy.setTextColor(Color.parseColor("#19870A"));
+            holder.layout.setBackgroundResource(R.drawable.btn_glass_orange_border_white);
+        } else {
+            holder.txtCreatedBy.setTextColor(Color.parseColor("#19870A"));
+            holder.layout.setBackgroundResource(R.drawable.btn_glass_gray_black_border);
         }
 
         // Show/hide the attachment layout accordingly
@@ -96,6 +100,9 @@ public class AnnotationsAdapter extends RecyclerView.Adapter<AnnotationsAdapter.
         holder.txtCreatedOn.setText(Helpers.DatesAndTimes.getPrettyDateAndTime(annootation.createdon));
         holder.imgLeftIcon.setImageResource(R.drawable.sms_64);
         holder.txtFilename.setText(annootation.filename);
+
+        holder.layout.setEnabled(!annootation.inUse);
+
     }
 
     // total number of rows

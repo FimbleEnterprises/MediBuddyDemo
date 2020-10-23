@@ -213,5 +213,8 @@
     <string name="delete_note_share_attachment">Share...</string>
     <string name="delete_note_remove_attachment">Remove</string>
     <string name="delete_note_add_attachment">Add...</string>
+    <string name="title_activity_receive_share_for_opp_note">FullscreenActivity</string>
+    <string name="opportunity_picker_main_text_external_launch_explicit">"Pick a fucking opportunity to attach this fucking file to.  "</string>
+    <string name="opportunity_picker_main_text_external_launch">Choose an opportunity to attach this file to.</string>
 
 </resources>
