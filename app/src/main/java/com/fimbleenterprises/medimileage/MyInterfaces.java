@@ -2,6 +2,7 @@ package com.fimbleenterprises.medimileage;
 
 import org.joda.time.DateTime;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import androidx.annotation.Nullable;
@@ -97,5 +98,15 @@ public class MyInterfaces {
         void onComplete(Object result);
         void onProgress(Crm.AsyncProgress progress);
         void onFail(String error);
+    }
+
+    public interface EncoderListener {
+        public void onSuccess(String base64String);
+        public void onFailure(String error);
+    }
+
+    public interface DecoderListener {
+        public void onSuccess(File decodedFile);
+        public void onFailure(String error);
     }
 }

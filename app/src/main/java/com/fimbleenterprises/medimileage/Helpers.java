@@ -24,6 +24,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Environment;
@@ -1747,6 +1748,67 @@ public abstract class Helpers {
         }
 
         /**
+         * Encodes a file to a base64 string asynchronously.
+         * @param filePath The path to the file to encode.
+         * @param listener A listener to monitor the results.
+         */
+        public static void base64Encode(final String filePath, final MyInterfaces.EncoderListener listener) {
+
+            final AsyncTask<String, String, String> task = new AsyncTask<String, String, String>() {
+
+                boolean wasSuccessful = false;
+
+                @Override
+                protected void onPreExecute() {
+                    super.onPreExecute();
+                    Log.i(TAG, "onPreExecute Preparing to encode file at path: " + filePath);
+                }
+
+                @Override
+                protected String doInBackground(String... args) {
+                    String base64File = "";
+                    File file = new File(filePath);
+                    try (FileInputStream imageInFile = new FileInputStream(file)) {
+                        // Reading a file from file system
+                        byte fileData[] = new byte[(int) file.length()];
+                        imageInFile.read(fileData);
+                        base64File = Base64.getEncoder().encodeToString(fileData);
+                        wasSuccessful = true;
+                        return base64File;
+                    } catch (FileNotFoundException e) {
+                        System.out.println("File not found" + e);
+                        return e.getLocalizedMessage();
+                    } catch (IOException ioe) {
+                        System.out.println("Exception while reading the file " + ioe);
+                        return ioe.getLocalizedMessage();
+                    }
+                }
+
+                @Override
+                protected void onPostExecute(String val) {
+                    super.onPostExecute(val);
+                    if (wasSuccessful) {
+                        Log.i(TAG, "onPostExecute File was encoded!");
+                        listener.onSuccess(val);
+                    } else {
+                        Log.w(TAG, "onPostExecute: Failed to encode\nError: " + val);
+                        listener.onFailure(val);
+                    }
+                }
+            };
+
+            // The lack of this check has burned me before.  It's verbose and not always needed for reasons
+            // unknown but I'd leave it!
+            if(Build.VERSION.SDK_INT >= 11/*HONEYCOMB*/) {
+                task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            } else {
+                task.execute();
+            }
+
+
+        }
+
+        /**
          * Converts a base64 string into its constituent file.  The file is stored in the a
          * subdirectory of the application's temp directory
          * @param base64string The string to decode
@@ -1766,6 +1828,64 @@ public abstract class Helpers {
             }
 
             return outputFile;
+        }
+
+        /**
+         * Converts a base64 string into its constituent file.  The file is stored in the a
+         * subdirectory of the application's temp directory
+         * @param base64string The string to decode
+         * @param listener A listener to monitor completion.
+         * @return A File file that by default exists in the app's temp directory.
+         */
+        public static void base64Decode(final String base64string, final File outputFile, final MyInterfaces.DecoderListener listener) {
+
+            AsyncTask<String, String, String> task = new AsyncTask<String, String, String>() {
+
+                boolean wasSuccessful = false;
+
+                @Override
+                protected void onPreExecute() {
+                    super.onPreExecute();
+                    Log.i(TAG, "onPreExecute Preparing to decode file at: " + outputFile.getPath());
+                }
+
+                @Override
+                protected String doInBackground(String... args) {
+                    try {
+                        Base64.Decoder dec = Base64.getDecoder();
+                        byte[] strdec = dec.decode(base64string);
+                        OutputStream out = new FileOutputStream(outputFile);
+                        out.write(strdec);
+                        out.close();
+                        wasSuccessful = true;
+                        return outputFile.getPath();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        wasSuccessful = false;
+                        return e.getLocalizedMessage();
+                    }
+                }
+
+                @Override
+                protected void onPostExecute(String val) {
+                    super.onPostExecute(val);
+                    if (wasSuccessful) {
+                        Log.i(TAG, "onPostExecute File was decoded!");
+                        listener.onSuccess(outputFile);
+                    } else {
+                        Log.w(TAG, "onPostExecute: File was NOT decoded\nError:" + val);
+                        listener.onFailure(val);
+                    }
+                }
+            };
+
+            // The lack of this check has burned me before.  It's verbose and not always needed for reasons
+            // unknown but I'd leave it!
+            if(Build.VERSION.SDK_INT >= 11/*HONEYCOMB*/) {
+                task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            } else {
+                task.execute();
+            }
         }
 
         /**

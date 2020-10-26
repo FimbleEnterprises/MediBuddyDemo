@@ -7,81 +7,55 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Build;
-import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.fimbleenterprises.medimileage.QueryFactory.Filter;
-import com.fimbleenterprises.medimileage.QueryFactory.Filter.FilterCondition;
-import com.fimbleenterprises.medimileage.QueryFactory.Filter.FilterType;
-import com.fimbleenterprises.medimileage.QueryFactory.Filter.Operator;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.maps.model.LatLng;
-import com.loopj.android.http.AsyncHttpResponseHandler;
-
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.LocalDateTime;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.UnsupportedEncodingException;
-import java.nio.channels.FileChannel;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
-import cz.msebera.android.httpclient.Header;
 
 public class MyAttachmentUploadService extends Service {
 
+    Context context;
     private static final String TAG = "MyAttachmentUploadService";
-    private static final String SERVICE_STARTED = "SERVICE_STARTED";
+    private static final String SERVICE_STARTED = "ATTACHMENT_SERVICE_STARTED";
     private static final int NOTIFICATION_ID = 933;
+    public static final String RELATED_OPPORTUNITY = "RELATED_OPPORTUNITY";
+    public static final String RELATED_FILEPATH = "RELATED_FILEPATH";
     private static final String ATTACHMENT_UPDATE = "ATTACHMENT_UPLOAD";
     public static final String WAKELOCK_ACQUIRED = "WAKELOCK_ACQUIRED";
     public static final String WAKELOCK_RELEASED = "WAKELOCK_RELEASED";
     public static final String NOTIFICATION_CHANNEL = "ATTACHMENT_NOTIFICATION_CHANNEL";
     private static final String GO_TO_OPPORTUNITY = "GO_TO_OPPORTUNITY";
+    public static final String ERROR_MESSAGE = "ERROR_MESSAGE";
     public static final String ATTACHMENT_SERVICE_STOPPING = "ATTACHMENT_SERVICE_STOPPING";
     public static final String ATTACHMENT_SERVICE_STOPPED = "ATTACHMENT_SERVICE_STOPPED";
     public static final String ATTACHMENT_SERVICE_STARTED = "ATTACHMENT_SERVICE_STARTED";
+    public static final String NEW_ATTACHMENT = "NEW_ATTACHMENT";
+    public static final String ATTACHMENT_FILE_PATH = "ATTACHMENT_FILE_PATH";
+    public static final String UPLOAD_NEW_ATTACHMENT = "UPLOAD_NEW_ATTACHMENT";
+    public static final String UPLOAD_COMPLETE = "UPLOAD_COMPLETE";
+    public static final String UPLOAD_BROADCAST = "UPLOAD_BROADCAST";
+    public static String uploadedFilePath;
+    private static int START_ID = 21;
+    CrmEntities.Opportunities.Opportunity selectedOpportunity;
 
     Notification notification;
     public static boolean isRunning = false;
     PowerManager.WakeLock wakeLock;
     private NotificationManager mNotificationManager;
-
-    public MyAttachmentUploadService() {
-
-    }
-
-    public MyAttachmentUploadService(String tripName) {
-
-    }
+    CrmEntities.Annotations.Annotation annotation;
 
     @Override
     public void onCreate() {
-
+        Log.i(TAG, "onCreate ");
+        context = this;
+        mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
     }
 
     @Nullable
@@ -96,36 +70,141 @@ public class MyAttachmentUploadService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.e(TAG, "onStartCommand");
         super.onStartCommand(intent, flags, startId);
+        START_ID = startId;
 
         if (intent != null) {
-            Log.i(TAG, "onStartCommand " + intent.getAction());
+
+            if (intent.getAction().equals(UPLOAD_NEW_ATTACHMENT)) {
+                Log.i(TAG, "onStartCommand " + intent.getAction());
+
+                final File file = new File(intent.getStringExtra(ATTACHMENT_FILE_PATH));
+                this.annotation = intent.getParcelableExtra(NEW_ATTACHMENT);
+                this.selectedOpportunity = intent.getParcelableExtra(OpportunityActivity.OPPORTUNITY_TAG);
+
+                notification = getNotification("Uploading " + annotation.filename,
+                        "Your file is being uploaded in the background.", false, true);
+
+                startForeground(START_ID, notification);
+
+                Toast.makeText(context, "Uploading attachment...", Toast.LENGTH_SHORT).show();
+
+                // startService(intent);
+                encodeFile(file);
+            }
         }
 
-        try {
-            sendStartBroadcast();
+        return START_NOT_STICKY;
+    }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+    private Notification getNotification(String title, String text, boolean onClickGoesToOpportunity, boolean showProgress){
+
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
+            ((NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(
+                    new NotificationChannel(NOTIFICATION_CHANNEL,NOTIFICATION_SERVICE,NotificationManager.IMPORTANCE_DEFAULT));
         }
 
-        return START_STICKY;
+        Intent onClickIntent = new Intent();
+
+        if (onClickGoesToOpportunity) {
+            onClickIntent = new Intent(context, OpportunityActivity.class);
+            onClickIntent.putExtra(OpportunityActivity.OPPORTUNITY_TAG, selectedOpportunity);
+        }
+
+        // The PendingIntent to launch our activity if the user selects
+        // this notification
+        PendingIntent contentIntent = PendingIntent.getActivity(this,
+                0, onClickIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        return new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setOnlyAlertOnce(true) // so when data is updated don't make sound and alert in android 8.0+
+                .setOngoing(false)
+                .setProgress(0,0,showProgress)
+                .setSmallIcon(R.drawable.application_icon)
+                .setContentIntent(contentIntent)
+                .build();
+    }
+
+    /**
+     * This is the method that can be called to update the Notification
+     */
+    private void updateNotification(String title, String text, boolean onClickGoesToOpportunity, boolean showProgress){
+
+        Notification notification= getNotification(title, text, onClickGoesToOpportunity, showProgress);
+
+        NotificationManager mNotificationManager=(NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.notify(START_ID,notification);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    void startInForeground() {
+    void encodeFile(final File file) {
+        try {
 
-        // Send a starting up broadcast
-        Intent startIntent = new Intent(SERVICE_STARTED);
-        sendBroadcast(startIntent);
+            getWakelock();
+            isRunning = true;
 
-        getWakelock();
+            Log.i(TAG, "onStartCommand Service starting and an attachment has been passed!");
+            Log.i(TAG, "onStartCommand Annotation will be attached to object with id: " + annotation.objectid);
 
-        Notification notification = getNotification("Trip is starting",
-                "Speed 0\nDistance: 0 miles", NotificationManager.IMPORTANCE_LOW);
+            uploadedFilePath = file.getPath();
 
-        startForeground(MyAttachmentUploadService.NOTIFICATION_ID, notification);
+            Helpers.Files.base64Encode(file.getPath(), new MyInterfaces.EncoderListener() {
+                @Override
+                public void onSuccess(final String base64File) {
+                    annotation.submit(context, new MyInterfaces.CrmRequestListener() {
+                        @Override
+                        public void onComplete(Object result) {
+                            CrmEntities.UpdateResponse response = new CrmEntities.UpdateResponse(result.toString());
+                            annotation.annotationid = response.guid;
+                            annotation.documentBody = base64File;
+                            annotation.submit(context, new MyInterfaces.CrmRequestListener() {
+                                @Override
+                                public void onComplete(Object result) {
+                                    // stopSelf(START_ID);
+                                    Toast.makeText(context, "File was uploaded to MileBuddy", Toast.LENGTH_SHORT).show();
+                                    stopSelf(START_ID);
+                                    updateNotification("Uploaded!", "Done", true, false);
 
-        isRunning = true;
+                                }
+
+                                @Override
+                                public void onProgress(Crm.AsyncProgress progress) {  }
+
+                                @Override
+                                public void onFail(String error) {
+                                    notification = getNotification("Upload failed", error, false, false);
+                                    mNotificationManager.notify(NOTIFICATION_ID, notification);
+                                    // remove annotation here
+                                    stopSelf(START_ID);
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onProgress(Crm.AsyncProgress progress) {  }
+
+                        @Override
+                        public void onFail(String error) {
+                            stopSelf();
+                        }
+                    });
+                    annotation.documentBody = base64File;
+
+                }
+
+                @Override
+                public void onFailure(String error) {
+                    stopSelf(START_ID);
+                    mNotificationManager.deleteNotificationChannel(NOTIFICATION_CHANNEL);
+                    Log.w(TAG, "onFailure: Failure: " + error);
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            stopSelf(START_ID);
+            Log.w(TAG, "startInForeground: Failure: " + e.getLocalizedMessage());
+        }
     }
 
     @Override
@@ -147,19 +226,16 @@ public class MyAttachmentUploadService extends Service {
     public void onDestroy() {
         super.onDestroy();
 
-        sendStoppingBroadcast();
-
         Log.e(TAG, "onDestroy");
 
         releaseWakelock();
 
-        NotificationManager mgr = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+        /*NotificationManager mgr = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
         mgr.cancel(NOTIFICATION_ID);
-        mgr.cancelAll();
+        mgr.cancelAll();*/
 
         isRunning = false;
 
-        sendStoppedBroadcast();
     }
 
     private void getWakelock() {
@@ -192,89 +268,41 @@ public class MyAttachmentUploadService extends Service {
         if (wakeLock.isHeld()) {
             wakeLock.release();
         }
+    }/*
 
-        Intent intent = new Intent(ATTACHMENT_UPDATE);
-        intent.putExtra(WAKELOCK_RELEASED, true);
+    public void sendStartBroadcast() {
+        Intent intent = new Intent(UPLOAD_BROADCAST);
+        intent.putExtra(RELATED_OPPORTUNITY, selectedOpportunity);
+        intent.putExtra(SERVICE_STARTED, true);
         sendBroadcast(intent);
     }
 
-    void updateNotification() {
-        String title = "Trip is running";
-        String contentText = "Uploading attachment...";
-
-        Notification notification = getNotification(title, contentText, NotificationManager.IMPORTANCE_LOW);
-        mNotificationManager.notify(NOTIFICATION_ID, notification);
+    void sendUploadFailedBroadcast(String error) {
+        Intent intent = new Intent(UPLOAD_BROADCAST);
+        intent.putExtra(RELATED_OPPORTUNITY, selectedOpportunity);
+        intent.putExtra(ERROR_MESSAGE, error);
+        sendBroadcast(intent);
     }
 
-    Notification getNotification(String title, String contentText, int importance) {
-        NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(this.getApplicationContext(), NOTIFICATION_CHANNEL);
-
-        Intent i = new Intent(this.getApplicationContext(), MainActivity.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-
-        Intent ii = new Intent(this.getApplicationContext(), OpportunityActivity.class);
-        ii.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        ii.setAction(GO_TO_OPPORTUNITY);
-
-        PendingIntent pendingIntent = PendingIntent.getActivity(this.getApplicationContext(), 1, i
-                , PendingIntent.FLAG_UPDATE_CURRENT);
-
-        PendingIntent stopTripIntent = PendingIntent.getActivity(this.getApplicationContext(), 2
-                , ii, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        mBuilder.setContentIntent(pendingIntent);
-        mBuilder.setOngoing(true);
-        mBuilder.setSmallIcon(R.drawable.car_icon_circular);
-        mBuilder.setContentTitle(title);
-        mBuilder.setContentText(contentText);
-        mBuilder.addAction(R.drawable.stop_icon_32x32, getString(R.string.stop_trip_btn_notification_text),
-                stopTripIntent);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mBuilder.setSmallIcon(R.drawable.notification_small_car);
-            mBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.car2_static_round_tparent_icon));
-            mBuilder.setColor(Color.WHITE);
-        } else {
-            Log.i(TAG, "getNotification ");
-        }
-
-        mNotificationManager = (NotificationManager) getApplicationContext()
-                .getSystemService(getApplicationContext().NOTIFICATION_SERVICE);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            String channelId = NOTIFICATION_CHANNEL;
-            NotificationChannel channel = new NotificationChannel(
-                    channelId,
-                    "MediMiles",
-                    importance);
-            mNotificationManager.createNotificationChannel(channel);
-            mBuilder.setChannelId(channelId);
-        }
-
-        Notification notif = mBuilder.build();
-
-        notif.flags = Notification.FLAG_ONGOING_EVENT;
-        notification = notif;
-
-        return notif;
-    }
-
-    public void sendStartBroadcast() {
-        Intent startIntent = new Intent(ATTACHMENT_SERVICE_STARTED);
-        startIntent.putExtra(SERVICE_STARTED, true);
-        sendBroadcast(startIntent);
+    void sendUploadCompleteBroadcast() {
+        Intent intent = new Intent(UPLOAD_BROADCAST);
+        intent.putExtra(RELATED_OPPORTUNITY, selectedOpportunity);
+        intent.putExtra(RELATED_FILEPATH, uploadedFilePath);
+        sendBroadcast(intent);
     }
 
     public void sendStoppingBroadcast() {
-        Intent stoppedIntent = new Intent(ATTACHMENT_SERVICE_STOPPING);
-        sendBroadcast(stoppedIntent);
+        Intent intent = new Intent(UPLOAD_BROADCAST);
+        intent.putExtra(RELATED_OPPORTUNITY, selectedOpportunity);
+        intent.putExtra(ATTACHMENT_SERVICE_STOPPING,"");
+        sendBroadcast(intent);
     }
 
     public void sendStoppedBroadcast() {
-        Intent stoppedIntent = new Intent(ATTACHMENT_SERVICE_STOPPED);
-        stoppedIntent.putExtra(ATTACHMENT_SERVICE_STOPPED, "something_here");
-        sendBroadcast(stoppedIntent);
-    }
+        Intent intent = new Intent(UPLOAD_BROADCAST);
+        intent.putExtra(RELATED_OPPORTUNITY, selectedOpportunity);
+        intent.putExtra(ATTACHMENT_SERVICE_STOPPED, "");
+        sendBroadcast(intent);
+    }*/
 
 }

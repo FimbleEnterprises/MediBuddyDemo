@@ -59,12 +59,14 @@ import com.fimbleenterprises.medimileage.MediUser;
 import com.fimbleenterprises.medimileage.MileBuddyMetrics;
 import com.fimbleenterprises.medimileage.MonthYearPickerDialog;
 import com.fimbleenterprises.medimileage.MyAnimatedNumberTextView;
+import com.fimbleenterprises.medimileage.MyAttachmentUploadService;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.MyLocationService;
 import com.fimbleenterprises.medimileage.MyProgressDialog;
 import com.fimbleenterprises.medimileage.MySettingsHelper;
 import com.fimbleenterprises.medimileage.MySpeedoGauge;
 import com.fimbleenterprises.medimileage.MySqlDatasource;
+import com.fimbleenterprises.medimileage.MyUnderlineEditText;
 import com.fimbleenterprises.medimileage.MyYesNoDialog;
 import com.fimbleenterprises.medimileage.Queries;
 import com.fimbleenterprises.medimileage.QueryFactory;
@@ -351,6 +353,9 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             public void onReceive(final Context context, Intent intent) {
             if (intent != null) {
 
+                if (intent.getAction().equals(MyAttachmentUploadService.ATTACHMENT_SERVICE_STARTED)) {
+                    return;
+                }
                 
                 if (options.isExplicitMode()) {
                     btnStartStop.setText((MyLocationService.isRunning) ? "FUCKING STOP" : "FUCKING GO");

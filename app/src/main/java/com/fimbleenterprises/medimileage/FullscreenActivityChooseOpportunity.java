@@ -57,7 +57,6 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
     String pendingNotetext;
     boolean isLaunchedFromExternalApp = false;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,16 +115,11 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
             }
 
             else if (receivedType.startsWith("image/")) {
-
-
-
-                Uri receiveUri = (Uri) receiverdIntent
-                        .getParcelableExtra(Intent.EXTRA_STREAM);
-
-                final File file = new File(Helpers.Files.AttachmentTempFiles.getDirectory(), "test.jpg");
-
                 try {
-                    InputStream in =  getContentResolver().openInputStream(receiveUri);
+                    // Prepare the selected file for attachment
+                    Uri receiveUri = (Uri) receiverdIntent.getParcelableExtra(Intent.EXTRA_STREAM);
+                    final File file = new File(Helpers.Files.AttachmentTempFiles.getDirectory(), "test.jpg");
+                    final InputStream in =  getContentResolver().openInputStream(receiveUri);
                     OutputStream out = new FileOutputStream(file);
                     byte[] buf = new byte[1024];
                     int len;
@@ -134,54 +128,33 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
                     }
                     out.close();
                     in.close();
+                    final String mimetype = Helpers.Files.getMimeType(this, receiveUri);
 
-                final String mimetype = Helpers.Files.getMimeType(this, receiveUri);
+                    // Build an annotation object to pass to the service
+                    final CrmEntities.Annotations.Annotation annotation = new CrmEntities.Annotations.Annotation();
+                   //  Toast.makeText(context, "Created!  Adding attachment...", Toast.LENGTH_SHORT).show();
+                    annotation.objectid = opportunity.opportunityid;
+                    annotation.subject = "Shared from MileBuddy";
+                    annotation.notetext = "I added this note from MileBuddy!";
+                    annotation.isDocument = true;
+                    annotation.mimetype = mimetype;
+                    annotation.filename = "someshit.jpg";
+                    // If we encode the file here it will be too large to be an extra (parcelled)
+                    // and will fail with a TransactionTooLarge exception.  We need to pass a reference
+                    // to the file instead and have the receiver encode it on their end.
+                    // annotation1.documentBody = Helpers.Files.base64Encode(file.getPath());
+                    Intent intent = new Intent(context, MyAttachmentUploadService.class);
+                    intent.setAction(MyAttachmentUploadService.UPLOAD_NEW_ATTACHMENT);
+                    intent.putExtra(MyAttachmentUploadService.NEW_ATTACHMENT, annotation);
+                    intent.putExtra(MyAttachmentUploadService.ATTACHMENT_FILE_PATH, file.getPath());
+                    intent.setAction(MyAttachmentUploadService.UPLOAD_NEW_ATTACHMENT);
+                    intent.putExtra(OpportunityActivity.OPPORTUNITY_TAG, opportunity);
+                    startService(intent);
 
-                final CrmEntities.Annotations.Annotation annotation = new CrmEntities.Annotations.Annotation();
-                annotation.objectid = opportunity.opportunityid;
-                annotation.subject = "Shared from MileBuddy";
-                annotation.notetext = "I added this note from MileBuddy!";
-                annotation.submit(this, new MyInterfaces.CrmRequestListener() {
-                    @Override
-                    public void onComplete(Object result) {
-                        Toast.makeText(context, "Created!  Adding attachment...", Toast.LENGTH_SHORT).show();
-                        CrmEntities.Annotations.Annotation annotation1 = new CrmEntities.Annotations.Annotation();
-                        annotation1.annotationid = new CrmEntities.UpdateResponse(result.toString()).guid;
-                        annotation1.isDocument = true;
-                        annotation1.mimetype = mimetype;
-                        annotation1.filename = "someshit.jpg";
-                        annotation1.documentBody = Helpers.Files.base64Encode(file.getPath());
-                        annotation1.submit(context, new MyInterfaces.CrmRequestListener() {
-                            @Override
-                            public void onComplete(Object result) {
-                                Log.i(TAG, "onComplete ");
-                            }
+                    Toast.makeText(context, "Attachment is being uploaded...", Toast.LENGTH_SHORT).show();
+                    finishAndRemoveTask();
 
-                            @Override
-                            public void onProgress(Crm.AsyncProgress progress) {
-
-                            }
-
-                            @Override
-                            public void onFail(String error) {
-                                Log.i(TAG, "onFail ");
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onProgress(Crm.AsyncProgress progress) {
-                        Log.i(TAG, "onProgress " + progress.getCompletedKb());
-                    }
-
-                    @Override
-                    public void onFail(String error) {
-                        Log.w(TAG, "onFail: " + error);
-                        Toast.makeText(context, "Failed!\n" + error, Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-                return annotation;
+                    return annotation;
 
                 }  catch (Exception e) {
                     e.printStackTrace();
@@ -223,8 +196,14 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
                     objects = buildOpportunityListBasedOnTrip();
                 }
 
-                for (BasicObject o : objects) {
-                    o.iconResource = (o.isHeader ? -1 : R.drawable.about_icon_black_48x48);
+                try {
+                    for (BasicObject o : objects) {
+                            // Crashed here a couple of times while working on the background uploader.
+                            // Will put a STOP here to try and debug it next time it happens.
+                            o.iconResource = (o.isHeader ? -1 : R.drawable.about_icon_black_48x48);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
                 return "";
             }
@@ -365,7 +344,6 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
                     if (!isLaunchedFromExternalApp) {
                         showOppOptions(opportunity);
                     } else {
-                        Toast.makeText(context, "Uploading..." + opportunity.name, Toast.LENGTH_SHORT).show();
                         buildAnnotation(opportunity);
                     }
                 }
