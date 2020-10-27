@@ -84,7 +84,7 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
             holder.layout.setBackground(null);
         } else {
             holder.txtMainText.setTypeface(null, Typeface.NORMAL);
-            holder.layout.setBackgroundResource(R.drawable.btn_glass_gray_black_border_label_bg);
+            holder.layout.setBackgroundResource(R.drawable.rounded_container_white_thin_border);
         }
 
         if (object.isEmpty) {
