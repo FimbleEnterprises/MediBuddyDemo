@@ -3,9 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/refreshLayout"
     android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/logo_bg"
     android:clickable="true"
-    android:focusable="true"
-    android:layout_height="match_parent">
+    android:focusable="true">
 
     <com.scwang.smart.refresh.header.ClassicsHeader
         android:layout_width="match_parent"
@@ -13,477 +14,466 @@
 
     </com.scwang.smart.refresh.header.ClassicsHeader>
 
-        <ScrollView
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#ebffffff"
+        android:clickable="true"
+        android:fillViewport="true"
+        android:focusable="true"
+        android:padding="10dp"
+        tools:context=".OpportunityActivity">
+
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:fillViewport="true"
-            android:padding="10dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="#FFFFFF"
-            tools:context=".OpportunityActivity">
+            android:orientation="vertical">
 
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
+            <TableLayout
+                android:id="@+id/tableLayout_oppotunitydetails"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/btn_glass_navy_border"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp">
 
-                    <TableLayout
-                        android:id="@+id/tableLayout_oppotunitydetails"
-                        android:layout_width="fill_parent"
+                <TableRow
+                    android:id="@+id/tableRow_0"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <FrameLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_alignParentStart="true"
-                        android:layout_marginTop="10dp"
-                        android:paddingTop="2dp"
-                        android:paddingBottom="2dp">
+                        android:layout_weight="1">
 
-                        <TableRow
-                            android:id="@+id/tableRow_0"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content">
-
-                            <FrameLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
-
-                                <TextView
-                                    android:id="@+id/txtOppName"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginLeft="5dp"
-                                    android:layout_marginRight="5dp"
-                                    android:fontFamily="@font/casual"
-                                    android:gravity="left"
-                                    android:text="@string/opp_name_label"
-                                    android:textAppearance="?android:attr/textAppearanceSmall"
-                                    android:textColor="#454545"
-                                    android:textSize="16sp"
-                                    android:textStyle="bold" />
-                            </FrameLayout>
-                        </TableRow>
-
-                        <TableRow
-                            android:id="@+id/tableRow_1"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content">
-
-                            <FrameLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
-
-                                <TextView
-                                    android:id="@+id/textView_OppTopic"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginLeft="5dp"
-                                    android:layout_marginRight="5dp"
-                                    android:fontFamily="@font/casual"
-                                    android:gravity="left"
-                                    android:text="@string/loading_opportunity"
-                                    android:textAppearance="?android:attr/textAppearanceSmall"
-                                    android:textColor="#454545"
-                                    android:textSize="14sp" />
-                            </FrameLayout>
-                        </TableRow>
-
-                        <TableRow
-                            android:id="@+id/tableRow_2"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content">
-
-                            <FrameLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
-
-                                <TextView
-                                    android:id="@+id/textView_OppAccount"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginBottom="4dp"
-                                    android:layout_marginLeft="5dp"
-                                    android:layout_marginRight="5dp"
-                                    android:fontFamily="@font/casual"
-                                    android:gravity="left"
-                                    android:text="@string/loading_opportunity"
-                                    android:textAppearance="?android:attr/textAppearanceSmall"
-                                    android:textColor="#454545"
-                                    android:textSize="14sp"
-                                    android:textStyle="italic" />
-                            </FrameLayout>
-                        </TableRow>
-
-                        <TableRow
-                            android:id="@+id/tableRow_separator1"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content">
-
-                            <FrameLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
-
-                                <LinearLayout
-                                    android:id="@+id/companyWide_topBorder"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="1dp"
-                                    android:layout_gravity="center_horizontal"
-                                    android:background="@color/main_blue_color"
-                                    android:orientation="vertical"
-                                    android:visibility="visible" />
-                            </FrameLayout>
-
-                            <FrameLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
-                                    android:textSize="15sp" />
-                            </FrameLayout>
-                        </TableRow>
-
-                        <TableRow
-                            android:id="@+id/tableRow_3"
-                            android:layout_width="wrap_content"
+                        <TextView
+                            android:id="@+id/txtOppName"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="5dp">
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:fontFamily="@font/casual"
+                            android:gravity="left"
+                            android:text="@string/opp_name_label"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="#454545"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </FrameLayout>
+                </TableRow>
 
-                            <FrameLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
+                <TableRow
+                    android:id="@+id/tableRow_1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
 
-                                <TextView
-                                    android:id="@+id/textView_OppStatusLabel"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginLeft="5dp"
-                                    android:layout_marginRight="5dp"
-                                    android:fontFamily="@font/casual"
-                                    android:gravity="left"
-                                    android:text="@string/opportunity_status_label"
-                                    android:textAppearance="?android:attr/textAppearanceSmall"
-                                    android:textColor="#454545"
-                                    android:textSize="14sp"
-                                    android:textStyle="bold" />
-                            </FrameLayout>
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
 
-                            <FrameLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
+                        <TextView
+                            android:id="@+id/textView_OppTopic"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:fontFamily="@font/casual"
+                            android:gravity="left"
+                            android:text="@string/loading_opportunity"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="#454545"
+                            android:textSize="14sp" />
+                    </FrameLayout>
+                </TableRow>
 
-                                <TextView
-                                    android:id="@+id/textView_OppStatus"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginLeft="5dp"
-                                    android:layout_marginRight="5dp"
-                                    android:fontFamily="@font/casual"
-                                    android:gravity="left"
-                                    android:text="@string/loading_opportunity"
-                                    android:textAppearance="?android:attr/textAppearanceSmall"
-                                    android:textColor="#454545"
-                                    android:textSize="14sp"
-                                    android:textStyle="normal" />
-                            </FrameLayout>
-                        </TableRow>
+                <TableRow
+                    android:id="@+id/tableRow_2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
 
-                        <TableRow
-                            android:id="@+id/tableRow_4"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content">
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
 
-                            <FrameLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
+                        <TextView
+                            android:id="@+id/textView_OppAccount"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:layout_marginBottom="4dp"
+                            android:fontFamily="@font/casual"
+                            android:gravity="left"
+                            android:text="@string/loading_opportunity"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="#454545"
+                            android:textSize="14sp"
+                            android:textStyle="italic" />
+                    </FrameLayout>
+                </TableRow>
 
-                                <TextView
-                                    android:id="@+id/textView_OppDealStatusLabel"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginLeft="5dp"
-                                    android:layout_marginRight="5dp"
-                                    android:fontFamily="@font/casual"
-                                    android:gravity="left"
-                                    android:text="@string/opportunity_dealstatus_label"
-                                    android:textAppearance="?android:attr/textAppearanceSmall"
-                                    android:textColor="#454545"
-                                    android:textSize="14sp"
-                                    android:textStyle="bold" />
+                <TableRow
+                    android:id="@+id/tableRow_separator1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
 
-                            </FrameLayout>
-
-                            <FrameLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
-
-                                <TextView
-                                    android:id="@+id/textView_OppDealStatus"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginLeft="5dp"
-                                    android:layout_marginRight="5dp"
-                                    android:fontFamily="@font/casual"
-                                    android:gravity="left"
-                                    android:text="@string/loading_opportunity"
-                                    android:textAppearance="?android:attr/textAppearanceSmall"
-                                    android:textColor="#454545"
-                                    android:textSize="14sp"
-                                    android:textStyle="normal" />
-                            </FrameLayout>
-                        </TableRow>
-
-                        <TableRow
-                            android:id="@+id/tableRow_8"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content">
-
-                            <FrameLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
-
-                                <TextView
-                                    android:id="@+id/textView_OppDealTypeLabel"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginLeft="5dp"
-                                    android:layout_marginRight="5dp"
-                                    android:fontFamily="@font/casual"
-                                    android:gravity="left"
-                                    android:text="@string/opportunity_dealtype_label"
-                                    android:textAppearance="?android:attr/textAppearanceSmall"
-                                    android:textColor="#454545"
-                                    android:textSize="14sp"
-                                    android:textStyle="bold" />
-                            </FrameLayout>
-
-                            <FrameLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
-
-                                <TextView
-                                    android:id="@+id/textView_OppDealType"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginLeft="5dp"
-                                    android:layout_marginRight="5dp"
-                                    android:fontFamily="@font/casual"
-                                    android:gravity="left"
-                                    android:text="@string/loading_opportunity"
-                                    android:textAppearance="?android:attr/textAppearanceSmall"
-                                    android:textColor="#454545"
-                                    android:textSize="14sp"
-                                    android:textStyle="normal" />
-                            </FrameLayout>
-                        </TableRow>
-
-                        <TableRow
-                            android:id="@+id/tableRow_7"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content">
-
-                            <FrameLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
-
-                                <TextView
-                                    android:id="@+id/textView_OppCloseProbLabel"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginLeft="5dp"
-                                    android:layout_marginRight="5dp"
-                                    android:fontFamily="@font/casual"
-                                    android:gravity="left"
-                                    android:text="@string/opportunity_close_prob_label"
-                                    android:textAppearance="?android:attr/textAppearanceSmall"
-                                    android:textColor="#454545"
-                                    android:textSize="14sp"
-                                    android:textStyle="bold" />
-                            </FrameLayout>
-
-                            <FrameLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
-
-                                <TextView
-                                    android:id="@+id/textView_OppCloseProb"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginLeft="5dp"
-                                    android:layout_marginRight="5dp"
-                                    android:fontFamily="@font/casual"
-                                    android:gravity="left"
-                                    android:text="@string/loading_opportunity"
-                                    android:textAppearance="?android:attr/textAppearanceSmall"
-                                    android:textColor="#454545"
-                                    android:textSize="14sp"
-                                    android:textStyle="normal" />
-                            </FrameLayout>
-                        </TableRow>
-
-                        <TableRow
-                            android:id="@+id/tableRow_5"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content">
-
-                            <FrameLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
-
-                                <TextView
-                                    android:id="@+id/textView_OppBackgroundLabel"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginLeft="5dp"
-                                    android:layout_marginRight="5dp"
-                                    android:fontFamily="@font/casual"
-                                    android:gravity="left"
-                                    android:text="@string/opportunity_background_label"
-                                    android:textAppearance="?android:attr/textAppearanceSmall"
-                                    android:textColor="#454545"
-                                    android:textSize="14sp"
-                                    android:textStyle="bold" />
-                            </FrameLayout>
-                        </TableRow>
-
-                        <TableRow
-                            android:id="@+id/tableRow_6"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content">
-
-                            <FrameLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
-
-                                <TextView
-                                    android:id="@+id/textView_OppBackground"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginLeft="5dp"
-                                    android:layout_marginRight="5dp"
-                                    android:fontFamily="@font/casual"
-                                    android:gravity="left"
-                                    android:text="@string/loading_opportunity"
-                                    android:textAppearance="?android:attr/textAppearanceSmall"
-                                    android:textColor="#454545"
-                                    android:textSize="14sp"
-                                    android:textStyle="normal" />
-                            </FrameLayout>
-                        </TableRow>
-
-                        <TableRow
-                            android:id="@+id/tableRow_row_notes"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content">
-
-                            <FrameLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1">
-
-                                <RelativeLayout
-                                    android:id="@+id/layout_notes"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_below="@+id/entity_title"
-                                    android:layout_alignParentStart="true"
-                                    android:layout_marginTop="5dp"
-                                    android:orientation="horizontal">
-
-                                    <ImageButton
-                                        android:id="@+id/btnRefreshNotes"
-                                        android:layout_width="48dp"
-                                        android:layout_height="48dp"
-                                        android:layout_alignParentTop="true"
-                                        android:layout_marginRight="25dp"
-                                        android:layout_toStartOf="@+id/btnAddNote"
-                                        android:background="@drawable/refresh64x64"
-                                        android:clickable="true"
-                                        android:textColor="#003BFF"
-                                        android:textStyle="bold"
-                                        android:visibility="gone" />
-
-
-                                    <ImageButton
-                                        android:id="@+id/btnAddNote"
-                                        android:layout_width="48dp"
-                                        android:layout_height="48dp"
-                                        android:layout_alignParentRight="true"
-                                        android:background="@drawable/add_comment_96x96"
-                                        android:clickable="true"
-                                        android:textColor="#003BFF"
-                                        android:textStyle="bold" />
-
-                                    <TextView
-                                        android:id="@+id/txtName"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_alignParentStart="true"
-                                        android:layout_centerVertical="true"
-                                        android:text="Notes:"
-                                        android:textSize="18sp"
-                                        android:textStyle="normal|bold" />
-
-                                    <RelativeLayout
-                                        android:id="@+id/layout_notes_progress"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_alignParentTop="false"
-                                        android:layout_alignParentBottom="false"
-                                        android:layout_centerHorizontal="false"
-                                        android:layout_centerVertical="true"
-                                        android:layout_toEndOf="@+id/txtName"
-                                        android:orientation="horizontal">
-
-                                        <ProgressBar
-                                            android:id="@+id/progressBarWorking"
-                                            style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Small"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:paddingLeft="10dp"
-                                            android:visibility="invisible" />
-
-                                        <TextView
-                                            android:id="@+id/textViewopportunityNotesLoading"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:layout_centerVertical="true"
-                                            android:layout_toEndOf="@+id/progressBarWorking"
-                                            android:text="Loading notes..."
-                                            android:textSize="10sp"
-                                            android:textStyle="normal"
-                                            android:visibility="invisible" />
-                                    </RelativeLayout>
-                                </RelativeLayout>
-
-                            </FrameLayout>
-                        </TableRow>
-
-                    </TableLayout>
-
-                    <com.fimbleenterprises.medimileage.NonScrollRecyclerView
-                        android:id="@+id/notesRecyclerView"
+                    <FrameLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_below="@id/tableLayout_oppotunitydetails"
-                        android:nestedScrollingEnabled="false" />
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
 
-                </RelativeLayout>
+                        <LinearLayout
+                            android:id="@+id/companyWide_topBorder"
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_gravity="center_horizontal"
+                            android:background="@color/main_blue_color"
+                            android:orientation="vertical"
+                            android:visibility="visible" />
+                    </FrameLayout>
 
-        </ScrollView>
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+                        android:textSize="15sp" />
+                    </FrameLayout>
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/tableRow_3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp">
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <TextView
+                            android:id="@+id/textView_OppStatusLabel"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:fontFamily="@font/casual"
+                            android:gravity="left"
+                            android:text="@string/opportunity_status_label"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="#454545"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <TextView
+                            android:id="@+id/textView_OppStatus"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:fontFamily="@font/casual"
+                            android:gravity="left"
+                            android:text="@string/loading_opportunity"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="#454545"
+                            android:textSize="14sp"
+                            android:textStyle="normal" />
+                    </FrameLayout>
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/tableRow_4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <TextView
+                            android:id="@+id/textView_OppDealStatusLabel"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:fontFamily="@font/casual"
+                            android:gravity="left"
+                            android:text="@string/opportunity_dealstatus_label"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="#454545"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <TextView
+                            android:id="@+id/textView_OppDealStatus"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:fontFamily="@font/casual"
+                            android:gravity="left"
+                            android:text="@string/loading_opportunity"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="#454545"
+                            android:textSize="14sp"
+                            android:textStyle="normal" />
+                    </FrameLayout>
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/tableRow_8"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <TextView
+                            android:id="@+id/textView_OppDealTypeLabel"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:fontFamily="@font/casual"
+                            android:gravity="left"
+                            android:text="@string/opportunity_dealtype_label"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="#454545"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <TextView
+                            android:id="@+id/textView_OppDealType"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:fontFamily="@font/casual"
+                            android:gravity="left"
+                            android:text="@string/loading_opportunity"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="#454545"
+                            android:textSize="14sp"
+                            android:textStyle="normal" />
+                    </FrameLayout>
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/tableRow_7"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <TextView
+                            android:id="@+id/textView_OppCloseProbLabel"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:fontFamily="@font/casual"
+                            android:gravity="left"
+                            android:text="@string/opportunity_close_prob_label"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="#454545"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <TextView
+                            android:id="@+id/textView_OppCloseProb"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:fontFamily="@font/casual"
+                            android:gravity="left"
+                            android:text="@string/loading_opportunity"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="#454545"
+                            android:textSize="14sp"
+                            android:textStyle="normal" />
+                    </FrameLayout>
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/tableRow_5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <TextView
+                            android:id="@+id/textView_OppBackgroundLabel"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:fontFamily="@font/casual"
+                            android:gravity="left"
+                            android:text="@string/opportunity_background_label"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="#454545"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                    </FrameLayout>
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/tableRow_6"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <TextView
+                            android:id="@+id/textView_OppBackground"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:fontFamily="@font/casual"
+                            android:gravity="left"
+                            android:text="@string/loading_opportunity"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="#454545"
+                            android:textSize="14sp"
+                            android:textStyle="normal" />
+                    </FrameLayout>
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/tableRow_row_notes"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <RelativeLayout
+                            android:id="@+id/layout_notes"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@+id/entity_title"
+                            android:layout_alignParentStart="true"
+                            android:layout_marginTop="5dp"
+                            android:orientation="horizontal">
+
+
+                            <ImageButton
+                                android:id="@+id/btnAddNote"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:layout_alignParentRight="true"
+                                android:background="@drawable/add_comment_96x96"
+                                android:clickable="true"
+                                android:textColor="#003BFF"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/txtName"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentStart="true"
+                                android:layout_centerVertical="true"
+                                android:layout_marginLeft="5dp"
+                                android:text="Notes:"
+                                android:textSize="18sp"
+                                android:textStyle="normal|bold" />
+
+                            <RelativeLayout
+                                android:id="@+id/layout_notes_progress"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentTop="false"
+                                android:layout_alignParentBottom="false"
+                                android:layout_centerHorizontal="false"
+                                android:layout_centerVertical="true"
+                                android:layout_toEndOf="@+id/txtName"
+                                android:orientation="horizontal">
+
+                                <ProgressBar
+                                    android:id="@+id/progressBarWorking"
+                                    style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Small"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:paddingLeft="10dp"
+                                    android:visibility="invisible" />
+
+                                <TextView
+                                    android:id="@+id/textViewopportunityNotesLoading"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_centerVertical="true"
+                                    android:layout_toEndOf="@+id/progressBarWorking"
+                                    android:text="Loading notes..."
+                                    android:textSize="10sp"
+                                    android:textStyle="normal"
+                                    android:visibility="invisible" />
+                            </RelativeLayout>
+                        </RelativeLayout>
+
+                    </FrameLayout>
+                </TableRow>
+
+            </TableLayout>
+
+            <com.fimbleenterprises.medimileage.NonScrollRecyclerView
+                android:id="@+id/notesRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@id/tableLayout_oppotunitydetails"
+                android:nestedScrollingEnabled="false" />
+
+        </RelativeLayout>
+
+    </ScrollView>
 
     <com.scwang.smart.refresh.footer.ClassicsFooter
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content" />
 
 </com.scwang.smart.refresh.layout.SmartRefreshLayout>

@@ -3,60 +3,67 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF"
-    android:padding="10dp"
+    android:background="@drawable/logo_bg"
     tools:context=".FullscreenActivityChooseTerritory">
 
     <RelativeLayout
-        android:id="@+id/topLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:id="@+id/txtDescription"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/opportunities_about_this_list" />
-
-        <TextView
-            android:id="@+id/txtOppListLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/txtDescription"
-            android:layout_marginTop="10dp"
-            android:text="Opportunities:"
-            android:textStyle="bold" />
-
-        <LinearLayout
-            android:id="@+id/companyWide_topBorder"
-            android:layout_width="400dp"
-            android:layout_height="2dp"
-            android:layout_below="@id/txtOppListLabel"
-            android:layout_gravity="center_horizontal"
-            android:background="#ff6b00"
-            android:orientation="vertical"
-            android:visibility="visible" />
-    </RelativeLayout>
-
-    <com.scwang.smart.refresh.layout.SmartRefreshLayout
-        android:id="@+id/refreshLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/topLayout">
+        android:background="#ebffffff"
+        android:padding="10dp">
 
-        <com.scwang.smart.refresh.header.ClassicsHeader
+        <RelativeLayout
+            android:id="@+id/topLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvBasicObjects"
+            <TextView
+                android:id="@+id/txtDescription"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/opportunities_about_this_list" />
+
+            <TextView
+                android:id="@+id/txtOppListLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/txtDescription"
+                android:layout_marginTop="10dp"
+                android:text="Opportunities:"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/companyWide_topBorder"
+                android:layout_width="400dp"
+                android:layout_height="2dp"
+                android:layout_below="@id/txtOppListLabel"
+                android:layout_gravity="center_horizontal"
+                android:background="#ff6b00"
+                android:orientation="vertical"
+                android:visibility="visible" />
+        </RelativeLayout>
+
+        <com.scwang.smart.refresh.layout.SmartRefreshLayout
+            android:id="@+id/refreshLayout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:layout_below="@id/topLayout">
 
-        <com.scwang.smart.refresh.footer.ClassicsFooter
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            <com.scwang.smart.refresh.header.ClassicsHeader
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
-    </com.scwang.smart.refresh.layout.SmartRefreshLayout>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvBasicObjects"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <com.scwang.smart.refresh.footer.ClassicsFooter
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </com.scwang.smart.refresh.layout.SmartRefreshLayout>
+
+    </RelativeLayout>
 
 </RelativeLayout>

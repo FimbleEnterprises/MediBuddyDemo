@@ -81,8 +81,10 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
         holder.img.setVisibility(object.isHeader ? View.GONE : View.VISIBLE);
         if (object.isHeader) {
             holder.txtMainText.setTypeface(null, Typeface.BOLD);
+            holder.layout.setBackground(null);
         } else {
             holder.txtMainText.setTypeface(null, Typeface.NORMAL);
+            holder.layout.setBackgroundResource(R.drawable.btn_glass_gray_black_border_label_bg);
         }
 
         if (object.isEmpty) {

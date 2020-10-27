@@ -216,5 +216,6 @@
     <string name="title_activity_receive_share_for_opp_note">FullscreenActivity</string>
     <string name="opportunity_picker_main_text_external_launch_explicit">"Pick a fucking opportunity to attach this fucking file to.  "</string>
     <string name="opportunity_picker_main_text_external_launch">Choose an opportunity to attach this file to.</string>
+    <string name="action_refresh">Refresh</string>
 
 </resources>

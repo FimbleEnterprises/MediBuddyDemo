@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
  <selector xmlns:android="http://schemas.android.com/apk/res/android">
 
-     <item android:state_checked="true" >
+ <item android:state_checked="true" >
 
     <shape>
         <gradient 
@@ -16,6 +16,22 @@
     </shape>
 
 </item>
+
+    <item android:state_pressed="true" >
+
+        <shape>
+            <gradient
+                android:startColor="#77FFFFFF"
+                android:endColor="#77FFFFFF"
+                android:angle="90" />
+            <stroke
+                android:width="2dp"
+                android:color="#3A4D5D" />
+            <corners
+                android:radius="0dp" />
+        </shape>
+
+    </item>
      
      
 <item android:state_checked="false" >

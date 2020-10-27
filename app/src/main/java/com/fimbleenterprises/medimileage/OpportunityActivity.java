@@ -9,8 +9,15 @@ import cz.msebera.android.httpclient.Header;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -104,6 +111,57 @@ public class OpportunityActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.basic_list_menu, menu);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+
+        Typeface typeface = getResources().getFont(R.font.casual);
+
+        for (int i = 0; i < menu.size(); i++) {
+            MenuItem mi = menu.getItem(i);
+            //for aapplying a font to subMenu ...
+            SubMenu subMenu = mi.getSubMenu();
+            if (subMenu != null && subMenu.size() > 0) {
+                for (int j = 0; j < subMenu.size(); j++) {
+                    MenuItem subMenuItem = subMenu.getItem(j);
+                    applyFontToMenuItem(subMenuItem, typeface);
+                }
+            }
+            //the method we have create in activity
+            applyFontToMenuItem(mi, typeface);
+        }
+
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+
+        switch (item.getItemId()) {
+
+            case R.id.action_refresh :
+                refreshLayout.autoRefreshAnimationOnly();
+                getOpportunityNotes();
+                break;
+
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void applyFontToMenuItem(MenuItem mi, Typeface font) {
+        SpannableString mNewTitle = new SpannableString(mi.getTitle());
+        mNewTitle.setSpan(new CustomTypefaceSpan("", font), 0, mNewTitle.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+        mi.setTitle(mNewTitle);
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
@@ -119,7 +177,7 @@ public class OpportunityActivity extends AppCompatActivity {
                 newImageBaseAnnotation.isDocument = true;
                 newImageBaseAnnotation.inUse = true;
                 adapterNotes.notifyDataSetChanged();
-                newImageBaseAnnotation.submit(context, new MyInterfaces.CrmRequestListener() {
+                newImageBaseAnnotation.addAttachment(context, new MyInterfaces.CrmRequestListener() {
                     @Override
                     public void onComplete(Object result) {
                         try {
@@ -201,6 +259,9 @@ public class OpportunityActivity extends AppCompatActivity {
 
     void showAddEditNote(@Nullable final Annotation clickedNote) {
 
+        final boolean isEditing = clickedNote.annotationid != null;
+        final String originalSubject = clickedNote.subject;
+
         final Dialog dialog = new Dialog(OpportunityActivity.this);
         dialog.setContentView(R.layout.dialog_note);
         final EditText noteBody = dialog.findViewById(R.id.body_text);
@@ -216,15 +277,18 @@ public class OpportunityActivity extends AppCompatActivity {
 
                 clickedNote.notetext = noteBody.getText().toString();
 
-                final MyProgressDialog addEditNoteProgressDialog = new MyProgressDialog(context, "Working...");
+                // final MyProgressDialog addEditNoteProgressDialog = new MyProgressDialog(context, "Working...");
                 dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-                addEditNoteProgressDialog.show();
-
+                // addEditNoteProgressDialog.show();
+                clickedNote.inUse = true;
+                adapterNotes.notifyDataSetChanged();
                 clickedNote.submit(context, new MyInterfaces.CrmRequestListener() {
                     @Override
                     public void onComplete(Object result) {
                         Toast.makeText(context, "Note was added/edited!", Toast.LENGTH_SHORT).show();
-                        addEditNoteProgressDialog.dismiss();
+                        // addEditNoteProgressDialog.dismiss();
+                        clickedNote.inUse = false;
+                        clickedNote.subject = originalSubject;
                         // Create result example (note the quotes): "1cd8d874-3412-eb11-810f-005056a36b9b"
                         // Update result example: {"WasSuccessful":true,"ResponseMessage":"Existing record was updated!","Guid":"00000000-0000-0000-0000-000000000000","WasCreated":false}
 
@@ -237,20 +301,21 @@ public class OpportunityActivity extends AppCompatActivity {
                             Log.i(TAG, "onYes Note was updated!");
                             if (updateResponse.wasCreated) {
                                 Toast.makeText(context, "Note was created!", Toast.LENGTH_SHORT).show();
-                                clickedNote.annotationid = updateResponse.guid;
+                                /*clickedNote.annotationid = updateResponse.guid;
                                 clickedNote.createdon = DateTime.now();
                                 clickedNote.modifiedon = DateTime.now();
                                 clickedNote.createdByValue = MediUser.getMe().systemuserid;
                                 clickedNote.modifiedByValue = MediUser.getMe().systemuserid;
                                 clickedNote.modifedByName = MediUser.getMe().fullname;
                                 clickedNote.createdByName = MediUser.getMe().fullname;
-                                adapterNotes.mData.add(0, clickedNote);
+                                adapterNotes.mData.add(0, clickedNote);*/
                                 adapterNotes.notifyDataSetChanged();
                             } else {
                                 Toast.makeText(context, "Note was updated!", Toast.LENGTH_SHORT).show();
                                 adapterNotes.updateAnnotationAndReload(clickedNote);
                             }
                         }
+                        adapterNotes.notifyDataSetChanged();
 
                         // Clearing the notetext cache since this operation succeeded.
                         pendingNote = null;
@@ -258,19 +323,39 @@ public class OpportunityActivity extends AppCompatActivity {
 
                     @Override
                     public void onProgress(Crm.AsyncProgress progress) {
-                        clickedNote.filename = "uploading... " + progress.getCompletedMb() + ")";
+                        // clickedNote.filename = "uploading... " + progress.getCompletedMb() + ")";
                         adapterNotes.notifyDataSetChanged();
                     }
 
                     @Override
                     public void onFail(String error) {
                         Toast.makeText(context, "Failed to add/edit note!\n\n" + error.toString(), Toast.LENGTH_SHORT).show();
-                        addEditNoteProgressDialog.dismiss();
+                        // addEditNoteProgressDialog.dismiss();
+                        clickedNote.inUse = false;
                         getOpportunityNotes();
                         dialog.dismiss();
                         dialog.show();
                     }
                 });
+
+                if (isEditing) {
+                    clickedNote.subject = "(UPDATING) " + clickedNote.subject;
+                    clickedNote.inUse = true;
+                    adapterNotes.notifyDataSetChanged();
+                } else {
+                    clickedNote.subject = "(ADDING) " + clickedNote.subject;
+                    clickedNote.inUse = true;
+                    // If these date fields are not added the adapter will crash when parsing them
+                    clickedNote.createdon = DateTime.now();
+                    clickedNote.modifiedon = DateTime.now();
+                    clickedNote.createdByValue = MediUser.getMe().systemuserid;
+                    clickedNote.modifiedByValue = MediUser.getMe().systemuserid;
+                    clickedNote.modifedByName = MediUser.getMe().fullname;
+                    clickedNote.createdByName = MediUser.getMe().fullname;
+                    adapterNotes.mData.add(0, clickedNote);
+                    adapterNotes.notifyDataSetChanged();
+                }
+
             }
         });
         dialog.show();

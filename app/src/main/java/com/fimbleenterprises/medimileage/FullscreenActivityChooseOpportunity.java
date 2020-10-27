@@ -29,6 +29,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -98,7 +99,21 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
 
 
         this.setTitle("Choose opportunity");
-        getOpportunities();
+
+        // Create the navigation up button
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+
+    }
+
+
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return super.onSupportNavigateUp();
     }
 
     private CrmEntities.Annotations.Annotation buildAnnotation(Opportunity opportunity) {
@@ -166,77 +181,6 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         }
 
         return null;
-    }
-
-    @SuppressLint("StaticFieldLeak")
-    void getOpportunities() {
-
-        if (!options.hasSavedOpportunities()) {
-            Toast.makeText(context, "Retrieving your opportunities - try again in a minute or so.", Toast.LENGTH_LONG).show();
-            CrmEntities.Opportunities.retrieveAndSaveOpportunities();
-            finish();
-            return;
-        }
-
-        final MyProgressDialog dialog = new MyProgressDialog(context , baseMsg);
-
-        AsyncTask<String, String, String> task = new AsyncTask<String, String, String>() {
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-                dialog.show();
-            }
-
-            @Override
-            protected String doInBackground(String... strings) {
-
-                if (isLaunchedFromExternalApp) {
-                    objects = buildOpportunityListBasedOnExternalApp();
-                } else {
-                    objects = buildOpportunityListBasedOnTrip();
-                }
-
-                try {
-                    for (BasicObject o : objects) {
-                            // Crashed here a couple of times while working on the background uploader.
-                            // Will put a STOP here to try and debug it next time it happens.
-                            o.iconResource = (o.isHeader ? -1 : R.drawable.about_icon_black_48x48);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return "";
-            }
-
-            @Override
-            protected void onPostExecute(String s) {
-
-                if (s==null) {
-                    Toast.makeText(context, "No opportunities found.", Toast.LENGTH_SHORT).show();
-                    finish();
-                }
-
-                super.onPostExecute(s);
-
-                if (objects.size() == 0) {
-                    Toast.makeText(context, "No opportunities found!", Toast.LENGTH_SHORT).show();
-                    finish();
-                } else {
-                    populateOpportunities();
-                    refreshLayout.finishRefresh();
-                    dialog.dismiss();
-                }
-            }
-        };
-
-        // The lack of this check has burned me before.  It's verbose and not always needed for reasons
-        // unknown but I'd leave it!
-        if(Build.VERSION.SDK_INT >= 11/*HONEYCOMB*/) {
-            task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        } else {
-            task.execute();
-        }
-
     }
 
     ArrayList<BasicObject> buildOpportunityListBasedOnTrip() {
@@ -318,6 +262,71 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         return objects;
     }
 
+    @SuppressLint("StaticFieldLeak")
+    void getOpportunities() {
+
+        if (!options.hasSavedOpportunities()) {
+            Toast.makeText(context, "Retrieving your opportunities - try again in a minute or so.", Toast.LENGTH_LONG).show();
+            CrmEntities.Opportunities.retrieveAndSaveOpportunities();
+            finish();
+            return;
+        }
+
+        final MyProgressDialog dialog = new MyProgressDialog(context , baseMsg);
+
+        AsyncTask<String, String, String> task = new AsyncTask<String, String, String>() {
+            @Override
+            protected void onPreExecute() { super.onPreExecute(); dialog.show(); }
+
+            @Override
+            protected String doInBackground(String... strings) {
+
+                if (isLaunchedFromExternalApp) {
+                    objects = buildOpportunityListBasedOnExternalApp();
+                } else {
+                    objects = buildOpportunityListBasedOnTrip();
+                }
+
+                try {
+                    for (BasicObject o : objects) {
+                        // Crashed here a couple of times while working on the background uploader.  Will put a STOP here to try and debug it next time it happens.
+                        o.iconResource = (o.isHeader ? -1 : R.drawable.about_icon_black_48x48);
+                    }
+                } catch (Exception e) { e.printStackTrace(); }
+                return "";
+            }
+
+            @Override
+            protected void onPostExecute(String s) {
+
+                if (s==null) {
+                    Toast.makeText(context, "No opportunities found.", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+
+                super.onPostExecute(s);
+
+                if (objects.size() == 0) {
+                    Toast.makeText(context, "No opportunities found!", Toast.LENGTH_SHORT).show();
+                    finish();
+                } else {
+                    populateOpportunities();
+                    refreshLayout.finishRefresh();
+                    dialog.dismiss();
+                }
+            }
+        };
+
+        // The lack of this check has burned me before.  It's verbose and not always needed for reasons
+        // unknown but I'd leave it!
+        if(Build.VERSION.SDK_INT >= 11/*HONEYCOMB*/) {
+            task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        } else {
+            task.execute();
+        }
+
+    }
+
     void populateOpportunities() {
 
         TextView txtMain = findViewById(R.id.txtDescription);
@@ -339,7 +348,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
             @Override
             public void onItemClick(View view, int position) {
                 Log.i(TAG, "onItemClick Position: " + position);
-                if (!objects.get(position).isEmpty) {
+                if (!objects.get(position).isEmpty && !objects.get(position).isHeader) {
                     Opportunity opportunity = (Opportunity) objects.get(position).object;
                     if (!isLaunchedFromExternalApp) {
                         showOppOptions(opportunity);

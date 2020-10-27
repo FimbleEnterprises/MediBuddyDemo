@@ -5,7 +5,8 @@
     android:id="@+id/layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="7dp">
+    android:layout_margin="7dp"
+    android:background="@drawable/btn_glass_gray_black_border_label_bg">
 
     <ImageView
         android:id="@+id/imageView_BasicObjectIcon"

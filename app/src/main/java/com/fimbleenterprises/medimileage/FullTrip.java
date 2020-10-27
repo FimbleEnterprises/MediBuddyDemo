@@ -306,7 +306,11 @@ public class FullTrip implements Parcelable {
             this.tripEntriesJson = gson.toJson(new TripEntries(this));
 
             EntityContainer container = new EntityContainer();
-            container.entityFields.add(new EntityField("msus_name", this.getTitle()));
+            if (this.getTitle() == null || this.getTitle().length() == 0) {
+                container.entityFields.add(new EntityField("msus_name", Helpers.DatesAndTimes.getTodaysDateAsString()));
+            } else {
+                container.entityFields.add(new EntityField("msus_name", this.getTitle()));
+            }
             container.entityFields.add(new EntityField("msus_tripcode", Long.toString(this.getTripcode())));
             container.entityFields.add(new EntityField("msus_dt_tripdate", Helpers.DatesAndTimes.getPrettyDateAndTime(this.getDateTime())));
             container.entityFields.add(new EntityField("msus_reimbursement_rate", Float.toString(this.getReimbursementRate())));
@@ -427,6 +431,14 @@ public class FullTrip implements Parcelable {
     }
 
     public void setTitle(String title) {
+
+        // Credit to Brynn for finding this.  Unnamed trips will play fucking hell with the server if
+        // they get submitted (which they can be, despite being a required field).  This will
+        // default unnamed trips to today's date.
+        if (title == null || title.length() == 0) {
+            title = Helpers.DatesAndTimes.getTodaysDateAsString();
+        }
+
         this.title = title;
     }
 

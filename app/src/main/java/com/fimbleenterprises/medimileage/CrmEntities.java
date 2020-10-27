@@ -342,14 +342,14 @@ public class CrmEntities {
                         }
                     });
                 } else {
-
+                    String originalSubject = this.subject;
                     EntityContainer entityContainer = new EntityContainer();
                     entityContainer.entityFields.add(new EntityField("notetext", this.notetext));
                     entityContainer.entityFields.add(new EntityField("subject", this.subject));
-                    entityContainer.entityFields.add(new EntityField("isdocument", Boolean.toString(this.isDocument)));
-                    entityContainer.entityFields.add(new EntityField("documentbody", this.documentBody));
-                    entityContainer.entityFields.add(new EntityField("mimetype", this.mimetype));
-                    entityContainer.entityFields.add(new EntityField("filename", this.filename));
+                    // entityContainer.entityFields.add(new EntityField("isdocument", Boolean.toString(this.isDocument)));
+                    // entityContainer.entityFields.add(new EntityField("documentbody", this.documentBody));
+                    // entityContainer.entityFields.add(new EntityField("mimetype", this.mimetype));
+                    // entityContainer.entityFields.add(new EntityField("filename", this.filename));
 
                     // Update existing note
                     Requests.Request request = new Requests.Request(Function.UPDATE);
@@ -410,6 +410,92 @@ public class CrmEntities {
                         listener.onNo(error.getLocalizedMessage());
                     }
                 });
+            }
+
+            /**
+             * Creates a new or edits an existing note on the CRM server.  Add/Edit is determined
+             * based on whether or not the annotation object has an annotationid or not (is null).
+             * @param context A context suitable to execute a Crm request.
+             * @param listener A simple listener to handle the callback.
+             */
+            public void addAttachment(Context context, final MyInterfaces.CrmRequestListener listener) {
+
+                if (this.annotationid == null) {
+                    // Create new note
+
+                    // The annotation entity is slightly different so instead of a basic EntityContainer
+                    // we create an AnnotationCreationContainer for the creation request
+                    Containers.AnnotationCreationContainer annotationContainer =
+                            new Containers.AnnotationCreationContainer();
+                    annotationContainer.notetext = this.notetext;
+                    annotationContainer.subject = this.subject;
+                    annotationContainer.objectidtypecode = "opportunity";
+                    annotationContainer.objectid = objectid;
+                    if (this.documentBody != null) {
+                        annotationContainer.documentbody = this.documentBody;
+                    }
+
+                    final Requests.Request request = new Requests.Request(Requests.Request.Function.CREATE_NOTE);
+                    request.arguments.add(new Requests.Argument("noteobject", annotationContainer.toJson()));
+
+                    Crm crm = new Crm();
+                    crm.makeCrmRequest(context, request, Crm.Timeout.LONG, new MyInterfaces.CrmRequestListener() {
+                        @Override
+                        public void onComplete(Object result) {
+                            listener.onComplete(result);
+                        }
+
+                        @Override
+                        public void onProgress(Crm.AsyncProgress progress) {
+                            listener.onProgress(progress);
+                        }
+
+                        @Override
+                        public void onFail(String error) {
+                            listener.onFail(error);
+                        }
+                    });
+                } else {
+                    EntityContainer entityContainer = new EntityContainer();
+                    entityContainer.entityFields.add(new EntityField("notetext", this.notetext));
+                    entityContainer.entityFields.add(new EntityField("subject", this.subject));
+                    entityContainer.entityFields.add(new EntityField("isdocument", Boolean.toString(this.isDocument)));
+                    entityContainer.entityFields.add(new EntityField("documentbody", this.documentBody));
+                    entityContainer.entityFields.add(new EntityField("mimetype", this.mimetype));
+                    entityContainer.entityFields.add(new EntityField("filename", this.filename));
+
+                    // Build request to update the existing note on the server
+                    Requests.Request request = new Requests.Request(Function.UPDATE);
+                    request.arguments.add(new Requests.Argument("guid", this.annotationid));
+                    request.arguments.add(new Requests.Argument("entityname", "annotation"));
+                    request.arguments.add(new Requests.Argument("container", entityContainer.toJson()));
+                    request.arguments.add(new Requests.Argument("asuserid", MediUser.getMe().systemuserid));
+
+                    Crm crm = new Crm();
+                    crm.makeCrmRequest(context, request, Crm.Timeout.LONG, new MyInterfaces.CrmRequestListener() {
+                        @Override
+                        public void onComplete(Object result) {
+                            listener.onComplete(result);
+                        }
+
+                        @Override
+                        public void onProgress(Crm.AsyncProgress progress) {
+                            listener.onProgress(progress);
+                        }
+
+                        @Override
+                        public void onFail(String error) {
+                            listener.onFail(error);
+                        }
+                    });
+
+                    /*
+                    string guid = (string)value.Arguments[0].value;
+                    entityName = (string)value.Arguments[1].value;
+                    container = JsonConvert.DeserializeObject<EntityContainer>((string)value.Arguments[2].value);
+                    asUserid = (string)value.Arguments[3].value;
+                     */
+                }
             }
 
             public void removeAttachment(Context context, final MyInterfaces.YesNoResult listener) {
