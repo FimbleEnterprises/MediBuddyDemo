@@ -403,6 +403,83 @@ public abstract class Helpers {
             //Default icon of our logo.  If part matches any logic below we'll change the icon accordingly
             return BitmapFactory.decodeResource(c.getResources(), R.drawable.ms64);
         }
+
+        public static int returnProperIconResource(String fileName, int defaultResource, Context context) {
+            int icon = 0;
+
+            String extension = "";
+
+            try {
+                fileName = fileName.toLowerCase();
+                int lastPeriod = fileName.lastIndexOf(".");
+                extension = fileName.substring(lastPeriod);
+                extension = extension.toLowerCase();
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
+            if (extension.equals(".pdf")) {
+                icon = R.drawable.pdficon64x64;
+            }else if (extension.equals(".txt")) {
+                icon = R.drawable.text_doc_icon;
+            }else if (extension.equals(".mpg")) {
+                icon = R.drawable.movieicon64x64;
+            }else if (extension.equals(".avi")) {
+                icon = R.drawable.movieicon64x64;
+            }else if (extension.equals(".mp4")) {
+                icon = R.drawable.movieicon64x64;
+            }else if (extension.equals(".mpeg")) {
+                icon = R.drawable.movieicon64x64;
+            }else if (extension.equals(".wmv")) {
+                icon = R.drawable.movieicon64x64;
+            }else if (extension.equals(".doc")) {
+                icon = R.drawable.worddocument64x64;
+            }else if (extension.equals(".docx")) {
+                icon = R.drawable.worddocument64x64;
+            }else if (extension.equals(".dotx")) {
+                icon = R.drawable.worddocument64x64;
+            }else if (extension.equals(".xls")) {
+                icon = R.drawable.exceldocumenticon64x64;
+            }else if (extension.equals(".xlsx")) {
+                icon = R.drawable.exceldocumenticon64x64;
+            }else if (extension.equals(".ppt")) {
+                icon = R.drawable.powerpointicon64x64;
+            }else if (extension.equals(".pptx")) {
+                icon = R.drawable.powerpointicon64x64;
+            }else if (extension.equals(".potx")) {
+                icon = R.drawable.powerpointicon64x64;
+            }else if (extension.equals(".png")) {
+                icon = R.drawable.pictureicon64x64;
+            }else if (extension.equals(".bmp")) {
+                icon = R.drawable.pictureicon64x64;
+            }else if (extension.equals(".tff")) {
+                icon = R.drawable.pictureicon64x64;
+            }else if (extension.equals(".tiff")) {
+                icon = R.drawable.pictureicon64x64;
+            }else if (extension.equals(".tif")) {
+                icon = R.drawable.pictureicon64x64;
+            }else if (extension.equals(".gif")) {
+                icon = R.drawable.pictureicon64x64;
+            }else if (extension.equals(".jpeg")) {
+                icon = R.drawable.pictureicon64x64;
+            }else if (extension.equals(".jpg")) {
+                icon = R.drawable.pictureicon64x64;
+            }else if (extension.equals(".rar")) {
+                icon = R.drawable.raricon64x64;
+            }else if (extension.equals(".zip")) {
+                icon = R.drawable.zipicon64x64;
+            }else if (extension.equals(".msg")) {
+                icon = R.drawable.icon_email;
+            }else if (extension.equals(".db")) {
+                icon = R.drawable.db_icon;
+            }else {
+                icon = defaultResource;
+            }
+
+
+            return icon;
+        }
     }
 
     public static class Colors {

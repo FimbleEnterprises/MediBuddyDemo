@@ -99,6 +99,9 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
             holder.txtIsEditedOrManual.setText("");
         }
 
+        holder.txtIsAutoStoppedTrip.setVisibility(trip.wasAutoKilled() ? View.VISIBLE : View.INVISIBLE);
+        holder.txtIsEditedOrManual.setVisibility(trip.getIsEdited() ? View.VISIBLE : View.INVISIBLE);
+
         if (trip.isChecked) {
             Log.i(TAG, "onBindViewHolder Checked trip found (" + trip.getTripcode() + ")");
         }
@@ -156,6 +159,9 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
                 e.printStackTrace();
             }*/
         }
+
+        holder.txtIsEditedOrManual.setVisibility(trip.getIsEditedOrIsManual() ? View.VISIBLE : View.INVISIBLE);
+        holder.txtIsAutoStoppedTrip.setVisibility(trip.getUserStoppedTrip() ? View.VISIBLE : View.INVISIBLE);
 
         holder.itemView.setLongClickable(true);
     }

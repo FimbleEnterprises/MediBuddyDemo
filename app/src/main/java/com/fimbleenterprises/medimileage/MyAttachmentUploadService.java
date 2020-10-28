@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -82,7 +83,7 @@ public class MyAttachmentUploadService extends Service {
                 this.selectedOpportunity = intent.getParcelableExtra(OpportunityActivity.OPPORTUNITY_TAG);
 
                 notification = getNotification("Uploading " + annotation.filename,
-                        "Your file is being uploaded in the background.", false, true);
+                        "Your file is being uploaded in the background and will be attached when finished.", false, true);
 
                 startForeground(START_ID, notification);
 
@@ -100,7 +101,7 @@ public class MyAttachmentUploadService extends Service {
 
         if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
             ((NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(
-                    new NotificationChannel(NOTIFICATION_CHANNEL,NOTIFICATION_SERVICE,NotificationManager.IMPORTANCE_DEFAULT));
+                    new NotificationChannel(NOTIFICATION_CHANNEL,NOTIFICATION_SERVICE,NotificationManager.IMPORTANCE_HIGH));
         }
 
         Intent onClickIntent = new Intent();
@@ -115,14 +116,25 @@ public class MyAttachmentUploadService extends Service {
         PendingIntent contentIntent = PendingIntent.getActivity(this,
                 0, onClickIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
+        NotificationCompat.BigTextStyle style;
+        if (onClickGoesToOpportunity) {
+            style = new NotificationCompat.BigTextStyle()
+                    .bigText(text);
+        } else {
+            style = new NotificationCompat.BigTextStyle()
+                    .bigText("Your file is being uploaded and will be attached when finished.  Stand by!");
+        }
+
         return new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL)
                 .setContentTitle(title)
                 .setContentText(text)
                 .setOnlyAlertOnce(true) // so when data is updated don't make sound and alert in android 8.0+
                 .setOngoing(false)
+                .setStyle(style)
                 .setProgress(0,0,showProgress)
-                .setSmallIcon(R.drawable.application_icon)
+                .setSmallIcon(R.drawable.notification_small_car)
                 .setContentIntent(contentIntent)
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.car2_static_round_tparent_icon))
                 .build();
     }
 
@@ -158,13 +170,13 @@ public class MyAttachmentUploadService extends Service {
                             CrmEntities.UpdateResponse response = new CrmEntities.UpdateResponse(result.toString());
                             annotation.annotationid = response.guid;
                             annotation.documentBody = base64File;
-                            annotation.submit(context, new MyInterfaces.CrmRequestListener() {
+                            annotation.addAttachment(context, new MyInterfaces.CrmRequestListener() {
                                 @Override
                                 public void onComplete(Object result) {
                                     // stopSelf(START_ID);
                                     Toast.makeText(context, "File was uploaded to MileBuddy", Toast.LENGTH_SHORT).show();
                                     stopSelf(START_ID);
-                                    updateNotification("Uploaded!", "Done", true, false);
+                                    updateNotification("Upload complete!", "Your file was successfully uploaded and attached.", true, false);
 
                                 }
 

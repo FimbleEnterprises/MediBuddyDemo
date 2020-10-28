@@ -76,7 +76,7 @@ public class AnnotationsAdapter extends RecyclerView.Adapter<AnnotationsAdapter.
         DateTime created = annootation.createdon;
 
         int days = Helpers.DatesAndTimes.daysBetween(created);
-        if (days <= 3) {
+        if (days <= 2) {
             holder.txtNew.setVisibility(View.VISIBLE);
             Helpers.Animations.pulseAnimation(holder.txtNew, 1.15f, 1.25f, 9999, 900);
         } else {
@@ -102,6 +102,11 @@ public class AnnotationsAdapter extends RecyclerView.Adapter<AnnotationsAdapter.
         holder.txtFilename.setText(annootation.filename);
 
         holder.layout.setEnabled(!annootation.inUse);
+
+        if (annootation.isDocument) {
+            int extensionImageResource = Helpers.Bitmaps.returnProperIconResource(annootation.filename, R.drawable.sms_64, context);
+            holder.imgLeftIcon.setImageResource(extensionImageResource);
+        }
 
     }
 

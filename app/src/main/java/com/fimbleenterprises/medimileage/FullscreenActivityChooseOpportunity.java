@@ -108,8 +108,6 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
 
     }
 
-
-
     @Override
     public boolean onSupportNavigateUp() {
         onBackPressed();
@@ -133,7 +131,8 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
                 try {
                     // Prepare the selected file for attachment
                     Uri receiveUri = (Uri) receiverdIntent.getParcelableExtra(Intent.EXTRA_STREAM);
-                    final File file = new File(Helpers.Files.AttachmentTempFiles.getDirectory(), "test.jpg");
+                    String parsedFilename = Helpers.Files.parseFileNameFromPath(receiveUri.getPath());
+                    final File file = new File(Helpers.Files.AttachmentTempFiles.getDirectory(), parsedFilename);
                     final InputStream in =  getContentResolver().openInputStream(receiveUri);
                     OutputStream out = new FileOutputStream(file);
                     byte[] buf = new byte[1024];
@@ -147,13 +146,13 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
 
                     // Build an annotation object to pass to the service
                     final CrmEntities.Annotations.Annotation annotation = new CrmEntities.Annotations.Annotation();
-                   //  Toast.makeText(context, "Created!  Adding attachment...", Toast.LENGTH_SHORT).show();
+                    // Toast.makeText(context, "Created!  Adding attachment...", Toast.LENGTH_SHORT).show();
                     annotation.objectid = opportunity.opportunityid;
                     annotation.subject = "Shared from MileBuddy";
                     annotation.notetext = "I added this note from MileBuddy!";
                     annotation.isDocument = true;
                     annotation.mimetype = mimetype;
-                    annotation.filename = "someshit.jpg";
+                    annotation.filename = file.getName();
                     // If we encode the file here it will be too large to be an extra (parcelled)
                     // and will fail with a TransactionTooLarge exception.  We need to pass a reference
                     // to the file instead and have the receiver encode it on their end.

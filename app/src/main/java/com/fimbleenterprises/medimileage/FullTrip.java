@@ -9,6 +9,7 @@ import android.util.Log;
 import com.fimbleenterprises.medimileage.Requests.Request;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
+import com.google.rpc.Help;
 
 import org.joda.time.DateTime;
 import org.json.JSONArray;
@@ -419,6 +420,9 @@ public class FullTrip implements Parcelable {
     }
 
     public String getTitle() {
+        if (this.title == null || this.title.length() < 1) {
+            return Helpers.DatesAndTimes.getTodaysDateAsString();
+        }
         return title;
     }
 
@@ -611,6 +615,10 @@ public class FullTrip implements Parcelable {
 
     public boolean getIsEdited() {
         return edited == 1;
+    }
+
+    public boolean getIsEditedOrIsManual() {
+        return edited == 1 || isManualTrip == 1;
     }
 
     public void setIsEdited(boolean edited) {

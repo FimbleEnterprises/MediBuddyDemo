@@ -16,8 +16,58 @@
         android:paddingBottom="2dp">
 
         <!-- ***********************************************************************************-->
-        <!--                                    NEW ROW                                         -->
+        <!--                                    Trends                                          -->
         <!-- ***********************************************************************************-->
+
+        <TableRow
+            android:id="@+id/tableRow_TrendLabelRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <TextView
+                    android:id="@+id/textView_Trend"
+                    android:layout_width="192dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
+                    android:fontFamily="casual"
+                    android:gravity="left"
+                    android:text="Trend:"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="#454545"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"></FrameLayout>
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/tableRow_trendRow1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <com.github.mikephil.charting.charts.LineChart
+                    android:id="@+id/trendChart"
+                    android:layout_width="match_parent"
+                    android:layout_height="250dp"
+                    android:layout_margin="15dp"></com.github.mikephil.charting.charts.LineChart>
+
+            </FrameLayout>
+        </TableRow>
 
         <TableRow
             android:id="@+id/tableRow_thisMonth"
@@ -325,7 +375,28 @@
                 android:layout_weight="1"></FrameLayout>
         </TableRow>
 
+
+
         <TableRow
+            android:id="@+id/tableRow_trendRowThisMonthDrivers"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <com.github.mikephil.charting.charts.BarChart
+                    android:id="@+id/trendChartThisMonthDrivers"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_margin="15dp"></com.github.mikephil.charting.charts.BarChart>
+
+            </FrameLayout>
+        </TableRow>
+
+        <!--<TableRow
             android:id="@+id/LasttableRow_2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
@@ -366,9 +437,9 @@
                     android:textColor="#454545"
                     android:textSize="18sp" />
             </FrameLayout>
-        </TableRow>
+        </TableRow>-->
 
-        <TableRow
+        <!--<TableRow
             android:id="@+id/tableRow_3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
@@ -452,7 +523,7 @@
                     android:textColor="#454545"
                     android:textSize="18sp" />
             </FrameLayout>
-        </TableRow>
+        </TableRow>-->
 
         <TableRow
             android:id="@+id/tableRow_empty"
@@ -770,7 +841,6 @@
             </FrameLayout>
         </TableRow>
 
-
         <TableRow
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
@@ -800,7 +870,9 @@
                 android:layout_weight="1"></FrameLayout>
         </TableRow>
 
+
         <TableRow
+            android:id="@+id/tableRow_trendRowLastMonthDrivers"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -809,122 +881,12 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1">
 
-                <TextView
-                    android:id="@+id/textView_driver1_LastMonth"
+                <com.github.mikephil.charting.charts.BarChart
+                    android:id="@+id/trendChartLastMonthDrivers"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="25dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:gravity="left"
-                    android:text=":"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp" />
-            </FrameLayout>
+                    android:layout_height="200dp"
+                    android:layout_margin="15dp"></com.github.mikephil.charting.charts.BarChart>
 
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/textView_driver1_LastMonth_value"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:text=""
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp" />
-            </FrameLayout>
-        </TableRow>
-
-        <TableRow
-            android:id="@+id/lastLasttableRow_3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/textView_driver2_LastMonth"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="25dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:gravity="left"
-                    android:text=":"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp" />
-            </FrameLayout>
-
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/textView_driver2_LastMonth_value"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:text=""
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp" />
-            </FrameLayout>
-        </TableRow>
-
-        <TableRow
-            android:id="@+id/lastLasttableRow_4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/textView_driver3_LastMonth"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="25dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:gravity="left"
-                    android:text=":"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp" />
-            </FrameLayout>
-
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/textView_driver3_LastMonth_value"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:text=""
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp" />
             </FrameLayout>
         </TableRow>
 
@@ -1292,8 +1254,9 @@
                 android:layout_weight="1"></FrameLayout>
         </TableRow>
 
+
         <TableRow
-            android:id="@+id/tableRow_2222"
+            android:id="@+id/tableRow_trendRowLastLastMonthDrivers"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -1302,122 +1265,12 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1">
 
-                <TextView
-                    android:id="@+id/textView_driver1_LastLastMonth"
+                <com.github.mikephil.charting.charts.BarChart
+                    android:id="@+id/trendChartLastLastMonthDrivers"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="25dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:gravity="left"
-                    android:text=":"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp" />
-            </FrameLayout>
+                    android:layout_height="200dp"
+                    android:layout_margin="15dp"></com.github.mikephil.charting.charts.BarChart>
 
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/textView_driver1_LastLastMonth_value"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:text=""
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp" />
-            </FrameLayout>
-        </TableRow>
-
-        <TableRow
-            android:id="@+id/tableRow_3LastMonth"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/textView_driver2_LastLastMonth"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="25dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:gravity="left"
-                    android:text=":"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp" />
-            </FrameLayout>
-
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/textView_driver2_LastLastMonth_value"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:text=""
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp" />
-            </FrameLayout>
-        </TableRow>
-
-        <TableRow
-            android:id="@+id/tableRow_4LastMonth"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/textView_driver3_LastLastMonth"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="25dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:gravity="left"
-                    android:text=":"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp" />
-            </FrameLayout>
-
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/textView_driver3_LastLastMonth_value"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:text=""
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp" />
             </FrameLayout>
         </TableRow>
 

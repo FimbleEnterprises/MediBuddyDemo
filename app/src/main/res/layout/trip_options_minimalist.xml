@@ -47,7 +47,7 @@
 						android:layout_height="wrap_content"
 						android:layout_margin="2dp"
 						android:background="@drawable/btn_glass_gray_black_border"
-						android:drawableTop="@drawable/about_icon1_38x38"
+						android:drawableTop="@drawable/about_icon_black_48x48"
 						android:drawablePadding="0dp"
 						android:fontFamily="casual"
 						android:includeFontPadding="true"

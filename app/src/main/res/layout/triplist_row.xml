@@ -16,12 +16,18 @@
         android:layout_alignParentTop="false"
         android:layout_alignParentBottom="false"
         android:layout_centerHorizontal="false"
+        android:layout_marginStart="1dp"
+        android:layout_marginTop="1dp"
+        android:layout_marginEnd="1dp"
         android:layout_marginRight="3dp"
+        android:layout_marginBottom="1dp"
         android:layout_toLeftOf="@id/checkBox_selectTrip"
+        android:background="@drawable/btn_glass_gray_black_border_toggle_orange_on"
         android:fontFamily="casual"
+        android:padding="2dp"
         android:text="AUTO-STOPPED"
         android:textColor="#EB4A17"
-        android:textSize="14sp"
+        android:textSize="11sp"
         android:visibility="visible" />
 
     <ImageView
@@ -84,12 +90,17 @@
         android:layout_alignBaseline="@id/textView_FullTripRowMainText"
         android:layout_alignParentTop="false"
         android:layout_centerHorizontal="false"
+        android:layout_marginStart="1dp"
+        android:layout_marginEnd="1dp"
         android:layout_marginRight="3dp"
+        android:layout_marginBottom="1dp"
         android:layout_toLeftOf="@id/checkBox_selectTrip"
+        android:background="@drawable/btn_glass_gray_black_border_toggle_orange_on"
         android:fontFamily="casual"
+        android:padding="2dp"
         android:text="MANUAL"
         android:textColor="#EB4A17"
-        android:textSize="14sp"
+        android:textSize="11sp"
         android:visibility="visible" />
 
     <ImageView
