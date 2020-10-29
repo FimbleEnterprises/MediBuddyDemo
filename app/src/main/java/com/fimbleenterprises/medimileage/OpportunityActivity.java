@@ -296,10 +296,11 @@ public class OpportunityActivity extends AppCompatActivity {
                         // succeeds then we know that it was an update operation that was executed.
                         // If it fails then it was almost certainly a successful create operation
                         // (create returns just the GUID of the new note)
-                        CrmEntities.UpdateResponse updateResponse = new CrmEntities.UpdateResponse(result.toString());
-                        if (updateResponse.wasSuccessful) {
+                        CrmEntities.CrmEntityResponse crmEntityResponse = new CrmEntities.CrmEntityResponse(result.toString());
+                        if (crmEntityResponse.wasSuccessful) {
                             Log.i(TAG, "onYes Note was updated!");
-                            if (updateResponse.wasCreated) {
+                            clickedNote.annotationid = crmEntityResponse.guid;
+                            if (crmEntityResponse.wasCreated) {
                                 Toast.makeText(context, "Note was created!", Toast.LENGTH_SHORT).show();
                                 /*clickedNote.annotationid = updateResponse.guid;
                                 clickedNote.createdon = DateTime.now();
@@ -394,7 +395,6 @@ public class OpportunityActivity extends AppCompatActivity {
                     @Override
                     public void onItemClick(View view, int position) {
                         Annotation note = annotations.list.get(position);
-
                         // If the note belongs to the user or if it has an attachment, show the note
                         // options dialog
                         if (note.belongsTo(MediUser.getMe().systemuserid) || (note.isDocument) ) {
@@ -512,6 +512,7 @@ public class OpportunityActivity extends AppCompatActivity {
                 } else {
                     Helpers.Files.openFile(Helpers.Files.AttachmentTempFiles.retrieve(clickedNote.filename), clickedNote.mimetype);
                 }
+                dialogNoteOptions.dismiss();
             }
         });
         Button btnShareAttachment = dialogNoteOptions.findViewById(R.id.btn_share_attachment);
@@ -562,6 +563,7 @@ public class OpportunityActivity extends AppCompatActivity {
                                     clickedNote.filename));
                     Helpers.Files.shareFile(context, attachment);
                 }
+                dialogNoteOptions.dismiss();
             }
         });
         Button btnRemoveAttachment = dialogNoteOptions.findViewById(R.id.btn_remove_attachment);
@@ -605,6 +607,7 @@ public class OpportunityActivity extends AppCompatActivity {
                 clickedNote.filesize = 0;
                 clickedNote.documentBody = "";
                 adapterNotes.notifyDataSetChanged();
+                dialogNoteOptions.dismiss();
             }
         });
         Button btnAddAttachment = dialogNoteOptions.findViewById(R.id.btn_add_attachment);
@@ -625,6 +628,7 @@ public class OpportunityActivity extends AppCompatActivity {
                 dialogNoteOptions.dismiss();
                 clickedNote.inUse = true;
                 adapterNotes.notifyDataSetChanged();
+                dialogNoteOptions.dismiss();
             }
         });
 

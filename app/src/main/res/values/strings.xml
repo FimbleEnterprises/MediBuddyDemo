@@ -217,5 +217,7 @@
     <string name="opportunity_picker_main_text_external_launch_explicit">"Pick a fucking opportunity to attach this fucking file to.  "</string>
     <string name="opportunity_picker_main_text_external_launch">Choose an opportunity to attach this file to.</string>
     <string name="action_refresh">Refresh</string>
+    <string name="extended_fab_content_desc">Add note</string>
+    <string name="extended_fab_label">Add note</string>
 
 </resources>

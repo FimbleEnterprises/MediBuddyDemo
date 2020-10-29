@@ -117,12 +117,12 @@ public class CrmEntities {
                             // succeeds then we know that it was an update operation that was executed.
                             // If it fails then it was almost certainly a successful create operation
                             // (create returns just the GUID of the new note)
-                            CrmEntities.UpdateResponse updateResponse = new CrmEntities.UpdateResponse(result.toString());
-                            if (updateResponse.wasSuccessful) {
+                            CrmEntityResponse crmEntityResponse = new CrmEntityResponse(result.toString());
+                            if (crmEntityResponse.wasSuccessful) {
                                 Log.i(TAG, "onYes Note was updated!");
                                 Toast.makeText(context, "Note was created.", Toast.LENGTH_SHORT).show();
                                 dialog.dismiss();
-                                listener.onComplete(updateResponse);
+                                listener.onComplete(crmEntityResponse);
                             }
                         }
 
@@ -1955,13 +1955,13 @@ public class CrmEntities {
         }
     }
 
-    public static class UpdateResponse {
+    public static class CrmEntityResponse {
         public boolean wasSuccessful;
         public String responseMessage;
         public String guid;
         public boolean wasCreated;
 
-        public UpdateResponse(String crmResponse) {
+        public CrmEntityResponse(String crmResponse) {
             // {"WasSuccessful":true,"ResponseMessage":"Existing record was updated!","Guid":"00000000-0000-0000-0000-000000000000","WasCreated":false}
             try {
                 JSONObject json = new JSONObject(crmResponse);
