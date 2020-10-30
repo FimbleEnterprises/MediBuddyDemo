@@ -2,14 +2,17 @@ package com.fimbleenterprises.medimileage;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -22,7 +25,6 @@ import com.scwang.smart.refresh.layout.api.RefreshLayout;
 import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -31,6 +33,7 @@ import java.util.ArrayList;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -123,22 +126,41 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
 
             // check mime type
             if (receivedType.startsWith("text/")) {
+                String sharedText = receiverdIntent.getStringExtra(Intent.EXTRA_TEXT);
 
-                return null;
-            }
+                // Build an annotation object to pass to the service
+                final CrmEntities.Annotations.Annotation annotation = new CrmEntities.Annotations.Annotation();
+                // Toast.makeText(context, "Created!  Adding attachment...", Toast.LENGTH_SHORT).show();
+                annotation.objectid = opportunity.opportunityid;
+                annotation.subject = "Shared from MileBuddy";
+                annotation.notetext = "\n\nShared text:\n" + sharedText;
+                annotation.isDocument = false;
 
-            else if (receivedType.startsWith("image/")) {
+                // If we encode the file here it will be too large to be an extra (parcelled)
+                // and will fail with a TransactionTooLarge exception.  We need to pass a reference
+                // to the file instead and have the receiver encode it on their end.
+                // annotation1.documentBody = Helpers.Files.base64Encode(file.getPath());
+                Intent intent = new Intent(context, MyAttachmentUploadService.class);
+                intent.setAction(MyAttachmentUploadService.UPLOAD_NEW_ATTACHMENT);
+                intent.putExtra(MyAttachmentUploadService.NEW_ATTACHMENT, annotation);
+                intent.putExtra(MyAttachmentUploadService.IS_TEXT_ONLY, true);
+                intent.setAction(MyAttachmentUploadService.UPLOAD_NEW_ATTACHMENT);
+                intent.putExtra(OpportunityActivity.OPPORTUNITY_TAG, opportunity);
+                startService(intent);
+                finishAndRemoveTask();
+            } else {
+
                 try {
                     // Prepare the selected file for attachment
                     Uri receiveUri = (Uri) receiverdIntent.getParcelableExtra(Intent.EXTRA_STREAM);
                     String parsedFilename = Helpers.Files.parseFileNameFromPath(receiveUri.getPath());
                     final File file = new File(Helpers.Files.AttachmentTempFiles.getDirectory(), parsedFilename);
-                    final InputStream in =  getContentResolver().openInputStream(receiveUri);
+                    final InputStream in = getContentResolver().openInputStream(receiveUri);
                     OutputStream out = new FileOutputStream(file);
                     byte[] buf = new byte[1024];
                     int len;
-                    while((len=in.read(buf))>0){
-                        out.write(buf,0,len);
+                    while ((len = in.read(buf)) > 0) {
+                        out.write(buf, 0, len);
                     }
                     out.close();
                     in.close();
@@ -170,7 +192,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
 
                     return annotation;
 
-                }  catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -180,6 +202,60 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         }
 
         return null;
+    }
+
+    private Notification buildNotification(String title, String text, Opportunity opportunity, boolean onClickGoesToOpportunity, boolean showProgress){
+
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
+            ((NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(
+                    new NotificationChannel(MyAttachmentUploadService.NOTIFICATION_CHANNEL,NOTIFICATION_SERVICE,NotificationManager.IMPORTANCE_HIGH));
+        }
+
+        Intent onClickIntent = new Intent();
+
+        if (onClickGoesToOpportunity) {
+            onClickIntent = new Intent(context, OpportunityActivity.class);
+            onClickIntent.putExtra(OpportunityActivity.OPPORTUNITY_TAG, opportunity);
+        }
+
+        // The PendingIntent to launch our activity if the user selects
+        // this notification
+        PendingIntent contentIntent = PendingIntent.getActivity(this,
+                0, onClickIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        NotificationCompat.BigTextStyle style;
+        if (onClickGoesToOpportunity) {
+            style = new NotificationCompat.BigTextStyle()
+                    .bigText(text);
+        } else {
+            style = new NotificationCompat.BigTextStyle()
+                    .bigText("Your file is being uploaded and will be attached when finished.  Stand by!");
+        }
+
+        Notification notification = new NotificationCompat.Builder(this, MyAttachmentUploadService.NOTIFICATION_CHANNEL)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setOnlyAlertOnce(true) // so when data is updated don't make sound and alert in android 8.0+
+                .setOngoing(false)
+                .setStyle(style)
+                .setProgress(0,0,showProgress)
+                .setSmallIcon(R.drawable.notification_small_car)
+                .setContentIntent(contentIntent)
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.car2_static_round_tparent_icon))
+                .build();
+
+        return notification;
+    }
+
+    /**
+     * This is the method that can be called to update the Notification
+     */
+    private void updateNotification(String title, String text, Opportunity opportunity, boolean onClickGoesToOpportunity, boolean showProgress){
+
+        Notification notification= buildNotification(title, text, opportunity, onClickGoesToOpportunity, showProgress);
+
+        NotificationManager mNotificationManager=(NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.notify(MyAttachmentUploadService.START_ID, notification);
     }
 
     ArrayList<BasicObject> buildOpportunityListBasedOnTrip() {

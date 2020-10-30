@@ -104,7 +104,7 @@ public class AnnotationsAdapter extends RecyclerView.Adapter<AnnotationsAdapter.
         holder.layout.setEnabled(!annootation.inUse);
 
         if (annootation.isDocument) {
-            int extensionImageResource = Helpers.Bitmaps.returnProperIconResource(annootation.filename, R.drawable.sms_64, context);
+            int extensionImageResource = Helpers.Bitmaps.returnProperIconResource(annootation.filename, R.drawable.paperclip_icon_64x64, context);
             holder.imgLeftIcon.setImageResource(extensionImageResource);
         }
 

@@ -29,6 +29,7 @@ import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.CrmEntities.Annotations.Annotation;
 import com.fimbleenterprises.medimileage.CrmEntities.Opportunities.Opportunity;
+import com.google.android.gms.maps.internal.ICameraUpdateFactoryDelegate;
 import com.jaiselrahman.filepicker.activity.FilePickerActivity;
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.model.MediaFile;
@@ -59,6 +60,7 @@ public class OpportunityActivity extends AppCompatActivity {
     Context context;
     Annotation newImageBaseAnnotation;
     Dialog dialogNoteOptions;
+    public static final int PERM_REQUEST_CAMERA_ADD_ATTACHMENT = 11;
 
     // Fields
     TextView txtAccount;
@@ -72,6 +74,7 @@ public class OpportunityActivity extends AppCompatActivity {
     TextView txtNotesLoading;
     ProgressBar pbNotesLoading;
     ImageButton btnAddNote;
+    Annotation lastClickedNote;
 
     public enum NoteAction {
         CREATE, EDIT, DELETE
@@ -162,6 +165,38 @@ public class OpportunityActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        Log.i(TAG, "onRequestPermissionsResult ");
+
+        if (requestCode == PERM_REQUEST_CAMERA_ADD_ATTACHMENT) {
+            Log.i(TAG, "onRequestPermissionsResult ");
+            if (permissions[0].equals(Helpers.Permissions.Permission.CAMERA) &&
+                    grantResults[0] == 0) {
+                Intent intent = new Intent(context, FilePickerActivity.class);
+                intent.putExtra(FilePickerActivity.CONFIGS, new Configurations.Builder()
+                        .setCheckPermission(true)
+                        .setShowImages(true)
+                        .setShowFiles(true)
+                        .setSingleClickSelection(true)
+                        .setShowVideos(false)
+                        .enableImageCapture(true)
+                        .setSkipZeroSizeFiles(true)
+                        .build());
+                startActivityForResult(intent, FILE_REQUEST_CODE);
+                newImageBaseAnnotation = lastClickedNote;
+                dialogNoteOptions.dismiss();
+                lastClickedNote.inUse = true;
+                adapterNotes.notifyDataSetChanged();
+                dialogNoteOptions.dismiss();
+            }
+        }
+
+
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
@@ -169,51 +204,55 @@ public class OpportunityActivity extends AppCompatActivity {
                 && resultCode == RESULT_OK
                 && data != null) {
             List<MediaFile> mediaFiles = data.<MediaFile>getParcelableArrayListExtra(FilePickerActivity.MEDIA_FILES);
-            if(mediaFiles != null && newImageBaseAnnotation != null) {
-                final MediaFile file = mediaFiles.get(0);
-                newImageBaseAnnotation.documentBody = Helpers.Files.base64Encode(file.getPath());
-                newImageBaseAnnotation.filename = file.getName();
-                newImageBaseAnnotation.mimetype = file.getMimeType();
-                newImageBaseAnnotation.isDocument = true;
-                newImageBaseAnnotation.inUse = true;
-                adapterNotes.notifyDataSetChanged();
-                newImageBaseAnnotation.addAttachment(context, new MyInterfaces.CrmRequestListener() {
-                    @Override
-                    public void onComplete(Object result) {
-                        try {
-                            dialogNoteOptions.dismiss();
-                        } catch (Exception e) {
-                            e.printStackTrace();
+            if(mediaFiles != null && newImageBaseAnnotation != null && mediaFiles.size() > 0) {
+                try {
+                    final MediaFile file = mediaFiles.get(0);
+                    newImageBaseAnnotation.documentBody = Helpers.Files.base64Encode(file.getPath());
+                    newImageBaseAnnotation.filename = file.getName();
+                    newImageBaseAnnotation.mimetype = file.getMimeType();
+                    newImageBaseAnnotation.isDocument = true;
+                    newImageBaseAnnotation.inUse = true;
+                    adapterNotes.notifyDataSetChanged();
+                    newImageBaseAnnotation.addAttachment(context, new MyInterfaces.CrmRequestListener() {
+                        @Override
+                        public void onComplete(Object result) {
+                            try {
+                                dialogNoteOptions.dismiss();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            newImageBaseAnnotation.inUse = false;
+                            newImageBaseAnnotation.filename = file.getName();
+                            adapterNotes.notifyDataSetChanged();
                         }
-                        newImageBaseAnnotation.inUse = false;
-                        newImageBaseAnnotation.filename = file.getName();
-                        adapterNotes.notifyDataSetChanged();
-                    }
 
-                    @Override
-                    public void onProgress(Crm.AsyncProgress progress) {
-                        // Upload percents are fucky.  Ignore!
-                    }
+                        @Override
+                        public void onProgress(Crm.AsyncProgress progress) {
+                            // Upload percents are fucky.  Ignore!
+                        }
 
-                    @Override
-                    public void onFail(String error) {
-                        Log.w(TAG, "onNo: ");
-                        newImageBaseAnnotation.isDocument = false;
-                        newImageBaseAnnotation.documentBody = null;
-                        newImageBaseAnnotation.filename = null;
-                        newImageBaseAnnotation.inUse = false;
-                        adapterNotes.notifyDataSetChanged();
-                        Toast.makeText(context, "Failed!\n" + error, Toast.LENGTH_SHORT).show();
-                    }
-                });
-                Log.i(TAG, "onActivityResult ");
+                        @Override
+                        public void onFail(String error) {
+                            Log.w(TAG, "onNo: ");
+                            newImageBaseAnnotation.isDocument = false;
+                            newImageBaseAnnotation.documentBody = null;
+                            newImageBaseAnnotation.filename = null;
+                            newImageBaseAnnotation.inUse = false;
+                            adapterNotes.notifyDataSetChanged();
+                            Toast.makeText(context, "Failed!\n" + error, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    Log.i(TAG, "onActivityResult ");
 
-                // While we wait for the attachment to be attached we can insert a placeholder
-                newImageBaseAnnotation.filename = "uploading attachment...";
-                newImageBaseAnnotation.documentBody = "";
-                newImageBaseAnnotation.isDocument = true;
-                newImageBaseAnnotation.inUse = true;
-                adapterNotes.notifyDataSetChanged();
+                    // While we wait for the attachment to be attached we can insert a placeholder
+                    newImageBaseAnnotation.filename = "uploading attachment...";
+                    newImageBaseAnnotation.documentBody = "";
+                    newImageBaseAnnotation.isDocument = true;
+                    newImageBaseAnnotation.inUse = true;
+                    adapterNotes.notifyDataSetChanged();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
             } else {
                 Toast.makeText(context, "Image not selected", Toast.LENGTH_SHORT).show();
@@ -427,6 +466,7 @@ public class OpportunityActivity extends AppCompatActivity {
         LinearLayout layoutAttachments = dialogNoteOptions.findViewById(R.id.layout_attachments_container);
         // layoutAttachments.setVisibility(clickedNote.isDocument ? View.VISIBLE : View.GONE);
         TextView txtNoteYourNote = dialogNoteOptions.findViewById(R.id.txtNotYourNote);
+        lastClickedNote = clickedNote;
 
 
         Button btnEdit = dialogNoteOptions.findViewById(R.id.btn_edit_note);
@@ -614,13 +654,23 @@ public class OpportunityActivity extends AppCompatActivity {
         btnAddAttachment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                Helpers.Permissions.RequestContainer container = new Helpers.Permissions.RequestContainer();
+                container.add(Helpers.Permissions.PermissionType.CAMERA);
+                if (!Helpers.Permissions.isGranted(Helpers.Permissions.PermissionType.CAMERA)) {
+                    requestPermissions(container.toArray(), PERM_REQUEST_CAMERA_ADD_ATTACHMENT);
+                    return;
+                }
+
                 Log.i(TAG, "onClick ");
                 Intent intent = new Intent(context, FilePickerActivity.class);
                 intent.putExtra(FilePickerActivity.CONFIGS, new Configurations.Builder()
                         .setCheckPermission(true)
                         .setShowImages(true)
+                        .setShowFiles(true)
+                        .setSingleClickSelection(true)
+                        .setShowVideos(false)
                         .enableImageCapture(true)
-                        .setMaxSelection(1)
                         .setSkipZeroSizeFiles(true)
                         .build());
                 startActivityForResult(intent, FILE_REQUEST_CODE);

@@ -22,6 +22,7 @@ import androidx.core.app.NotificationCompat;
 
 public class MyAttachmentUploadService extends Service {
 
+    public static final String IS_TEXT_ONLY = "IS_TEXT_ONLY";
     Context context;
     private static final String TAG = "MyAttachmentUploadService";
     private static final String SERVICE_STARTED = "ATTACHMENT_SERVICE_STARTED";
@@ -43,7 +44,7 @@ public class MyAttachmentUploadService extends Service {
     public static final String UPLOAD_COMPLETE = "UPLOAD_COMPLETE";
     public static final String UPLOAD_BROADCAST = "UPLOAD_BROADCAST";
     public static String uploadedFilePath;
-    private static int START_ID = 21;
+    public static int START_ID = 21;
     CrmEntities.Opportunities.Opportunity selectedOpportunity;
 
     Notification notification;
@@ -75,22 +76,28 @@ public class MyAttachmentUploadService extends Service {
 
         if (intent != null) {
 
-            if (intent.getAction().equals(UPLOAD_NEW_ATTACHMENT)) {
-                Log.i(TAG, "onStartCommand " + intent.getAction());
+            this.annotation = intent.getParcelableExtra(NEW_ATTACHMENT);
+            this.selectedOpportunity = intent.getParcelableExtra(OpportunityActivity.OPPORTUNITY_TAG);
 
-                final File file = new File(intent.getStringExtra(ATTACHMENT_FILE_PATH));
-                this.annotation = intent.getParcelableExtra(NEW_ATTACHMENT);
-                this.selectedOpportunity = intent.getParcelableExtra(OpportunityActivity.OPPORTUNITY_TAG);
+            // Check if this is just plain text being shared.  If so we don't want to try to find a
+            // file and read it (because it obviously won't exist and that would be stupid.
+            if (intent.getBooleanExtra(IS_TEXT_ONLY, false)) {
 
+                notification = getNotification("Sharing text with MileBuddy",
+                        "Your note is being created in the background; you will be notified when it has completed.", false, true);
+
+                encodeFile(null); // passing null will indicate that this is plain text
+
+            } else if (intent.getAction().equals(UPLOAD_NEW_ATTACHMENT)) {
+                // This is a file being shared so we need to encode it in order to attach it in CRM
                 notification = getNotification("Uploading " + annotation.filename,
                         "Your file is being uploaded in the background and will be attached when finished.", false, true);
 
-                startForeground(START_ID, notification);
+                final File file = new File(intent.getStringExtra(ATTACHMENT_FILE_PATH));
 
                 Toast.makeText(context, "Uploading attachment...", Toast.LENGTH_SHORT).show();
-
-                // startService(intent);
                 encodeFile(file);
+
             }
         }
 
@@ -153,69 +160,95 @@ public class MyAttachmentUploadService extends Service {
     void encodeFile(final File file) {
         try {
 
+            startForeground(START_ID, notification);
             getWakelock();
             isRunning = true;
 
             Log.i(TAG, "onStartCommand Service starting and an attachment has been passed!");
             Log.i(TAG, "onStartCommand Annotation will be attached to object with id: " + annotation.objectid);
 
-            uploadedFilePath = file.getPath();
+            if (file == null) {
+                annotation.submit(context, new MyInterfaces.CrmRequestListener() {
+                    @Override
+                    public void onComplete(Object result) {
+                        stopSelf(START_ID);
+                        updateNotification("Note was created!", "Your note was successfully created.", true, false);
+                        isRunning = false;
+                    }
 
-            Helpers.Files.base64Encode(file.getPath(), new MyInterfaces.EncoderListener() {
-                @Override
-                public void onSuccess(final String base64File) {
-                    annotation.submit(context, new MyInterfaces.CrmRequestListener() {
-                        @Override
-                        public void onComplete(Object result) {
-                            CrmEntities.CrmEntityResponse response = new CrmEntities.CrmEntityResponse(result.toString());
-                            annotation.annotationid = response.guid;
-                            annotation.documentBody = base64File;
-                            annotation.addAttachment(context, new MyInterfaces.CrmRequestListener() {
-                                @Override
-                                public void onComplete(Object result) {
-                                    // stopSelf(START_ID);
-                                    Toast.makeText(context, "File was uploaded to MileBuddy", Toast.LENGTH_SHORT).show();
-                                    stopSelf(START_ID);
-                                    updateNotification("Upload complete!", "Your file was successfully uploaded and attached.", true, false);
+                    @Override
+                    public void onProgress(Crm.AsyncProgress progress) { }
 
-                                }
+                    @Override
+                    public void onFail(String error) {
+                        notification = getNotification("Upload failed", error, false, false);
+                        mNotificationManager.notify(NOTIFICATION_ID, notification);
+                        stopSelf(START_ID);
+                        mNotificationManager.deleteNotificationChannel(NOTIFICATION_CHANNEL);
+                        isRunning = false;
+                    }
+                });
+            } else {
+                uploadedFilePath = file.getPath();
+                Helpers.Files.base64Encode(file.getPath(), new MyInterfaces.EncoderListener() {
+                    @Override
+                    public void onSuccess(final String base64File) {
+                        annotation.submit(context, new MyInterfaces.CrmRequestListener() {
+                            @Override
+                            public void onComplete(Object result) {
+                                CrmEntities.CrmEntityResponse response = new CrmEntities.CrmEntityResponse(result.toString());
+                                annotation.annotationid = response.guid;
+                                annotation.documentBody = base64File;
+                                annotation.addAttachment(context, new MyInterfaces.CrmRequestListener() {
+                                    @Override
+                                    public void onComplete(Object result) {
+                                        // stopSelf(START_ID);
+                                        Toast.makeText(context, "File was uploaded to MileBuddy", Toast.LENGTH_SHORT).show();
+                                        stopSelf(START_ID);
+                                        updateNotification("Upload complete!", "Your file was successfully uploaded and attached.", true, false);
+                                        isRunning = false;
+                                    }
 
-                                @Override
-                                public void onProgress(Crm.AsyncProgress progress) {  }
+                                    @Override
+                                    public void onProgress(Crm.AsyncProgress progress) {  }
 
-                                @Override
-                                public void onFail(String error) {
-                                    notification = getNotification("Upload failed", error, false, false);
-                                    mNotificationManager.notify(NOTIFICATION_ID, notification);
-                                    // remove annotation here
-                                    stopSelf(START_ID);
-                                }
-                            });
-                        }
+                                    @Override
+                                    public void onFail(String error) {
+                                        notification = getNotification("Upload failed", error, false, false);
+                                        mNotificationManager.notify(NOTIFICATION_ID, notification);
+                                        // remove annotation here
+                                        stopSelf(START_ID);
+                                        isRunning = false;
+                                    }
+                                });
+                            }
 
-                        @Override
-                        public void onProgress(Crm.AsyncProgress progress) {  }
+                            @Override
+                            public void onProgress(Crm.AsyncProgress progress) {  }
 
-                        @Override
-                        public void onFail(String error) {
-                            stopSelf();
-                        }
-                    });
-                    annotation.documentBody = base64File;
+                            @Override
+                            public void onFail(String error) {
+                                stopSelf();
+                            }
+                        });
+                        annotation.documentBody = base64File;
 
-                }
+                    }
 
-                @Override
-                public void onFailure(String error) {
-                    stopSelf(START_ID);
-                    mNotificationManager.deleteNotificationChannel(NOTIFICATION_CHANNEL);
-                    Log.w(TAG, "onFailure: Failure: " + error);
-                }
-            });
+                    @Override
+                    public void onFailure(String error) {
+                        stopSelf(START_ID);
+                        mNotificationManager.deleteNotificationChannel(NOTIFICATION_CHANNEL);
+                        Log.w(TAG, "onFailure: Failure: " + error);
+                        isRunning = false;
+                    }
+                });
+            }
         } catch (Exception e) {
             e.printStackTrace();
             stopSelf(START_ID);
             Log.w(TAG, "startInForeground: Failure: " + e.getLocalizedMessage());
+            isRunning = false;
         }
     }
 
