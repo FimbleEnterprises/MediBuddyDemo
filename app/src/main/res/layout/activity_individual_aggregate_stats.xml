@@ -50,8 +50,10 @@
                 android:layout_weight="1"></FrameLayout>
         </TableRow>
 
+        <!-- ***********************************************************************************-->
+        <!--                                CPY WIDE TREND CHART                                -->
+        <!-- ***********************************************************************************-->
         <TableRow
-            android:id="@+id/tableRow_trendRow1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -69,8 +71,10 @@
             </FrameLayout>
         </TableRow>
 
+        <!-- ***********************************************************************************-->
+        <!--                                    THIS MONTH                                      -->
+        <!-- ***********************************************************************************-->
         <TableRow
-            android:id="@+id/tableRow_thisMonth"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -80,7 +84,6 @@
                 android:layout_weight="1">
 
                 <TextView
-                    android:id="@+id/textView_ThisMonth"
                     android:layout_width="192dp"
                     android:layout_height="match_parent"
                     android:layout_marginLeft="5dp"
@@ -101,7 +104,6 @@
         </TableRow>
 
         <TableRow
-            android:id="@+id/tableRow_emtpy3d3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -111,7 +113,6 @@
                 android:layout_weight="1">
 
                 <LinearLayout
-                    android:id="@+id/companyWide_topBorder"
                     android:layout_width="325dp"
                     android:layout_height="2dp"
                     android:layout_below="@id/title"
@@ -128,7 +129,6 @@
                 android:layout_weight="1">
 
                 <TextView
-                    android:id="@+id/textView_empty4s4d"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="5dp"
@@ -141,7 +141,6 @@
         </TableRow>
 
         <TableRow
-            android:id="@+id/tableRow_cmpwide_thismonth"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -151,39 +150,6 @@
                 android:layout_weight="1">
 
                 <TextView
-                    android:id="@+id/textView_cpywide_thismonth"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="15dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:gravity="left"
-                    android:text="Company-wide:"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-            </FrameLayout>
-
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-            </FrameLayout>
-        </TableRow>
-
-        <TableRow
-            android:id="@+id/tableRow_empty4vv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/textView_empty44vv"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="25dp"
@@ -216,7 +182,6 @@
         </TableRow>
 
         <TableRow
-            android:id="@+id/tableRow_empty42bb2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -226,7 +191,6 @@
                 android:layout_weight="1">
 
                 <TextView
-                    android:id="@+id/textView_empty44bg09"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="25dp"
@@ -259,7 +223,6 @@
         </TableRow>
 
         <TableRow
-            android:id="@+id/tableRow_empty44ddd"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -269,7 +232,6 @@
                 android:layout_weight="1">
 
                 <TextView
-                    android:id="@+id/textView_empty4fd44"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="25dp"
@@ -302,7 +264,6 @@
         </TableRow>
 
         <TableRow
-            android:id="@+id/tableRow_empty1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -343,9 +304,7 @@
             </FrameLayout>
         </TableRow>
 
-
         <TableRow
-            android:id="@+id/tableRow_1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -354,50 +313,16 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1">
 
-                <TextView
-                    android:id="@+id/textView_topUser"
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/thisMonthEditedTripsPieChart"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="15dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:gravity="left"
-                    android:text="Top Drivers:"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-            </FrameLayout>
-
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"></FrameLayout>
-        </TableRow>
-
-
-
-        <TableRow
-            android:id="@+id/tableRow_trendRowThisMonthDrivers"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <com.github.mikephil.charting.charts.BarChart
-                    android:id="@+id/trendChartThisMonthDrivers"
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:layout_margin="15dp"></com.github.mikephil.charting.charts.BarChart>
+                    android:layout_height="250dp"
+                    android:layout_margin="15dp"></com.github.mikephil.charting.charts.PieChart>
 
             </FrameLayout>
         </TableRow>
 
-        <!--<TableRow
-            android:id="@+id/LasttableRow_2"
+        <TableRow
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -406,84 +331,16 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1">
 
-                <TextView
-                    android:id="@+id/textView_driver1"
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/thisMonthManualPieChart"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="25dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:gravity="left"
-                    android:text=":"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp" />
-            </FrameLayout>
+                    android:layout_height="250dp"
+                    android:layout_margin="15dp"></com.github.mikephil.charting.charts.PieChart>
 
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/textView_driver1_value"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:text=""
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp" />
-            </FrameLayout>
-        </TableRow>-->
-
-        <!--<TableRow
-            android:id="@+id/tableRow_3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/textView_driver2"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="25dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:gravity="left"
-                    android:text=":"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp" />
-            </FrameLayout>
-
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/textView_driver2_value"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:text=""
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp" />
             </FrameLayout>
         </TableRow>
 
         <TableRow
-            android:id="@+id/tableRow_4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -492,85 +349,18 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1">
 
-                <TextView
-                    android:id="@+id/textView_driver3"
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/thisMonthKilledPieChart"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="25dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:gravity="left"
-                    android:text=":"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp" />
-            </FrameLayout>
+                    android:layout_height="250dp"
+                    android:layout_margin="15dp"></com.github.mikephil.charting.charts.PieChart>
 
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/textView_driver3_value"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:text=""
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp" />
-            </FrameLayout>
-        </TableRow>-->
-
-        <TableRow
-            android:id="@+id/tableRow_empty"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/textView_empty"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"
-                    android:gravity="left"
-                    android:text=""
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-            </FrameLayout>
-
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/textView_emptyhhgh"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"
-                    android:text=""
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp" />
             </FrameLayout>
         </TableRow>
 
         <!-- ***********************************************************************************-->
-        <!--                                    NEW ROW                                         -->
+        <!--                                    LAST MONTH                                      -->
         <!-- ***********************************************************************************-->
-
         <TableRow
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
@@ -601,7 +391,6 @@
         </TableRow>
 
         <TableRow
-            android:id="@+id/tableRow_lastLastemtpy3d3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -611,7 +400,6 @@
                 android:layout_weight="1">
 
                 <LinearLayout
-                    android:id="@+id/companyWide_lastLasttopBorder"
                     android:layout_width="325dp"
                     android:layout_height="2dp"
                     android:layout_below="@id/title"
@@ -628,7 +416,6 @@
                 android:layout_weight="1">
 
                 <TextView
-                    android:id="@+id/textView_lastLastempty4s4d"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="5dp"
@@ -641,7 +428,6 @@
         </TableRow>
 
         <TableRow
-            android:id="@+id/tableRow_cmpwide_lastLastmonth"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -651,38 +437,6 @@
                 android:layout_weight="1">
 
                 <TextView
-                    android:id="@+id/textView_cpywide_lastLastmonth"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="15dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:gravity="left"
-                    android:text="Company-wide:"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-            </FrameLayout>
-
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-            </FrameLayout>
-        </TableRow>
-
-        <TableRow
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/textView_Lastempty44vv"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="25dp"
@@ -715,7 +469,6 @@
         </TableRow>
 
         <TableRow
-            android:id="@+id/tableRow_lastLastempty42bb2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -725,7 +478,6 @@
                 android:layout_weight="1">
 
                 <TextView
-                    android:id="@+id/textView_lastLastempty44bg09"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="25dp"
@@ -758,7 +510,6 @@
         </TableRow>
 
         <TableRow
-            android:id="@+id/tableRow_lastLastempty44ddd"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -768,7 +519,6 @@
                 android:layout_weight="1">
 
                 <TextView
-                    android:id="@+id/textView_lastLastempty4fd44"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="25dp"
@@ -810,7 +560,6 @@
                 android:layout_weight="1">
 
                 <TextView
-                    android:id="@+id/textView_lastLastempty1"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="5dp"
@@ -829,7 +578,6 @@
                 android:layout_weight="1">
 
                 <TextView
-                    android:id="@+id/textView_lastLastempty2"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="5dp"
@@ -850,29 +598,16 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1">
 
-                <TextView
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/lastMonthEditedTripsPieChart"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="15dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:gravity="left"
-                    android:text="Top Drivers:"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-            </FrameLayout>
+                    android:layout_height="250dp"
+                    android:layout_margin="15dp"></com.github.mikephil.charting.charts.PieChart>
 
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"></FrameLayout>
+            </FrameLayout>
         </TableRow>
 
-
         <TableRow
-            android:id="@+id/tableRow_trendRowLastMonthDrivers"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -881,17 +616,16 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1">
 
-                <com.github.mikephil.charting.charts.BarChart
-                    android:id="@+id/trendChartLastMonthDrivers"
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/lastMonthManualPieChart"
                     android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:layout_margin="15dp"></com.github.mikephil.charting.charts.BarChart>
+                    android:layout_height="250dp"
+                    android:layout_margin="15dp"></com.github.mikephil.charting.charts.PieChart>
 
             </FrameLayout>
         </TableRow>
 
         <TableRow
-            android:id="@+id/tableRow_lastLastempty"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -900,44 +634,19 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1">
 
-                <TextView
-                    android:id="@+id/textView_lastLastempty"
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/lastMonthKilledPieChart"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"
-                    android:gravity="left"
-                    android:text=""
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-            </FrameLayout>
+                    android:layout_height="250dp"
+                    android:layout_margin="15dp"></com.github.mikephil.charting.charts.PieChart>
 
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/textView_lastLastemptyhhgh"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"
-                    android:text=""
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp" />
             </FrameLayout>
         </TableRow>
 
         <!-- ***********************************************************************************-->
-        <!--                                    NEW ROW                                         -->
+        <!--                                    LAST LAST MONTH                                 -->
         <!-- ***********************************************************************************-->
-
         <TableRow
-            android:id="@+id/tableRow_lastMonth"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -947,7 +656,6 @@
                 android:layout_weight="1">
 
                 <TextView
-                    android:id="@+id/textView_LastMonth"
                     android:layout_width="192dp"
                     android:layout_height="match_parent"
                     android:layout_marginLeft="5dp"
@@ -968,7 +676,6 @@
         </TableRow>
 
         <TableRow
-            android:id="@+id/tableRow_emtpy33"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -976,8 +683,6 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1">
-
-
 
                 <LinearLayout
                     android:layout_width="325dp"
@@ -988,18 +693,6 @@
                     android:orientation="vertical"
                     android:visibility="visible" />
 
-                <TextView
-                    android:id="@+id/textView_empty3dsl"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"
-                    android:gravity="left"
-                    android:text=""
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
             </FrameLayout>
 
             <FrameLayout
@@ -1008,7 +701,6 @@
                 android:layout_weight="1">
 
                 <TextView
-                    android:id="@+id/textView_empty44d"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="5dp"
@@ -1021,7 +713,6 @@
         </TableRow>
 
         <TableRow
-            android:id="@+id/tableRow_cmpwide_lastmonth"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -1031,39 +722,6 @@
                 android:layout_weight="1">
 
                 <TextView
-                    android:id="@+id/textView_cpywide_lastmonth"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="15dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:gravity="left"
-                    android:text="Company-wide:"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-            </FrameLayout>
-
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-            </FrameLayout>
-        </TableRow>
-
-        <TableRow
-            android:id="@+id/tableRow_empty4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/textView_empty44"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="25dp"
@@ -1096,7 +754,6 @@
         </TableRow>
 
         <TableRow
-            android:id="@+id/tableRow_empty4455"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -1106,7 +763,6 @@
                 android:layout_weight="1">
 
                 <TextView
-                    android:id="@+id/textView_empty4443"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="25dp"
@@ -1139,7 +795,6 @@
         </TableRow>
 
         <TableRow
-            android:id="@+id/tableRow_empty44"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -1149,7 +804,6 @@
                 android:layout_weight="1">
 
                 <TextView
-                    android:id="@+id/textView_empty444"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="25dp"
@@ -1182,7 +836,6 @@
         </TableRow>
 
         <TableRow
-            android:id="@+id/tableRow_empty4f455"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -1192,13 +845,12 @@
                 android:layout_weight="1">
 
                 <TextView
-                    android:id="@+id/textView_empty444d3"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="25dp"
+                    android:layout_marginLeft="5dp"
                     android:layout_marginRight="5dp"
                     android:gravity="left"
-                    android:fontFamily="@font/casual"
+                    android:text=""
                     android:textAppearance="?android:attr/textAppearanceSmall"
                     android:textColor="#454545"
                     android:textSize="18sp"
@@ -1211,20 +863,18 @@
                 android:layout_weight="1">
 
                 <TextView
-                    android:id="@+id/textView_empty333"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="5dp"
                     android:layout_marginRight="5dp"
+                    android:text=""
                     android:textAppearance="?android:attr/textAppearanceSmall"
                     android:textColor="#454545"
                     android:textSize="18sp" />
             </FrameLayout>
         </TableRow>
 
-
         <TableRow
-            android:id="@+id/tableRow_333"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -1233,30 +883,16 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1">
 
-                <TextView
-                    android:id="@+id/textView_topUserLastMonth"
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/lastLastMonthEditedTripsPieChart"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="15dp"
-                    android:layout_marginRight="5dp"
-                    android:fontFamily="casual"
-                    android:gravity="left"
-                    android:text="Top Drivers:"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="#454545"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-            </FrameLayout>
+                    android:layout_height="250dp"
+                    android:layout_margin="15dp"></com.github.mikephil.charting.charts.PieChart>
 
-            <FrameLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"></FrameLayout>
+            </FrameLayout>
         </TableRow>
 
-
         <TableRow
-            android:id="@+id/tableRow_trendRowLastLastMonthDrivers"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
@@ -1265,11 +901,29 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1">
 
-                <com.github.mikephil.charting.charts.BarChart
-                    android:id="@+id/trendChartLastLastMonthDrivers"
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/lastLastMonthManualPieChart"
                     android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:layout_margin="15dp"></com.github.mikephil.charting.charts.BarChart>
+                    android:layout_height="250dp"
+                    android:layout_margin="15dp"></com.github.mikephil.charting.charts.PieChart>
+
+            </FrameLayout>
+        </TableRow>
+
+        <TableRow
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/lastLastMonthKilledPieChart"
+                    android:layout_width="match_parent"
+                    android:layout_height="250dp"
+                    android:layout_margin="15dp"></com.github.mikephil.charting.charts.PieChart>
 
             </FrameLayout>
         </TableRow>

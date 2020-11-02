@@ -30,6 +30,18 @@ public class AggregateStats extends ArrayList<AggregateStats.AggregateStat> {
     public int lastMonthTripCount = 0;
     public int lastLastMonthTripCount = 0;
 
+    public int thisMonthManTripCount = 0;
+    public int thisMonthEditedTripCount = 0;
+    public int thisMonthTripMinderKillCount = 0;
+
+    public int lastMonthManTripCount = 0;
+    public int lastMonthEditedTripCOunt = 0;
+    public int lastMonthTripMinderKillCount = 0;
+
+    public int lastLastMonthManTripCount = 0;
+    public int lastLastMonthEditedTripCount = 0;
+    public int lastLastMonthTripMinderKillCount = 0;
+
     public ArrayList<UserTotals> topUserMilesThisMonth = new ArrayList<>();
     public ArrayList<UserTotals> topUserMilesLastMonth = new ArrayList<>();
     public ArrayList<UserTotals> topUserMilesLastLastMonth = new ArrayList<>();
@@ -84,14 +96,23 @@ public class AggregateStats extends ArrayList<AggregateStats.AggregateStat> {
                 thisMonthTotalPayout += s.reimbursement;
                 thisMonthTotalMiles += s.distanceMiles;
                 thisMonthTripCount += 1;
+                thisMonthEditedTripCount += (s.isEdited ? 1 : 0);
+                thisMonthManTripCount += (s.isManual ? 1 : 0);
+                thisMonthTripMinderKillCount += (s.tripMinderKilled ? 1 : 0);
             } else if (s.tripDate.getMonthOfYear() == lastMonth) {
                 lastMonthTotalPayout += s.reimbursement;
                 lastMonthTotalMiles += s.distanceMiles;
                 lastMonthTripCount += 1;
+                lastMonthEditedTripCOunt += (s.isEdited ? 1 : 0);
+                lastMonthManTripCount += (s.isManual ? 1 : 0);
+                lastMonthTripMinderKillCount += (s.tripMinderKilled ? 1 : 0);
             } else if (s.tripDate.getMonthOfYear() == lastLastMonth) {
                 lastLastMonthTotalPayout += s.reimbursement;
                 lastLastMonthTotalMiles += s.distanceMiles;
                 lastLastMonthTripCount += 1;
+                lastLastMonthEditedTripCount += (s.isEdited ? 1 : 0);
+                lastLastMonthManTripCount += (s.isManual ? 1 : 0);
+                lastLastMonthTripMinderKillCount += (s.tripMinderKilled ? 1 : 0);
             }
         }
 
@@ -162,6 +183,9 @@ public class AggregateStats extends ArrayList<AggregateStats.AggregateStat> {
         public int durationMinutes;
         public String tripid;
         public String tripName;
+        public boolean isEdited;
+        public boolean isManual;
+        public boolean tripMinderKilled;
 
         public AggregateStat(JSONObject json) {
             try {
@@ -223,6 +247,28 @@ public class AggregateStats extends ArrayList<AggregateStats.AggregateStat> {
             try {
                 if (!json.isNull("msus_name")) {
                     this.tripName = (json.getString("msus_name"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            /* metadata */
+            try {
+                if (!json.isNull("msus_edited")) {
+                    this.isEdited = (json.getBoolean("msus_edited"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("msus_trip_minder_killed")) {
+                    this.tripMinderKilled = (json.getBoolean("msus_trip_minder_killed"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("msus_is_manual")) {
+                    this.isManual = (json.getBoolean("msus_is_manual"));
                 }
             } catch (JSONException e) {
                 e.printStackTrace();

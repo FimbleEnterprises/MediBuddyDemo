@@ -219,5 +219,6 @@
     <string name="action_refresh">Refresh</string>
     <string name="extended_fab_content_desc">Add note</string>
     <string name="extended_fab_label">Add note</string>
+    <string name="title_activity_individual_aggregate_stats">Stats</string>
 
 </resources>

@@ -114,19 +114,19 @@ public class AggregateStatsActivity extends AppCompatActivity {
         lastLastMonthTopDriversChart = findViewById(R.id.trendChartLastLastMonthDrivers);
 
         // Company-wide this month
-        txtCpyWideTripsThisMonth = findViewById(R.id.textView_tripCountThisMonth);
-        txtCpyWideTripsLastMonth = findViewById(R.id.textView_tripCountLastMonth);
-        txtCpyWideTripsLastLastMonth = findViewById(R.id.textView_tripCountLastLastMonth);
+        txtCpyWideTripsThisMonth = findViewById(R.id.txtTripsThisMonth);
+        txtCpyWideTripsLastMonth = findViewById(R.id.txtTripsLastMonth);
+        txtCpyWideTripsLastLastMonth = findViewById(R.id.txtTripsLastLastMonth);
 
         // Company-wide 1 month ago
-        txtCpyWideMilesThisMonth = findViewById(R.id.textView_totalMilesThisMonth);
-        txtCpyWideMilesLastMonth = findViewById(R.id.textView_totalMilesLastMonth);
-        txtCpyWideMilesLastLastMonth = findViewById(R.id.textView_totalMilesLastLastMonth);
+        txtCpyWideMilesThisMonth = findViewById(R.id.txtMilesThisMonth);
+        txtCpyWideMilesLastMonth = findViewById(R.id.txtMilesLastMonth);
+        txtCpyWideMilesLastLastMonth = findViewById(R.id.txtMilesLastLastMonth);
 
         // Company-wide 2 months ago
-        txtCpyWideReimbursementThisMonth = findViewById(R.id.textView_ReimbursementThisMonth);
-        txtCpyWideReimbursementLastMonth = findViewById(R.id.textView_ReimbursementLastMonth);
-        txtCpyWideReimbursementLastLastMonth = findViewById(R.id.textView_ReimbursementLastLastMonth);
+        txtCpyWideReimbursementThisMonth = findViewById(R.id.txtReimbursementThisMonth);
+        txtCpyWideReimbursementLastMonth = findViewById(R.id.txtReimbursementLastMonth);
+        txtCpyWideReimbursementLastLastMonth = findViewById(R.id.txtReimbursementLastLastMonth);
 
         tf = txtCpyWideMilesLastLastMonth.getTypeface();
 

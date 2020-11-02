@@ -41,6 +41,7 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
     ArrayList<FullTrip> allTrips = new ArrayList<>();
     RecyclerView recyclerView;
     Switch switchLastMonth;
+    LinearLayout llTop;
     public MileageUser user;
     Context context;
 
@@ -83,6 +84,7 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
         adapter.setClickListener(this);
         recyclerView.setAdapter(adapter);
 
+        llTop = findViewById(R.id.ll_top);
         userInfoContainer = findViewById(R.id.ll_top);
         txtName = findViewById(R.id.txtName);
         txtMtd = findViewById(R.id.txtReimbursementThisMonth);
@@ -104,6 +106,16 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
         } else {
             this.setTitle("Trips");
         }
+
+        llTop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(context, "User: " + user.fullname, Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(context, IndividualAggregateStatsActivity.class);
+                intent.putExtra(IndividualAggregateStatsActivity.USER_TAG, user);
+                startActivity(intent);
+            }
+        });
 
     }
 
