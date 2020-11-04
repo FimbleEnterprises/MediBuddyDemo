@@ -110,7 +110,7 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
         llTop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(context, "User: " + user.fullname, Toast.LENGTH_SHORT).show();
+                // Toast.makeText(context, "User: " + user.fullname, Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(context, IndividualAggregateStatsActivity.class);
                 intent.putExtra(IndividualAggregateStatsActivity.USER_TAG, user);
                 startActivity(intent);

@@ -50,7 +50,7 @@ import cz.msebera.android.httpclient.Header;
 import static com.fimbleenterprises.medimileage.QueryFactory.*;
 import static com.fimbleenterprises.medimileage.ui.mileage.MileageFragment.PERMISSION_UPDATE;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, DrawerLayout.DrawerListener {
     private static final String TAG = "MainActivity";
     private AppBarConfiguration mAppBarConfiguration;
     MySettingsHelper options;
@@ -113,70 +113,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                if (item.getTitle().equals(getString(R.string.retry))) {
-                    Log.i(TAG, "onNavigationItemSelected Retrying user populate...");
-                    drawer.closeDrawer(navigationView);
-                    Menu m = navigationView.getMenu();
-                    SubMenu subMenu = m.getItem(3).getSubMenu();
-                    subMenu.getItem(0).setTitle(getString(R.string.loading));
-                    try {
-                        makeDrawerTitles();
-                    } catch (Exception e) { }
-                } else if (item.getTitle().equals(getString(R.string.loading))) {
-                    return false;
-                } else if (item.getItemId() == R.id.nav_settings) {
-                    Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
-                    startActivityForResult(intent, 0);
-                    drawer.closeDrawer(navigationView);
-                } else if (item.getItemId() == R.id.nav_stats) {
-                    startActivity(new Intent(activity, AggregateStatsActivity.class));
-                    drawer.closeDrawer(navigationView);
-                } else if (item.getItemId() == R.id.nav_other) {
-                    startActivity(new Intent(activity, Activity_TerritoryData.class));
-                    drawer.closeDrawer(navigationView);
-                }  else {
-                    try {
-                        Log.i(TAG, "onNavigationItemSelected index:" + item.getItemId());
-                        Log.i(TAG, "onNavigationItemSelected fullname:" + users.get(item.getItemId()).fullname);
-                        drawer.closeDrawer(navigationView);
-                        Intent intent = new Intent(getApplicationContext(), UserTripsActivity.class);
-                        intent.putExtra(UserTripsActivity.MILEAGE_USER, users.get(item.getItemId()));
-                        startActivity(intent);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-                return false;
-            }
-        });
-
-        drawer.addDrawerListener(new DrawerLayout.DrawerListener() {
-
-            @Override
-            public void onDrawerSlide(@NonNull View drawerView, float slideOffset) {
-                //Called when a drawer's position changes.
-            }
-
-            @Override
-            public void onDrawerOpened(@NonNull View drawerView) {
-                try {
-                    makeDrawerTitles();
-                } catch (Exception e) { }
-            }
-
-            @Override
-            public void onDrawerClosed(@NonNull View drawerView) {
-                // Called when a drawer has settled in a completely closed state.
-            }
-
-            @Override
-            public void onDrawerStateChanged(int newState) {
-                // Called when the drawer motion state changes. The new state will be one of STATE_IDLE, STATE_DRAGGING or STATE_SETTLING.
-            }
-        });
+        navigationView.setNavigationItemSelectedListener(this);
+        drawer.addDrawerListener(this);
 
         // Initialize the broadcast receiver
         locFilter.addAction(MyLocationService.STOP_TRIP_ACTION);
@@ -267,6 +205,66 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+    }
+
+    @Override
+    public void onDrawerSlide(@NonNull View drawerView, float slideOffset) {
+        //Called when a drawer's position changes.
+    }
+
+    @Override
+    public void onDrawerOpened(@NonNull View drawerView) {
+        try {
+            makeDrawerTitles();
+        } catch (Exception e) { }
+    }
+
+    @Override
+    public void onDrawerClosed(@NonNull View drawerView) {
+        // Called when a drawer has settled in a completely closed state.
+    }
+
+    @Override
+    public void onDrawerStateChanged(int newState) {
+        // Called when the drawer motion state changes. The new state will be one of STATE_IDLE, STATE_DRAGGING or STATE_SETTLING.
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        if (item.getTitle().equals(getString(R.string.retry))) {
+            Log.i(TAG, "onNavigationItemSelected Retrying user populate...");
+            drawer.closeDrawer(navigationView);
+            Menu m = navigationView.getMenu();
+            SubMenu subMenu = m.getItem(3).getSubMenu();
+            subMenu.getItem(0).setTitle(getString(R.string.loading));
+            try {
+                makeDrawerTitles();
+            } catch (Exception e) { }
+        } else if (item.getTitle().equals(getString(R.string.loading))) {
+            return false;
+        } else if (item.getItemId() == R.id.nav_settings) {
+            Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+            startActivityForResult(intent, 0);
+            drawer.closeDrawer(navigationView);
+        } else if (item.getItemId() == R.id.nav_stats) {
+            startActivity(new Intent(activity, AggregateStatsActivity.class));
+            drawer.closeDrawer(navigationView);
+        } else if (item.getItemId() == R.id.nav_other) {
+            startActivity(new Intent(activity, Activity_TerritoryData.class));
+            drawer.closeDrawer(navigationView);
+        }  else {
+            try {
+                Log.i(TAG, "onNavigationItemSelected index:" + item.getItemId());
+                Log.i(TAG, "onNavigationItemSelected fullname:" + users.get(item.getItemId()).fullname);
+                drawer.closeDrawer(navigationView);
+                Intent intent = new Intent(getApplicationContext(), UserTripsActivity.class);
+                intent.putExtra(UserTripsActivity.MILEAGE_USER, users.get(item.getItemId()));
+                startActivity(intent);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
     }
 
     @Override
@@ -569,7 +567,8 @@ public class MainActivity extends AppCompatActivity {
         QueryFactory factory = new QueryFactory("msus_fulltrip");
         factory.addColumn("ownerid");
 
-        LinkEntity linkEntity = new LinkEntity("systemuser", "systemuserid", "owninguser", "a_79740df757a5e81180e8005056a36b9b");
+        LinkEntity linkEntity = new LinkEntity("systemuser", "systemuserid",
+                "owninguser", "a_79740df757a5e81180e8005056a36b9b");
         linkEntity.addColumn(new EntityColumn("territoryid"));
         linkEntity.addColumn(new EntityColumn("address1_stateorprovince"));
         linkEntity.addColumn(new EntityColumn("new_many_user_to_salesregion"));
@@ -605,51 +604,78 @@ public class MainActivity extends AppCompatActivity {
         Requests.Argument argument = new Requests.Argument("query", query);
         request.arguments.add(argument);
 
-        Crm crm = new Crm();
-        crm.makeCrmRequest(this, request, new AsyncHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                Log.i(TAG, "onSuccess: StatusCode: " + statusCode);
+        if (users == null || users.size() < 1) {
+            Log.i(TAG, "getDistinctUsersWithTrips The users array is empty or null.  Need to rebuild it from CRM!");
 
-                try {
-                    JSONObject json = new JSONObject(new String(responseBody));
-                    JSONArray array = json.getJSONArray("value");
-                    users = MileageUser.makeMany(array);
-                    Menu m = navigationView.getMenu();
-                    SubMenu subMenu = m.getItem(2).getSubMenu();
-                    subMenu.removeItem(subMenu.getItem(0).getItemId());
+            Menu m = navigationView.getMenu();
+            SubMenu subMenu = m.getItem(2).getSubMenu();
+            subMenu.clear();
+            subMenu.add("Loading...");
+            subMenu.getItem(0).setTitle("Loading...");
 
-                    for (int i = 0; i < users.size(); i++) {
-                        MileageUser user = users.get(i);
-                        if (user.isDriving()) {
-                            subMenu.add(0, i, i, user.fullname + " (driving now)");
-                        } else {
-                            subMenu.add(0, i, i, options.isExplicitMode() ? user.fullFuckingName() : user.fullname);
+            Crm crm = new Crm();
+            crm.makeCrmRequest(this, request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    Log.i(TAG, "onSuccess: StatusCode: " + statusCode);
+
+                    try {
+                        JSONObject json = new JSONObject(new String(responseBody));
+                        JSONArray array = json.getJSONArray("value");
+                        users = MileageUser.makeMany(array);
+                        Menu m = navigationView.getMenu();
+                        SubMenu subMenu = m.getItem(2).getSubMenu();
+                        subMenu.removeItem(subMenu.getItem(0).getItemId());
+
+                        for (int i = 0; i < users.size(); i++) {
+                            MileageUser user = users.get(i);
+                            if (user.isDriving()) {
+                                subMenu.add(0, i, i, user.fullname + " (driving now)");
+                            } else {
+                                subMenu.add(0, i, i, options.isExplicitMode() ? user.fullFuckingName() : user.fullname);
+                            }
                         }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    Log.w(TAG, "onFailure: " + error.getMessage());
+                    try {
+                        Menu m = navigationView.getMenu();
+                        SubMenu subMenu = m.getItem(3).getSubMenu();
+                        subMenu.getItem(0).setTitle("Retry");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        } else {
+            Log.i(TAG, "getDistinctUsersWithTrips FOund a cached users list.  Will use it instead of going to CRM for a rebuild.");
+
+            Menu m = navigationView.getMenu();
+            SubMenu subMenu = m.getItem(2).getSubMenu();
+            subMenu.clear();
+            subMenu.add("Loading...");
+            subMenu.getItem(0).setTitle("Loading...");
+            subMenu.removeItem(subMenu.getItem(0).getItemId());
+
+            for (int i = 0; i < users.size(); i++) {
+                MileageUser user = users.get(i);
+                if (user.isDriving()) {
+                    subMenu.add(0, i, i, user.fullname + " (driving now)");
+                } else {
+                    subMenu.add(0, i, i, options.isExplicitMode() ? user.fullFuckingName() : user.fullname);
                 }
             }
 
-            @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                Log.w(TAG, "onFailure: " + error.getMessage());
-                try {
-                    Menu m = navigationView.getMenu();
-                    SubMenu subMenu = m.getItem(3).getSubMenu();
-                    subMenu.getItem(0).setTitle("Retry");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
 
-        Menu m = navigationView.getMenu();
-        SubMenu subMenu = m.getItem(2).getSubMenu();
-        subMenu.clear();
-        subMenu.add("Loading...");
-        subMenu.getItem(0).setTitle("Loading...");
+
+        }
+
+
     }
 
     boolean isInStack(String name) {
@@ -666,5 +692,4 @@ public class MainActivity extends AppCompatActivity {
         mNewTitle.setSpan(new CustomTypefaceSpan("", font), 0, mNewTitle.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
         mi.setTitle(mNewTitle);
     }
-
 }
