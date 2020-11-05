@@ -556,11 +556,15 @@ public class Activity_TerritoryData extends AppCompatActivity {
             crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                    String response = new String(responseBody);
-                    Log.i(TAG, "onSuccess " + response);
-                    allOrders = new OrderProducts(response).list;
-                    populateList();
-                    refreshLayout.finishRefresh();
+                    try {
+                        String response = new String(responseBody);
+                        Log.i(TAG, "onSuccess " + response);
+                        allOrders = new OrderProducts(response).list;
+                        populateList();
+                        refreshLayout.finishRefresh();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 @Override
@@ -654,17 +658,21 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
             Log.i(TAG, "populateTripList Finished preparing the dividers and trips.");
 
-            adapter = new OrderLineRecyclerAdapter(getContext(), orderList);
-            adapter.setClickListener(new OrderLineRecyclerAdapter.ItemClickListener() {
-                @Override
-                public void onItemClick(View view, int position) {
+            if (!getActivity().isFinishing()) {
+                adapter = new OrderLineRecyclerAdapter(getContext(), orderList);
+                adapter.setClickListener(new OrderLineRecyclerAdapter.ItemClickListener() {
+                    @Override
+                    public void onItemClick(View view, int position) {
 
-                }
-            });
-            recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-            recyclerView.setAdapter(adapter);
+                    }
+                });
+                recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+                recyclerView.setAdapter(adapter);
 
-            refreshLayout.finishRefresh();
+                refreshLayout.finishRefresh();
+            } else {
+                Log.w(TAG, "populateList: CAN'T POPULATE AS THE ACTIVITY IS FINISHING!!!");
+            }
         }
     }
 
