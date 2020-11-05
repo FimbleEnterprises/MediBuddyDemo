@@ -525,11 +525,15 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
     }
 
     void showAddNoteDialog(final Opportunity opportunity) {
-
         CrmEntities.Annotations.showAddNoteDialog(context, opportunity.opportunityid, new MyInterfaces.CrmRequestListener() {
             @Override
             public void onComplete(Object result) {
                 Log.i(TAG, "onComplete ");
+                final Helpers.Notifications notifications = new Helpers.Notifications(context);
+                notifications.create("Opportunity note created",
+                        "Your note was added to the opportunity!", false);
+                notifications.show();
+                notifications.setAutoCancel(6000);
             }
 
             @Override

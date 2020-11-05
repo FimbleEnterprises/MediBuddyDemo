@@ -92,6 +92,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         TextView txtVersion = navigationView.getHeaderView(0).findViewById(R.id.textViewVersion);
         txtVersion.setText(getString(R.string.version) + Helpers.Application.getAppVersion(this));
+        TextView txtUserName = navigationView.getHeaderView(0).findViewById(R.id.textViewUser);
+        MediUser curUser = MediUser.getMe();
+        if (curUser != null) {
+            txtUserName.setText(MediUser.getMe().fullname);
+        } else {
+            txtUserName.setText("Not logged in");
+        }
 
         navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
@@ -110,6 +117,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 for (int i = 0; i < myStack.size(); i++) {
                     Log.i(TAG, "Backstack pos" + i + " = " + myStack.get(i));
                 }
+
             }
         });
 
@@ -215,6 +223,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onDrawerOpened(@NonNull View drawerView) {
         try {
+            TextView txtUserName = navigationView.getHeaderView(0).findViewById(R.id.textViewUser);
+            txtUserName.setText(MediUser.getMe().fullname);
+
             makeDrawerTitles();
         } catch (Exception e) { }
     }
@@ -295,6 +306,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
         if (keyCode == KeyEvent.KEYCODE_BACK) {
+
+            if (drawer.isOpen()) {
+                drawer.close();
+                return true;
+            }
+
             int backstackcount = Objects.requireNonNull(fragmentManager.getPrimaryNavigationFragment()).getChildFragmentManager().getBackStackEntryCount();
 
             try {

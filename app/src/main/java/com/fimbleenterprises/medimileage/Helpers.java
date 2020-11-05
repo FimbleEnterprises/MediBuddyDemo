@@ -4,7 +4,9 @@ import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
 import android.app.Activity;
 import android.app.AlarmManager;
-import android.app.Dialog;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
@@ -29,6 +31,8 @@ import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Parcelable;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -46,7 +50,6 @@ import android.view.animation.AnimationSet;
 import android.view.animation.AnimationUtils;
 import android.view.animation.TranslateAnimation;
 import android.webkit.MimeTypeMap;
-import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -83,13 +86,14 @@ import java.util.Random;
 
 
 import androidx.annotation.DrawableRes;
-import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
-import cz.msebera.android.httpclient.io.HttpMessageParser;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.view.TintableBackgroundView;
 
 import static android.content.Context.MODE_PRIVATE;
+import static android.content.Context.NOTIFICATION_SERVICE;
 
 public abstract class Helpers {
 
@@ -515,6 +519,70 @@ public abstract class Helpers {
         public static long convertBytesToGb(long total) {
             return total / (1024 * 1024 * 1024);
         }
+    }
+
+    public static class Notifications {
+
+        public String NOTIFICATION_CHANNEL = "MILEBUDDY_DEFAULT_CHANNEL";
+        Context context;
+        NotificationManager notificationManager;
+        Notification notification;
+        public static final int START_ID = 1;
+
+        public Notifications(Context context) {
+            this.context = context;
+            notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
+
+        }
+
+
+        public void create(String title, String text, boolean showProgress){
+            if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
+                ((NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(
+                        new NotificationChannel(NOTIFICATION_CHANNEL,NOTIFICATION_SERVICE,NotificationManager.IMPORTANCE_HIGH));
+            }
+
+            Intent newIntent = new Intent();
+
+            // The PendingIntent to launch our activity if the user selects
+            // this notification
+            PendingIntent contentIntent = PendingIntent.getActivity(context,
+                    0, newIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            NotificationCompat.BigTextStyle style = new NotificationCompat.BigTextStyle()
+                    .bigText(text);
+
+            notification = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL)
+                    .setContentTitle(title)
+                    .setContentText(text)
+                    .setOnlyAlertOnce(true) // so when data is updated don't make sound and alert in android 8.0+
+                    .setOngoing(false)
+                    .setStyle(style)
+                    .setProgress(0,0,showProgress)
+                    .setSmallIcon(R.drawable.notification_small_car)
+                    .setContentIntent(contentIntent)
+                    .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.mipmap.car2_static_round_tparent_icon))
+                    .build();
+        }
+
+        public void setAutoCancel(int delayInMs) {
+            Handler h = new Handler();
+            long delayInMilliseconds = delayInMs;
+            h.postDelayed(new Runnable() {
+                public void run() {
+                    notificationManager.cancel(START_ID);
+                }
+            }, delayInMilliseconds);
+        }
+
+        public void cancel() {
+            notificationManager.cancel(START_ID);
+        }
+
+        public void show() {
+            notificationManager.notify(START_ID, notification);
+        }
+
     }
 
     public static class DatesAndTimes {

@@ -274,6 +274,9 @@ public class MySettingsHelper {
     public void logout() {
         prefs.edit().remove(CACHED_USERNAME).commit();
         prefs.edit().remove(CACHED_PASSWORD).commit();
+        MediUser.deleteUsers();
+        MySqlDatasource ds = new MySqlDatasource();
+        ds.deleteAllTripData();
     }
 
     public boolean lastTripAutoKilled() {

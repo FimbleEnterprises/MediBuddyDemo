@@ -108,6 +108,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     public static final String REIMBURSEMENT_EMAIL = "receipts@concur.com";
 
     private static final String TAG = "MileageFragment";
+    private static final int SHOW_CLICK_HERE_TRIP_COUNT_THRESHOLD = 8;
     private MileageViewModel mileageViewModel;
     BroadcastReceiver locReceiver;
     MySqlDatasource datasource;
@@ -570,6 +571,68 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        try {
+            getActivity().unregisterReceiver(locReceiver);
+            tripDurationHandler.removeCallbacks(tripDurationRunner);
+            Log.i(TAG, "onStop Unregistered the location receiver");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (!MediUser.isLoggedIn()) {
+            try {
+                options.logout();
+                getActivity().onBackPressed();
+                return;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        for (int i = 0; i < this.getParentFragmentManager().getBackStackEntryCount(); i++) {
+            Log.i(TAG, "onCreateView: Backstack[" + i + "] name: " + this.getParentFragmentManager().getBackStackEntryAt(i).getId());
+        }
+
+        Helpers.Animations.pulseAnimation(txtMilesTotal);
+        Helpers.Animations.pulseAnimation(txtMtd);
+        startMtdTogglerRunner();
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        stopMtdTogglerRunner();
+    }
+
+    @Override
+    public void onItemClick(View view, int position) {
+        FullTrip clickedTrip = allTrips.get(position);
+        if (clickedTrip.isSeparator) {
+            return;
+        }
+        if (!adapter.isInEditMode) {
+            showTripOptions(clickedTrip);
+        } else {
+            for (FullTrip trip : adapter.mData) {
+                if (trip.isChecked) {
+                    btnDeleteTrips.setEnabled(true);
+                    return;
+                }
+                btnDeleteTrips.setEnabled(false);
+            }
+        }
+    }
+
     void startTripDurationRunner() {
         if (MyLocationService.isRunning) {
             try {
@@ -803,53 +866,6 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         ImageView imageView = rootView.findViewById(R.id.gifview);
         Glide.with(getContext()).load(path).into(imageView);
 
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        getActivity().unregisterReceiver(locReceiver);
-        tripDurationHandler.removeCallbacks(tripDurationRunner);
-        Log.i(TAG, "onStop Unregistered the location receiver");
-
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        for (int i = 0; i < this.getParentFragmentManager().getBackStackEntryCount(); i++) {
-            Log.i(TAG, "onCreateView: Backstack[" + i + "] name: " + this.getParentFragmentManager().getBackStackEntryAt(i).getId());
-        }
-
-        Helpers.Animations.pulseAnimation(txtMilesTotal);
-        Helpers.Animations.pulseAnimation(txtMtd);
-        startMtdTogglerRunner();
-
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        stopMtdTogglerRunner();
-    }
-
-    @Override
-    public void onItemClick(View view, int position) {
-        FullTrip clickedTrip = allTrips.get(position);
-        if (clickedTrip.isSeparator) {
-            return;
-        }
-        if (!adapter.isInEditMode) {
-            showTripOptions(clickedTrip);
-        } else {
-            for (FullTrip trip : adapter.mData) {
-                if (trip.isChecked) {
-                    btnDeleteTrips.setEnabled(true);
-                    return;
-                }
-                btnDeleteTrips.setEnabled(false);
-            }
-        }
     }
 
     void editTrip(final FullTrip clickedTrip) {
@@ -1219,7 +1235,8 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     void manageDefaultImage() {
         setEditMode(false);
         if (! MyLocationService.isRunning) {
-            emptyTripList.setVisibility((allTrips == null || allTrips.size() == 0) ? View.VISIBLE : View.GONE);
+            emptyTripList.setVisibility((allTrips == null || allTrips.size()
+                    <= SHOW_CLICK_HERE_TRIP_COUNT_THRESHOLD) ? View.VISIBLE : View.GONE);
         } else {
             emptyTripList.setVisibility(View.GONE);
         }

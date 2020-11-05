@@ -144,55 +144,6 @@ public class AuthenticationFragment extends Fragment {
         }
     }
 
-/*    public void userCanAuthenticate(final MyInterfaces.YesNoResult result) {
-        if (requestHandle != null && requestHandle.isCancelled()) {
-            return;
-        }
-
-        final MyProgressDialog dialog = new MyProgressDialog(getContext(), "Checking credentials...");
-
-        Requests.Request request = new Requests.Request(Requests.Request.Function.CAN_AUTHENTICATE);
-        request.arguments.add(new Requests.Argument(null, txtUsername.getText().toString()));
-        request.arguments.add(new Requests.Argument(null, txtPassword.getText().toString()));
-        Crm crm = new Crm();
-        try {
-            crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
-
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-
-                    String strResponse = new String(responseBody);
-                    Log.d(TAG, "onSuccess " + strResponse);
-
-                    // Added 1.5 - was authenticating everyone prior
-                    if (strResponse != null && strResponse.equals(TRUE)) {
-                        result.onYes(null);
-                    } else if (strResponse != null && strResponse.equals(FALSE)) {
-                        result.onNo(null);
-                    } else {
-                        result.onNo(null);
-                    }
-                    dialog.dismiss();
-
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                    Log.w(TAG, "onFailure: " + error.getMessage());
-                    Toast.makeText(context, "Failed to get user!\n" + error.getMessage(),
-                            Toast.LENGTH_SHORT).show();
-                    result.onNo(error.getMessage());
-                    options.clearCachedCredentials();
-                    dialog.dismiss();
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.w(TAG, "onClick: " + e.getMessage());
-            dialog.dismiss();
-        }
-    }*/
-
     public void getUser(String email) {
         String query = Queries.Users.getUser(email);
         Requests.Request request = new Requests.Request(Requests.Request.Function.GET);

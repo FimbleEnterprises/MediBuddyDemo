@@ -359,6 +359,11 @@ public class MediUser implements Parcelable {
         return datasource.saveUser(this);
     }
 
+    public static void deleteUsers() {
+        MySqlDatasource ds = new MySqlDatasource();
+        ds.deleteMe();
+    }
+
     public static MediUser getMe(Context context) {
         MySqlDatasource ds = new MySqlDatasource(context);
         return ds.getMe();
@@ -367,6 +372,10 @@ public class MediUser implements Parcelable {
     public static MediUser getMe() {
         MySqlDatasource ds = new MySqlDatasource(MyApp.getAppContext());
         return ds.getMe();
+    }
+
+    public static boolean isLoggedIn() {
+        return MediUser.getMe() != null;
     }
 
     /**
