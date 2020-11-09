@@ -260,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (item.getItemId() == R.id.nav_stats) {
             startActivity(new Intent(activity, AggregateStatsActivity.class));
             drawer.closeDrawer(navigationView);
-        } else if (item.getItemId() == R.id.nav_other) {
+        } else if (item.getItemId() == R.id.nav_sales) {
             startActivity(new Intent(activity, Activity_TerritoryData.class));
             drawer.closeDrawer(navigationView);
         }  else {
@@ -456,14 +456,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             menu.findItem(R.id.nav_home).setTitle(R.string.menu_mileage_explicit);
             menu.findItem(R.id.nav_stats).setTitle(R.string.menu_stats_explicit);
             menu.findItem(R.id.nav_data).setTitle(R.string.menu_data_explicit);
-            menu.findItem(R.id.nav_other).setTitle(R.string.menu_other_fucking_shit);
+            menu.findItem(R.id.nav_sales).setTitle(R.string.menu_other_fucking_sales_shit);
             menu.findItem(R.id.nav_settings).setTitle(R.string.menu_settings_explicit);
             menu.findItem(R.id.nav_user_trips).setTitle(R.string.menu_users_explicit);
         } else {
             menu.findItem(R.id.nav_home).setTitle(R.string.menu_mileage);
             menu.findItem(R.id.nav_stats).setTitle(R.string.menu_stats);
             menu.findItem(R.id.nav_data).setTitle(R.string.menu_data);
-            menu.findItem(R.id.nav_other).setTitle(R.string.menu_other);
+            menu.findItem(R.id.nav_sales).setTitle(R.string.menu_sales_and_more);
             menu.findItem(R.id.nav_settings).setTitle(R.string.menu_settings);
             menu.findItem(R.id.nav_user_trips).setTitle(R.string.menu_users);
         }

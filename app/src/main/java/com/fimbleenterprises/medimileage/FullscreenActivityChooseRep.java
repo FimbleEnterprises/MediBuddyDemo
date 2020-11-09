@@ -59,6 +59,19 @@ public class FullscreenActivityChooseRep extends AppCompatActivity {
 
         getReps();
 
+        Helpers.Views.MySwipeHandler mySwipeHandler = new Helpers.Views.MySwipeHandler(new Helpers.Views.MySwipeHandler.MySwipeListener() {
+            @Override
+            public void onSwipeLeft() {
+
+            }
+
+            @Override
+            public void onSwipeRight() {
+                onBackPressed();
+            }
+        });
+        mySwipeHandler.addView(listView);
+
     }
 
     void getReps() {

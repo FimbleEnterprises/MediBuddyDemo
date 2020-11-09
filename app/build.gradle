@@ -59,6 +59,7 @@ dependencies {
     // Recommended: Add the Firebase SDK for Google Analytics.
     // Add the Firebase Crashlytics SDK.
     implementation 'com.google.firebase:firebase-crashlytics:17.2.2'
+    implementation group: 'net.sourceforge.jexcelapi', name: 'jxl', version: '2.6'
 
     // Pulldown layouts
     implementation 'com.scwang.smart:refresh-layout-kernel:2.0.0'      //core

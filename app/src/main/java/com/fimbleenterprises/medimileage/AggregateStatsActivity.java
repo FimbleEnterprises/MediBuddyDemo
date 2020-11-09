@@ -1,23 +1,29 @@
 package com.fimbleenterprises.medimileage;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import cz.msebera.android.httpclient.Header;
+import jxl.format.Colour;
+import jxl.write.WritableCellFormat;
+import jxl.write.WritableFont;
 
 import android.annotation.SuppressLint;
-import android.app.Dialog;
-import android.content.Context;
-import android.content.DialogInterface;
+import android.app.Activity;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.View;
-import android.widget.Button;
+import android.view.GestureDetector;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,6 +53,8 @@ import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.joda.time.DateTime;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -59,7 +67,10 @@ import java.util.List;
 public class AggregateStatsActivity extends AppCompatActivity {
 
     private static final String TAG = "AggregateStats";
+    AppCompatActivity activity;
     AggregateStats stats;
+
+    ScrollView scrollView;
 
     TextView txtCpyWideTripsThisMonth;
     TextView txtCpyWideMilesThisMonth;
@@ -71,7 +82,7 @@ public class AggregateStatsActivity extends AppCompatActivity {
     TextView txtCpyWideMilesLastLastMonth;
     TextView txtCpyWideReimbursementLastLastMonth;
 
-    TextView txtDriver1ThisMonth;
+/*    TextView txtDriver1ThisMonth;
     TextView txtDriver2ThisMonth;
     TextView txtDriver3ThisMonth;
     TextView txtDriver1LastMonth;
@@ -89,7 +100,7 @@ public class AggregateStatsActivity extends AppCompatActivity {
     TextView txtDriver3LastMonthValue;
     TextView txtDriver1LastLastMonthValue;
     TextView txtDriver2LastLastMonthValue;
-    TextView txtDriver3LastLastMonthValue;
+    TextView txtDriver3LastLastMonthValue;*/
 
     LineChart cpyWideTripCountChart;
     BarChart thisMonthTopDriversChart;
@@ -98,10 +109,28 @@ public class AggregateStatsActivity extends AppCompatActivity {
 
     Typeface tf;
 
+    GestureDetector mGestureDetector;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_aggregate_stats);
+        this.activity = this;
+        scrollView = findViewById(R.id.scrollview_master);
+
+        Helpers.Views.MySwipeHandler swipeHandler = new Helpers.Views.MySwipeHandler(new Helpers.Views.MySwipeHandler.MySwipeListener() {
+            @Override
+            public void onSwipeLeft() {
+                Log.i(TAG, "onSwipeLeft ");
+            }
+
+            @Override
+            public void onSwipeRight() {
+                Log.i(TAG, "onSwipeRight ");
+                onBackPressed();
+            }
+        });
+        swipeHandler.addView(scrollView);
 
         // Log a metric
         MileBuddyMetrics.updateMetric(this, MileBuddyMetrics.MetricName.LAST_ACCESSED_MILEAGE_STATS, DateTime.now());
@@ -161,6 +190,46 @@ public class AggregateStatsActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.mileage_stats_all_users_menu, menu);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+
+        switch (item.getItemId()) {
+
+            case R.id.action_export_to_excel:
+                exportToExcel();
+                break;
+
+            case R.id.action_export_as_image :
+                Bitmap image = Helpers.Bitmaps.convertViewToImage(scrollView);
+                File file = new File(Helpers.Files.ExcelTempFiles.getDirectory(), "mileage_aggregate.png");
+                try {
+                    file.createNewFile();
+                    file = Helpers.Bitmaps.bitmapToFile(image, file);
+                    Helpers.Files.shareFile(activity, file, "Share mileage stats");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public boolean onSupportNavigateUp() {
         onBackPressed();
         return super.onSupportNavigateUp();
@@ -172,6 +241,234 @@ public class AggregateStatsActivity extends AppCompatActivity {
 
         getStats();
 
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+
+        Log.i(TAG, "onTouchEvent " + event.getAction());
+
+        mGestureDetector.onTouchEvent(event);
+
+        return super.onTouchEvent(event);
+    }
+    
+    void exportToExcel() {
+        
+        if (this.stats == null || this.stats.size() < 1) {
+            Toast.makeText(this, "No stats found!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        ExcelExporter spreadsheet = null;
+
+        // Create a new spreadsheet
+        String monthYear = Helpers.DatesAndTimes.getMonthName(DateTime.now().getMonthOfYear())
+                .toLowerCase().replace(" ","") + "_" + DateTime.now().getYear();
+        try { spreadsheet = new ExcelExporter("milebuddy_aggregate_mileage_export_" + monthYear + ".xls"); } catch (Exception e) {
+            Toast.makeText(this, "Failed to create spreadsheet!\n" + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+            return;
+        }
+
+        // Add the sheets that we will populate
+        try {
+            String monthname;
+
+            // This month
+            monthname = Helpers.DatesAndTimes.getMonthName(DateTime.now().getMonthOfYear());
+            spreadsheet.createSheet(monthname + " " + DateTime.now().getYear(), 0);
+
+            // One month ago
+            monthname = Helpers.DatesAndTimes.getMonthName(DateTime.now().minusMonths(1).getMonthOfYear());
+            spreadsheet.createSheet(monthname + " " + DateTime.now().minusMonths(1).getYear(), 1);
+
+            // Two months ago
+            monthname = Helpers.DatesAndTimes.getMonthName(DateTime.now().minusMonths(2).getMonthOfYear());
+            spreadsheet.createSheet(monthname + " " + DateTime.now().minusMonths(2).getYear(), 2);
+
+            // All raw trips last 2 months
+            spreadsheet.createSheet("All trips raw data", 3);;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Format header and content values
+        WritableFont headerFont = new WritableFont(WritableFont.TAHOMA, 10, WritableFont.BOLD);
+        try {
+            headerFont.setColour(Colour.DARK_BLUE2);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        WritableCellFormat headerFormat = new WritableCellFormat(headerFont);
+
+        WritableFont contentFont = new WritableFont(WritableFont.TAHOMA, 10, WritableFont.NO_BOLD);
+        try {
+            contentFont.setColour(Colour.BLACK);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        WritableCellFormat contentFormat = new WritableCellFormat(contentFont);
+
+        // This month summary
+        try {
+            // Trip count
+            spreadsheet.addCell(0, 0, 0, "Trip count:", headerFormat);
+            spreadsheet.addCell(0, 1, 0, Integer.toString(stats.thisMonthTripCount), contentFormat);
+
+            // Total miles
+            spreadsheet.addCell(0, 0, 1, "Total miles:", headerFormat);
+            spreadsheet.addCell(0, 1, 1, Double.toString(stats.thisMonthTotalMiles), contentFormat);
+
+            // Total payout
+            spreadsheet.addCell(0, 0, 2, "Total payout:", headerFormat);
+            spreadsheet.addCell(0, 1, 2, Double.toString(stats.thisMonthTotalPayout), contentFormat);
+
+            // Total edited trips
+            spreadsheet.addCell(0, 0, 3, "Total edited trips:", headerFormat);
+            spreadsheet.addCell(0, 1, 3, Integer.toString(stats.thisMonthEditedTripCount), contentFormat);
+
+            // Total edited trips
+            spreadsheet.addCell(0, 0, 4, "Total manual trips:", headerFormat);
+            spreadsheet.addCell(0, 1, 4, Integer.toString(stats.thisMonthManTripCount), contentFormat);
+
+            // Total edited trips
+            spreadsheet.addCell(0, 0, 5, "Total auto-stopped trips:", headerFormat);
+            spreadsheet.addCell(0, 1, 5, Integer.toString(stats.thisMonthTripMinderKillCount), contentFormat);
+
+            // By user header
+            spreadsheet.addCell(0, 0, 7, "Name", headerFormat);
+            spreadsheet.addCell(0, 1, 7, "Total miles", headerFormat);
+            spreadsheet.addCell(0, 2, 7, "Total reimbursement", headerFormat);
+
+            // By user trip counts
+            for (int i = 0; i < stats.topUserMilesThisMonth.size(); i++) {
+                AggregateStats.UserTotals userTotals = stats.topUserMilesThisMonth.get(i);
+                spreadsheet.addCell(0, 0, i + 8, userTotals.fullname, contentFormat);
+                spreadsheet.addCell(0, 1, i + 8, Double.toString(userTotals.totalMiles), contentFormat);
+                spreadsheet.addCell(0, 2, i + 8, Double.toString(userTotals.totalReimbursement), contentFormat);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Last month summary
+        try {
+            // Trip count
+            spreadsheet.addCell(1, 0, 0, "Trip count:", headerFormat);
+            spreadsheet.addCell(1, 1, 0, Integer.toString(stats.lastMonthTripCount), contentFormat);
+
+            // Total miles
+            spreadsheet.addCell(1, 0, 1, "Total miles:", headerFormat);
+            spreadsheet.addCell(1, 1, 1, Double.toString(stats.lastMonthTotalMiles), contentFormat);
+
+            // Total payout
+            spreadsheet.addCell(1, 0, 2, "Total payout:", headerFormat);
+            spreadsheet.addCell(1, 1, 2, Double.toString(stats.lastMonthTotalPayout), contentFormat);
+
+            // Total edited trips
+            spreadsheet.addCell(1, 0, 3, "Total edited trips:", headerFormat);
+            spreadsheet.addCell(1, 1, 3, Integer.toString(stats.lastMonthEditedTripCOunt), contentFormat);
+
+            // Total edited trips
+            spreadsheet.addCell(1, 0, 4, "Total manual trips:", headerFormat);
+            spreadsheet.addCell(1, 1, 4, Integer.toString(stats.lastMonthManTripCount), contentFormat);
+
+            // Total edited trips
+            spreadsheet.addCell(1, 0, 5, "Total auto-stopped trips:", headerFormat);
+            spreadsheet.addCell(1, 1, 5, Integer.toString(stats.lastMonthTripMinderKillCount), contentFormat);
+
+            // By user header
+            spreadsheet.addCell(1, 0, 7, "Name", headerFormat);
+            spreadsheet.addCell(1, 1, 7, "Total miles", headerFormat);
+            spreadsheet.addCell(1, 2, 7, "Total reimbursement", headerFormat);
+
+            // By user trip counts
+            for (int i = 0; i < stats.topUserMilesLastMonth.size(); i++) {
+                AggregateStats.UserTotals userTotals = stats.topUserMilesLastMonth.get(i);
+                spreadsheet.addCell(1, 0, i + 8, userTotals.fullname, contentFormat);
+                spreadsheet.addCell(1, 1, i + 8, Double.toString(userTotals.totalMiles), contentFormat);
+                spreadsheet.addCell(1, 2, i + 8, Double.toString(userTotals.totalReimbursement), contentFormat);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Last last month summary
+        try {
+            // Trip count
+            spreadsheet.addCell(2, 0, 0, "Trip count:", headerFormat);
+            spreadsheet.addCell(2, 1, 0, Integer.toString(stats.lastLastMonthTripCount), contentFormat);
+
+            // Total miles
+            spreadsheet.addCell(2, 0, 1, "Total miles:", headerFormat);
+            spreadsheet.addCell(2, 1, 1, Double.toString(stats.lastLastMonthTotalMiles), contentFormat);
+
+            // Total payout
+            spreadsheet.addCell(2, 0, 2, "Total payout:", headerFormat);
+            spreadsheet.addCell(2, 1, 2, Double.toString(stats.lastLastMonthTotalPayout), contentFormat);
+
+            // Total edited trips
+            spreadsheet.addCell(2, 0, 3, "Total edited trips:", headerFormat);
+            spreadsheet.addCell(2, 1, 3, Integer.toString(stats.lastLastMonthEditedTripCount), contentFormat);
+
+            // Total edited trips
+            spreadsheet.addCell(2, 0, 4, "Total manual trips:", headerFormat);
+            spreadsheet.addCell(2, 1, 4, Integer.toString(stats.lastLastMonthManTripCount), contentFormat);
+
+            // Total edited trips
+            spreadsheet.addCell(2, 0, 5, "Total auto-stopped trips:", headerFormat);
+            spreadsheet.addCell(2, 1, 5, Integer.toString(stats.lastLastMonthTripMinderKillCount), contentFormat);
+
+            // By user header
+            spreadsheet.addCell(2, 0, 7, "Name", headerFormat);
+            spreadsheet.addCell(2, 1, 7, "Total miles", headerFormat);
+            spreadsheet.addCell(2, 2, 7, "Total reimbursement", headerFormat);
+
+            // By user trip counts
+            for (int i = 0; i < stats.topUserMilesLastLastMonth.size(); i++) {
+                AggregateStats.UserTotals userTotals = stats.topUserMilesLastLastMonth.get(i);
+                spreadsheet.addCell(2, 0, i + 8, userTotals.fullname, contentFormat);
+                spreadsheet.addCell(2, 1, i + 8, Double.toString(userTotals.totalMiles), contentFormat);
+                spreadsheet.addCell(2, 2, i + 8, Double.toString(userTotals.totalReimbursement), contentFormat);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // All trips/All months
+        try {
+            spreadsheet.addCell(3, 0, 0, "Trip name", headerFormat);
+            spreadsheet.addCell(3, 1, 0, "Date", headerFormat);
+            spreadsheet.addCell(3, 2, 0, "Driver", headerFormat);
+            spreadsheet.addCell(3, 3, 0, "Distance (mi)", headerFormat);
+            spreadsheet.addCell(3, 4, 0, "Reimbursement", headerFormat);
+            spreadsheet.addCell(3, 5, 0, "Manual trip", headerFormat);
+            spreadsheet.addCell(3, 6, 0, "Edited trip", headerFormat);
+            spreadsheet.addCell(3, 7, 0, "Auto-stopped trip", headerFormat);
+
+            for (int i = 0; i < stats.size(); i++) {
+                AggregateStats.AggregateStat stat = stats.get(i);
+                spreadsheet.addCell(3, 0, i + 1, stat.tripName, contentFormat);
+                spreadsheet.addCell(3, 1, i + 1, Helpers.DatesAndTimes.getPrettyDateAndTime(stat.tripDate), contentFormat);
+                spreadsheet.addCell(3, 2, i + 1, stat.ownerName, contentFormat);
+                spreadsheet.addCell(3, 3, i + 1, Double.toString(stat.distanceMiles), contentFormat);
+                spreadsheet.addCell(3, 4, i + 1, Double.toString(stat.reimbursement), contentFormat);
+                spreadsheet.addCell(3, 5, i + 1, Boolean.toString(stat.isManual), contentFormat);
+                spreadsheet.addCell(3, 6, i + 1, Boolean.toString(stat.isEdited), contentFormat);
+                spreadsheet.addCell(3, 7, i + 1, Boolean.toString(stat.tripMinderKilled), contentFormat);
+            }
+            
+        } catch (Exception e) { e.printStackTrace(); }
+
+        // Save the file
+        spreadsheet.save();
+
+        // Share the file
+        spreadsheet.share(this);
     }
 
     void drawTrendChart() {
@@ -556,6 +853,9 @@ public class AggregateStatsActivity extends AppCompatActivity {
         factory.addColumn("msus_trip_duration");
         factory.addColumn("msus_totaldistance");
         factory.addColumn("msus_reimbursement");
+        factory.addColumn("msus_trip_minder_killed");
+        factory.addColumn("msus_edited");
+        factory.addColumn("msus_is_manual");
         factory.addColumn("ownerid");
 
         Filter filter = new Filter(Filter.FilterType.OR);

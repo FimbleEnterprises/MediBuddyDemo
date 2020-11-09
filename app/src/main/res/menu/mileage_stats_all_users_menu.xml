@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_export_to_excel"
+        android:orderInCategory="100"
+        android:title="@string/action_export_to_excel"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_export_as_image"
+        android:orderInCategory="99"
+        android:title="@string/action_export_as_png"
+        app:showAsAction="never" />
+</menu>

@@ -7,17 +7,16 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.QueryFactory.Filter;
-import com.google.gson.Gson;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.joda.time.DateTime;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -44,6 +43,7 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
     LinearLayout llTop;
     public MileageUser user;
     Context context;
+    RelativeLayout masterLayout;
 
     LinearLayout userInfoContainer;
     TextView txtMtd;
@@ -94,6 +94,22 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
         txtRate = findViewById(R.id.txtReimbursementRateThisMonth);
         txtRateLastMonth = findViewById(R.id.txtReimbursementRateLastMonth);
         userInfoContainer.setVisibility(View.INVISIBLE);
+        masterLayout = findViewById(R.id.masterLayout);
+
+        Helpers.Views.MySwipeHandler mySwipeHandler = new Helpers.Views.MySwipeHandler(new Helpers.Views.MySwipeHandler.MySwipeListener() {
+            @Override
+            public void onSwipeLeft() {
+                Log.i(TAG, "onSwipeLeft ");
+            }
+
+            @Override
+            public void onSwipeRight() {
+                Log.i(TAG, "onSwipeRight ");
+                onBackPressed();
+            }
+        });
+        mySwipeHandler.addView(masterLayout);
+        mySwipeHandler.addView(recyclerView);
 
         getAllMtdTrips();// Create the navigation up button
         ActionBar actionBar = getSupportActionBar();

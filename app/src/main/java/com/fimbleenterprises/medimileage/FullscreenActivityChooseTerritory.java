@@ -57,6 +57,19 @@ public class FullscreenActivityChooseTerritory extends AppCompatActivity {
 
         getTerritories();
 
+        Helpers.Views.MySwipeHandler mySwipeHandler = new Helpers.Views.MySwipeHandler(new Helpers.Views.MySwipeHandler.MySwipeListener() {
+            @Override
+            public void onSwipeLeft() {
+
+            }
+
+            @Override
+            public void onSwipeRight() {
+                onBackPressed();
+            }
+        });
+        mySwipeHandler.addView(listView);
+
     }
 
     void getTerritories() {

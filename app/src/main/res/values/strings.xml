@@ -14,7 +14,7 @@
     <string name="menu_users">Users</string>
     <string name="menu_authentication">Login</string>
     <string name="menu_settings">Settings</string>
-    <string name="menu_other">Other</string>
+    <string name="menu_sales_and_more">Sales and more</string>
 
     <string name="triplist_today">Today</string>
     <string name="triplist_yesterday">Yesterday</string>
@@ -30,7 +30,7 @@
     <string name="menu_stats_explicit">Fucking Stats</string>
     <string name="menu_settings_explicit">Fucking Settings</string>
     <string name="menu_authentication_explicit">Fucking Login</string>
-    <string name="menu_other_fucking_shit">Other Fucking Shit</string>
+    <string name="menu_other_fucking_sales_shit">Fucking sales and shit</string>
     <string name="menu_users_explicit">Other Fuckers</string>
 
     <string name="action_settings_explicit">Fucking settings...</string>
@@ -140,7 +140,7 @@
     <string name="receipt_mail_subject_preamble">Mileage Receipt</string>
     <string name="title_activity_numbers">Sales and Goals</string>
     <string name="title_activity__sales_performance">ScrollingActivity</string>
-    <string name="menu_sales">Other</string>
+    <string name="menu_sales">Sales and more</string>
     <string name="action_change_date">Change Date...</string>
     <string name="action_last_month">Last month</string>
     <string name="action_this_month">This month</string>
@@ -220,5 +220,7 @@
     <string name="extended_fab_content_desc">Add note</string>
     <string name="extended_fab_label">Add note</string>
     <string name="title_activity_individual_aggregate_stats">Stats</string>
+    <string name="action_export_to_excel">Export to Excel...</string>
+    <string name="action_export_as_png">Export as image...</string>
 
 </resources>

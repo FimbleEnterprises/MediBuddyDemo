@@ -22,6 +22,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -32,7 +33,6 @@ import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.Parcelable;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -42,6 +42,8 @@ import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.text.style.UnderlineSpan;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.AlphaAnimation;
@@ -50,6 +52,8 @@ import android.view.animation.AnimationSet;
 import android.view.animation.AnimationUtils;
 import android.view.animation.TranslateAnimation;
 import android.webkit.MimeTypeMap;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -70,6 +74,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.math.RoundingMode;
+import java.net.URLConnection;
 import java.nio.channels.FileChannel;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -89,8 +94,6 @@ import androidx.annotation.DrawableRes;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
-import androidx.core.view.TintableBackgroundView;
 
 import static android.content.Context.MODE_PRIVATE;
 import static android.content.Context.NOTIFICATION_SERVICE;
@@ -489,6 +492,54 @@ public abstract class Helpers {
 
 
             return icon;
+        }
+
+        /**
+         * Converts any view to a bitmap.
+         */
+        public static Bitmap getBitmapFromView(View view) {
+            //Define a bitmap with the same size as the view
+            Bitmap returnedBitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(),Bitmap.Config.ARGB_8888);
+            //Bind a canvas to it
+            Canvas canvas = new Canvas(returnedBitmap);
+            //Get the view's background
+            Drawable bgDrawable =view.getBackground();
+            if (bgDrawable!=null)
+                //has background drawable, then draw it on the canvas
+                bgDrawable.draw(canvas);
+            else
+                //does not have background drawable, then draw white background on the canvas
+                canvas.drawColor(Color.WHITE);
+            // draw the view on the canvas
+            view.draw(canvas);
+            //return the bitmap
+            return returnedBitmap;
+        }
+
+        public static Bitmap convertViewToImage(View view) {
+            view.setDrawingCacheEnabled(true);
+            view.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+            view.buildDrawingCache(true);
+            Bitmap saveBm = Bitmap.createBitmap(view.getDrawingCache());
+            view.setDrawingCacheEnabled(false);
+            return saveBm;
+        }
+
+        /**
+         * Saves a bitmap to a png file
+         * @param bmp The bitmap to save
+         * @param file A file to create
+         * @return The created file
+         */
+        public static File bitmapToFile(Bitmap bmp, File file) {
+            try (FileOutputStream out = new FileOutputStream(file)) {
+                bmp.compress(Bitmap.CompressFormat.PNG, 100, out); // bmp is your Bitmap instance
+                // PNG is a lossless format, the compression factor (100) is ignored
+                return file;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
         }
     }
 
@@ -2062,13 +2113,34 @@ public abstract class Helpers {
             File fileWithinMyDir = file;
 
             if(fileWithinMyDir.exists()) {
-                intentShareFile.setType("application/pdf");
+                intentShareFile.setType(getMimetype(file));
                 intentShareFile.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://"+file));
 
                 intentShareFile.putExtra(Intent.EXTRA_SUBJECT,
                         "Sharing File...");
                 intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...");
 
+                context.startActivity(Intent.createChooser(intentShareFile, "Share File"));
+            }
+        }
+
+        /**
+         * Shares a file.  You may have to supply an activity as context if it is failing.
+         * @param context A valid context, this may have to be an activity if a basic context is failing.
+         * @param file
+         * @param subject
+         */
+        public static void shareFile(Context context, File file, String subject) {
+            Intent intentShareFile = new Intent(Intent.ACTION_SEND);
+            File fileWithinMyDir = file;
+
+            if(fileWithinMyDir.exists()) {
+                intentShareFile.setType(getMimetype(file));
+                intentShareFile.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://"+file));
+                intentShareFile.putExtra(Intent.EXTRA_SUBJECT,
+                        subject);
+                intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...");
+                intentShareFile.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(Intent.createChooser(intentShareFile, "Share File"));
             }
         }
@@ -2210,7 +2282,7 @@ public abstract class Helpers {
             }
         }
 
-        public static String getMimeType(Context context, Uri uri) {
+        public static String getMimetype(Context context, Uri uri) {
             String mimeType = null;
             if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())) {
                 ContentResolver cr = context.getContentResolver();
@@ -2222,6 +2294,20 @@ public abstract class Helpers {
                         fileExtension.toLowerCase());
             }
             return mimeType;
+        }
+
+        public static String getMimetype(File file) {
+            try {
+                String mimetype = URLConnection.guessContentTypeFromName(file.getName());
+                if (mimetype != null) {
+                    return mimetype;
+                } else {
+                    return "application/octet-stream";
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "application/octet-stream";
+            }
         }
 
         /*
@@ -2358,6 +2444,95 @@ public abstract class Helpers {
                 return files;
             }
         }
+
+        public static class ExcelTempFiles {
+            /**
+             * Creates a subdirectory to the application's temp directory named, "spreadsheets" if it doesn't
+             * already exist.
+             */
+            public static void makeDirectory() {
+                File tmp = new File(getAppDirectory().getAbsolutePath() + File.separator + "spreadsheets");
+                if (!tmp.exists()) {
+                    Log.i(TAG, "makeDirectory " + tmp.getAbsolutePath() + " doesn't exist, creating...");
+                    tmp.mkdirs();
+                    Log.i(TAG, "makeDirectory Attachments directory created: " + tmp.exists());
+                } else {
+                    Log.i(TAG, "makeDirectory " + tmp.getAbsolutePath() + " already exists.");
+                }
+            }
+
+            /**
+             * Clears all files from the application's attachment temp directory (assuming it exists)
+             */
+            public static void clear() {
+                File tmp = new File(getAppDirectory().getAbsolutePath() + File.separator + "spreadsheets");
+                Log.i(TAG, "Clearing spreadsheets directory...");
+                if (tmp.exists()) {
+                    Log.i(TAG, "clear " + tmp.getAbsolutePath() + " exists!");
+                    File[] contents = tmp.listFiles();
+                    for (int i = 0; i < contents.length; i++) {
+                        contents[i].delete();
+                        Log.i(TAG, "clearAttachmentTempDirectory Deleted: " + contents[i].getName());
+                    }
+                } else {
+                    Log.i(TAG, "clear " + tmp.getAbsolutePath() + " didn't exist.");
+                }
+            }
+
+            /**
+             * Returns the spreadsheets temp directory.  The directory will be created if it doesn't
+             * already exist.
+             * @return The application's attachment temp directory.
+             */
+            public static File getDirectory() {
+                makeDirectory();
+                File file = new File(getAppDirectory().getAbsolutePath() + File.separator + "spreadsheets");
+                Log.i(TAG, "getDirectory " + file.getAbsolutePath() + " exists: " + file.exists());
+                Log.i(TAG, "getDirectory Attachments directory: " + file.getAbsolutePath());
+                return file;
+            }
+
+            /**
+             * Searches the application's attachment temp directory for the specified filename
+             * @param filename The name of the file to look for.
+             * @return The file (or null if not found)
+             */
+            public static File retrieve(String filename) {
+                Log.i(TAG, "retrieve Looking for file in spreadsheets temp dir (" + filename + ")");
+                File tmp = getDirectory();
+                File[] files = tmp.listFiles();
+                for (int i = 0; i < files.length; i++) {
+                    File file = files[i];
+                    if (file.getName().equals(filename)) {
+                        Log.i(TAG, file.getAbsolutePath() + " found!");
+                        return file;
+                    }
+                }
+                Log.i(TAG, "retrieve File not found in " + tmp.getAbsolutePath() + "!");
+                return null;
+            }
+
+            /**
+             * Checks if the specified filename exists in the application's attachment temp directory.
+             * @param filename The filenasme to look for.
+             * @return True or false if the file exists.
+             */
+            public static boolean fileExists(String filename) {
+                Log.i(TAG, "fileExists: " + filename + " = " + (retrieve(filename) != null));
+                return retrieve(filename) != null;
+            }
+
+            /**
+             * Returns all files that exist in the application's attachment temp directory.
+             * @return
+             */
+            public static File[] getFiles() {
+                File tmp = getDirectory();
+                File[] files = tmp.listFiles();
+                Log.i(TAG, "getFiles Found " + files.length + " files in the spreadsheets temp directory.");
+                return files;
+            }
+        }
     }
 
     public static class Fonts {
@@ -2399,6 +2574,122 @@ public abstract class Helpers {
             return new String(encodedBytes) ;
         }
 
+    }
+
+    public static class Views {
+        /**
+         * This class will detect left and right swipes and fire an event if detected for each view
+         * added to the pool to be evaluated.
+         */
+        public static class MySwipeHandler {
+
+            ArrayList<View> views = new ArrayList<>();
+            // View view;
+            GestureDetector gestureDetector;
+            MySwipeListener mySwipeListener;
+            private static final String TAG = "MySwipeListener";
+            Context context;
+
+            interface MySwipeListener {
+                void onSwipeLeft();
+                void onSwipeRight();
+            }
+
+            public void addView(View view) {
+                this.views.add(view);
+
+                for (View v : this.views) {
+                    v.setOnTouchListener(new View.OnTouchListener() {
+                        @Override
+                        public boolean onTouch(View view, MotionEvent motionEvent) {
+                            gestureDetector.onTouchEvent(motionEvent);
+                            return false;
+                        }
+                    });
+                }
+            }
+
+            public MySwipeHandler(ArrayList<View> views,  MySwipeListener listener) {
+                this.views = views;
+                for (View view : this.views) {
+                    this.addView(view);
+                }
+                this.mySwipeListener = listener;
+            }
+
+            public MySwipeHandler(View view,  MySwipeListener listener) {
+                this.views = new ArrayList<>();
+                this.views.add(view);
+                this.addView(view);
+                this.mySwipeListener = listener;
+            }
+
+            public MySwipeHandler(MySwipeListener listener) {
+                this.mySwipeListener = listener;
+                this.gestureDetector = new GestureDetector(context, new GestureDetector.OnGestureListener() {
+                    @Override
+                    public boolean onDown(MotionEvent motionEvent) {
+                        return false;
+                    }
+
+                    @Override
+                    public void onShowPress(MotionEvent motionEvent) {
+
+                    }
+
+                    @Override
+                    public boolean onSingleTapUp(MotionEvent motionEvent) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onScroll(MotionEvent motionEvent, MotionEvent motionEvent1, float v, float v1) {
+                        return false;
+                    }
+
+                    @Override
+                    public void onLongPress(MotionEvent motionEvent) {
+
+                    }
+
+                    @Override
+                    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                        Log.i(TAG, "onFling !");
+                        int SWIPE_MIN_DISTANCE = 120;
+                        final int SWIPE_MAX_OFF_PATH = 250;
+                        final int SWIPE_THRESHOLD_VELOCITY = 200;
+                        try {
+                            if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH){
+                                return false;
+                            }
+                            // right to left swipe
+                            if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE
+                                    && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+                                onLeftSwipe();
+                            }
+                            // left to right swipe
+                            else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE
+                                    && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+                                onRightSwipe();
+                            }
+                        } catch (Exception e) {
+
+                        }
+                        return true;
+                    }
+                });
+            }
+
+            private void onLeftSwipe() {
+                Log.i(TAG, "onLeftSwipe ");
+                mySwipeListener.onSwipeLeft();
+            }
+
+            private void onRightSwipe() {
+                Log.i(TAG, "onRightSwipe ");
+                mySwipeListener.onSwipeRight();
+            }
+        }
     }
 
     public static class Permissions extends AppCompatActivity {

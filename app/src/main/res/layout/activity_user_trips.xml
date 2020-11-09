@@ -2,9 +2,12 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/masterLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_margin="5dp"
+    android:clickable="true"
+    android:contextClickable="true"
     tools:context=".ui.mileage.MileageFragment">
 
     <LinearLayout
@@ -243,7 +246,6 @@
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         android:id="@+id/rvUserTrips"
         style="@style/recyclerview_style"
         android:layout_width="match_parent"
@@ -253,7 +255,8 @@
         android:clickable="true"
         android:focusable="true"
         android:outlineProvider="background"
-        android:padding="3dp">
+        android:padding="3dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager">
 
     </androidx.recyclerview.widget.RecyclerView>
 

@@ -109,6 +109,19 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
+        Helpers.Views.MySwipeHandler mySwipeHandler = new Helpers.Views.MySwipeHandler(new Helpers.Views.MySwipeHandler.MySwipeListener() {
+            @Override
+            public void onSwipeLeft() {
+
+            }
+
+            @Override
+            public void onSwipeRight() {
+                onBackPressed();
+            }
+        });
+        mySwipeHandler.addView(listView);
+
     }
 
     @Override
@@ -164,7 +177,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
                     }
                     out.close();
                     in.close();
-                    final String mimetype = Helpers.Files.getMimeType(this, receiveUri);
+                    final String mimetype = Helpers.Files.getMimetype(this, receiveUri);
 
                     // Build an annotation object to pass to the service
                     final CrmEntities.Annotations.Annotation annotation = new CrmEntities.Annotations.Annotation();
