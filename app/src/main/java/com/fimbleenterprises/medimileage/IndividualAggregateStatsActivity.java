@@ -8,7 +8,13 @@ import android.graphics.DashPathEffect;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.SubMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,6 +47,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -155,6 +162,61 @@ public class IndividualAggregateStatsActivity extends AppCompatActivity {
 
         getStats();
 
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.mileage_stats_single_user_menu, menu);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+
+        Typeface typeface = getResources().getFont(R.font.casual);
+
+        for (int i = 0; i < menu.size(); i++) {
+            MenuItem mi = menu.getItem(i);
+            //for aapplying a font to subMenu ...
+            SubMenu subMenu = mi.getSubMenu();
+            if (subMenu != null && subMenu.size() > 0) {
+                for (int j = 0; j < subMenu.size(); j++) {
+                    MenuItem subMenuItem = subMenu.getItem(j);
+                    applyFontToMenuItem(subMenuItem, typeface);
+                }
+            }
+            //the method we have create in activity
+            applyFontToMenuItem(mi, typeface);
+        }
+
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+
+        switch (item.getItemId()) {
+
+            case R.id.action_export_to_excel :
+                String monthYear = Helpers.DatesAndTimes.getMonthName(DateTime.now().getMonthOfYear())
+                        .toLowerCase().replace(" ", "") + "_" + DateTime.now().getYear();
+                String filename = "milebuddy_aggregate_mileage_export_" + monthYear + "_"
+                        + user.fullname.replace(" ","_") + ".xls";
+                ExcelSpreadsheet spreadsheet = stats.exportToExcel(filename.toLowerCase());
+                spreadsheet.share(this);
+                break;
+
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void applyFontToMenuItem(MenuItem mi, Typeface font) {
+        SpannableString mNewTitle = new SpannableString(mi.getTitle());
+        mNewTitle.setSpan(new CustomTypefaceSpan("", font), 0, mNewTitle.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+        mi.setTitle(mNewTitle);
     }
 
     void getStats() {
@@ -468,8 +530,8 @@ public class IndividualAggregateStatsActivity extends AppCompatActivity {
 
         //pupulating list of PieEntires
         List<PieEntry> pieEntries = new ArrayList<>();
-        pieEntries.add(new PieEntry(stats.lastMonthEditedTripCOunt, "Edited"));
-        pieEntries.add(new PieEntry(stats.lastMonthTripCount - stats.lastMonthEditedTripCOunt, "Non-edited"));
+        pieEntries.add(new PieEntry(stats.lastMonthEditedTripCount, "Edited"));
+        pieEntries.add(new PieEntry(stats.lastMonthTripCount - stats.lastMonthEditedTripCount, "Non-edited"));
 
         PieDataSet dataSet = new PieDataSet(pieEntries,"");
         dataSet.setColors(ColorTemplate.PASTEL_COLORS);
@@ -490,7 +552,7 @@ public class IndividualAggregateStatsActivity extends AppCompatActivity {
         pieLastMonthEdited.setDescription(null);
 
         pieLastMonthEdited.setUsePercentValues(false);
-        pieLastMonthEdited.setCenterText(stats.lastMonthEditedTripCOunt == 0
+        pieLastMonthEdited.setCenterText(stats.lastMonthEditedTripCount == 0
                 && stats.lastMonthTripCount == 0 ? "Edited trips\n(no data)" : "Edited trips");
         pieLastMonthEdited.setCenterTextSize(16);
         pieLastMonthEdited.setCenterTextTypeface(tf);

@@ -22,10 +22,12 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.fimbleenterprises.medimileage.ui.mileage.MileageFragment;
 import com.fimbleenterprises.medimileage.ui.settings.mileage.SettingsActivity;
 import com.google.android.material.navigation.NavigationView;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -57,8 +59,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     IntentFilter locFilter = new IntentFilter(MyLocationService.LOCATION_EVENT);
     BroadcastReceiver locReceiver;
     NavController navController;
-    FragmentManager fragmentManager;
-    Activity activity;
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    Activity activity = this;
     DrawerLayout drawer;
     ArrayList<String> myStack = new ArrayList<>();
     ArrayList<MileageUser> users = new ArrayList<>();
@@ -77,8 +79,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         toolbar.setTitleTextAppearance(this, R.style.CasualTextAppearance);
         setSupportActionBar(toolbar);
         final Activity finalActivity = this;
-        activity = this;
-        fragmentManager = getSupportFragmentManager();
 
         Helpers.Files.makeAppDirectory();
 
@@ -404,8 +404,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 // navController.navigate(R.id.action_HomeFragment_to_SettingsFragment);
                 break;
 
-            case R.id.action_permissions :
-                Helpers.Application.openAppSettings(activity);
+            case R.id.action_export_to_excel :
+                String btn1Text = options.isExplicitMode() ? "EXPORT MY SHIT" : "EXPORT MILEAGE DATA";
+                String btn2Text = options.isExplicitMode() ? "RECEIPT ONLY, DICK" : "I JUST WANT A RECEIPT";
+                String msg = options.isExplicitMode() ? getString(R.string.export_mileage_disclaimer_explicit)
+                        : getString(R.string.export_mileage_disclaimer);
+                MyTwoChoiceDialog.show(activity, btn1Text, btn2Text , msg, new MyTwoChoiceDialog.TwoButtonListener() {
+                    @Override
+                    public void onBtn1Pressed() {
+                        getAndExportAggregateStats();
+                    }
+
+                    @Override
+                    public void onBtn2Pressed() {
+                        Intent showReceiptDialogIntent = new Intent(MileageFragment.GENERIC_RECEIVER_ACTION);
+                        showReceiptDialogIntent.putExtra(MileageFragment.MAKE_RECEIPT, true);
+                        sendBroadcast(showReceiptDialogIntent);
+                    }
+                });
                 break;
 
             case R.id.action_loginlogout :
@@ -708,5 +724,62 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         SpannableString mNewTitle = new SpannableString(mi.getTitle());
         mNewTitle.setSpan(new CustomTypefaceSpan("", font), 0, mNewTitle.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
         mi.setTitle(mNewTitle);
+    }
+
+    void getAndExportAggregateStats() {
+
+        String msg = options.isExplicitMode() ? getString(R.string.progress_dialog_generic_explicit)
+                : getString(R.string.export_aggregate_stats_excel_progress_dialog);
+        final MyProgressDialog dialog = new MyProgressDialog(this, msg);
+        dialog.show();
+
+        QueryFactory factory = new QueryFactory("msus_fulltrip");
+        factory.addColumn("msus_name");
+        factory.addColumn("msus_dt_tripdate");
+        factory.addColumn("msus_trip_duration");
+        factory.addColumn("msus_totaldistance");
+        factory.addColumn("msus_reimbursement");
+        factory.addColumn("msus_trip_minder_killed");
+        factory.addColumn("msus_edited");
+        factory.addColumn("msus_is_manual");
+        factory.addColumn("ownerid");
+
+        Filter filter = new Filter(Filter.FilterType.AND);
+        filter.addCondition(new Filter.FilterCondition("msus_dt_tripdate", Filter.Operator.LAST_X_MONTHS, "2"));
+        filter.addCondition(new Filter.FilterCondition("ownerid", Filter.Operator.EQUALS, MediUser.getMe().systemuserid));
+        factory.setFilter(filter);
+
+        factory.sortClauses.add(new QueryFactory.SortClause("msus_dt_tripdate", true, QueryFactory.SortClause.ClausePosition.ONE));
+        factory.sortClauses.add(new QueryFactory.SortClause("ownerid", true, QueryFactory.SortClause.ClausePosition.TWO));
+
+        String query = factory.construct();
+
+        Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
+        Requests.Argument argument = new Requests.Argument("query", query);
+        request.arguments.add(argument);
+
+        Crm crm = new Crm();
+        crm.makeCrmRequest(this, request, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                String response = new String(responseBody);
+                AggregateStats stats = new AggregateStats(response);
+                Log.i(TAG, "onSuccess | " + response);
+                dialog.dismiss();
+                String monthYear = Helpers.DatesAndTimes.getMonthName(DateTime.now().getMonthOfYear())
+                        .toLowerCase().replace(" ", "") + "_" + DateTime.now().getYear();
+                String filename = "milebuddy_aggregate_mileage_export_" + monthYear + "_"
+                        + MediUser.getMe().fullname.replace(" ","_") + ".xls";
+                ExcelSpreadsheet spreadsheet = stats.exportToExcel(filename.toLowerCase());
+                spreadsheet.share(activity);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                Toast.makeText(activity, "Failed to get stats", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+                finish();
+            }
+        });
     }
 }

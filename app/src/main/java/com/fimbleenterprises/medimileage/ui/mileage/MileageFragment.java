@@ -105,12 +105,16 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     public static final int PERMISSION_UPDATE = 3;
     public static final int PERMISSION_FLOATY = 4;
 
+    public static final String GENERIC_RECEIVER_ACTION = "GENERIC_RECEIVER_ACTION";
+    public static final String MAKE_RECEIPT = "MAKE_RECEIPT";
     public static final String REIMBURSEMENT_EMAIL = "receipts@concur.com";
 
     private static final String TAG = "MileageFragment";
     private static final int SHOW_CLICK_HERE_TRIP_COUNT_THRESHOLD = 8;
     private MileageViewModel mileageViewModel;
     BroadcastReceiver locReceiver;
+    BroadcastReceiver allPurposeReceiver;
+    IntentFilter allPurposeFilter = new IntentFilter(GENERIC_RECEIVER_ACTION);
     MySqlDatasource datasource;
     TripListRecyclerAdapter adapter;
     ArrayList<FullTrip> allTrips = new ArrayList<>();
@@ -171,7 +175,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
     }
 
-    public View onCreateView(@NonNull LayoutInflater inflater,
+    public View onCreateView(@NonNull final LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         mileageViewModel = ViewModelProviders.of(this).get(MileageViewModel.class);
 
@@ -492,6 +496,19 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             e.printStackTrace();
         }
 
+        allPurposeReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (intent != null) {
+                    if (intent.getBooleanExtra(MAKE_RECEIPT, false))  {
+                        if (intent.getBooleanExtra(MAKE_RECEIPT, false) == true) {
+                            showReceiptDialog();
+                        }
+                    }
+                }
+            }
+        };
+
         return root;
     }
 
@@ -605,6 +622,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         Helpers.Animations.pulseAnimation(txtMilesTotal);
         Helpers.Animations.pulseAnimation(txtMtd);
         startMtdTogglerRunner();
+        getContext().registerReceiver(allPurposeReceiver, allPurposeFilter);
 
     }
 
@@ -612,6 +630,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     public void onPause() {
         super.onPause();
         stopMtdTogglerRunner();
+        getContext().unregisterReceiver(allPurposeReceiver);
     }
 
     @Override

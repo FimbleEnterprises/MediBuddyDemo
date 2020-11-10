@@ -3,8 +3,15 @@ package com.fimbleenterprises.medimileage;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -21,6 +28,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -42,8 +50,9 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
     Switch switchLastMonth;
     LinearLayout llTop;
     public MileageUser user;
-    Context context;
+    Context context = this;
     RelativeLayout masterLayout;
+    AggregateStats stats;
 
     LinearLayout userInfoContainer;
     TextView txtMtd;
@@ -69,7 +78,6 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_trips);
 
-        this.context = this;
         this.options = new MySettingsHelper(this);
         this.recyclerView = findViewById(R.id.rvUserTrips);
 
@@ -133,6 +141,54 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
             }
         });
 
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.mileage_stats_single_user_menu, menu);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+
+        Typeface typeface = getResources().getFont(R.font.casual);
+
+        for (int i = 0; i < menu.size(); i++) {
+            MenuItem mi = menu.getItem(i);
+            //for aapplying a font to subMenu ...
+            SubMenu subMenu = mi.getSubMenu();
+            if (subMenu != null && subMenu.size() > 0) {
+                for (int j = 0; j < subMenu.size(); j++) {
+                    MenuItem subMenuItem = subMenu.getItem(j);
+                    applyFontToMenuItem(subMenuItem, typeface);
+                }
+            }
+            //the method we have create in activity
+            applyFontToMenuItem(mi, typeface);
+        }
+
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+
+        switch (item.getItemId()) {
+            case R.id.action_export_to_excel :
+                getAndExportAggregateStats();
+                break;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void applyFontToMenuItem(MenuItem mi, Typeface font) {
+        SpannableString mNewTitle = new SpannableString(mi.getTitle());
+        mNewTitle.setSpan(new CustomTypefaceSpan("", font), 0, mNewTitle.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+        mi.setTitle(mNewTitle);
     }
 
     @Override
@@ -426,6 +482,63 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
                 Log.w(TAG, "onFailure: " + error.getMessage());
                 Toast.makeText(context, "Failed to load trips", Toast.LENGTH_SHORT).show();
                 progressDialog.dismiss();
+                finish();
+            }
+        });
+    }
+
+    void getAndExportAggregateStats() {
+
+        String msg = options.isExplicitMode() ? getString(R.string.progress_dialog_generic_explicit)
+                : getString(R.string.export_aggregate_stats_excel_progress_dialog);
+        final MyProgressDialog dialog = new MyProgressDialog(this, msg);
+        dialog.show();
+
+        QueryFactory factory = new QueryFactory("msus_fulltrip");
+        factory.addColumn("msus_name");
+        factory.addColumn("msus_dt_tripdate");
+        factory.addColumn("msus_trip_duration");
+        factory.addColumn("msus_totaldistance");
+        factory.addColumn("msus_reimbursement");
+        factory.addColumn("msus_trip_minder_killed");
+        factory.addColumn("msus_edited");
+        factory.addColumn("msus_is_manual");
+        factory.addColumn("ownerid");
+
+        Filter filter = new Filter(Filter.FilterType.AND);
+        filter.addCondition(new Filter.FilterCondition("msus_dt_tripdate", Filter.Operator.LAST_X_MONTHS, "2"));
+        filter.addCondition(new Filter.FilterCondition("ownerid", Filter.Operator.EQUALS, user.ownerid));
+        factory.setFilter(filter);
+
+        factory.sortClauses.add(new QueryFactory.SortClause("msus_dt_tripdate", true, QueryFactory.SortClause.ClausePosition.ONE));
+        factory.sortClauses.add(new QueryFactory.SortClause("ownerid", true, QueryFactory.SortClause.ClausePosition.TWO));
+
+        String query = factory.construct();
+
+        Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
+        Requests.Argument argument = new Requests.Argument("query", query);
+        request.arguments.add(argument);
+
+        Crm crm = new Crm();
+        crm.makeCrmRequest(this, request, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                String response = new String(responseBody);
+                stats = new AggregateStats(response);
+                Log.i(TAG, "onSuccess | " + response);
+                dialog.dismiss();
+                String monthYear = Helpers.DatesAndTimes.getMonthName(DateTime.now().getMonthOfYear())
+                        .toLowerCase().replace(" ", "") + "_" + DateTime.now().getYear();
+                String filename = "milebuddy_aggregate_mileage_export_" + monthYear + "_"
+                        + user.fullname.replace(" ","_") + ".xls";
+                ExcelSpreadsheet spreadsheet = stats.exportToExcel(filename.toLowerCase());
+                spreadsheet.share(context);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                Toast.makeText(context, "Failed to get stats", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
                 finish();
             }
         });

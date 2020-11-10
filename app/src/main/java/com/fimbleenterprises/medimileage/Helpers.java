@@ -84,8 +84,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Calendar;
+import java.util.Currency;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 
@@ -497,26 +499,17 @@ public abstract class Helpers {
         /**
          * Converts any view to a bitmap.
          */
-        public static Bitmap getBitmapFromView(View view) {
-            //Define a bitmap with the same size as the view
-            Bitmap returnedBitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(),Bitmap.Config.ARGB_8888);
-            //Bind a canvas to it
-            Canvas canvas = new Canvas(returnedBitmap);
-            //Get the view's background
-            Drawable bgDrawable =view.getBackground();
-            if (bgDrawable!=null)
-                //has background drawable, then draw it on the canvas
-                bgDrawable.draw(canvas);
-            else
-                //does not have background drawable, then draw white background on the canvas
-                canvas.drawColor(Color.WHITE);
-            // draw the view on the canvas
-            view.draw(canvas);
-            //return the bitmap
-            return returnedBitmap;
+        public static Bitmap saveScrollViewAsImage(ScrollView scrollView) {
+            Bitmap bitmap = Bitmap.createBitmap(
+                    scrollView.getChildAt(0).getWidth(),
+                    scrollView.getChildAt(0).getHeight(),
+                    Bitmap.Config.ARGB_8888);
+            Canvas c = new Canvas(bitmap);
+            scrollView.getChildAt(0).draw(c);
+            return bitmap;
         }
 
-        public static Bitmap convertViewToImage(View view) {
+        public static Bitmap saveViewAsImage(View view) {
             view.setDrawingCacheEnabled(true);
             view.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
             view.buildDrawingCache(true);
@@ -1518,10 +1511,30 @@ public abstract class Helpers {
             return nf.format(amount);
         }
 
+        public static String convertToCurrency(double amount, boolean includeSymbol) {
+            String symbol = Currency.getInstance(Locale.getDefault()).getSymbol();
+            NumberFormat nf = NumberFormat.getCurrencyInstance();
+            if (includeSymbol) {
+                return nf.format(amount);
+            } else {
+                return nf.format(amount).replace(symbol, "");
+            }
+        }
+
         public static String convertToPercentage(double value) {
             NumberFormat numberFormat = NumberFormat.getPercentInstance();
             numberFormat.setMaximumFractionDigits(1);
             return numberFormat.format(value);
+        }
+
+        public static String convertToPercentage(double value, boolean includeSymbol) {
+            NumberFormat numberFormat = NumberFormat.getPercentInstance();
+            numberFormat.setMaximumFractionDigits(1);
+            if (includeSymbol) {
+                return numberFormat.format(value);
+            } else {
+                return numberFormat.format(value).replace("%","");
+            }
         }
 
         public static int getRandom(int low, int high) {

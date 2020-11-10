@@ -14,14 +14,14 @@ import jxl.write.WritableCellFormat;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 
-public class ExcelExporter {
+public class ExcelSpreadsheet {
 
     File file;
     File directory;
     WritableWorkbook workbook;
 
 
-    public ExcelExporter(String filename) throws IOException {
+    public ExcelSpreadsheet(String filename) throws IOException {
         this.directory = Helpers.Files.ExcelTempFiles.getDirectory();
         this.file = new File(directory, filename);
 
