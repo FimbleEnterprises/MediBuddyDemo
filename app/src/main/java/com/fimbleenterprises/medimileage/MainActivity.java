@@ -213,6 +213,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             e.printStackTrace();
         }
 
+        try {
+            MediUser.updateCrmWithMyMileBuddyVersion(activity, new MyInterfaces.CrmRequestListener() {
+                @Override
+                public void onComplete(Object result) {
+                    Log.i(TAG, "onComplete " + result.toString());
+                }
+
+                @Override
+                public void onProgress(Crm.AsyncProgress progress) { }
+
+                @Override
+                public void onFail(String error) {
+                    Log.w(TAG, "onFail: Failed to update version to CRM");
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override

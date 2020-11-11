@@ -185,7 +185,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
 
     }
 
-    @Override
+/*    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_viewtrip, menu);
         return super.onCreateOptionsMenu(menu);
@@ -198,7 +198,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
 
         }
         return super.onOptionsItemSelected(item);
-    }
+    }*/
 
     @Override
     public boolean onSupportNavigateUp() {

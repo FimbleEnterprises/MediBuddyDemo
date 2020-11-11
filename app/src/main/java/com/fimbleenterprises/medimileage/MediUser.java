@@ -374,6 +374,30 @@ public class MediUser implements Parcelable {
         return ds.getMe();
     }
 
+    public static void updateCrmWithMyMileBuddyVersion(Context context, final MyInterfaces.CrmRequestListener callback) {
+        Containers.EntityContainer container = new Containers.EntityContainer();
+        container.entityFields.add(new Containers.EntityField("msus_milebuddy_version",
+                Float.toString(Helpers.Application.getAppVersion(context))));
+        Requests.Request request = new Requests.Request(Requests.Request.Function.UPDATE);
+        request.arguments.add(new Requests.Argument("entityid", MediUser.getMe().systemuserid));
+        request.arguments.add(new Requests.Argument("entityname", "systemuser"));
+        request.arguments.add(new Requests.Argument("containers", container.toJson()));
+        request.arguments.add(new Requests.Argument("asuser", MediUser.getMe().systemuserid));
+
+        Crm crm = new Crm();
+        crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                callback.onComplete(new String(responseBody));
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                callback.onFail(error.getLocalizedMessage());
+            }
+        });
+    }
+
     public static boolean isLoggedIn() {
         return MediUser.getMe() != null;
     }

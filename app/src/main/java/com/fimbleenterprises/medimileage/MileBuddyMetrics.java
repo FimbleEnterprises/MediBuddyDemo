@@ -42,7 +42,6 @@ public class MileBuddyMetrics {
                 return "msus_last_synced_mileage";
             case LAST_ACCESSED_MILEAGE_STATS:
                 return "msus_last_viewed_mileage_stats";
-            case LAST_OPENED_APP:
             default:
                 return "msus_last_accessed_milebuddy";
         }
