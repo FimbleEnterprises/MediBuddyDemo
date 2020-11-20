@@ -84,6 +84,13 @@
             android:theme="@style/FullscreenTheme"
             tools:ignore="LockedOrientationActivity" />
         <activity
+            android:name=".Activity_Widgets"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_widgets"
+            android:screenOrientation="portrait"
+            android:theme="@style/FullscreenTheme"
+            tools:ignore="LockedOrientationActivity" />
+        <activity
             android:name=".ui.settings.mileage.SettingsActivity"
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/title_activity_settings"

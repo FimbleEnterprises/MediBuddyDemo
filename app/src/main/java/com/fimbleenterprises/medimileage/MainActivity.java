@@ -136,35 +136,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     }
                 }
             }
-        };
+        }; 
 
         // Check in the background if the user has cached credentials and whether they are still valid
         if ( MediUser.getMe(this) == null || ! options.hasCachedCredentials()) {
             navController.navigate(R.id.action_HomeFragment_to_HomeSecondFragment);
             Toast.makeText(this, getString(R.string.must_login), Toast.LENGTH_SHORT).show();
-
-        /* For some reason this authentication check always succeeds!  I think I'll have to send the REST
-           request to the localhost api to evaluate what the server is actually receiving.  For now,
-           i am disabling it here.  What's weird is that it works when called from the authentication
-           fragment.
-        else {
-            Crm.userCanAuthenticate(options.getCachedUsername(), "R3dst4ff^^!", new MyInterfaces.AuthenticationResult() {
-                @Override
-                public void onSuccess() {
-                    Log.i(TAG, "onSuccess ");
-                }
-
-                @Override
-                public void onFailure() {
-                    Log.w(TAG, "onFailure: ");
-                }
-
-                @Override
-                public void onError(String msg, Throwable exception) {
-                    Log.w(TAG, "onError: ");
-                }
-            });
-        }*/
         }
 
         try {
@@ -282,7 +259,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (item.getItemId() == R.id.nav_sales) {
             startActivity(new Intent(activity, Activity_TerritoryData.class));
             drawer.closeDrawer(navigationView);
-        }  else {
+        } else if (item.getItemId() == R.id.nav_widgets) {
+            startActivity(new Intent(activity, Activity_Widgets.class));
+            drawer.closeDrawer(navigationView);
+            Toast.makeText(activity, "", Toast.LENGTH_SHORT).show();
+        } else {
             try {
                 Log.i(TAG, "onNavigationItemSelected index:" + item.getItemId());
                 Log.i(TAG, "onNavigationItemSelected fullname:" + users.get(item.getItemId()).fullname);

@@ -22,12 +22,16 @@
             <menu>
                 <item
                     android:id="@+id/nav_stats"
-                    android:icon="@drawable/stats"
+                    android:icon="@drawable/ic_carot_right"
                     android:title="@string/menu_stats" />
                 <item
                     android:id="@+id/nav_sales"
-                    android:icon="@drawable/stats"
+                    android:icon="@drawable/ic_carot_right"
                     android:title="@string/menu_sales_and_more" />
+                <item
+                    android:id="@+id/nav_widgets"
+                    android:icon="@drawable/ic_carot_right"
+                    android:title="@string/menu_cases_and_widgets" />
                 <item
                     android:id="@+id/nav_settings"
                     android:icon="@drawable/settings_36x36"
