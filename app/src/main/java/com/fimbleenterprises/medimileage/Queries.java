@@ -307,6 +307,64 @@ public class Queries {
         }
     }
 
+    public static class Accounts {
+
+        public static String getAccountInventory(String accountid) {
+            // Instantiate a new constructor for the case entity and add the columns we want to see
+            QueryFactory query = new QueryFactory("col_customerinventory");
+            query.addColumn("col_name");
+            query.addColumn("statuscode");
+            query.addColumn("col_serialnumber");
+            query.addColumn("col_revision");
+            query.addColumn("col_ownershipcapital");
+            query.addColumn("col_accountid");
+            query.addColumn("new_physical_date");
+            query.addColumn("col_customerinventoryid");
+
+            // Filter creation to make use of our conditions
+            Filter filter = new Filter(AND);
+            filter.addCondition(new Filter.FilterCondition("col_accountid","eq", accountid));
+            query.setFilter(filter);
+
+            // Link entity creation to join to the account entity and apply our territory condition
+            LinkEntity le1 = new LinkEntity("product", "productid", "col_productid", "a_3df8efedfc19e71180d2005056a36b9b");
+            le1.addColumn(new EntityColumn("name"));
+            le1.addColumn(new EntityColumn("msus_is_capital"));
+
+            // Spit out the encoded query
+            String rslt = query.construct();
+            return rslt;
+        }
+
+        public static String getAccountsByTerritory(String territoryid) {
+
+            // Instantiate a new constructor for the case entity and add the columns we want to see
+            QueryFactory query = new QueryFactory("account");
+            query.addColumn("name");
+            query.addColumn("customertypecode");
+            query.addColumn("accountid");
+            query.addColumn("territoryid");
+            query.addColumn("msus_salesrep");
+            query.addColumn("msus_salesregionid");
+            query.addColumn("col_agreementtype");
+            query.addColumn("accountnumber");
+
+            // Filter creation to make use of our conditions
+            Filter filter = new Filter(AND);
+            filter.addCondition(new Filter.FilterCondition("territoryid","eq", territoryid));
+            query.setFilter(filter);
+
+            // Link entity creation to join to the account entity and apply our territory condition
+            LinkEntity le1 = new LinkEntity("businessunit", "businessunitid", "owningbusinessunit", "a_6ad8133d2f1e4c43a3da460bacb3d6a5");
+            le1.addColumn(new EntityColumn("new_managername"));
+            le1.addColumn(new EntityColumn("name"));
+
+            // Spit out the encoded query
+            String rslt = query.construct();
+            return rslt;
+        }
+    }
+
     public static class Opportunities {
 
         /*public static String getAllOpenOpportunities() {

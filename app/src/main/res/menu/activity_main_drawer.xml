@@ -23,15 +23,15 @@
                 <item
                     android:id="@+id/nav_stats"
                     android:icon="@drawable/ic_carot_right"
-                    android:title="@string/menu_stats" />
+                    android:title="@string/menu_aggregated_mileage_stats" />
                 <item
-                    android:id="@+id/nav_sales"
+                    android:id="@+id/nav_territoryinfo"
                     android:icon="@drawable/ic_carot_right"
-                    android:title="@string/menu_sales_and_more" />
+                    android:title="@string/menu_territory_info" />
                 <item
-                    android:id="@+id/nav_widgets"
+                    android:id="@+id/nav_accountinfo"
                     android:icon="@drawable/ic_carot_right"
-                    android:title="@string/menu_cases_and_widgets" />
+                    android:title="@string/menu_account_info" />
                 <item
                     android:id="@+id/nav_settings"
                     android:icon="@drawable/settings_36x36"

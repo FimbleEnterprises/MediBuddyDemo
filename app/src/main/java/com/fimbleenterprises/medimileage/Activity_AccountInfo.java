@@ -21,6 +21,7 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.HorizontalBarChart;
 import com.github.mikephil.charting.components.XAxis;
@@ -68,7 +69,7 @@ import com.anychart.chart.common.dataentry.DataEntry;
 import com.anychart.chart.common.dataentry.ValueDataEntry;
 import com.anychart.charts.Cartesian;*/
 
-public class Activity_Widgets extends AppCompatActivity {
+public class Activity_AccountInfo extends AppCompatActivity {
     public static Activity activity;
     public static EditText title;
     public static MyUnderlineEditText date;
@@ -86,12 +87,17 @@ public class Activity_Widgets extends AppCompatActivity {
     public static MySettingsHelper options;
 
     // Receivers for date range changes at the activity level
+    public static IntentFilter intentFilterMenuAction;
+    public static BroadcastReceiver accountInventoryReceiver;
+
     public static IntentFilter intentFilterMonthYear;
     public static BroadcastReceiver goalsReceiverMtd;
     public static BroadcastReceiver goalsReceiverYtd;
     public static BroadcastReceiver salesLinesReceiver;
     public static BroadcastReceiver casesReceiver;
     public static BroadcastReceiver opportunitiesReceiver;
+
+    public static final int REQUEST_CODE_CHANGE_ACCOUNT = 1;
 
     // vars for the date ranges
     public static int monthNum;
@@ -110,8 +116,13 @@ public class Activity_Widgets extends AppCompatActivity {
     public static final String DATE_CHANGED = "DATE_CHANGED";
     public static final String MONTH = "MONTH";
     public static final String YEAR = "YEAR";
+    public static final String MENU_ACTION = "MENU_ACTION";
 
     public int curPageIndex = 0;
+
+    enum MenuAction {
+        CHANGE_TERRITORY, CHANGE_ACCOUNT
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,6 +131,7 @@ public class Activity_Widgets extends AppCompatActivity {
         context = this;
         activity = this;
         intentFilterMonthYear = new IntentFilter(DATE_CHANGED);
+        intentFilterMenuAction = new IntentFilter(MENU_ACTION);
 
         // Log a metric
         // MileBuddyMetrics.updateMetric(this, MileBuddyMetrics.MetricName.LAST_ACCESSED_TERRITORY_DATA, DateTime.now());
@@ -162,6 +174,15 @@ public class Activity_Widgets extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == FullscreenActivityChooseAccount.ACCOUNT_CHOSEN_RESULT) {
+            Object selectedAccount = data.getParcelableExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT);
+            Toast.makeText(activity, resultCode + "", Toast.LENGTH_SHORT).show();
+            if (selectedAccount != null) {
+                sendBroadcast(data);
+            }
+            return;
+        }
 
         try {
             territory = data.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
@@ -225,7 +246,7 @@ public class Activity_Widgets extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(@NonNull Menu menu) {
-        getMenuInflater().inflate(R.menu.sales_menu, menu);
+        getMenuInflater().inflate(R.menu.widgets_menu, menu);
 
         super.onCreateOptionsMenu(menu);
         return true;
@@ -289,9 +310,8 @@ public class Activity_Widgets extends AppCompatActivity {
                 startActivityForResult(intent, 0);
                 break;
 
-            case R.id.action_east_region :
-                isEastRegion = true;
-                sendBroadcastUsingExistingValues();
+            case R.id.action_choose_account :
+                sendBroadcastUsingExistingValues(MenuAction.CHANGE_ACCOUNT);
                 break;
             case R.id.action_west_region :
                 isEastRegion = false;
@@ -330,10 +350,14 @@ public class Activity_Widgets extends AppCompatActivity {
     }
 
     public static void sendBroadcastUsingExistingValues() {
-        Intent dateChanged = dateChanged = new Intent(DATE_CHANGED);
-        dateChanged.putExtra(MONTH, monthNum);
-        dateChanged.putExtra(YEAR, yearNum);
-        activity.sendBroadcast(dateChanged);
+
+    }
+
+    public static void sendBroadcastUsingExistingValues(MenuAction action) {
+
+        Intent menuAction = new Intent(MENU_ACTION);
+        menuAction.putExtra(MENU_ACTION, action.ordinal());
+        activity.sendBroadcast(menuAction);
     }
 
     public static String getRegionid() {
@@ -427,7 +451,7 @@ public class Activity_Widgets extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return 3;
+            return 1;
         }
 
         @Override
@@ -437,7 +461,7 @@ public class Activity_Widgets extends AppCompatActivity {
 
             switch (position) {
                 case 0:
-                    return "Sales Lines (" + territory.territoryName + ")";
+                    return "Account Inventory (" + territory.territoryName + ")";
                 case 1:
                     return "MTD Goals by Region";
                 case 2:
@@ -458,21 +482,24 @@ public class Activity_Widgets extends AppCompatActivity {
         public View root;
         public RecyclerView recyclerView;
         RefreshLayout refreshLayout;
-        OrderLineRecyclerAdapter adapter;
+        AccountInventoryRecyclerAdapter adapter;
         ArrayList<OrderProduct> allOrders = new ArrayList<>();
+        Button btnChooseAccount;
+        String curActId;
 
         @Nullable
         @Override
-        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+        public View onCreateView(@NonNull final LayoutInflater inflater, @Nullable ViewGroup container,
                                  @Nullable Bundle savedInstanceState) {
-            root = inflater.inflate(R.layout.frag_saleslines, container, false);
+            root = inflater.inflate(R.layout.frag_account_inventory, container, false);
             refreshLayout = root.findViewById(R.id.refreshLayout);
+            options = new MySettingsHelper(context);
             RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
             refreshLayout.setRefreshHeader(new MaterialHeader(getContext()));
             refreshLayout.setOnRefreshListener(new OnRefreshListener() {
                 @Override
                 public void onRefresh(RefreshLayout refreshlayout) {
-                    getSalesLines();
+                    getAccountInventory();
                 }
             });
             refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
@@ -482,20 +509,53 @@ public class Activity_Widgets extends AppCompatActivity {
                 }
             });
 
+            btnChooseAccount = root.findViewById(R.id.btnChooseAct);
+            btnChooseAccount.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    sendBroadcastUsingExistingValues(MenuAction.CHANGE_ACCOUNT);
+                }
+            });
+
             recyclerView = root.findViewById(R.id.orderLinesRecyclerview);
             super.onCreateView(inflater, container, savedInstanceState);
 
-            salesLinesReceiver = new BroadcastReceiver() {
+            accountInventoryReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    Log.i(TAG, "onReceive Received month and year broadcast! (sales lines frag)");
-                    monthNum = intent.getIntExtra(MONTH, DateTime.now().getMonthOfYear());
-                    yearNum = intent.getIntExtra(YEAR, DateTime.now().getYear());
-                    getSalesLines();
+                    if (intent != null && intent.getIntExtra(MENU_ACTION, -1) != -1) {
+                        int ordinal = intent.getIntExtra(MENU_ACTION, -1);
+                        if (ordinal == MenuAction.CHANGE_ACCOUNT.ordinal()) {
+                            if (intent.getParcelableExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT) != null) {
+                                CrmEntities.Accounts.Account chosenAccount =
+                                        intent.getParcelableExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT);
+                                getActivity().setTitle(chosenAccount.accountName);
+                                getAccountInventory();
+                            } else {
+                                Log.i(TAG, "onReceive Got a change account intent from a broadcast!");
+                                // Launch the change account activity
+                                Intent i = new Intent(context, FullscreenActivityChooseAccount.class);
+                                i.setAction(FullscreenActivityChooseAccount.CHANGE_ACCOUNT);
+                                i.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, curActId);
+                                i.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
+                                startActivityForResult(i, REQUEST_CODE_CHANGE_ACCOUNT);
+                            }
+                        }
+                    } else if (intent.getParcelableExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT) != null) {
+                        CrmEntities.Accounts.Account chosenAccount =
+                                intent.getParcelableExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT);
+                        getActivity().setTitle(chosenAccount.accountName);
+                        getAccountInventory();
+                    }
                 }
             };
 
-            getSalesLines();
+            if (options.getLastAccountSelected() == null) {
+                btnChooseAccount.setVisibility(View.VISIBLE);
+            } else {
+                btnChooseAccount.setVisibility(View.GONE);
+                getAccountInventory();
+            }
 
             return root;
         }
@@ -509,13 +569,13 @@ public class Activity_Widgets extends AppCompatActivity {
         @Override
         public void onDestroyView() {
             super.onDestroyView();
-            getActivity().unregisterReceiver(salesLinesReceiver);
+            getActivity().unregisterReceiver(accountInventoryReceiver);
             Log.i(TAG, "onPause Unregistered the sales lines receiver");
         }
 
         @Override
         public void onResume() {
-            getActivity().registerReceiver(salesLinesReceiver, intentFilterMonthYear);
+            getActivity().registerReceiver(accountInventoryReceiver, intentFilterMenuAction);
 
             Log.i(TAG, "onResume Registered the sales lines receiver");
             super.onResume();
@@ -527,21 +587,9 @@ public class Activity_Widgets extends AppCompatActivity {
             super.onPause();
         }
 
-        protected void getSalesLines() {
+        protected void getAccountInventory() {
+            String query = Queries.Accounts.getAccountInventory(options.getLastAccountSelected().accountid);
             refreshLayout.autoRefreshAnimationOnly();
-
-            String query = null;
-
-            if (monthNum == DateTime.now().getMonthOfYear()) {
-                query = Queries.OrderLines.getOrderLines(territory.territoryid,
-                        Queries.Operators.DateOperator.THIS_MONTH);
-            } else if (monthNum == DateTime.now().minusMonths(1).getMonthOfYear()) {
-                query = Queries.OrderLines.getOrderLines(territory.territoryid,
-                        Queries.Operators.DateOperator.LAST_MONTH);
-            } else {
-                query = Queries.OrderLines.getOrderLines(territory.territoryid, monthNum);
-            }
-
             ArrayList<Requests.Argument> args = new ArrayList<>();
             Requests.Argument argument = new Requests.Argument("query", query);
             args.add(argument);
@@ -653,8 +701,8 @@ public class Activity_Widgets extends AppCompatActivity {
             Log.i(TAG, "populateTripList Finished preparing the dividers and trips.");
 
             if (!getActivity().isFinishing()) {
-                adapter = new OrderLineRecyclerAdapter(getContext(), orderList);
-                adapter.setClickListener(new OrderLineRecyclerAdapter.ItemClickListener() {
+                adapter = new AccountInventoryRecyclerAdapter(getContext(), orderList);
+                adapter.setClickListener(new AccountInventoryRecyclerAdapter.ItemClickListener() {
                     @Override
                     public void onItemClick(View view, int position) {
 

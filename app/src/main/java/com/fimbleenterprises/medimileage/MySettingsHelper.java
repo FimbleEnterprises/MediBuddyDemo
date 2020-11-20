@@ -46,6 +46,7 @@ public class MySettingsHelper {
     public static final String SERVER_BASE_URL = "SERVER_BASE_URL";
     public static final String OPPORTUNITIES_JSON = "OPPORTUNITIES_JSON";
     public static final String SHOW_OPPORTUNITY_MGR = "SHOW_OPPORTUNITY_MGR";
+    public static final String LAST_ACCOUNT_SELECTED = "LAST_ACCOUNT_SELECTED";
 
     public static final String RECEIPT_FORMAT_PNG = ".png";
     public static final String RECEIPT_FORMAT_JPEG = ".jpeg";
@@ -65,6 +66,26 @@ public class MySettingsHelper {
 
     public void setDefaults() {
         prefs.edit().clear().commit();
+    }
+
+    public void setLastAccountSelected(CrmEntities.Accounts.Account account) {
+
+        if (account == null) {
+            prefs.edit().remove(LAST_ACCOUNT_SELECTED).commit();
+            return;
+        }
+
+        prefs.edit().putString(LAST_ACCOUNT_SELECTED, account.toGson()).commit();
+    }
+
+    public CrmEntities.Accounts.Account getLastAccountSelected() {
+        String gsonVal = prefs.getString(LAST_ACCOUNT_SELECTED, null);
+        if (gsonVal == null) {
+            return null;
+        } else {
+            Gson gson = new Gson();
+            return gson.fromJson(gsonVal, CrmEntities.Accounts.Account.class);
+        }
     }
 
     public void setServerBaseUrl(String url) {

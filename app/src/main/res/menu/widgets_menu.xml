@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_choose_territory"
+        android:orderInCategory="95"
+        android:title="@string/action_choose_territory"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_choose_account"
+        android:orderInCategory="96"
+        android:title="@string/action_choose_account"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_east_region"
+        android:checkable="true"
+        android:orderInCategory="96"
+        android:title="@string/action_east_region"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_west_region"
+        android:checkable="true"
+        android:orderInCategory="96"
+        android:title="@string/action_west_region"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_this_year"
+        android:orderInCategory="96"
+        android:title="@string/action_this_year"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_last_year"
+        android:orderInCategory="97"
+        android:title="@string/action_last_year"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_this_month"
+        android:orderInCategory="98"
+        android:title="@string/action_this_month"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_last_month"
+        android:orderInCategory="99"
+        android:title="@string/action_last_month"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_choose_month"
+        android:orderInCategory="100"
+        android:title="@string/action_change_date"
+        app:showAsAction="never" />
+
+</menu>

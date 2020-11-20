@@ -14,7 +14,7 @@
     <string name="menu_users">Users</string>
     <string name="menu_authentication">Login</string>
     <string name="menu_settings">Settings</string>
-    <string name="menu_sales_and_more">Sales and more</string>
+    <string name="menu_territory_info">Territory stuff</string>
 
     <string name="triplist_today">Today</string>
     <string name="triplist_yesterday">Yesterday</string>
@@ -124,7 +124,7 @@
     <string name="action_update">Check for update</string>
 
     <string name="title_activity_aggregate_stats">AggregateStats</string>
-    <string name="menu_stats">Aggregate stats</string>
+    <string name="menu_aggregated_mileage_stats">Mileage stuff</string>
     <string name="lastest_version">You are running the most recent version</string>
     <string name="logout">Logout</string>
     <string name="login">Login</string>
@@ -227,7 +227,9 @@
     <string name="action_export_my_mileage_to_excel">Export to Excel...</string>
     <string name="export_mileage_disclaimer">This will not create a reimbursement receipt.\n\nThis will instead create something of a deep dive into the data currently being displayed.</string>
     <string name="export_mileage_disclaimer_explicit">This will not create a fucking reimbursement receipt.\n\nThis will instead create a cool fucking mileage report because why the fuck not.</string>
-    <string name="menu_cases_and_widgets">Widgets and more</string>
+    <string name="menu_account_info">Account stuff</string>
     <string name="title_activity_widgets">Widgets and more</string>
+    <string name="action_choose_account">Choose account...</string>
+    <string name="title_activity_fullscreen_choose_account">Choose account</string>
 
 </resources>

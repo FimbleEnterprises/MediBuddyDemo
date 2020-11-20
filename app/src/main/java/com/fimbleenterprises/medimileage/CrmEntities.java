@@ -868,6 +868,263 @@ public class CrmEntities {
         }
     }
 
+    public static class AccountProducts {
+        public ArrayList<AccountProduct> list = new ArrayList<>();
+
+        public int size() {
+            return this.list.size();
+        }
+
+        @Override
+        public String toString() {
+            return "Account products: " + this.list.size();
+        }
+
+        public AccountProducts() { }
+
+        public AccountProducts(String crmResponse) {
+            ArrayList<AccountProduct> accountProducts = new ArrayList<>();
+            try {
+                JSONObject root = new JSONObject(crmResponse);
+                JSONArray rootArray = root.getJSONArray("value");
+                for (int i = 0; i < rootArray.length(); i++) {
+                    AccountProduct accountProduct = new AccountProduct(rootArray.getJSONObject(i));
+                    accountProducts.add(accountProduct);
+                }
+                this.list = accountProducts;
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public static class AccountProduct {
+
+            boolean isSeparator;
+            String etag;
+            String productid;
+            String productidFormatted;
+            String partNumber;
+            float extendedAmt;
+            String extendedAmtFormatted;
+            String customerid;
+            String customeridFormatted;
+            String salesorderid;
+            String salesorderidFormatted;
+            String salesrepid;
+            String salesrepidFormatted;
+            float priceperunit;
+            String priceperunitFormatted;
+            String itemgroup;
+            int qty;
+            boolean isCapital;
+            String territoryid;
+            String territoryidFormatted;
+            String accountnumber;
+            String orderdateFormatted;
+            DateTime orderDate;
+            int productfamilyValue;
+            String productfamilyFormattedValue;
+
+            @Override
+            public String toString() {
+                return this.partNumber + ", Qty: " + this.qty + ", Amount: " + this.extendedAmtFormatted;
+            }
+
+            public AccountProduct() { }
+
+            public AccountProduct(JSONObject json) {
+                try {
+                    if (!json.isNull("etag")) {
+                        this.etag = (json.getString("etag"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_productid_value")) {
+                        this.productid = (json.getString("_productid_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_productid_valueFormattedValue")) {
+                        this.productidFormatted = (json.getString("_productid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("extendedamount")) {
+                        this.extendedAmt = (json.getLong("extendedamount"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("extendedamountFormattedValue")) {
+                        this.extendedAmtFormatted = (json.getString("extendedamountFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_new_customer_value")) {
+                        this.customerid = (json.getString("_new_customer_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_new_customer_valueFormattedValue")) {
+                        this.customeridFormatted = (json.getString("_new_customer_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_salesrepid_valueFormattedValue")) {
+                        this.salesrepidFormatted = (json.getString("_salesrepid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_salesrepid_value")) {
+                        this.salesrepid = (json.getString("_salesrepid_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("quantity")) {
+                        this.qty = (json.getInt("quantity"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_salesorderid_valueFormattedValue")) {
+                        this.salesorderidFormatted = (json.getString("_salesorderid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_salesorderid")) {
+                        this.salesorderid = (json.getString("_salesorderid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_msus_is_capital")) {
+                        this.isCapital = (json.getBoolean("a_070ef9d142cd40d98bebd513e03c7cd1_msus_is_capital"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_productnumber")) {
+                        this.setTitle(json.getString("a_070ef9d142cd40d98bebd513e03c7cd1_productnumber"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_col_itemgroup")) {
+                        this.itemgroup = (json.getString("a_070ef9d142cd40d98bebd513e03c7cd1_col_itemgroup"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_col_producfamily")) {
+                        this.productfamilyValue = (json.getInt("a_070ef9d142cd40d98bebd513e03c7cd1_col_producfamily"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_070ef9d142cd40d98bebd513e03c7cd1_col_producfamilyFormattedValue")) {
+                        this.productfamilyFormattedValue = (json.getString("a_070ef9d142cd40d98bebd513e03c7cd1_col_producfamilyFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_db24f99da8fee71180df005056a36b9b_accountnumber")) {
+                        this.accountnumber = (json.getString("a_db24f99da8fee71180df005056a36b9b_accountnumber"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_db24f99da8fee71180df005056a36b9b_territoryid")) {
+                        this.territoryid = (json.getString("a_db24f99da8fee71180df005056a36b9b_territoryid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_a1cf96c07c114d478335b8c445651a12_employeeid")) {
+                        this.territoryidFormatted = (json.getString("a_a1cf96c07c114d478335b8c445651a12_employeeid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_6ec0e72e4c104394bc627456c6412838_submitdate")) {
+                        this.orderDate = (new DateTime(json.getString("a_6ec0e72e4c104394bc627456c6412838_submitdate")));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_6ec0e72e4c104394bc627456c6412838_submitdateFormattedValue")) {
+                        this.orderdateFormatted = (json.getString("a_6ec0e72e4c104394bc627456c6412838_submitdateFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            public enum ProductFamily {
+                AUX_CABLE, FLOWMETER, LEASE_COMPLIANCE, LICENSE_CARD, PROBE, PROBE_PRODUCT, SERVICE_MISC,
+                SPARE_PART, SYSTEM_PRODUCT, SHIPPING_HANDLING
+            }
+
+            public ProductFamily getFamily(int productfamilyValue) {
+                switch (productfamilyValue) {
+                    case 100004070 :
+                        return ProductFamily.AUX_CABLE;
+                    case 181004050 :
+                        return ProductFamily.FLOWMETER;
+                    case 100004040 :
+                        return ProductFamily.LEASE_COMPLIANCE;
+                    case 100004030 :
+                        return ProductFamily.LICENSE_CARD;
+                    case 181400001 :
+                        return ProductFamily.PROBE_PRODUCT;
+                    case 100004010 :
+                        return ProductFamily.SERVICE_MISC;
+                    case 100004020 :
+                        return ProductFamily.SHIPPING_HANDLING;
+                    case 100004075 :
+                        return ProductFamily.SPARE_PART;
+                    case 181400000 :
+                        return ProductFamily.SYSTEM_PRODUCT;
+                    default :
+                        return ProductFamily.PROBE;
+                }
+            }
+
+            public void setTitle(String text) {
+                this.partNumber = text;
+            }
+        }
+    }
+
     public static class Goals {
 
         private static final String TAG = "Goals";
@@ -1803,6 +2060,317 @@ public class CrmEntities {
 
         }
 
+    }
+
+    public static class Accounts implements Parcelable {
+        private static final String TAG = "Accounts";
+        public ArrayList<Account> list = new ArrayList<>();
+
+        public String toGson() {
+            Gson gson = new Gson();
+            return gson.toJson(this);
+        }
+
+        public static Accounts fromGson(String gsonString) {
+            Gson gson = new Gson();
+            return gson.fromJson(gsonString, Accounts.class);
+        }
+
+        /**
+         * Will query CRM and retrieve all account addresses in the system.
+         * When obtained they will be saved locally as JSON to shared preferences.
+         * @param listener A basic YesNo listener which will return a populated CrmAddresses object
+         *                 on success (cast the returned object to CrmEntities.CrmAddresses) or the
+         *                 error message as a string on failure (cast returned object to string).
+         */
+        public static void retrieveAndSaveCrmAddresses(final MyInterfaces.YesNoResult listener) {
+            final MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+            Requests.Argument argument = new Requests.Argument("query", Queries.Addresses.getAllAccountAddresses());
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            args.add(argument);
+            Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
+            Crm crm = new Crm();
+            crm.makeCrmRequest(MyApp.getAppContext(), request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    // Construct an array of CrmAddresses
+                    String response = new String(responseBody);
+                    CrmEntities.CrmAddresses addresses = new CrmEntities.CrmAddresses(response);
+                    options.saveAllCrmAddresses(addresses);
+                    Log.i(TAG, "onSuccess response: " + response.length());
+                    listener.onYes(addresses);
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    Log.w(TAG, "onFailure: error: " + error.getLocalizedMessage());
+                    listener.onNo(error.getLocalizedMessage());
+                }
+            });
+        }
+
+        /**
+         * Will query CRM and retrieve all account addresses in the system.
+         * When obtained they will be saved locally as JSON to shared preferences.
+         */
+        public static void retrieveAndSaveCrmAddresses() {
+            retrieveAndSaveCrmAddresses(new MyInterfaces.YesNoResult() {
+                @Override
+                public void onYes(@Nullable Object object) {
+                    // nothing to do, homie
+                }
+
+                @Override
+                public void onNo(@Nullable Object object) {
+                    // nothing to do, homie
+                }
+            });
+        }
+
+        @Override
+        public String toString() {
+            return "There are " + this.list.size() + " accounts in this list, you little bitch.";
+        }
+
+        public Accounts(ArrayList<Account> accounts) {
+            this.list = accounts;
+        }
+
+        public Accounts(String crmResponse) {
+            ArrayList<Account> accounts = new ArrayList<>();
+            try {
+                JSONObject root = new JSONObject(crmResponse);
+                JSONArray rootArray = root.getJSONArray("value");
+                for (int i = 0; i < rootArray.length(); i++) {
+                    Account act = new Account(rootArray.getJSONObject(i));
+                    accounts.add(act);
+                }
+                this.list = accounts;
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public static class Account implements Parcelable {
+
+            public String etag;
+            public String accountid;
+            public String accountnumber;
+            public int customerTypeCode;
+            public String customerTypeFormatted;
+            public String accountName;
+            public String territoryid;
+            public String territoryFormatted;
+            public String repid;
+            public String repFormatted;
+            public String regionid;
+            public String regionFormatted;
+            public String agreementTypeFormatted;
+            public int agreementType;
+
+            public Account(JSONObject json) {
+                try {
+                    if (!json.isNull("etag")) {
+                        this.etag = (json.getString("etag"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("accountid")) {
+                        this.accountid = (json.getString("accountid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("accountnumber")) {
+                        this.accountnumber = (json.getString("accountnumber"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("customertypecodeFormattedValue")) {
+                        this.customerTypeFormatted = (json.getString("customertypecodeFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("customertypecode")) {
+                        this.customerTypeCode = (json.getInt("customertypecode"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("name")) {
+                        this.accountName = (json.getString("name"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_territoryid_valueFormattedValue")) {
+                        this.territoryFormatted = (json.getString("_territoryid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_territoryid_value")) {
+                        this.territoryid = (json.getString("_territoryid_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_salesrep_valueFormattedValue")) {
+                        this.repFormatted = (json.getString("_msus_salesrep_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_salesrep_value")) {
+                        this.repid = (json.getString("_msus_salesrep_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_salesregionid_valueFormattedValue")) {
+                        this.regionFormatted = (json.getString("_msus_salesregionid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_salesregionid_value")) {
+                        this.regionid = (json.getString("_msus_salesregionid_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("col_agreementtype")) {
+                        this.agreementType = (json.getInt("col_agreementtype"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("col_agreementtypeFormattedValue")) {
+                        this.agreementTypeFormatted = (json.getString("col_agreementtypeFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            public String toGson() {
+                Gson gson = new Gson();
+                return gson.toJson(this);
+            }
+
+            @Override
+            public String toString() {
+                return accountName + " - " + accountnumber;
+            }
+
+
+            protected Account(Parcel in) {
+                etag = in.readString();
+                accountid = in.readString();
+                accountnumber = in.readString();
+                customerTypeCode = in.readInt();
+                customerTypeFormatted = in.readString();
+                accountName = in.readString();
+                territoryid = in.readString();
+                territoryFormatted = in.readString();
+                repid = in.readString();
+                repFormatted = in.readString();
+                regionid = in.readString();
+                regionFormatted = in.readString();
+                agreementTypeFormatted = in.readString();
+                agreementType = in.readInt();
+            }
+
+            @Override
+            public int describeContents() {
+                return 0;
+            }
+
+            @Override
+            public void writeToParcel(Parcel dest, int flags) {
+                dest.writeString(etag);
+                dest.writeString(accountid);
+                dest.writeString(accountnumber);
+                dest.writeInt(customerTypeCode);
+                dest.writeString(customerTypeFormatted);
+                dest.writeString(accountName);
+                dest.writeString(territoryid);
+                dest.writeString(territoryFormatted);
+                dest.writeString(repid);
+                dest.writeString(repFormatted);
+                dest.writeString(regionid);
+                dest.writeString(regionFormatted);
+                dest.writeString(agreementTypeFormatted);
+                dest.writeInt(agreementType);
+            }
+
+            @SuppressWarnings("unused")
+            public static final Parcelable.Creator<Account> CREATOR = new Parcelable.Creator<Account>() {
+                @Override
+                public Account createFromParcel(Parcel in) {
+                    return new Account(in);
+                }
+
+                @Override
+                public Account[] newArray(int size) {
+                    return new Account[size];
+                }
+            };
+        }
+
+
+        protected Accounts(Parcel in) {
+            if (in.readByte() == 0x01) {
+                list = new ArrayList<Account>();
+                in.readList(list, Account.class.getClassLoader());
+            } else {
+                list = null;
+            }
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            if (list == null) {
+                dest.writeByte((byte) (0x00));
+            } else {
+                dest.writeByte((byte) (0x01));
+                dest.writeList(list);
+            }
+        }
+
+        @SuppressWarnings("unused")
+        public static final Parcelable.Creator<Accounts> CREATOR = new Parcelable.Creator<Accounts>() {
+            @Override
+            public Accounts createFromParcel(Parcel in) {
+                return new Accounts(in);
+            }
+
+            @Override
+            public Accounts[] newArray(int size) {
+                return new Accounts[size];
+            }
+        };
     }
 
     public static class CreateManyResponses {
