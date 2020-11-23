@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -59,9 +60,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.PagerTitleStrip;
 import cz.msebera.android.httpclient.Header;
 
-import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts;
-import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts.OrderProduct;
-
 /*import com.anychart.APIlib;
 import com.anychart.AnyChart;
 import com.anychart.AnyChartView;
@@ -88,7 +86,7 @@ public class Activity_AccountInfo extends AppCompatActivity {
 
     // Receivers for date range changes at the activity level
     public static IntentFilter intentFilterMenuAction;
-    public static BroadcastReceiver accountInventoryReceiver;
+    public static BroadcastReceiver menuItemSelectedReceiver;
 
     public static IntentFilter intentFilterMonthYear;
     public static BroadcastReceiver goalsReceiverMtd;
@@ -118,10 +116,17 @@ public class Activity_AccountInfo extends AppCompatActivity {
     public static final String YEAR = "YEAR";
     public static final String MENU_ACTION = "MENU_ACTION";
 
+    Menu optionsMenu;
     public int curPageIndex = 0;
 
     enum MenuAction {
-        CHANGE_TERRITORY, CHANGE_ACCOUNT
+        CHANGE_TERRITORY, // 0
+        CHANGE_ACCOUNT, // 1
+        SHOW_PROBES, // 2
+        SHOW_CABLES, // 3
+        SHOW_FLOWMETERS, // 4
+        SHOW_LICENSING, // 5
+        SHOW_ALL // 6
     }
 
     @Override
@@ -246,8 +251,8 @@ public class Activity_AccountInfo extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(@NonNull Menu menu) {
-        getMenuInflater().inflate(R.menu.widgets_menu, menu);
-
+        getMenuInflater().inflate(R.menu.account_stuff, menu);
+        optionsMenu = menu;
         super.onCreateOptionsMenu(menu);
         return true;
     }
@@ -255,44 +260,15 @@ public class Activity_AccountInfo extends AppCompatActivity {
     @Override
     public boolean onPreparePanel(int featureId, @Nullable View view, @NonNull Menu menu) {
 
-        menu.findItem(R.id.action_east_region).setChecked(isEastRegion);
-        menu.findItem(R.id.action_west_region).setChecked(!isEastRegion);
-
         switch (mViewPager.currentPosition) {
-            case 0 : // Sales lines
-                menu.findItem(R.id.action_west_region).setVisible(false);
-                menu.findItem(R.id.action_east_region).setVisible(false);
-                menu.findItem(R.id.action_this_year).setVisible(false);
-                menu.findItem(R.id.action_last_year).setVisible(false);
-
-                menu.findItem(R.id.action_this_month).setVisible(true);
-                menu.findItem(R.id.action_last_month).setVisible(true);
-                menu.findItem(R.id.action_choose_month).setVisible(true);
+            case 0 : // Account inventory
                 menu.findItem(R.id.action_choose_territory).setVisible(true);
+                menu.findItem(R.id.action_choose_account).setVisible(true);
+                menu.findItem(R.id.action_probes).setVisible(true);
+                menu.findItem(R.id.action_flowmeters).setVisible(true);
+                menu.findItem(R.id.action_cables).setVisible(true);
+                menu.findItem(R.id.action_licensing).setVisible(true);
                 break;
-            case 1 : // MTD
-                menu.findItem(R.id.action_this_year).setVisible(false);
-                menu.findItem(R.id.action_last_year).setVisible(false);
-                menu.findItem(R.id.action_choose_territory).setVisible(false);
-
-                menu.findItem(R.id.action_west_region).setVisible(true);
-                menu.findItem(R.id.action_east_region).setVisible(true);
-                menu.findItem(R.id.action_this_month).setVisible(true);
-                menu.findItem(R.id.action_last_month).setVisible(true);
-                menu.findItem(R.id.action_choose_month).setVisible(true);
-                break;
-            case 2 : // YTD
-                menu.findItem(R.id.action_this_month).setVisible(false);
-                menu.findItem(R.id.action_last_month).setVisible(false);
-                menu.findItem(R.id.action_choose_month).setVisible(false);
-                menu.findItem(R.id.action_choose_territory).setVisible(false);
-
-                menu.findItem(R.id.action_west_region).setVisible(true);
-                menu.findItem(R.id.action_east_region).setVisible(true);
-                menu.findItem(R.id.action_this_year).setVisible(true);
-                menu.findItem(R.id.action_last_year).setVisible(true);
-                break;
-
         }
 
         return super.onPreparePanel(featureId, view, menu);
@@ -300,47 +276,54 @@ public class Activity_AccountInfo extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        Intent dateChanged;
-        DateTime now = DateTime.now();
-        DateTime aMonthAgo = now.minusMonths(1);
+
+        // Uncheck all items
+        for (int i = 0; i < optionsMenu.size(); i++) {
+            optionsMenu.getItem(i).setChecked(false);
+        }
+        
         switch (item.getItemId()) {
             case R.id.action_choose_territory :
-                Intent intent = new Intent(context, FullscreenActivityChooseTerritory.class);
-                intent.putExtra(FullscreenActivityChooseTerritory.CURRENT_TERRITORY, territory);
-                startActivityForResult(intent, 0);
+                // change territory
+                Intent intentChangeTerritory = new Intent(context, FullscreenActivityChooseTerritory.class);
+                intentChangeTerritory.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
+                startActivityForResult(intentChangeTerritory, FullscreenActivityChooseTerritory.REQUESTCODE);
+                // Default to all items as the checked menu item
+                optionsMenu.getItem(2).setChecked(true);
                 break;
 
             case R.id.action_choose_account :
-                sendBroadcastUsingExistingValues(MenuAction.CHANGE_ACCOUNT);
+                // change account
+                Intent intentChangeAccount = new Intent(context, FullscreenActivityChooseAccount.class);
+                intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
+                intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, options.getLastAccountSelected());
+                startActivityForResult(intentChangeAccount, FullscreenActivityChooseAccount.REQUESTCODE);
+                // Default to all items as the checked menu item
+                optionsMenu.getItem(2).setChecked(true);
                 break;
-            case R.id.action_west_region :
-                isEastRegion = false;
-                sendBroadcastUsingExistingValues();
+
+            case R.id.action_probes :
+                item.setChecked(true);
+                sendMenuItemSelectedBroadcast(MenuAction.SHOW_PROBES);
                 break;
-            case R.id.action_this_month :
-                monthNum = now.getMonthOfYear();
-                yearNum = now.getYear();
-                sendBroadcastUsingExistingValues();
+
+            case R.id.action_flowmeters :
+                item.setChecked(true);
+                sendMenuItemSelectedBroadcast(MenuAction.SHOW_FLOWMETERS);
                 break;
-            case R.id.action_last_month :
-                monthNum = aMonthAgo.getMonthOfYear();
-                yearNum = aMonthAgo.getYear();
-                sendBroadcastUsingExistingValues();
+
+            case R.id.action_cables :
+                item.setChecked(true);
+                sendMenuItemSelectedBroadcast(MenuAction.SHOW_CABLES);
                 break;
-            case R.id.action_choose_month :
-                showMonthYearPicker();
-                break;
-            case R.id.action_this_year :
-                yearNum = now.getYear();
-                sendBroadcastUsingExistingValues();
-                break;
-            case R.id.action_last_year :
-                yearNum = aMonthAgo.getYear();
-                sendBroadcastUsingExistingValues();
+
+            case R.id.action_licensing :
+                item.setChecked(true);
+                sendMenuItemSelectedBroadcast(MenuAction.SHOW_LICENSING);
                 break;
         }
 
-        return super.onOptionsItemSelected(item);
+        return true;
     }
 
     public static void destroyChartDialogIfVisible() {
@@ -349,14 +332,10 @@ public class Activity_AccountInfo extends AppCompatActivity {
         }
     }
 
-    public static void sendBroadcastUsingExistingValues() {
-
-    }
-
-    public static void sendBroadcastUsingExistingValues(MenuAction action) {
+    public static void sendMenuItemSelectedBroadcast(MenuAction action) {
 
         Intent menuAction = new Intent(MENU_ACTION);
-        menuAction.putExtra(MENU_ACTION, action.ordinal());
+        menuAction.putExtra(MENU_ACTION, action);
         activity.sendBroadcast(menuAction);
     }
 
@@ -483,9 +462,9 @@ public class Activity_AccountInfo extends AppCompatActivity {
         public RecyclerView recyclerView;
         RefreshLayout refreshLayout;
         AccountInventoryRecyclerAdapter adapter;
-        ArrayList<OrderProduct> allOrders = new ArrayList<>();
+        ArrayList<CrmEntities.AccountProducts.AccountProduct> custInventory = new ArrayList<>();
         Button btnChooseAccount;
-        String curActId;
+        ProductType productType = ProductType.ALL;
 
         @Nullable
         @Override
@@ -499,7 +478,7 @@ public class Activity_AccountInfo extends AppCompatActivity {
             refreshLayout.setOnRefreshListener(new OnRefreshListener() {
                 @Override
                 public void onRefresh(RefreshLayout refreshlayout) {
-                    getAccountInventory();
+
                 }
             });
             refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
@@ -513,39 +492,31 @@ public class Activity_AccountInfo extends AppCompatActivity {
             btnChooseAccount.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    sendBroadcastUsingExistingValues(MenuAction.CHANGE_ACCOUNT);
+                    sendMenuItemSelectedBroadcast(MenuAction.CHANGE_ACCOUNT);
                 }
             });
+
+            // Check if there is an account stipulated in preferences
+            if (options.getLastAccountSelected() == null) {
+                Log.w(TAG, "onCreateView: No account stipulated!");
+                // do something!
+            } else {
+                Log.i(TAG, "onCreateView Account is stipulated (" + options.getLastAccountSelected().accountnumber + ")");
+            }
 
             recyclerView = root.findViewById(R.id.orderLinesRecyclerview);
             super.onCreateView(inflater, container, savedInstanceState);
 
-            accountInventoryReceiver = new BroadcastReceiver() {
+            menuItemSelectedReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    if (intent != null && intent.getIntExtra(MENU_ACTION, -1) != -1) {
-                        int ordinal = intent.getIntExtra(MENU_ACTION, -1);
-                        if (ordinal == MenuAction.CHANGE_ACCOUNT.ordinal()) {
-                            if (intent.getParcelableExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT) != null) {
-                                CrmEntities.Accounts.Account chosenAccount =
-                                        intent.getParcelableExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT);
-                                getActivity().setTitle(chosenAccount.accountName);
-                                getAccountInventory();
-                            } else {
-                                Log.i(TAG, "onReceive Got a change account intent from a broadcast!");
-                                // Launch the change account activity
-                                Intent i = new Intent(context, FullscreenActivityChooseAccount.class);
-                                i.setAction(FullscreenActivityChooseAccount.CHANGE_ACCOUNT);
-                                i.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, curActId);
-                                i.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
-                                startActivityForResult(i, REQUEST_CODE_CHANGE_ACCOUNT);
-                            }
-                        }
-                    } else if (intent.getParcelableExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT) != null) {
-                        CrmEntities.Accounts.Account chosenAccount =
-                                intent.getParcelableExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT);
-                        getActivity().setTitle(chosenAccount.accountName);
-                        getAccountInventory();
+                    Log.i(TAG, "onReceive Local receiver received broadcast!");
+                    // Validate intent shit
+                    if (intent != null && intent.getAction().equals(MENU_ACTION)) {
+                        // Intent is valid so far...
+                        Log.i(TAG, "onReceive Broadcast has extras... so far, so good.");
+                        MenuAction menuAction = (MenuAction) intent.getSerializableExtra(MENU_ACTION);
+                        getAccountInventory(menuAction);
                     }
                 }
             };
@@ -554,7 +525,6 @@ public class Activity_AccountInfo extends AppCompatActivity {
                 btnChooseAccount.setVisibility(View.VISIBLE);
             } else {
                 btnChooseAccount.setVisibility(View.GONE);
-                getAccountInventory();
             }
 
             return root;
@@ -569,13 +539,13 @@ public class Activity_AccountInfo extends AppCompatActivity {
         @Override
         public void onDestroyView() {
             super.onDestroyView();
-            getActivity().unregisterReceiver(accountInventoryReceiver);
+            getActivity().unregisterReceiver(menuItemSelectedReceiver);
             Log.i(TAG, "onPause Unregistered the sales lines receiver");
         }
 
         @Override
         public void onResume() {
-            getActivity().registerReceiver(accountInventoryReceiver, intentFilterMenuAction);
+            getActivity().registerReceiver(menuItemSelectedReceiver, intentFilterMenuAction);
 
             Log.i(TAG, "onResume Registered the sales lines receiver");
             super.onResume();
@@ -587,8 +557,35 @@ public class Activity_AccountInfo extends AppCompatActivity {
             super.onPause();
         }
 
-        protected void getAccountInventory() {
-            String query = Queries.Accounts.getAccountInventory(options.getLastAccountSelected().accountid);
+        enum ProductType {
+            ALL, PROBES, CABLES, FLOWMETERS, LICENSES
+        }
+
+        protected void getAccountInventory(MenuAction action) {
+            String query = "";
+
+            switch (action) {
+                case SHOW_ALL:
+                    query = Queries.Accounts.getAccountInventory(options.getLastAccountSelected()
+                            .accountid, "");
+                    break;
+                case SHOW_PROBES:
+                    query = Queries.Accounts.getAccountInventory(options.getLastAccountSelected()
+                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_PROBES);
+                    break;
+                case SHOW_FLOWMETERS:
+                    query = Queries.Accounts.getAccountInventory(options.getLastAccountSelected()
+                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_FLOWMETERS);
+                    break;
+                case SHOW_LICENSING:
+                    query = Queries.Accounts.getAccountInventory(options.getLastAccountSelected()
+                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_LICENSES);
+                    break;
+                case SHOW_CABLES:
+                    query = Queries.Accounts.getAccountInventory(options.getLastAccountSelected()
+                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_CABLES);
+                    break;
+            }
             refreshLayout.autoRefreshAnimationOnly();
             ArrayList<Requests.Argument> args = new ArrayList<>();
             Requests.Argument argument = new Requests.Argument("query", query);
@@ -601,7 +598,7 @@ public class Activity_AccountInfo extends AppCompatActivity {
                     try {
                         String response = new String(responseBody);
                         Log.i(TAG, "onSuccess " + response);
-                        allOrders = new OrderProducts(response).list;
+                        custInventory = new CrmEntities.AccountProducts(response).list;
                         populateList();
                         refreshLayout.finishRefresh();
                     } catch (Exception e) {
@@ -620,7 +617,7 @@ public class Activity_AccountInfo extends AppCompatActivity {
 
         protected void populateList() {
 
-            ArrayList<OrderProduct> orderList = new ArrayList<>();
+            ArrayList<CrmEntities.AccountProducts.AccountProduct> orderList = new ArrayList<>();
 
             boolean addedTodayHeader = false;
             boolean addedYesterdayHeader = false;
@@ -634,67 +631,9 @@ public class Activity_AccountInfo extends AppCompatActivity {
             int todayMonthOfYear = Helpers.DatesAndTimes.returnMonthOfYear(DateTime.now());
 
             Log.i(TAG, "populateTripList: Preparing the dividers and trips...");
-            for (int i = 0; i < (allOrders.size()); i++) {
-                int tripDayOfYear = Helpers.DatesAndTimes.returnDayOfYear(allOrders.get(i).orderDate);
-                int tripWeekOfYear = Helpers.DatesAndTimes.returnWeekOfYear(allOrders.get(i).orderDate);
-                int tripMonthOfYear = Helpers.DatesAndTimes.returnMonthOfYear(allOrders.get(i).orderDate);
+            for (int i = 0; i < (custInventory.size()); i++) {
 
-                // Trip was today
-                if (tripDayOfYear == todayDayOfYear) {
-                    if (addedTodayHeader == false) {
-                        OrderProduct headerObj = new OrderProduct();
-                        headerObj.isSeparator = true;
-                        headerObj.setTitle("Today");
-                        orderList.add(headerObj);
-                        addedTodayHeader = true;
-                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Today' - This will not be added again!");
-                    }
-                    // Trip was yesterday
-                } else if (tripDayOfYear == (todayDayOfYear - 1)) {
-                    if (addedYesterdayHeader == false) {
-                        OrderProduct headerObj = new OrderProduct();
-                        headerObj.isSeparator = true;
-                        headerObj.setTitle("Yesterday");
-                        orderList.add(headerObj);
-                        addedYesterdayHeader = true;
-                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Yesterday' - This will not be added again!");
-                    }
-
-                    // Trip was this week
-                } else if (tripWeekOfYear == todayWeekOfYear) {
-                    if (addedThisWeekHeader == false) {
-                        OrderProduct headerObj = new OrderProduct();
-                        headerObj.isSeparator = true;
-                        headerObj.setTitle("This week");
-                        orderList.add(headerObj);
-                        addedThisWeekHeader = true;
-                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'This week' - This will not be added again!");
-                    }
-
-                    // Trip was this month
-                } else if (tripMonthOfYear == todayMonthOfYear) {
-                    if (addedThisMonthHeader == false) {
-                        OrderProduct headerObj = new OrderProduct();
-                        headerObj.isSeparator = true;
-                        headerObj.setTitle("This month");
-                        orderList.add(headerObj);
-                        addedThisMonthHeader = true;
-                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'This month' - This will not be added again!");
-                    }
-
-                    // Trip was older than this month
-                } else if (tripMonthOfYear < todayMonthOfYear) {
-                    if (addedOlderHeader == false) {
-                        OrderProduct headerObj = new OrderProduct();
-                        headerObj.isSeparator = true;
-                        headerObj.setTitle("Last month and older");
-                        orderList.add(headerObj);
-                        addedOlderHeader = true;
-                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Older' - This will not be added again!");
-                    }
-                }
-
-                OrderProduct orderProduct = allOrders.get(i);
+                CrmEntities.AccountProducts.AccountProduct orderProduct = custInventory.get(i);
                 orderList.add(orderProduct);
             }
 

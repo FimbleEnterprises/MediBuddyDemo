@@ -39,7 +39,7 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
     public static final String ACCOUNT_RESULT = "ACCOUNT_RESULT";
     public static final String CURRENT_ACCOUNT = "CURRENT_ACCOUNT";
     Territory currentTerritory;
-    String currentAccountId;
+    Accounts.Account currentAccount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,11 +53,8 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
 
         Intent intent = getIntent();
         if (intent != null) {
-            Territory curTerritory = intent.getParcelableExtra(CURRENT_TERRITORY);
-            if (curTerritory != null) {
-                currentTerritory = curTerritory;
-                this.setTitle("Choose territory");
-            }
+            currentTerritory = intent.getParcelableExtra(CURRENT_TERRITORY);
+            currentAccount = intent.getParcelableExtra(CURRENT_ACCOUNT);
         }
 
         getAccounts();
@@ -108,12 +105,11 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
         objects.clear();
 
         MySettingsHelper options = new MySettingsHelper(context);
-        Accounts.Account lastSelectedAccount = options.getLastAccountSelected();
 
         for (Accounts.Account account : accounts.list) {
             BasicObject object = new BasicObject(account.accountName, account.accountnumber, account);
-            if (lastSelectedAccount != null) {
-                object.isSelected = lastSelectedAccount.accountid.equals(account.accountid);
+            if (currentAccount != null) {
+                object.isSelected = currentAccount.accountid.equals(account.accountid);
             }
             objects.add(object);
         }
@@ -129,7 +125,7 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
                 try {
                     Accounts.Account account = (Accounts.Account) objects.get(position).object;
                     Intent intent = new Intent(ACCOUNT_RESULT);
-                    intent.putExtra(ACCOUNT_RESULT, account);
+                    intent.putExtra(ACCOUNT_RESULT, account.accountid);
                     setResult(ACCOUNT_CHOSEN_RESULT, intent);
                     MySettingsHelper options = new MySettingsHelper(context);
                     options.setLastAccountSelected(account);

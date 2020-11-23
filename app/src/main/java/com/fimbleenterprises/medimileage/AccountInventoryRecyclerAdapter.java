@@ -19,7 +19,7 @@ import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts.OrderP
 
 public class AccountInventoryRecyclerAdapter extends RecyclerView.Adapter<AccountInventoryRecyclerAdapter.ViewHolder> {
     private static final String TAG="OrderLineAdapter";
-    public ArrayList<OrderProduct> mData;
+    public ArrayList<CrmEntities.AccountProducts.AccountProduct> mData;
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
     MySettingsHelper options;
@@ -30,7 +30,7 @@ public class AccountInventoryRecyclerAdapter extends RecyclerView.Adapter<Accoun
 
 
     // data is passed into the constructor
-    public AccountInventoryRecyclerAdapter(Context context, ArrayList<OrderProduct> data) {
+    public AccountInventoryRecyclerAdapter(Context context, ArrayList<CrmEntities.AccountProducts.AccountProduct> data) {
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
         this.context = context;
@@ -40,7 +40,7 @@ public class AccountInventoryRecyclerAdapter extends RecyclerView.Adapter<Accoun
     // inflates the row layout from xml when needed
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = mInflater.inflate(R.layout.row_orderproduct, parent, false);
+        View view = mInflater.inflate(R.layout.row_cust_inventory_item, parent, false);
         textView = view.findViewById(R.id.txt_customerName);
         originalTypeface = textView.getTypeface();
         return new ViewHolder(view);
@@ -51,26 +51,26 @@ public class AccountInventoryRecyclerAdapter extends RecyclerView.Adapter<Accoun
     // binds the data to the TextView in each row
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
-        final OrderProduct orderProduct = mData.get(position);
+        final CrmEntities.AccountProducts.AccountProduct customerInventoryItem = mData.get(position);
 
-        if (orderProduct.isSeparator) {
+        if (customerInventoryItem.isSeparator) {
             // Display
             holder.txtQty.setVisibility(View.GONE);
-            holder.txtAmount.setVisibility(View.GONE);
+            holder.txtSerialNumber.setVisibility(View.GONE);
             holder.txtCustName.setVisibility(View.GONE);
             holder.txtDate.setVisibility(View.GONE);
             holder.imgProductIcon.setVisibility(View.GONE);
-            holder.txtOrderNumber.setVisibility(View.GONE);
+            holder.txtIsCapital.setVisibility(View.GONE);
             holder.itemView.setLongClickable(false);
             holder.layout.setBackground(null);
         } else {
             // Display
             holder.itemView.setLongClickable(true);
             holder.txtQty.setVisibility(View.VISIBLE);
-            holder.txtAmount.setVisibility(View.VISIBLE);
+            holder.txtSerialNumber.setVisibility(View.VISIBLE);
             holder.txtCustName.setVisibility(View.VISIBLE);
             holder.txtDate.setVisibility(View.VISIBLE);
-            holder.txtOrderNumber.setVisibility(View.VISIBLE);
+            holder.txtIsCapital.setVisibility(View.VISIBLE);
             holder.imgProductIcon.setVisibility(View.VISIBLE);
 
             ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) holder.layout.getLayoutParams();
@@ -80,16 +80,16 @@ public class AccountInventoryRecyclerAdapter extends RecyclerView.Adapter<Accoun
             holder.layout.setBackgroundResource(R.drawable.btn_glass_gray_black_border);
 
             // Values
-            holder.txtDate.setText(orderProduct.orderdateFormatted);
-            holder.txtCustName.setText(orderProduct.customeridFormatted);
-            holder.txtAmount.setText(orderProduct.extendedAmtFormatted);
-            holder.txtQty.setText(orderProduct.qty + " x ");
-            holder.txtPartNumber.setText(orderProduct.partNumber);
-            holder.txtOrderNumber.setText(orderProduct.salesorderidFormatted);
-            holder.imgProductIcon.setImageBitmap(Helpers.Bitmaps.getImageIconForPart(orderProduct, context));
+            holder.txtDate.setText(customerInventoryItem.modifiedOnFormatted);
+            holder.txtCustName.setText(customerInventoryItem.accountname);
+            holder.txtSerialNumber.setText(customerInventoryItem.serialnumber);
+            holder.txtQty.setText(customerInventoryItem.qty + " x ");
+            holder.txtPartNumber.setText(customerInventoryItem.partNumber);
+            holder.txtIsCapital.setText(customerInventoryItem.isCapitalFormatted);
+            holder.imgProductIcon.setImageBitmap(Helpers.Bitmaps.getImageIconForPart(customerInventoryItem.partNumber, context));
         }
 
-        holder.txtPartNumber.setText(orderProduct.partNumber);
+        holder.txtPartNumber.setText(customerInventoryItem.partNumber);
 
     }
 
@@ -106,8 +106,8 @@ public class AccountInventoryRecyclerAdapter extends RecyclerView.Adapter<Accoun
         TextView txtQty;
         TextView txtDate;
         TextView txtCustName;
-        TextView txtAmount;
-        TextView txtOrderNumber;
+        TextView txtSerialNumber;
+        TextView txtIsCapital;
         RelativeLayout layout;
 
 
@@ -119,8 +119,8 @@ public class AccountInventoryRecyclerAdapter extends RecyclerView.Adapter<Accoun
             txtQty = itemView.findViewById(R.id.txt_Qty);
             txtDate = itemView.findViewById(R.id.txt_orderDate);
             txtCustName = itemView.findViewById(R.id.txt_customerName);
-            txtAmount = itemView.findViewById(R.id.txt_extendedAmt);
-            txtOrderNumber = itemView.findViewById(R.id.txt_salesOrder);
+            txtSerialNumber = itemView.findViewById(R.id.txt_serialnumber);
+            txtIsCapital = itemView.findViewById(R.id.txt_is_capital);
 
             itemView.setOnClickListener(this);
             itemView.setOnLongClickListener(this);
@@ -139,7 +139,7 @@ public class AccountInventoryRecyclerAdapter extends RecyclerView.Adapter<Accoun
 
         @Override
         public boolean onLongClick(View view) {
-            OrderProduct orderProduct = mData.get(getAdapterPosition());
+            CrmEntities.AccountProducts.AccountProduct orderProduct = mData.get(getAdapterPosition());
             if (! orderProduct.isSeparator) {
                 Log.i(TAG, "onLongClick " + orderProduct.toString());
             }
@@ -148,7 +148,7 @@ public class AccountInventoryRecyclerAdapter extends RecyclerView.Adapter<Accoun
     }
 
     // convenience method for getting data at click position
-    public OrderProduct getItem(int pos) {
+    public CrmEntities.AccountProducts.AccountProduct getItem(int pos) {
         return mData.get(pos);
     }
 

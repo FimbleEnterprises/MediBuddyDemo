@@ -231,5 +231,10 @@
     <string name="title_activity_widgets">Widgets and more</string>
     <string name="action_choose_account">Choose account...</string>
     <string name="title_activity_fullscreen_choose_account">Choose account</string>
+    <string name="action_licensing">Licensing</string>
+    <string name="action_cables">Aux cables</string>
+    <string name="action_flowmeters">Flowmeters</string>
+    <string name="action_probes">Probes</string>
+    <string name="action_all_products">All</string>
 
 </resources>

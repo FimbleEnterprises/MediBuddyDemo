@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <group
+        android:id="@+id/gp_hour_view"
+        android:checkableBehavior="single">
+        <item
+            android:checkable="false"
+            android:title="Display">
+            <menu>
+                <group
+                    android:id="@+id/gp_hour_sel"
+                    android:checkableBehavior="single">
+                    <item
+                        android:id="@+id/action_pinched_view"
+                        android:checked="true"
+                        android:orderInCategory="201"
+                        android:title="Pinched"
+                        app:showAsAction="never" />
+                    <item
+                        android:id="@+id/action_zoomed_view"
+                        android:orderInCategory="201"
+                        android:title="Zoomed"
+                        app:showAsAction="never" />
+                </group>
+            </menu>
+        </item>
+    </group>
+</menu>-->
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_choose_territory"
+        android:orderInCategory="95"
+        android:title="@string/action_choose_territory"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_choose_account"
+        android:orderInCategory="96"
+        android:title="@string/action_choose_account"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/producttype"
+        android:title="Product Family">
+        <menu>
+            <group
+                android:id="@+id/subshit"
+                android:menuCategory="container">
+                <item
+                    android:id="@+id/action_probes"
+                    android:checkable="true"
+                    android:checked="false"
+                    android:orderInCategory="96"
+                    android:title="@string/action_probes"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_flowmeters"
+                    android:checkable="true"
+                    android:orderInCategory="96"
+                    android:checked="false"
+                    android:title="@string/action_flowmeters"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_cables"
+                    android:checkable="true"
+                    android:checked="false"
+                    android:orderInCategory="96"
+                    android:title="@string/action_cables"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_licensing"
+                    android:checkable="true"
+                    android:checked="false"
+                    android:orderInCategory="96"
+                    android:title="@string/action_licensing"
+                    app:showAsAction="never" />
+            </group>
+        </menu>
+    </item>
+</menu>

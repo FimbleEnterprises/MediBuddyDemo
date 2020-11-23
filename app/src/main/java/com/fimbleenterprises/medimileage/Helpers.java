@@ -264,153 +264,133 @@ public abstract class Helpers {
          * Accepts a SimpleProduct object and based on its part number sets the appropriate
          * image to its icon property then returns the object back to the caller.
          *
-         * @param orderProduct The partnumber string to be analyzed
+         * @param partNumber The partnumber string to be analyzed
          * @param c  The myContext the object is being used in
          * @return The Bitmap object .
          */
-        public static Bitmap getImageIconForPart(CrmEntities.OrderProducts.OrderProduct orderProduct, Context c) {
+        public static Bitmap getImageIconForPart(String partNumber, Context c) {
 
-            if (orderProduct.partNumber.startsWith("PQ")) {
+            if (partNumber.startsWith("PQ")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.quickfit64);
                 return icon;
             }
 
-            if (orderProduct.partNumber.startsWith("PA") | orderProduct.partNumber.startsWith("PB")) {
+            if (partNumber.startsWith("PA") | partNumber.startsWith("PB")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.peri64);
                 return icon;
             }
 
-            if (orderProduct.partNumber.startsWith("PS")) {
+            if (partNumber.startsWith("PS")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.autoclav64);
                 return icon;
             }
 
-            if (orderProduct.partNumber.startsWith("PD")) {
+            if (partNumber.startsWith("PD")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.doppler64);
                 return icon;
             }
 
-            if (orderProduct.partNumber.startsWith("EL")) {
+            if (partNumber.startsWith("EL")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.elprobe64);
                 return icon;
             }
 
-            if (orderProduct.partNumber.startsWith("VQ")) {
+            if (partNumber.startsWith("VQ")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.veriq128);
                 return icon;
             }
 
-            if (orderProduct.partNumber.startsWith("VQ4122-C")) {
+            if (partNumber.startsWith("VQ4122-C")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.vqc128);
                 return icon;
             }
 
-            if (orderProduct.partNumber.startsWith("MQC")) {
+            if (partNumber.startsWith("MQC")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.miraq64);
                 return icon;
             }
 
-            if (orderProduct.partNumber.startsWith("MQV")) {
+            if (partNumber.startsWith("MQV")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.miraq64);
                 return icon;
             }
 
-            if (orderProduct.partNumber.startsWith("MQU")) {
+            if (partNumber.startsWith("MQU")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.miraq64);
                 return icon;
             }
 
-            if (orderProduct.partNumber.startsWith("VQCRATE")) {
+            if (partNumber.startsWith("VQCRATE")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.crate100);
                 return icon;
             }
 
-            if (orderProduct.partNumber.startsWith("CV000301")) {
+            if (partNumber.startsWith("CV000301")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.cv301x64);
                 return icon;
             }
 
-            if (orderProduct.partNumber.startsWith("CV000303")) {
+            if (partNumber.startsWith("CV000303")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.cv303x64);
                 return icon;
             }
 
-            if (orderProduct.partNumber.startsWith("CV000305")) {
+            if (partNumber.startsWith("CV000305")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.cv305x64);
                 return icon;
             }
 
-            if (orderProduct.partNumber.startsWith("CV000307")) {
+            if (partNumber.startsWith("CV000307")) {
                 return BitmapFactory.decodeResource(c.getResources(), R.drawable.cv307x64);
             }
 
-            if (orderProduct.partNumber.startsWith("CV000441")) {
+            if (partNumber.startsWith("CV000441")) {
                 return BitmapFactory.decodeResource(c.getResources(), R.drawable.cv441x64);
             }
 
-            if (orderProduct.partNumber.startsWith("CV000442")) {
+            if (partNumber.startsWith("CV000442")) {
                 return BitmapFactory.decodeResource(c.getResources(), R.drawable.cv442x64);
             }
 
-            if (orderProduct.partNumber.startsWith("CV000444")) {
+            if (partNumber.startsWith("CV000444")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.cv444x64);
                 return icon;
             }
 
-            if (orderProduct.partNumber.startsWith("CV000445")) {
+            if (partNumber.startsWith("CV000445")) {
                 return BitmapFactory.decodeResource(c.getResources(), R.drawable.cvdemox64);
             }
 
-            if (orderProduct.partNumber.startsWith("CV000443")) {
+            if (partNumber.startsWith("CV000443")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.cvdemox64);
                 return icon;
             }
 
-            if (orderProduct.partNumber.startsWith("CV000300")) {
+            if (partNumber.startsWith("CV000300")) {
                 return BitmapFactory.decodeResource(c.getResources(), R.drawable.cvrepx64);
             }
 
-            if (orderProduct.partNumber.startsWith("CV305COMPLIANCE")) {
+            if (partNumber.startsWith("CV305COMPLIANCE")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.contract64);
                 return icon;
             }
 
-            if (orderProduct.partNumber.startsWith("CV444COMPLIANCE")) {
+            if (partNumber.startsWith("CV444COMPLIANCE")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.contract64);
                 return icon;
             }
 
-            if (orderProduct.partNumber.startsWith("LEASE-PYMNT")) {
+            if (partNumber.startsWith("LEASE-PYMNT")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.contract64);
                 return icon;
             }
 
-            if (orderProduct.partNumber.startsWith("KM")) {
+            if (partNumber.startsWith("KM")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.ecg1cablex64);
                 return icon;
             }
 
-            if (orderProduct.partNumber.startsWith("CM")) {
-                Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.ecg1cablex64);
-                return icon;
-            }
-
-            if (orderProduct.itemgroup.equals("4060")) {
-                Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.pv_probe_64x);
-                return icon;
-            }
-
-            if (orderProduct.itemgroup.equals("4075")) {
-                Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.spare_part_icon1);
-                return icon;
-            }
-
-            if (orderProduct.itemgroup.equals("4010")) {
-                Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.contract64);
-                return icon;
-            }
-
-            if (orderProduct.itemgroup.equals("4070")) {
+            if (partNumber.startsWith("CM")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.ecg1cablex64);
                 return icon;
             }

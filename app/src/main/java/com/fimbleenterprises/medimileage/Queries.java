@@ -3,6 +3,7 @@ package com.fimbleenterprises.medimileage;
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
+import java.util.concurrent.locks.Condition;
 
 import static com.fimbleenterprises.medimileage.Queries.Operators.getDateOperator;
 import static com.fimbleenterprises.medimileage.QueryFactory.*;
@@ -309,27 +310,44 @@ public class Queries {
 
     public static class Accounts {
 
-        public static String getAccountInventory(String accountid) {
+        public static String getAccountInventory(String accountid, String itemgroupnumber) {
             // Instantiate a new constructor for the case entity and add the columns we want to see
             QueryFactory query = new QueryFactory("col_customerinventory");
             query.addColumn("col_name");
             query.addColumn("statuscode");
             query.addColumn("col_serialnumber");
-            query.addColumn("col_revision");
             query.addColumn("col_ownershipcapital");
+            query.addColumn("modifiedon");
+            query.addColumn("col_revision");
+            query.addColumn("overriddencreatedon");
+            query.addColumn("col_quantity");
+            query.addColumn("col_productid");
+            query.addColumn("col_item");
+            query.addColumn("col_itemgroup");
+            query.addColumn("col_batchnumber");
             query.addColumn("col_accountid");
-            query.addColumn("new_physical_date");
+            query.addColumn("col_referencenumber");
             query.addColumn("col_customerinventoryid");
 
-            // Filter creation to make use of our conditions
-            Filter filter = new Filter(AND);
-            filter.addCondition(new Filter.FilterCondition("col_accountid","eq", accountid));
-            query.setFilter(filter);
+            LinkEntity le1 = new LinkEntity("systemuser", "systemuserid", "owninguser", "a_4114a0e1fc19e71180d2005056a36b9b");
+            le1.addColumn(new EntityColumn("domainname"));
+            le1.addColumn(new EntityColumn("territoryid"));
 
-            // Link entity creation to join to the account entity and apply our territory condition
-            LinkEntity le1 = new LinkEntity("product", "productid", "col_productid", "a_3df8efedfc19e71180d2005056a36b9b");
-            le1.addColumn(new EntityColumn("name"));
-            le1.addColumn(new EntityColumn("msus_is_capital"));
+            LinkEntity le2 = new LinkEntity("team", "teamid", "owningteam", "a_4814a0e1fc19e71180d2005056a36b9b");
+            le2.addColumn(new EntityColumn("name"));
+
+            LinkEntity le3 = new LinkEntity("account", "accountid", "col_accountid", "aa");
+            Filter le3Filter = new Filter(AND);
+            le3Filter.conditions.add(new Filter.FilterCondition("accountid", Filter.Operator.EQUALS, accountid));
+            le3.addFilter(le3Filter);
+
+            // Add our link entities
+            // query.addLinkEntity(le1);
+            // query.addLinkEntity(le2);
+            query.addLinkEntity(le3);
+
+            // Set the query's global filter
+            query.setFilter(new Filter(AND, new Filter.FilterCondition("col_itemgroup", Filter.Operator.CONTAINS, itemgroupnumber)));
 
             // Spit out the encoded query
             String rslt = query.construct();
@@ -358,6 +376,9 @@ public class Queries {
             LinkEntity le1 = new LinkEntity("businessunit", "businessunitid", "owningbusinessunit", "a_6ad8133d2f1e4c43a3da460bacb3d6a5");
             le1.addColumn(new EntityColumn("new_managername"));
             le1.addColumn(new EntityColumn("name"));
+
+            SortClause sortClause = new SortClause("name", false, SortClause.ClausePosition.ONE);
+            query.addSortClause(sortClause);
 
             // Spit out the encoded query
             String rslt = query.construct();

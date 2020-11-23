@@ -87,7 +87,7 @@ public class OrderLineRecyclerAdapter extends RecyclerView.Adapter<OrderLineRecy
             holder.txtQty.setText(orderProduct.qty + " x ");
             holder.txtPartNumber.setText(orderProduct.partNumber);
             holder.txtOrderNumber.setText(orderProduct.salesorderidFormatted);
-            holder.imgProductIcon.setImageBitmap(Helpers.Bitmaps.getImageIconForPart(orderProduct, context));
+            holder.imgProductIcon.setImageBitmap(Helpers.Bitmaps.getImageIconForPart(orderProduct.partNumber, context));
         }
 
         holder.txtPartNumber.setText(orderProduct.partNumber);
