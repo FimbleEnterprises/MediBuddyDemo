@@ -3,7 +3,6 @@ package com.fimbleenterprises.medimileage;
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
-import java.util.concurrent.locks.Condition;
 
 import static com.fimbleenterprises.medimileage.Queries.Operators.getDateOperator;
 import static com.fimbleenterprises.medimileage.QueryFactory.*;
@@ -16,6 +15,34 @@ public class Queries {
     public static final String WEST_BUSINESSUNITID = "02AD3593-FB81-E711-80D7-005056A36B9B";
     public static final String EAST_BUSINESSUNITID = "101E629C-FB81-E711-80D7-005056A36B9B";
     public static final String JOHN_SYSTEMUSERID = "DAA46FDF-5B7C-E711-80D1-005056A32EEA";
+
+    /**
+     * An enum specific to the col_customerinventory entity representing available statuscode values
+     */
+    public enum CustomerInventoryStatusCode {
+        EXPIRED, LOST, RETURNED, ONSITE, SCRAPPED, ANY;
+
+        /**
+         * Returns the actual statuscode value for the selected status reason
+         * @return The value as a string consumable by our CrmRest api
+         */
+        public String getCrmValue() {
+            switch (this) {
+                case EXPIRED:
+                    return "181400000";
+                case LOST:
+                    return "181400007";
+                case RETURNED:
+                    return "181400005";
+                case ONSITE:
+                    return "1";
+                case SCRAPPED:
+                    return "181400004";
+                default:
+                    return null;
+            }
+        }
+    }
 
     public static class Operators {
         public enum DateOperator {
@@ -310,7 +337,7 @@ public class Queries {
 
     public static class Accounts {
 
-        public static String getAccountInventory(String accountid, String itemgroupnumber) {
+        public static String getAccountInventory(String accountid, String itemgroupnumber, CustomerInventoryStatusCode status) {
             // Instantiate a new constructor for the case entity and add the columns we want to see
             QueryFactory query = new QueryFactory("col_customerinventory");
             query.addColumn("col_name");
@@ -346,8 +373,22 @@ public class Queries {
             // query.addLinkEntity(le2);
             query.addLinkEntity(le3);
 
+            // Create a filter
+            Filter filter = new Filter(AND);
+
+            // Set filter conditions
+            Filter.FilterCondition condition1 = new Filter.FilterCondition("col_itemgroup", Filter.Operator.CONTAINS, itemgroupnumber);
+            Filter.FilterCondition condition2 = new Filter.FilterCondition("statuscode", Filter.Operator.EQUALS, status.getCrmValue());
+
+            // Apply the conditions to the filter
+            filter.addCondition(condition1);
+            // Only add the status condition if one is stipulated
+            if (status != CustomerInventoryStatusCode.ANY) {
+                filter.addCondition(condition2);
+            }
+
             // Set the query's global filter
-            query.setFilter(new Filter(AND, new Filter.FilterCondition("col_itemgroup", Filter.Operator.CONTAINS, itemgroupnumber)));
+            query.setFilter(filter);
 
             // Spit out the encoded query
             String rslt = query.construct();

@@ -236,5 +236,12 @@
     <string name="action_flowmeters">Flowmeters</string>
     <string name="action_probes">Probes</string>
     <string name="action_all_products">All</string>
+    <string name="action_anystatus">Any</string>
+    <string name="action_expired">Expired</string>
+    <string name="action_returned">Returned</string>
+    <string name="action_instock">In stock</string>
+    <string name="product_type_menu_title">Product family</string>
+    <string name="status_menu_title">Product status</string>
+    <string name="action_lost">Lost</string>
 
 </resources>

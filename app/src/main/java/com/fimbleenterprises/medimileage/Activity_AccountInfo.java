@@ -14,7 +14,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -59,6 +58,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.PagerTitleStrip;
 import cz.msebera.android.httpclient.Header;
+
+import static com.fimbleenterprises.medimileage.Queries.*;
 
 /*import com.anychart.APIlib;
 import com.anychart.AnyChart;
@@ -116,17 +117,27 @@ public class Activity_AccountInfo extends AppCompatActivity {
     public static final String YEAR = "YEAR";
     public static final String MENU_ACTION = "MENU_ACTION";
 
-    Menu optionsMenu;
+    public static Menu optionsMenu;
     public int curPageIndex = 0;
 
+    public static boolean menuOpen = false;
+
     enum MenuAction {
-        CHANGE_TERRITORY, // 0
-        CHANGE_ACCOUNT, // 1
-        SHOW_PROBES, // 2
-        SHOW_CABLES, // 3
-        SHOW_FLOWMETERS, // 4
-        SHOW_LICENSING, // 5
-        SHOW_ALL // 6
+        CHANGE_TERRITORY,
+        CHANGE_ACCOUNT,
+        SHOW_PROBES,
+        SHOW_CABLES,
+        SHOW_FLOWMETERS,
+        SHOW_LICENSING,
+        SHOW_ALL,
+        SHOW_PROBES_IN_STOCK,
+        SHOW_PROBES_RETURNED,
+        SHOW_PROBES_EXPIRED,
+        SHOW_FLOWMETERS_IN_STOCK,
+        SHOW_FLOWMETERS_RETURNED,
+        SHOW_CABLES_IN_STOCK,
+        SHOW_CABLES_RETURNED,
+        SHOW_LICENSES_IN_STOCK
     }
 
     @Override
@@ -207,7 +218,19 @@ public class Activity_AccountInfo extends AppCompatActivity {
     @Override
     public boolean onSupportNavigateUp() {
         onBackPressed();
-        return super.onSupportNavigateUp();
+        return true;
+    }
+
+    @Override
+    public boolean onMenuOpened(int featureId, Menu menu) {
+        menuOpen = true;
+        return super.onMenuOpened(featureId, menu);
+    }
+
+    @Override
+    public void onPanelClosed(int featureId, @NonNull Menu menu) {
+        super.onPanelClosed(featureId, menu);
+        menuOpen = false;
     }
 
     @Override
@@ -277,11 +300,6 @@ public class Activity_AccountInfo extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 
-        // Uncheck all items
-        for (int i = 0; i < optionsMenu.size(); i++) {
-            optionsMenu.getItem(i).setChecked(false);
-        }
-        
         switch (item.getItemId()) {
             case R.id.action_choose_territory :
                 // change territory
@@ -290,7 +308,7 @@ public class Activity_AccountInfo extends AppCompatActivity {
                 startActivityForResult(intentChangeTerritory, FullscreenActivityChooseTerritory.REQUESTCODE);
                 // Default to all items as the checked menu item
                 optionsMenu.getItem(2).setChecked(true);
-                break;
+                return true;
 
             case R.id.action_choose_account :
                 // change account
@@ -300,27 +318,51 @@ public class Activity_AccountInfo extends AppCompatActivity {
                 startActivityForResult(intentChangeAccount, FullscreenActivityChooseAccount.REQUESTCODE);
                 // Default to all items as the checked menu item
                 optionsMenu.getItem(2).setChecked(true);
-                break;
+                return true;
+        }
 
+        // We will need these to properly check/uncheck items in the menu
+        boolean isProductType = false, isProductStatus = false;
+
+        // Set the product family item
+        switch (item.getItemId()) {
             case R.id.action_probes :
-                item.setChecked(true);
-                sendMenuItemSelectedBroadcast(MenuAction.SHOW_PROBES);
-                break;
-
             case R.id.action_flowmeters :
-                item.setChecked(true);
-                sendMenuItemSelectedBroadcast(MenuAction.SHOW_FLOWMETERS);
-                break;
-
             case R.id.action_cables :
-                item.setChecked(true);
-                sendMenuItemSelectedBroadcast(MenuAction.SHOW_CABLES);
-                break;
-
             case R.id.action_licensing :
-                item.setChecked(true);
-                sendMenuItemSelectedBroadcast(MenuAction.SHOW_LICENSING);
+                isProductType = true;
                 break;
+        }
+
+        // Set the product status item
+        switch (item.getItemId()) {
+            case R.id.action_instock :
+            case R.id.action_returned :
+            case R.id.action_expired :
+            case R.id.action_lost :
+            case R.id.action_any :
+                isProductStatus = true;
+                break;
+        }
+
+        if (isProductType) {
+            // Uncheck all the product types
+            for (int i = 0; i < optionsMenu.getItem(2).getSubMenu().size(); i++) {
+                optionsMenu.getItem(2).getSubMenu().getItem(i).setChecked(false);
+            }
+            // Check the selected product type
+            optionsMenu.getItem(2).getSubMenu().findItem(item.getItemId()).setChecked(true);
+            sendMenuItemSelectedBroadcast();
+        }
+
+        if (isProductStatus) {
+            // Uncheck all the product status selections
+            for (int i = 0; i < optionsMenu.getItem(2).getSubMenu().size(); i++) {
+                optionsMenu.getItem(3).getSubMenu().getItem(i).setChecked(false);
+            }
+            // Check the selected product status
+            optionsMenu.getItem(3).getSubMenu().findItem(item.getItemId()).setChecked(true);
+            sendMenuItemSelectedBroadcast();
         }
 
         return true;
@@ -332,18 +374,17 @@ public class Activity_AccountInfo extends AppCompatActivity {
         }
     }
 
-    public static void sendMenuItemSelectedBroadcast(MenuAction action) {
+    public static void sendMenuItemSelectedBroadcast() {
 
         Intent menuAction = new Intent(MENU_ACTION);
-        menuAction.putExtra(MENU_ACTION, action);
         activity.sendBroadcast(menuAction);
     }
 
     public static String getRegionid() {
         if (isEastRegion) {
-            return Queries.EAST_REGIONID;
+            return EAST_REGIONID;
         } else {
-            return Queries.WEST_REGIONID;
+            return WEST_REGIONID;
         }
     }
 
@@ -454,7 +495,7 @@ public class Activity_AccountInfo extends AppCompatActivity {
         }
     }
 
-//region ********************************** FRAGS *****************************************
+// ********************************** FRAGS *****************************************
 
     public static class Frag_AccountInventory extends Fragment {
         public static final String ARG_SECTION_NUMBER = "section_number";
@@ -464,7 +505,16 @@ public class Activity_AccountInfo extends AppCompatActivity {
         AccountInventoryRecyclerAdapter adapter;
         ArrayList<CrmEntities.AccountProducts.AccountProduct> custInventory = new ArrayList<>();
         Button btnChooseAccount;
-        ProductType productType = ProductType.ALL;
+        ProductType productType = ProductType.PROBES; // Set a default so our first createview can show data
+        ProductStatus productStatus = ProductStatus.IN_STOCK;
+
+        enum ProductType {
+            ALL, PROBES, CABLES, FLOWMETERS, LICENSES
+        }
+
+        enum ProductStatus {
+            IN_STOCK, RETURNED, EXPIRED, ANY, LOST
+        }
 
         @Nullable
         @Override
@@ -478,7 +528,7 @@ public class Activity_AccountInfo extends AppCompatActivity {
             refreshLayout.setOnRefreshListener(new OnRefreshListener() {
                 @Override
                 public void onRefresh(RefreshLayout refreshlayout) {
-
+                    getAccountInventory();
                 }
             });
             refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
@@ -492,7 +542,10 @@ public class Activity_AccountInfo extends AppCompatActivity {
             btnChooseAccount.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    sendMenuItemSelectedBroadcast(MenuAction.CHANGE_ACCOUNT);
+                    Intent intentChangeAccount = new Intent(context, FullscreenActivityChooseAccount.class);
+                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
+                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, options.getLastAccountSelected());
+                    startActivityForResult(intentChangeAccount, FullscreenActivityChooseAccount.REQUESTCODE);
                 }
             });
 
@@ -507,25 +560,56 @@ public class Activity_AccountInfo extends AppCompatActivity {
             recyclerView = root.findViewById(R.id.orderLinesRecyclerview);
             super.onCreateView(inflater, container, savedInstanceState);
 
+            // Broadcast received regarding an options menu selection
             menuItemSelectedReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     Log.i(TAG, "onReceive Local receiver received broadcast!");
                     // Validate intent shit
                     if (intent != null && intent.getAction().equals(MENU_ACTION)) {
-                        // Intent is valid so far...
-                        Log.i(TAG, "onReceive Broadcast has extras... so far, so good.");
-                        MenuAction menuAction = (MenuAction) intent.getSerializableExtra(MENU_ACTION);
-                        getAccountInventory(menuAction);
+                        // *******************************************************************
+                        // *                EVALUATE MENU SELECTIONS                         *
+                        // *******************************************************************
+                        // *                     PRODUCT TYPE                                *
+                        // *******************************************************************
+                        if (optionsMenu.getItem(2).getSubMenu().getItem(0).isChecked()) {
+                            productType = ProductType.PROBES;
+                        }
+                        if (optionsMenu.getItem(2).getSubMenu().getItem(1).isChecked()) {
+                            productType = ProductType.FLOWMETERS;
+                        }
+                        if (optionsMenu.getItem(2).getSubMenu().getItem(2).isChecked()) {
+                            productType = ProductType.CABLES;
+                        }
+                        if (optionsMenu.getItem(2).getSubMenu().getItem(3).isChecked()) {
+                            productType = ProductType.LICENSES;
+                        }
+                        // *******************************************************************
+                        // *                     PRODUCT STATUS                              *
+                        // *******************************************************************
+                        if (optionsMenu.getItem(3).getSubMenu().getItem(0).isChecked()) {
+                            productStatus = ProductStatus.IN_STOCK;
+                        }
+                        if (optionsMenu.getItem(3).getSubMenu().getItem(1).isChecked()) {
+                            productStatus = ProductStatus.RETURNED;
+                        }
+                        if (optionsMenu.getItem(3).getSubMenu().getItem(2).isChecked()) {
+                            productStatus = ProductStatus.EXPIRED;
+                        }
+                        if (optionsMenu.getItem(3).getSubMenu().getItem(3).isChecked()) {
+                            productStatus = ProductStatus.ANY;
+                        }
+                        // *******************************************************************
+                        // *                END EVALUATE MENU SELECTIONS                     *
+                        // *******************************************************************
+
+                        getAccountInventory();
                     }
                 }
             };
 
-            if (options.getLastAccountSelected() == null) {
-                btnChooseAccount.setVisibility(View.VISIBLE);
-            } else {
-                btnChooseAccount.setVisibility(View.GONE);
-            }
+            // Get inventory using whatever menu selections are currently set
+            getAccountInventory();
 
             return root;
         }
@@ -545,9 +629,18 @@ public class Activity_AccountInfo extends AppCompatActivity {
 
         @Override
         public void onResume() {
+
+            // Register the options menu selected receiver
             getActivity().registerReceiver(menuItemSelectedReceiver, intentFilterMenuAction);
 
-            Log.i(TAG, "onResume Registered the sales lines receiver");
+            // Hide/show the choose account button
+            if (options.getLastAccountSelected() == null) {
+                btnChooseAccount.setVisibility(View.VISIBLE);
+            } else {
+                btnChooseAccount.setVisibility(View.GONE);
+            }
+
+            Log.i(TAG, "onResume Registered the options menu receiver");
             super.onResume();
         }
 
@@ -557,33 +650,59 @@ public class Activity_AccountInfo extends AppCompatActivity {
             super.onPause();
         }
 
-        enum ProductType {
-            ALL, PROBES, CABLES, FLOWMETERS, LICENSES
+        private ProductType getCurrentProductFamily() {
+            // Get the product family
+            if (optionsMenu.getItem(2).getSubMenu().getItem(0).isChecked()) {
+                return ProductType.PROBES;
+            } else if (optionsMenu.getItem(2).getSubMenu().getItem(1).isChecked()) {
+                return ProductType.FLOWMETERS;
+            } else if (optionsMenu.getItem(2).getSubMenu().getItem(2).isChecked()) {
+                return ProductType.CABLES;
+            } else if (optionsMenu.getItem(2).getSubMenu().getItem(3).isChecked()) {
+                return ProductType.LICENSES;
+            } else {
+                return null;
+            }
         }
 
-        protected void getAccountInventory(MenuAction action) {
+        protected void getAccountInventory() {
             String query = "";
 
-            switch (action) {
-                case SHOW_ALL:
-                    query = Queries.Accounts.getAccountInventory(options.getLastAccountSelected()
-                            .accountid, "");
+            CustomerInventoryStatusCode statusCode = CustomerInventoryStatusCode.ONSITE;
+            switch (productStatus) {
+                case ANY:
+                    statusCode = CustomerInventoryStatusCode.ANY;
                     break;
-                case SHOW_PROBES:
-                    query = Queries.Accounts.getAccountInventory(options.getLastAccountSelected()
-                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_PROBES);
+                case RETURNED:
+                    statusCode = CustomerInventoryStatusCode.RETURNED;
                     break;
-                case SHOW_FLOWMETERS:
-                    query = Queries.Accounts.getAccountInventory(options.getLastAccountSelected()
-                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_FLOWMETERS);
+                case EXPIRED:
+                    statusCode = CustomerInventoryStatusCode.EXPIRED;
                     break;
-                case SHOW_LICENSING:
-                    query = Queries.Accounts.getAccountInventory(options.getLastAccountSelected()
-                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_LICENSES);
+                case LOST:
+                    statusCode = CustomerInventoryStatusCode.LOST;
                     break;
-                case SHOW_CABLES:
-                    query = Queries.Accounts.getAccountInventory(options.getLastAccountSelected()
-                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_CABLES);
+                case IN_STOCK:
+                    statusCode = CustomerInventoryStatusCode.ONSITE;
+                    break;
+            }
+
+            switch (productType) {
+                case PROBES:
+                    query = Accounts.getAccountInventory(options.getLastAccountSelected()
+                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_PROBES, statusCode);
+                    break;
+                case FLOWMETERS:
+                    query = Accounts.getAccountInventory(options.getLastAccountSelected()
+                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_FLOWMETERS, statusCode);
+                    break;
+                case CABLES:
+                    query = Accounts.getAccountInventory(options.getLastAccountSelected()
+                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_LICENSES, statusCode);
+                    break;
+                case LICENSES:
+                    query = Accounts.getAccountInventory(options.getLastAccountSelected()
+                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_CABLES, statusCode);
                     break;
             }
             refreshLayout.autoRefreshAnimationOnly();
@@ -617,7 +736,11 @@ public class Activity_AccountInfo extends AppCompatActivity {
 
         protected void populateList() {
 
-            ArrayList<CrmEntities.AccountProducts.AccountProduct> orderList = new ArrayList<>();
+            btnChooseAccount.setVisibility(options.getLastAccountSelected() == null ? View.VISIBLE : View.GONE);
+
+            // getCurrentMenuChoices();
+
+            ArrayList<CrmEntities.AccountProducts.AccountProduct> productList = new ArrayList<>();
 
             boolean addedTodayHeader = false;
             boolean addedYesterdayHeader = false;
@@ -633,14 +756,14 @@ public class Activity_AccountInfo extends AppCompatActivity {
             Log.i(TAG, "populateTripList: Preparing the dividers and trips...");
             for (int i = 0; i < (custInventory.size()); i++) {
 
-                CrmEntities.AccountProducts.AccountProduct orderProduct = custInventory.get(i);
-                orderList.add(orderProduct);
+                CrmEntities.AccountProducts.AccountProduct accountProduct = custInventory.get(i);
+                productList.add(accountProduct);
             }
 
             Log.i(TAG, "populateTripList Finished preparing the dividers and trips.");
 
             if (!getActivity().isFinishing()) {
-                adapter = new AccountInventoryRecyclerAdapter(getContext(), orderList);
+                adapter = new AccountInventoryRecyclerAdapter(getContext(), productList);
                 adapter.setClickListener(new AccountInventoryRecyclerAdapter.ItemClickListener() {
                     @Override
                     public void onItemClick(View view, int position) {
@@ -738,7 +861,7 @@ public class Activity_AccountInfo extends AppCompatActivity {
             // anyChartView.setVisibility(View.GONE);
             mtdRefreshLayout.autoRefreshAnimationOnly();
 
-            String query = Queries.Goals.getMtdGoalsByRegion(getRegionid(), monthNum, yearNum);
+            String query = Goals.getMtdGoalsByRegion(getRegionid(), monthNum, yearNum);
             ArrayList<Requests.Argument> args = new ArrayList<>();
             Requests.Argument argument = new Requests.Argument("query", query);
             args.add(argument);
@@ -961,7 +1084,7 @@ public class Activity_AccountInfo extends AppCompatActivity {
             // anyChartView.setVisibility(View.GONE);
             ytdRefreshLayout.autoRefreshAnimationOnly();
 
-            String query = Queries.Goals.getYtdGoalsByRegion(getRegionid(),  yearNum);
+            String query = Goals.getYtdGoalsByRegion(getRegionid(),  yearNum);
             ArrayList<Requests.Argument> args = new ArrayList<>();
             Requests.Argument argument = new Requests.Argument("query", query);
             args.add(argument);

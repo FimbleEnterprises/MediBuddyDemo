@@ -1,6 +1,7 @@
 package com.fimbleenterprises.medimileage;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,10 +12,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.concurrent.RecursiveTask;
 
 import androidx.recyclerview.widget.RecyclerView;
-
-import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts.OrderProduct;
 
 
 public class AccountInventoryRecyclerAdapter extends RecyclerView.Adapter<AccountInventoryRecyclerAdapter.ViewHolder> {
@@ -55,7 +55,7 @@ public class AccountInventoryRecyclerAdapter extends RecyclerView.Adapter<Accoun
 
         if (customerInventoryItem.isSeparator) {
             // Display
-            holder.txtQty.setVisibility(View.GONE);
+            holder.txtStatus.setVisibility(View.GONE);
             holder.txtSerialNumber.setVisibility(View.GONE);
             holder.txtCustName.setVisibility(View.GONE);
             holder.txtDate.setVisibility(View.GONE);
@@ -66,7 +66,7 @@ public class AccountInventoryRecyclerAdapter extends RecyclerView.Adapter<Accoun
         } else {
             // Display
             holder.itemView.setLongClickable(true);
-            holder.txtQty.setVisibility(View.VISIBLE);
+            holder.txtStatus.setVisibility(View.VISIBLE);
             holder.txtSerialNumber.setVisibility(View.VISIBLE);
             holder.txtCustName.setVisibility(View.VISIBLE);
             holder.txtDate.setVisibility(View.VISIBLE);
@@ -83,9 +83,11 @@ public class AccountInventoryRecyclerAdapter extends RecyclerView.Adapter<Accoun
             holder.txtDate.setText(customerInventoryItem.modifiedOnFormatted);
             holder.txtCustName.setText(customerInventoryItem.accountname);
             holder.txtSerialNumber.setText(customerInventoryItem.serialnumber);
-            holder.txtQty.setText(customerInventoryItem.qty + " x ");
+            holder.txtStatus.setText(customerInventoryItem.statusFormatted);
+            holder.txtRevision.setText(customerInventoryItem.revision);
             holder.txtPartNumber.setText(customerInventoryItem.partNumber);
-            holder.txtIsCapital.setText(customerInventoryItem.isCapitalFormatted);
+            holder.txtIsCapital.setText(customerInventoryItem.isCapital ? "Capital" : "Not capital");
+            holder.txtIsCapital.setTextColor(customerInventoryItem.isCapital ? Color.RED : Color.BLACK);
             holder.imgProductIcon.setImageBitmap(Helpers.Bitmaps.getImageIconForPart(customerInventoryItem.partNumber, context));
         }
 
@@ -103,10 +105,11 @@ public class AccountInventoryRecyclerAdapter extends RecyclerView.Adapter<Accoun
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
         ImageView imgProductIcon;
         TextView txtPartNumber;
-        TextView txtQty;
+        TextView txtStatus;
         TextView txtDate;
         TextView txtCustName;
         TextView txtSerialNumber;
+        TextView txtRevision;
         TextView txtIsCapital;
         RelativeLayout layout;
 
@@ -116,7 +119,8 @@ public class AccountInventoryRecyclerAdapter extends RecyclerView.Adapter<Accoun
             layout = itemView.findViewById(R.id.row_orderproduct);
             imgProductIcon = itemView.findViewById(R.id.img_PartIcon);
             txtPartNumber = itemView.findViewById(R.id.txt_partNumber);
-            txtQty = itemView.findViewById(R.id.txt_Qty);
+            txtStatus = itemView.findViewById(R.id.txt_status);
+            txtRevision = itemView.findViewById(R.id.txt_revision);
             txtDate = itemView.findViewById(R.id.txt_orderDate);
             txtCustName = itemView.findViewById(R.id.txt_customerName);
             txtSerialNumber = itemView.findViewById(R.id.txt_serialnumber);
