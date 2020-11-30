@@ -1271,6 +1271,61 @@ public class Queries {
         }
     }
 
+    public static class Search {
+
+        public static String searchCustInventory(int serialnumber) {
+            // Instantiate a new constructor for the case entity and add the columns we want to see
+            QueryFactory query = new QueryFactory("col_customerinventory");
+            query.addColumn("col_name");
+            query.addColumn("statuscode");
+            query.addColumn("col_serialnumber");
+            query.addColumn("col_ownershipcapital");
+            query.addColumn("modifiedon");
+            query.addColumn("col_revision");
+            query.addColumn("overriddencreatedon");
+            query.addColumn("col_quantity");
+            query.addColumn("col_productid");
+            query.addColumn("col_item");
+            query.addColumn("col_itemgroup");
+            query.addColumn("col_batchnumber");
+            query.addColumn("col_accountid");
+            query.addColumn("col_referencenumber");
+            query.addColumn("col_customerinventoryid");
+
+            LinkEntity le1 = new LinkEntity("systemuser", "systemuserid", "owninguser", "a_4114a0e1fc19e71180d2005056a36b9b");
+            le1.addColumn(new EntityColumn("domainname"));
+            le1.addColumn(new EntityColumn("territoryid"));
+
+            LinkEntity le2 = new LinkEntity("team", "teamid", "owningteam", "a_4814a0e1fc19e71180d2005056a36b9b");
+            le2.addColumn(new EntityColumn("name"));
+
+            LinkEntity le3 = new LinkEntity("account", "accountid", "col_accountid", "aa");
+            Filter le3Filter = new Filter(AND);
+            le3.addFilter(le3Filter);
+
+            // Add our link entities
+            // query.addLinkEntity(le1);
+            // query.addLinkEntity(le2);
+            query.addLinkEntity(le3);
+
+            // Create a filter
+            Filter filter = new Filter(AND);
+
+            // Set filter conditions
+            Filter.FilterCondition condition1 = new Filter.FilterCondition("col_serialnumber", Filter.Operator.CONTAINS, Integer.toString(serialnumber));
+
+            // Apply the conditions to the filter
+            filter.addCondition(condition1);
+
+            // Set the query's global filter
+            query.setFilter(filter);
+
+            // Spit out the encoded query
+            String rslt = query.construct();
+            return rslt;
+        }
+    }
+
 
 
 

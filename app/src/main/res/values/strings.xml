@@ -14,7 +14,7 @@
     <string name="menu_users">Users</string>
     <string name="menu_authentication">Login</string>
     <string name="menu_settings">Settings</string>
-    <string name="menu_territory_info">Territory stuff</string>
+    <string name="menu_territory_info">My Territory</string>
 
     <string name="triplist_today">Today</string>
     <string name="triplist_yesterday">Yesterday</string>
@@ -227,7 +227,7 @@
     <string name="action_export_my_mileage_to_excel">Export to Excel...</string>
     <string name="export_mileage_disclaimer">This will not create a reimbursement receipt.\n\nThis will instead create something of a deep dive into the data currently being displayed.</string>
     <string name="export_mileage_disclaimer_explicit">This will not create a fucking reimbursement receipt.\n\nThis will instead create a cool fucking mileage report because why the fuck not.</string>
-    <string name="menu_account_info">Account stuff</string>
+    <string name="menu_account_info">My Accounts</string>
     <string name="title_activity_widgets">Widgets and more</string>
     <string name="action_choose_account">Choose account...</string>
     <string name="title_activity_fullscreen_choose_account">Choose account</string>
@@ -243,5 +243,8 @@
     <string name="product_type_menu_title">Product family</string>
     <string name="status_menu_title">Product status</string>
     <string name="action_lost">Lost</string>
+    <string name="search_title">Search</string>
+    <string name="search_hint">Serial number</string>
+    <string name="title_activity_search_results">Search results</string>
 
 </resources>

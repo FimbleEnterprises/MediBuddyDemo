@@ -924,6 +924,13 @@ public class CrmEntities {
             String isCapitalFormatted;
             String revision;
 
+            // CRM statuscodes
+            public static final int EXPIRED = 181400000;
+            public static final int RETURNED = 181400005;
+            public static final int SCRAPPED = 181400004;
+            public static final int LOST = 181400007;
+            public static final int ONSITE = 1;
+
             @Override
             public String toString() {
                 return this.partNumber + ", Qty: " + this.qty;

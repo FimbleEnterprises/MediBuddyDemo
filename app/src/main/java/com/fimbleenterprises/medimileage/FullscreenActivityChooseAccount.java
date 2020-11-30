@@ -38,8 +38,10 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
     public static final int REQUESTCODE = 011;
     public static final String ACCOUNT_RESULT = "ACCOUNT_RESULT";
     public static final String CURRENT_ACCOUNT = "CURRENT_ACCOUNT";
+    public static final String CACHED_ACCOUNTS = "CACHED_ACCOUNTS";
     Territory currentTerritory;
     Accounts.Account currentAccount;
+    ArrayList<Accounts.Account> accounts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,9 +57,18 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
         if (intent != null) {
             currentTerritory = intent.getParcelableExtra(CURRENT_TERRITORY);
             currentAccount = intent.getParcelableExtra(CURRENT_ACCOUNT);
+            // See if a cached account list was passed
+            if (intent.getParcelableArrayListExtra(CACHED_ACCOUNTS) != null) {
+                accounts = intent.getParcelableArrayListExtra(CACHED_ACCOUNTS);
+            }
         }
 
-        getAccounts();
+        // If there are cached accounts then use them instead of going to CRM for them.
+        if (accounts == null) {
+            getAccounts();
+        } else {
+            populateAccounts();
+        }
 
         Helpers.Views.MySwipeHandler mySwipeHandler = new Helpers.Views.MySwipeHandler(new Helpers.Views.MySwipeHandler.MySwipeListener() {
             @Override
@@ -70,6 +81,12 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
         });
         mySwipeHandler.addView(listView);
 
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
     }
 
     void getAccounts() {
@@ -86,8 +103,8 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 String result = new String(responseBody);
-                Accounts accounts = new Accounts(result);
-                populateAccounts(accounts);
+                accounts = new Accounts(result).list;
+                populateAccounts();
                 Log.i(TAG, "onSuccess Response is " + result.length() + " chars long");
                 progressDialog.dismiss();
             }
@@ -100,13 +117,13 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
 
     }
 
-    void populateAccounts(Accounts accounts) {
+    void populateAccounts() {
 
         objects.clear();
 
-        MySettingsHelper options = new MySettingsHelper(context);
+        // MySettingsHelper options = new MySettingsHelper(context);
 
-        for (Accounts.Account account : accounts.list) {
+        for (Accounts.Account account : accounts) {
             BasicObject object = new BasicObject(account.accountName, account.accountnumber, account);
             if (currentAccount != null) {
                 object.isSelected = currentAccount.accountid.equals(account.accountid);
@@ -125,7 +142,8 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
                 try {
                     Accounts.Account account = (Accounts.Account) objects.get(position).object;
                     Intent intent = new Intent(ACCOUNT_RESULT);
-                    intent.putExtra(ACCOUNT_RESULT, account.accountid);
+                    intent.putExtra(ACCOUNT_RESULT, account);
+                    intent.putExtra(CACHED_ACCOUNTS, accounts);
                     setResult(ACCOUNT_CHOSEN_RESULT, intent);
                     MySettingsHelper options = new MySettingsHelper(context);
                     options.setLastAccountSelected(account);

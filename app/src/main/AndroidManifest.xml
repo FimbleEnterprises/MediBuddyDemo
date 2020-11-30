@@ -2,7 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.fimbleenterprises.medimileage">
-
     <!-- Permissions -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -24,11 +23,21 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
+            android:name=".SearchResultsActivity"
+            android:label="@string/title_activity_search_results"
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+            <meta-data android:name="android.app.searchable"
+                android:resource="@xml/searchable"/>
+        </activity>
+
+        <activity
             android:name=".ReceiveShareForOppNote"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_receive_share_for_opp_note"
-            android:theme="@style/FullscreenTheme">
-        </activity>
+            android:theme="@style/FullscreenTheme"></activity>
         <activity
             android:name=".OpportunityActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
@@ -62,7 +71,9 @@
             android:theme="@style/FullscreenAltTheme">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+
                 <category android:name="android.intent.category.DEFAULT" />
+
                 <data android:mimeType="image/*" />
                 <data android:mimeType="application/x-7z-compressed" />
                 <data android:mimeType="application/zip" />
@@ -94,7 +105,11 @@
             android:label="@string/title_activity_widgets"
             android:screenOrientation="portrait"
             android:theme="@style/FullscreenTheme"
-            tools:ignore="LockedOrientationActivity" />
+            tools:ignore="LockedOrientationActivity">
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
+        </activity>
         <activity
             android:name=".ui.settings.mileage.SettingsActivity"
             android:configChanges="orientation|keyboardHidden"
@@ -162,7 +177,6 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-
         <service
             android:name=".MyAttachmentUploadService"
             android:enabled="true" />

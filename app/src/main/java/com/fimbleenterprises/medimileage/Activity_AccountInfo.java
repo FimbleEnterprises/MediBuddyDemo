@@ -4,12 +4,17 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.SearchManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Typeface;
+import android.graphics.fonts.SystemFonts;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -46,18 +51,24 @@ import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
 import org.joda.time.DateTime;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.PagerTitleStrip;
 import cz.msebera.android.httpclient.Header;
+import jxl.format.Colour;
+import jxl.write.WritableCell;
+import jxl.write.WritableCellFormat;
+import jxl.write.WritableFont;
 
 import static com.fimbleenterprises.medimileage.Queries.*;
 
@@ -85,6 +96,9 @@ public class Activity_AccountInfo extends AppCompatActivity {
     public static androidx.fragment.app.FragmentManager fragMgr;
     public static MySettingsHelper options;
 
+    public static final int PRODUCTFAMILY_MENU_ROOT = 4;
+    public static final int PRODUCTSTATUS_MENU_ROOT = 5;
+
     // Receivers for date range changes at the activity level
     public static IntentFilter intentFilterMenuAction;
     public static BroadcastReceiver menuItemSelectedReceiver;
@@ -97,6 +111,7 @@ public class Activity_AccountInfo extends AppCompatActivity {
     public static BroadcastReceiver opportunitiesReceiver;
 
     public static final int REQUEST_CODE_CHANGE_ACCOUNT = 1;
+    SearchView searchView;
 
     // vars for the date ranges
     public static int monthNum;
@@ -116,9 +131,13 @@ public class Activity_AccountInfo extends AppCompatActivity {
     public static final String MONTH = "MONTH";
     public static final String YEAR = "YEAR";
     public static final String MENU_ACTION = "MENU_ACTION";
+    public static final String EXPORT_INVENTORY = "EXPORT_INVENTORY";
 
     public static Menu optionsMenu;
     public int curPageIndex = 0;
+
+    ArrayList<CrmEntities.Accounts.Account> cachedAccounts;
+    ArrayList<Territory> cachedTerritories;
 
     public static boolean menuOpen = false;
 
@@ -158,14 +177,14 @@ public class Activity_AccountInfo extends AppCompatActivity {
         monthNum = DateTime.now().getMonthOfYear();
         yearNum = DateTime.now().getYear();
 
-        setContentView(R.layout.activity_sales_perf);
+        setContentView(R.layout.activity_account_stuff);
 
         sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         mViewPager = (MyViewPager) findViewById(R.id.main_pager_yo_sales_perf);
         mViewPager.onRealPageChangedListener = new MyViewPager.OnRealPageChangedListener() {
             @Override
             public void onPageActuallyFuckingChanged(int pageIndex) {
-                setTitle(sectionsPagerAdapter.getPageTitle(pageIndex));
+
             }
         };
         mPagerStrip = (PagerTitleStrip) findViewById(R.id.pager_title_strip_sales_perf);
@@ -179,6 +198,20 @@ public class Activity_AccountInfo extends AppCompatActivity {
                 destroyChartDialogIfVisible();
             }
         });
+
+        // Set the viewpager font
+        Typeface fontTypeFace = getResources().getFont(R.font.casual);
+        for (int i = 0; i < mViewPager.getChildCount(); ++i) {
+            View nextChild = mViewPager.getChildAt(i);
+            for (int j = 0; j < ((PagerTitleStrip) nextChild).getChildCount(); j++) {
+                View subChild = ((PagerTitleStrip) nextChild).getChildAt(j);
+                if (subChild instanceof TextView) {
+                    TextView textViewToConvert = (TextView) subChild;
+                    textViewToConvert.setTypeface(fontTypeFace, Typeface.BOLD);
+                }
+            }
+        }
+
         fragMgr = getSupportFragmentManager();
 
         ActionBar actionBar = getSupportActionBar();
@@ -192,25 +225,35 @@ public class Activity_AccountInfo extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode == FullscreenActivityChooseAccount.ACCOUNT_CHOSEN_RESULT) {
-            Object selectedAccount = data.getParcelableExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT);
+            CrmEntities.Accounts.Account selectedAccount = data.getParcelableExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT);
+            // Save the account list if it was returned
+            cachedAccounts = data.getParcelableArrayListExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS);
             Toast.makeText(activity, resultCode + "", Toast.LENGTH_SHORT).show();
             if (selectedAccount != null) {
-                sendBroadcast(data);
+                Intent intentChosenAccount = new Intent(MENU_ACTION);
+                intentChosenAccount.putExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT, selectedAccount);
+                sendBroadcast(intentChosenAccount);
             }
             return;
         }
 
-        try {
-            territory = data.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
+        if (resultCode == FullscreenActivityChooseTerritory.TERRITORY_CHOSEN_RESULT) {
+            try {
+                territory = data.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
+                cachedTerritories = data.getParcelableArrayListExtra(FullscreenActivityChooseTerritory.CACHED_TERRITORIES);
+                sectionsPagerAdapter.notifyDataSetChanged();
 
-             sectionsPagerAdapter.notifyDataSetChanged();
-
-            Intent dateChanged = new Intent(DATE_CHANGED);
-            dateChanged.putExtra(YEAR, yearNum);
-            dateChanged.putExtra(MONTH, monthNum);
-            sendBroadcast(dateChanged);
-        } catch (Exception e) {
-            e.printStackTrace();
+                // Show the change account dialog so that we have an account to show in this new territory
+                Intent intentChangeAccount = new Intent(context, FullscreenActivityChooseAccount.class);
+                intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
+                intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, options.getLastAccountSelected());
+                intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
+                startActivityForResult(intentChangeAccount, FullscreenActivityChooseAccount.REQUESTCODE);
+                // Default to all items as the checked menu item
+                optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).setChecked(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
     }
@@ -219,6 +262,22 @@ public class Activity_AccountInfo extends AppCompatActivity {
     public boolean onSupportNavigateUp() {
         onBackPressed();
         return true;
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            Log.i(TAG, "onKeyDown back pressed!");
+
+            if (!searchView.isIconified()) {
+                searchView.onActionViewCollapsed();
+                return true;
+            }
+
+        }
+
+        return super.onKeyDown(keyCode, event);
     }
 
     @Override
@@ -241,6 +300,14 @@ public class Activity_AccountInfo extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+
+        if (options == null) { options = new MySettingsHelper(context); }
+
+        if (options.getLastAccountSelected() != null) {
+            setTitle(options.getLastAccountSelected().accountName);
+        } else {
+            setTitle("Choose an account");
+        }
     }
 
     @Override
@@ -275,6 +342,17 @@ public class Activity_AccountInfo extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(@NonNull Menu menu) {
         getMenuInflater().inflate(R.menu.account_stuff, menu);
+
+        // Associate searchable configuration with the SearchView
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        searchView = (SearchView) menu.findItem(R.id.search).getActionView();
+        searchView.setSearchableInfo( searchManager.getSearchableInfo(new
+                ComponentName(this, SearchResultsActivity.class)));
+
+        if (searchView != null) {
+            searchView.setInputType(InputType.TYPE_CLASS_NUMBER);
+        }
+
         optionsMenu = menu;
         super.onCreateOptionsMenu(menu);
         return true;
@@ -300,14 +378,16 @@ public class Activity_AccountInfo extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 
+        // Change account or territory selected
         switch (item.getItemId()) {
             case R.id.action_choose_territory :
                 // change territory
                 Intent intentChangeTerritory = new Intent(context, FullscreenActivityChooseTerritory.class);
                 intentChangeTerritory.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
+                intentChangeTerritory.putExtra(FullscreenActivityChooseTerritory.CACHED_TERRITORIES, cachedTerritories);
                 startActivityForResult(intentChangeTerritory, FullscreenActivityChooseTerritory.REQUESTCODE);
                 // Default to all items as the checked menu item
-                optionsMenu.getItem(2).setChecked(true);
+                optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).setChecked(true);
                 return true;
 
             case R.id.action_choose_account :
@@ -315,9 +395,16 @@ public class Activity_AccountInfo extends AppCompatActivity {
                 Intent intentChangeAccount = new Intent(context, FullscreenActivityChooseAccount.class);
                 intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
                 intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, options.getLastAccountSelected());
+                intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
                 startActivityForResult(intentChangeAccount, FullscreenActivityChooseAccount.REQUESTCODE);
                 // Default to all items as the checked menu item
-                optionsMenu.getItem(2).setChecked(true);
+                optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).setChecked(true);
+                return true;
+
+            case R.id.action_export_to_excel :
+                Intent intentExportInventory = new Intent(MENU_ACTION);
+                intentExportInventory.putExtra(EXPORT_INVENTORY, EXPORT_INVENTORY);
+                sendBroadcast(intentExportInventory);
                 return true;
         }
 
@@ -347,21 +434,21 @@ public class Activity_AccountInfo extends AppCompatActivity {
 
         if (isProductType) {
             // Uncheck all the product types
-            for (int i = 0; i < optionsMenu.getItem(2).getSubMenu().size(); i++) {
-                optionsMenu.getItem(2).getSubMenu().getItem(i).setChecked(false);
+            for (int i = 0; i < optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().size(); i++) {
+                optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().getItem(i).setChecked(false);
             }
             // Check the selected product type
-            optionsMenu.getItem(2).getSubMenu().findItem(item.getItemId()).setChecked(true);
+            optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().findItem(item.getItemId()).setChecked(true);
             sendMenuItemSelectedBroadcast();
         }
 
         if (isProductStatus) {
             // Uncheck all the product status selections
-            for (int i = 0; i < optionsMenu.getItem(2).getSubMenu().size(); i++) {
-                optionsMenu.getItem(3).getSubMenu().getItem(i).setChecked(false);
+            for (int i = 0; i < optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().size(); i++) {
+                optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(i).setChecked(false);
             }
             // Check the selected product status
-            optionsMenu.getItem(3).getSubMenu().findItem(item.getItemId()).setChecked(true);
+            optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().findItem(item.getItemId()).setChecked(true);
             sendMenuItemSelectedBroadcast();
         }
 
@@ -479,17 +566,22 @@ public class Activity_AccountInfo extends AppCompatActivity {
 
             curPageIndex = position;
 
-            switch (position) {
-                case 0:
-                    return "Account Inventory (" + territory.territoryName + ")";
-                case 1:
-                    return "MTD Goals by Region";
-                case 2:
-                    return "YTD Goals by Region";
-                case 3:
-                    return "Opportunities";
-                case 4:
-                    return "Cases";
+            try {
+                switch (position) {
+                    case 0:
+                        return Frag_AccountInventory.pageTitle;
+                    case 1:
+                        return "MTD Goals by Region";
+                    case 2:
+                        return "YTD Goals by Region";
+                    case 3:
+                        return "Opportunities";
+                    case 4:
+                        return "Cases";
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "";
             }
             return null;
         }
@@ -507,6 +599,10 @@ public class Activity_AccountInfo extends AppCompatActivity {
         Button btnChooseAccount;
         ProductType productType = ProductType.PROBES; // Set a default so our first createview can show data
         ProductStatus productStatus = ProductStatus.IN_STOCK;
+        public static String pageTitle = "Inventory";
+        TextView txtNoInventory;
+        CrmEntities.Accounts.Account curAccount;
+
 
         enum ProductType {
             ALL, PROBES, CABLES, FLOWMETERS, LICENSES
@@ -521,6 +617,7 @@ public class Activity_AccountInfo extends AppCompatActivity {
         public View onCreateView(@NonNull final LayoutInflater inflater, @Nullable ViewGroup container,
                                  @Nullable Bundle savedInstanceState) {
             root = inflater.inflate(R.layout.frag_account_inventory, container, false);
+            txtNoInventory = root.findViewById(R.id.txtNoInventory);
             refreshLayout = root.findViewById(R.id.refreshLayout);
             options = new MySettingsHelper(context);
             RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
@@ -567,36 +664,52 @@ public class Activity_AccountInfo extends AppCompatActivity {
                     Log.i(TAG, "onReceive Local receiver received broadcast!");
                     // Validate intent shit
                     if (intent != null && intent.getAction().equals(MENU_ACTION)) {
+
+                        // Check if this is regarding an inventory export to Excel
+                        if (intent.getStringExtra(EXPORT_INVENTORY) != null) {
+                            ExcelSpreadsheet spreadsheet = exportToExcel(options.getLastAccountSelected().accountnumber + "_inventory_export.xls");
+                            Helpers.Files.shareFile(context, spreadsheet.file);
+                        }
+
+                        // Check if this is regarding a new account being chosen
+                        if (intent.getParcelableExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT) != null) {
+                            curAccount = intent.getParcelableExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT);
+                            // Toast.makeText(context, selectedAccount.accountName + " was chosen!", Toast.LENGTH_SHORT).show();
+                        }
+
                         // *******************************************************************
                         // *                EVALUATE MENU SELECTIONS                         *
                         // *******************************************************************
                         // *                     PRODUCT TYPE                                *
                         // *******************************************************************
-                        if (optionsMenu.getItem(2).getSubMenu().getItem(0).isChecked()) {
+                        if (optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().getItem(0).isChecked()) {
                             productType = ProductType.PROBES;
                         }
-                        if (optionsMenu.getItem(2).getSubMenu().getItem(1).isChecked()) {
+                        if (optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().getItem(1).isChecked()) {
                             productType = ProductType.FLOWMETERS;
                         }
-                        if (optionsMenu.getItem(2).getSubMenu().getItem(2).isChecked()) {
+                        if (optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().getItem(2).isChecked()) {
                             productType = ProductType.CABLES;
                         }
-                        if (optionsMenu.getItem(2).getSubMenu().getItem(3).isChecked()) {
+                        if (optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().getItem(3).isChecked()) {
                             productType = ProductType.LICENSES;
                         }
                         // *******************************************************************
                         // *                     PRODUCT STATUS                              *
                         // *******************************************************************
-                        if (optionsMenu.getItem(3).getSubMenu().getItem(0).isChecked()) {
+                        if (optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(0).isChecked()) {
                             productStatus = ProductStatus.IN_STOCK;
                         }
-                        if (optionsMenu.getItem(3).getSubMenu().getItem(1).isChecked()) {
+                        if (optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(1).isChecked()) {
                             productStatus = ProductStatus.RETURNED;
                         }
-                        if (optionsMenu.getItem(3).getSubMenu().getItem(2).isChecked()) {
+                        if (optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(2).isChecked()) {
                             productStatus = ProductStatus.EXPIRED;
                         }
-                        if (optionsMenu.getItem(3).getSubMenu().getItem(3).isChecked()) {
+                        if (optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(3).isChecked()) {
+                            productStatus = ProductStatus.LOST;
+                        }
+                        if (optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(4).isChecked()) {
                             productStatus = ProductStatus.ANY;
                         }
                         // *******************************************************************
@@ -604,6 +717,7 @@ public class Activity_AccountInfo extends AppCompatActivity {
                         // *******************************************************************
 
                         getAccountInventory();
+                        mViewPager.getAdapter().notifyDataSetChanged();
                     }
                 }
             };
@@ -650,23 +764,13 @@ public class Activity_AccountInfo extends AppCompatActivity {
             super.onPause();
         }
 
-        private ProductType getCurrentProductFamily() {
-            // Get the product family
-            if (optionsMenu.getItem(2).getSubMenu().getItem(0).isChecked()) {
-                return ProductType.PROBES;
-            } else if (optionsMenu.getItem(2).getSubMenu().getItem(1).isChecked()) {
-                return ProductType.FLOWMETERS;
-            } else if (optionsMenu.getItem(2).getSubMenu().getItem(2).isChecked()) {
-                return ProductType.CABLES;
-            } else if (optionsMenu.getItem(2).getSubMenu().getItem(3).isChecked()) {
-                return ProductType.LICENSES;
-            } else {
-                return null;
-            }
-        }
-
         protected void getAccountInventory() {
             String query = "";
+
+            if (options.getLastAccountSelected() == null) {
+                Toast.makeText(context, "Please select an account", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             CustomerInventoryStatusCode statusCode = CustomerInventoryStatusCode.ONSITE;
             switch (productStatus) {
@@ -705,6 +809,9 @@ public class Activity_AccountInfo extends AppCompatActivity {
                             .accountid,CrmEntities.AccountProducts.ITEM_GROUP_CABLES, statusCode);
                     break;
             }
+
+            getPagerTitle();
+
             refreshLayout.autoRefreshAnimationOnly();
             ArrayList<Requests.Argument> args = new ArrayList<>();
             Requests.Argument argument = new Requests.Argument("query", query);
@@ -734,6 +841,47 @@ public class Activity_AccountInfo extends AppCompatActivity {
             });
         }
 
+        String getPagerTitle() {
+            String txtAppend = "";
+
+            switch (productType) {
+                case PROBES:
+                    txtAppend = "probes - ";
+                    break;
+                case FLOWMETERS:
+                    txtAppend = "flowmeters - ";
+                    break;
+                case CABLES:
+                    txtAppend = "cables - ";
+                    break;
+                case LICENSES:
+                    txtAppend = "licenses - ";
+                    break;
+            }
+
+            switch (productStatus) {
+                case ANY:
+                    txtAppend += "all";
+                    break;
+                case RETURNED:
+                    txtAppend += "returned";
+                    break;
+                case EXPIRED:
+                    txtAppend += "expired";
+                    break;
+                case LOST:
+                    txtAppend += "lost";
+                    break;
+                case IN_STOCK:
+                    txtAppend += "in stock/at location";
+                    break;
+            }
+
+            pageTitle = "Inventory (" + txtAppend + ")";
+            mViewPager.getAdapter().notifyDataSetChanged();
+            return pageTitle;
+        }
+
         protected void populateList() {
 
             btnChooseAccount.setVisibility(options.getLastAccountSelected() == null ? View.VISIBLE : View.GONE);
@@ -742,20 +890,15 @@ public class Activity_AccountInfo extends AppCompatActivity {
 
             ArrayList<CrmEntities.AccountProducts.AccountProduct> productList = new ArrayList<>();
 
-            boolean addedTodayHeader = false;
-            boolean addedYesterdayHeader = false;
-            boolean addedThisWeekHeader = false;
-            boolean addedThisMonthHeader = false;
-            boolean addedOlderHeader = false;
+            boolean addedOnsiteHeader = false;
+            boolean addedReturnedHeader = false;
+            boolean addedExpiredHeader = false;
+            boolean addedLostHeader = false;
 
-            // Now today's date attributes
-            int todayDayOfYear = Helpers.DatesAndTimes.returnDayOfYear(DateTime.now());
-            int todayWeekOfYear = Helpers.DatesAndTimes.returnWeekOfYear(DateTime.now());
-            int todayMonthOfYear = Helpers.DatesAndTimes.returnMonthOfYear(DateTime.now());
 
             Log.i(TAG, "populateTripList: Preparing the dividers and trips...");
             for (int i = 0; i < (custInventory.size()); i++) {
-
+                // Cur product
                 CrmEntities.AccountProducts.AccountProduct accountProduct = custInventory.get(i);
                 productList.add(accountProduct);
             }
@@ -777,7 +920,94 @@ public class Activity_AccountInfo extends AppCompatActivity {
             } else {
                 Log.w(TAG, "populateList: CAN'T POPULATE AS THE ACTIVITY IS FINISHING!!!");
             }
+
+            getPagerTitle();
+
+            if (custInventory == null || custInventory.size() == 0) {
+                txtNoInventory.setVisibility(View.VISIBLE);
+            } else {
+                txtNoInventory.setVisibility(View.GONE);
+            }
+
         }
+
+        ExcelSpreadsheet exportToExcel(String filename) {
+
+            ExcelSpreadsheet spreadsheet = null;
+
+            final int SHEET1 = 0;
+
+            // Create a new spreadsheet
+            try {
+                spreadsheet = new ExcelSpreadsheet(filename);
+            } catch (Exception e) {
+                // Toast.makeText(this, "Failed to create spreadsheet!\n" + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
+                return null;
+            }
+
+            // Add the sheets that we will populate
+            try {
+
+                // All raw trips last 2 months
+                spreadsheet.createSheet("Inventory", SHEET1);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            // Format header and content values
+            WritableFont headerFont = new WritableFont(WritableFont.TAHOMA, 10, WritableFont.BOLD);
+            try {
+                headerFont.setColour(Colour.BLACK);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            WritableCellFormat headerFormat = new WritableCellFormat(headerFont);
+
+            WritableFont contentFont = new WritableFont(WritableFont.TAHOMA, 10, WritableFont.NO_BOLD);
+            try {
+                contentFont.setColour(Colour.BLACK);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            WritableCellFormat contentFormat = new WritableCellFormat(contentFont);
+
+            WritableFont capitalFont = new WritableFont(WritableFont.TAHOMA, 10, WritableFont.NO_BOLD);
+            try {
+                capitalFont.setColour(Colour.DARK_RED);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            WritableCellFormat capitalFormat = new WritableCellFormat(capitalFont);
+
+            spreadsheet.addCell(SHEET1, 0, 0, options.getLastAccountSelected().accountName, headerFormat);
+
+            // Header row
+            spreadsheet.addCell(SHEET1, 0, 1, "Product");
+            spreadsheet.addCell(SHEET1, 1, 1, "Serial number");
+            spreadsheet.addCell(SHEET1, 2, 1, "Status");
+            spreadsheet.addCell(SHEET1, 3, 1, "Date modified");
+            spreadsheet.addCell(SHEET1, 4, 1, "Is capital");
+            spreadsheet.addCell(SHEET1, 5, 1, "Revision");
+
+            for (int i = 2; i < custInventory.size() + 2; i++) {
+                CrmEntities.AccountProducts.AccountProduct product = custInventory.get(i - 2);
+                spreadsheet.addCell(SHEET1, 0, i, product.partNumber);
+                spreadsheet.addCell(SHEET1, 1, i, product.serialnumber);
+                spreadsheet.addCell(SHEET1, 2, i, product.statusFormatted);
+                spreadsheet.addCell(SHEET1, 3, i, product.modifiedOnFormatted);
+                spreadsheet.addCell(SHEET1, 4, i, product.isCapitalFormatted, product.isCapital ? capitalFormat : contentFormat);
+                spreadsheet.addCell(SHEET1, 5, i, product.revision);
+            }
+
+            // Save the file
+            spreadsheet.save();
+
+            return spreadsheet;
+
+        }
+
     }
 
     public static class Frag_Goals_MTD extends Fragment {

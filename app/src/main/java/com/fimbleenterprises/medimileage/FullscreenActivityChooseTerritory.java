@@ -1,5 +1,6 @@
 package com.fimbleenterprises.medimileage;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -34,7 +35,10 @@ public class FullscreenActivityChooseTerritory extends AppCompatActivity {
     public static final int REQUESTCODE = 011;
     public static final String TERRITORY_RESULT = "TERRITORY_RESULT";
     public static final String CURRENT_TERRITORY = "CURRENT_TERRITORY";
+    public static final String CACHED_TERRITORIES = "CACHED_TERRITORIES";
+    public static final int TERRITORY_CHOSEN_RESULT = 33;
     Territory currentTerritory;
+    ArrayList<Territory> cachedTerritories;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,9 +57,16 @@ public class FullscreenActivityChooseTerritory extends AppCompatActivity {
                 currentTerritory = curTerritory;
                 this.setTitle("Choose territory");
             }
+            // See if a territory list was passed in
+            cachedTerritories = intent.getParcelableArrayListExtra(CACHED_TERRITORIES);
         }
 
-        getTerritories();
+        // Use cached territories if they exist
+        if (cachedTerritories == null) {
+            getTerritories();
+        } else {
+            populateTerritories();
+        }
 
         Helpers.Views.MySwipeHandler mySwipeHandler = new Helpers.Views.MySwipeHandler(new Helpers.Views.MySwipeHandler.MySwipeListener() {
             @Override
@@ -70,6 +81,12 @@ public class FullscreenActivityChooseTerritory extends AppCompatActivity {
         });
         mySwipeHandler.addView(listView);
 
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
     }
 
     void getTerritories() {
@@ -87,18 +104,9 @@ public class FullscreenActivityChooseTerritory extends AppCompatActivity {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 String result = new String(responseBody);
-                ArrayList<Territory> territories = Territory.createMany(result);
-                objects.clear();
-                for (Territory t : territories) {
-                    BasicObject basicObject = new BasicObject(t.territoryName, t.repName, t);
-                    basicObject.iconResource = R.drawable.next32;
-                    if (currentTerritory.territoryid.equals(t.territoryid)) {
-                        basicObject.isSelected = true;
-                    }
-                    objects.add(basicObject);
-                    dialog.dismiss();
-                }
+                cachedTerritories = Territory.createMany(result);
                 populateTerritories();
+                dialog.dismiss();
                 Log.i(TAG, "onSuccess Response is " + result.length() + " chars long");
             }
 
@@ -111,6 +119,17 @@ public class FullscreenActivityChooseTerritory extends AppCompatActivity {
     }
 
     void populateTerritories() {
+
+        objects.clear();
+        for (Territory t : cachedTerritories) {
+            BasicObject basicObject = new BasicObject(t.territoryName, t.repName, t);
+            basicObject.iconResource = R.drawable.next32;
+            if (currentTerritory.territoryid.equals(t.territoryid)) {
+                basicObject.isSelected = true;
+            }
+            objects.add(basicObject);
+        }
+
         adapter = new BasicObjectRecyclerAdapter(this, objects);
         listView.setAdapter(adapter);
         listView.addItemDecoration(new DividerItemDecoration(context,
@@ -122,7 +141,8 @@ public class FullscreenActivityChooseTerritory extends AppCompatActivity {
                 Territory territory = (Territory) objects.get(position).object;
                 Intent intent = new Intent(TERRITORY_RESULT);
                 intent.putExtra(TERRITORY_RESULT, territory);
-                setResult(RESULT_OK, intent);
+                intent.putExtra(CACHED_TERRITORIES, cachedTerritories);
+                setResult(TERRITORY_CHOSEN_RESULT, intent);
                 finish();
                 Log.i(TAG, "onItemClick Position: " + position);
             }

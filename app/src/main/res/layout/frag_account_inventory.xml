@@ -16,13 +16,12 @@
         android:text="Choose account..."
         android:visibility="invisible" />
 
-    <ProgressBar
-        android:id="@+id/pbLoading"
-        style="?android:attr/progressBarStyle"
+    <TextView
+        android:id="@+id/txtNoInventory"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:visibility="gone" />
+        android:text="No inventory found" />
 
     <com.scwang.smart.refresh.layout.SmartRefreshLayout
         android:id="@+id/refreshLayout"
