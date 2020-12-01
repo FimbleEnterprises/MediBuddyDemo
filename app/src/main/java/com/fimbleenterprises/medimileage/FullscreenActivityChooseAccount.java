@@ -145,7 +145,8 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
         objects.clear();
 
         for (Accounts.Account account : accounts) {
-            BasicObject object = new BasicObject(account.accountName, account.accountnumber, account);
+            BasicObject object = new BasicObject(account.accountName, account.accountnumber
+                    + " " + account.agreementTypeFormatted, account);
             object.iconResource = R.mipmap.ic_business_black_24dp;
             if (currentAccount != null) {
                 object.isSelected = currentAccount.accountid.equals(account.accountid);
