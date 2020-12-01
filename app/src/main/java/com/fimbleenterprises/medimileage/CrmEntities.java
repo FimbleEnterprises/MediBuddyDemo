@@ -2100,6 +2100,10 @@ public class CrmEntities {
             public String agreementTypeFormatted;
             public int agreementType;
 
+            public String getAgreementTypeFormatted() {
+                return (agreementTypeFormatted == null) ? "" : agreementTypeFormatted;
+            }
+
             public Account(JSONObject json) {
                 try {
                     if (!json.isNull("etag")) {
