@@ -6,6 +6,13 @@
     android:layout_height="match_parent"
     tools:context=".Activity_TerritoryData">
 
+    <TextView
+        android:id="@+id/txtNoSales"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="No sales found" />
+
     <ProgressBar
         android:id="@+id/pbLoading"
         style="?android:attr/progressBarStyle"

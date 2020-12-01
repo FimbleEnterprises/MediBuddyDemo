@@ -68,7 +68,7 @@ public class MySettingsHelper {
         prefs.edit().clear().commit();
     }
 
-    public void setLastAccountSelected(CrmEntities.Accounts.Account account) {
+/*    public void setLastAccountSelected(CrmEntities.Accounts.Account account) {
 
         if (account == null) {
             prefs.edit().remove(LAST_ACCOUNT_SELECTED).commit();
@@ -86,7 +86,7 @@ public class MySettingsHelper {
             Gson gson = new Gson();
             return gson.fromJson(gsonVal, CrmEntities.Accounts.Account.class);
         }
-    }
+    }*/
 
     public void setServerBaseUrl(String url) {
         prefs.edit().putString(SERVER_BASE_URL, url).commit();

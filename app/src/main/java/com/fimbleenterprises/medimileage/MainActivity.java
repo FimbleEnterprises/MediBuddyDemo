@@ -262,7 +262,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (item.getItemId() == R.id.nav_accountinfo) {
             startActivity(new Intent(activity, Activity_AccountInfo.class));
             drawer.closeDrawer(navigationView);
-            Toast.makeText(activity, "", Toast.LENGTH_SHORT).show();
         } else {
             try {
                 Log.i(TAG, "onNavigationItemSelected index:" + item.getItemId());
@@ -473,6 +472,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             menu.findItem(R.id.nav_stats).setTitle(R.string.menu_stats_explicit);
             menu.findItem(R.id.nav_data).setTitle(R.string.menu_data_explicit);
             menu.findItem(R.id.nav_territoryinfo).setTitle(R.string.menu_other_fucking_sales_shit);
+            menu.findItem(R.id.nav_accountinfo).setTitle(getString(R.string.menu_account_info_explicit));
             menu.findItem(R.id.nav_settings).setTitle(R.string.menu_settings_explicit);
             menu.findItem(R.id.nav_user_trips).setTitle(R.string.menu_users_explicit);
         } else {
@@ -480,6 +480,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             menu.findItem(R.id.nav_stats).setTitle(R.string.menu_aggregated_mileage_stats);
             menu.findItem(R.id.nav_data).setTitle(R.string.menu_data);
             menu.findItem(R.id.nav_territoryinfo).setTitle(R.string.menu_territory_info);
+            menu.findItem(R.id.nav_accountinfo).setTitle(getString(R.string.menu_account_info));
             menu.findItem(R.id.nav_settings).setTitle(R.string.menu_settings);
             menu.findItem(R.id.nav_user_trips).setTitle(R.string.menu_users);
         }

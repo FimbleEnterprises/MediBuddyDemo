@@ -457,7 +457,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         }
     }
 
-//region ********************************** FRAGS *****************************************
+    //region ********************************** FRAGS *****************************************
 
     public static class Frag_SalesLines extends Fragment {
         public static final String ARG_SECTION_NUMBER = "section_number";
@@ -466,12 +466,14 @@ public class Activity_TerritoryData extends AppCompatActivity {
         RefreshLayout refreshLayout;
         OrderLineRecyclerAdapter adapter;
         ArrayList<OrderProducts.OrderProduct> allOrders = new ArrayList<>();
+        TextView txtNoSales;
 
         @Nullable
         @Override
         public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                                  @Nullable Bundle savedInstanceState) {
             root = inflater.inflate(R.layout.frag_saleslines, container, false);
+            txtNoSales = root.findViewById(R.id.txtNoSales);
             refreshLayout = root.findViewById(R.id.refreshLayout);
             RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
             refreshLayout.setRefreshHeader(new MaterialHeader(getContext()));
@@ -487,6 +489,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     refreshlayout.finishLoadMore(500/*,false*/);
                 }
             });
+
+            txtNoSales.setVisibility( (allOrders == null || allOrders.size() == 0) ? View.VISIBLE : View.GONE);
 
             recyclerView = root.findViewById(R.id.orderLinesRecyclerview);
             super.onCreateView(inflater, container, savedInstanceState);
@@ -547,6 +551,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
             } else {
                 query = Queries.OrderLines.getOrderLines(territory.territoryid, monthNum);
             }
+
+            txtNoSales.setVisibility(View.GONE);
 
             ArrayList<Requests.Argument> args = new ArrayList<>();
             Requests.Argument argument = new Requests.Argument("query", query);
@@ -673,6 +679,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
             } else {
                 Log.w(TAG, "populateList: CAN'T POPULATE AS THE ACTIVITY IS FINISHING!!!");
             }
+
+            txtNoSales.setVisibility( (allOrders == null || allOrders.size() == 0) ? View.VISIBLE : View.GONE);
         }
     }
 

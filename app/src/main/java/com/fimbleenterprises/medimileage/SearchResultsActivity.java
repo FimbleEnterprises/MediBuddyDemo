@@ -57,7 +57,7 @@ public class SearchResultsActivity extends AppCompatActivity {
             String query = intent.getStringExtra(SearchManager.QUERY);
             //use the query to search your data somehow
 
-            Toast.makeText(this, query, Toast.LENGTH_SHORT).show();
+            // Toast.makeText(this, query, Toast.LENGTH_SHORT).show();
             doSearch(Integer.parseInt(query));
         }
     }
@@ -79,7 +79,7 @@ public class SearchResultsActivity extends AppCompatActivity {
                 String response = new String(responseBody);
                 accountProducts = new CrmEntities.AccountProducts(response);
                 populateList();
-                Toast.makeText(SearchResultsActivity.this, response, Toast.LENGTH_SHORT).show();
+                // Toast.makeText(SearchResultsActivity.this, response, Toast.LENGTH_SHORT).show();
                 progressDialog.dismiss();
             }
 

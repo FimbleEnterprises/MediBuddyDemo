@@ -9,12 +9,17 @@ import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.CrmEntities.Accounts;
 import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.scwang.smart.refresh.layout.SmartRefreshLayout;
+import com.scwang.smart.refresh.layout.api.RefreshLayout;
+import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ActionMode;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -42,6 +47,7 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
     Territory currentTerritory;
     Accounts.Account currentAccount;
     ArrayList<Accounts.Account> accounts;
+    SmartRefreshLayout refreshLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +55,13 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
         this.context = this;
         setContentView(R.layout.activity_fullscreen_choose_account);
         listView = findViewById(R.id.rvBasicObjects);
+        refreshLayout = findViewById(R.id.refreshLayout);
+        refreshLayout.setOnRefreshListener(new OnRefreshListener() {
+            @Override
+            public void onRefresh(@NonNull RefreshLayout refreshLayout) {
+                getAccounts();
+            }
+        });
 
         // Log a metric
         MileBuddyMetrics.updateMetric(this, MileBuddyMetrics.MetricName.LAST_ACCESSED_TERRITORY_CHANGER, DateTime.now());
@@ -84,6 +97,11 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
     public boolean onSupportNavigateUp() {
         onBackPressed();
         return true;
@@ -107,11 +125,16 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
                 populateAccounts();
                 Log.i(TAG, "onSuccess Response is " + result.length() + " chars long");
                 progressDialog.dismiss();
+                Intent intent = new Intent(ACCOUNT_RESULT);
+                intent.putExtra(CACHED_ACCOUNTS, accounts);
+                setResult(ACCOUNT_CHOSEN_RESULT, intent);
+                refreshLayout.finishRefresh();
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
                 Toast.makeText(context, "Failed!\n" + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                refreshLayout.finishRefresh();
             }
         });
 
@@ -121,10 +144,9 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
 
         objects.clear();
 
-        // MySettingsHelper options = new MySettingsHelper(context);
-
         for (Accounts.Account account : accounts) {
             BasicObject object = new BasicObject(account.accountName, account.accountnumber, account);
+            object.iconResource = R.mipmap.ic_business_black_24dp;
             if (currentAccount != null) {
                 object.isSelected = currentAccount.accountid.equals(account.accountid);
             }
@@ -142,11 +164,9 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
                 try {
                     Accounts.Account account = (Accounts.Account) objects.get(position).object;
                     Intent intent = new Intent(ACCOUNT_RESULT);
-                    intent.putExtra(ACCOUNT_RESULT, account);
                     intent.putExtra(CACHED_ACCOUNTS, accounts);
+                    intent.putExtra(ACCOUNT_RESULT, account);
                     setResult(ACCOUNT_CHOSEN_RESULT, intent);
-                    MySettingsHelper options = new MySettingsHelper(context);
-                    options.setLastAccountSelected(account);
                     finish();
                     Log.i(TAG, "onItemClick Position: " + position);
                 } catch (Exception e) {

@@ -30,7 +30,7 @@
     <string name="menu_stats_explicit">Fucking Stats</string>
     <string name="menu_settings_explicit">Fucking Settings</string>
     <string name="menu_authentication_explicit">Fucking Login</string>
-    <string name="menu_other_fucking_sales_shit">Fucking sales and shit</string>
+    <string name="menu_other_fucking_sales_shit">My Fucking Territory</string>
     <string name="menu_users_explicit">Other Fuckers</string>
 
     <string name="action_settings_explicit">Fucking settings...</string>
@@ -246,5 +246,6 @@
     <string name="search_title">Search</string>
     <string name="search_hint">Serial number</string>
     <string name="title_activity_search_results">Search results</string>
+    <string name="menu_account_info_explicit">My Fucking Accounts</string>
 
 </resources>

@@ -80,24 +80,23 @@ import com.anychart.chart.common.dataentry.ValueDataEntry;
 import com.anychart.charts.Cartesian;*/
 
 public class Activity_AccountInfo extends AppCompatActivity {
+
+    private static CrmEntities.Accounts.Account curAccount;
+    private static ArrayList<CrmEntities.Accounts.Account> cachedAccounts;
+    private static ArrayList<Territory> cachedTerritories;
+
     public static Activity activity;
     public static EditText title;
     public static MyUnderlineEditText date;
-    public static EditText distance;
-    public static Marker fromMarker;
-    public static Marker toMarker;
     public static Context context;
-    public static Polyline polyline;
-    public static LatLng fromLatLng;
-    public static LatLng toLatLng;
     public static MyViewPager mViewPager;
     public static PagerTitleStrip mPagerStrip;
     public static SectionsPagerAdapter sectionsPagerAdapter;
     public static androidx.fragment.app.FragmentManager fragMgr;
     public static MySettingsHelper options;
 
-    public static final int PRODUCTFAMILY_MENU_ROOT = 4;
-    public static final int PRODUCTSTATUS_MENU_ROOT = 5;
+    public static final int PRODUCTFAMILY_MENU_ROOT = 3;
+    public static final int PRODUCTSTATUS_MENU_ROOT = 4;
 
     // Receivers for date range changes at the activity level
     public static IntentFilter intentFilterMenuAction;
@@ -135,9 +134,6 @@ public class Activity_AccountInfo extends AppCompatActivity {
 
     public static Menu optionsMenu;
     public int curPageIndex = 0;
-
-    ArrayList<CrmEntities.Accounts.Account> cachedAccounts;
-    ArrayList<Territory> cachedTerritories;
 
     public static boolean menuOpen = false;
 
@@ -225,13 +221,13 @@ public class Activity_AccountInfo extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode == FullscreenActivityChooseAccount.ACCOUNT_CHOSEN_RESULT) {
-            CrmEntities.Accounts.Account selectedAccount = data.getParcelableExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT);
+            curAccount = data.getParcelableExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT);
             // Save the account list if it was returned
             cachedAccounts = data.getParcelableArrayListExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS);
-            Toast.makeText(activity, resultCode + "", Toast.LENGTH_SHORT).show();
-            if (selectedAccount != null) {
+
+            if (curAccount != null) {
                 Intent intentChosenAccount = new Intent(MENU_ACTION);
-                intentChosenAccount.putExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT, selectedAccount);
+                intentChosenAccount.putExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT, curAccount);
                 sendBroadcast(intentChosenAccount);
             }
             return;
@@ -246,7 +242,7 @@ public class Activity_AccountInfo extends AppCompatActivity {
                 // Show the change account dialog so that we have an account to show in this new territory
                 Intent intentChangeAccount = new Intent(context, FullscreenActivityChooseAccount.class);
                 intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
-                intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, options.getLastAccountSelected());
+                intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, curAccount);
                 intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
                 startActivityForResult(intentChangeAccount, FullscreenActivityChooseAccount.REQUESTCODE);
                 // Default to all items as the checked menu item
@@ -266,12 +262,20 @@ public class Activity_AccountInfo extends AppCompatActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+        // *****************************************************************************************
+        // **   Reminder: returning, "true" indicates to the OS that the event has been handled   **
+        // **   and to not let it percolate to the next receiver.                                 **
+        // *****************************************************************************************
 
         if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
             Log.i(TAG, "onKeyDown back pressed!");
 
             if (!searchView.isIconified()) {
                 searchView.onActionViewCollapsed();
+                return true;
+            } else if (curAccount != null) {
+                curAccount = null;
+                sendMenuItemSelectedBroadcast();
                 return true;
             }
 
@@ -303,8 +307,8 @@ public class Activity_AccountInfo extends AppCompatActivity {
 
         if (options == null) { options = new MySettingsHelper(context); }
 
-        if (options.getLastAccountSelected() != null) {
-            setTitle(options.getLastAccountSelected().accountName);
+        if (curAccount != null) {
+            setTitle(curAccount.accountName);
         } else {
             setTitle("Choose an account");
         }
@@ -319,23 +323,7 @@ public class Activity_AccountInfo extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        if (polyline != null) {
-            polyline.remove();
-        }
-        polyline = null;
-
-        fromLatLng = null;
-        toLatLng = null;
-
-        if (fromMarker != null) {
-            fromMarker.remove();
-        }
-        fromMarker = null;
-
-        if (toMarker != null) {
-            toMarker.remove();
-        }
-        toMarker = null;
+        curAccount = null;
 
     }
 
@@ -380,6 +368,11 @@ public class Activity_AccountInfo extends AppCompatActivity {
 
         // Change account or territory selected
         switch (item.getItemId()) {
+
+            case 16908332 :
+                onBackPressed();
+                return true;
+
             case R.id.action_choose_territory :
                 // change territory
                 Intent intentChangeTerritory = new Intent(context, FullscreenActivityChooseTerritory.class);
@@ -394,7 +387,7 @@ public class Activity_AccountInfo extends AppCompatActivity {
                 // change account
                 Intent intentChangeAccount = new Intent(context, FullscreenActivityChooseAccount.class);
                 intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
-                intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, options.getLastAccountSelected());
+                intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, curAccount);
                 intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
                 startActivityForResult(intentChangeAccount, FullscreenActivityChooseAccount.REQUESTCODE);
                 // Default to all items as the checked menu item
@@ -601,7 +594,6 @@ public class Activity_AccountInfo extends AppCompatActivity {
         ProductStatus productStatus = ProductStatus.IN_STOCK;
         public static String pageTitle = "Inventory";
         TextView txtNoInventory;
-        CrmEntities.Accounts.Account curAccount;
 
 
         enum ProductType {
@@ -641,17 +633,18 @@ public class Activity_AccountInfo extends AppCompatActivity {
                 public void onClick(View view) {
                     Intent intentChangeAccount = new Intent(context, FullscreenActivityChooseAccount.class);
                     intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
-                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, options.getLastAccountSelected());
+                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, curAccount);
+                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
                     startActivityForResult(intentChangeAccount, FullscreenActivityChooseAccount.REQUESTCODE);
                 }
             });
 
             // Check if there is an account stipulated in preferences
-            if (options.getLastAccountSelected() == null) {
+            if (curAccount == null) {
                 Log.w(TAG, "onCreateView: No account stipulated!");
                 // do something!
             } else {
-                Log.i(TAG, "onCreateView Account is stipulated (" + options.getLastAccountSelected().accountnumber + ")");
+                Log.i(TAG, "onCreateView Account is stipulated (" + curAccount.accountnumber + ")");
             }
 
             recyclerView = root.findViewById(R.id.orderLinesRecyclerview);
@@ -667,14 +660,24 @@ public class Activity_AccountInfo extends AppCompatActivity {
 
                         // Check if this is regarding an inventory export to Excel
                         if (intent.getStringExtra(EXPORT_INVENTORY) != null) {
-                            ExcelSpreadsheet spreadsheet = exportToExcel(options.getLastAccountSelected().accountnumber + "_inventory_export.xls");
-                            Helpers.Files.shareFile(context, spreadsheet.file);
+                            // Ensure there is an account stipulated and inventory to export
+                            if (curAccount != null && custInventory != null &&
+                                    custInventory.size() > 0) {
+                                // Export and share
+                                ExcelSpreadsheet spreadsheet = exportToExcel(
+                                        curAccount.accountnumber
+                                                + "_inventory_export.xls");
+                                Helpers.Files.shareFile(context, spreadsheet.file);
+                            } else {
+                                Toast.makeText(context, "No inventory to export!", Toast.LENGTH_SHORT).show();
+                            }
                         }
 
-                        // Check if this is regarding a new account being chosen
-                        if (intent.getParcelableExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT) != null) {
-                            curAccount = intent.getParcelableExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT);
-                            // Toast.makeText(context, selectedAccount.accountName + " was chosen!", Toast.LENGTH_SHORT).show();
+                        // If the current account is null then clear the list.  This is to enable
+                        // on back pressed behavior that doesn't automatically finish the activity.
+                        if (curAccount == null) {
+                            custInventory.clear();
+                            populateList();
                         }
 
                         // *******************************************************************
@@ -716,6 +719,9 @@ public class Activity_AccountInfo extends AppCompatActivity {
                         // *                END EVALUATE MENU SELECTIONS                     *
                         // *******************************************************************
 
+
+                        btnChooseAccount.setVisibility(curAccount == null ? View.VISIBLE : View.GONE);
+
                         getAccountInventory();
                         mViewPager.getAdapter().notifyDataSetChanged();
                     }
@@ -727,6 +733,8 @@ public class Activity_AccountInfo extends AppCompatActivity {
 
             return root;
         }
+
+
 
         @Override
         public void onStop() {
@@ -748,7 +756,7 @@ public class Activity_AccountInfo extends AppCompatActivity {
             getActivity().registerReceiver(menuItemSelectedReceiver, intentFilterMenuAction);
 
             // Hide/show the choose account button
-            if (options.getLastAccountSelected() == null) {
+            if (curAccount == null) {
                 btnChooseAccount.setVisibility(View.VISIBLE);
             } else {
                 btnChooseAccount.setVisibility(View.GONE);
@@ -767,7 +775,9 @@ public class Activity_AccountInfo extends AppCompatActivity {
         protected void getAccountInventory() {
             String query = "";
 
-            if (options.getLastAccountSelected() == null) {
+            txtNoInventory.setVisibility(View.GONE);
+
+            if (curAccount == null) {
                 Toast.makeText(context, "Please select an account", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -793,19 +803,19 @@ public class Activity_AccountInfo extends AppCompatActivity {
 
             switch (productType) {
                 case PROBES:
-                    query = Accounts.getAccountInventory(options.getLastAccountSelected()
+                    query = Accounts.getAccountInventory(curAccount
                             .accountid,CrmEntities.AccountProducts.ITEM_GROUP_PROBES, statusCode);
                     break;
                 case FLOWMETERS:
-                    query = Accounts.getAccountInventory(options.getLastAccountSelected()
+                    query = Accounts.getAccountInventory(curAccount
                             .accountid,CrmEntities.AccountProducts.ITEM_GROUP_FLOWMETERS, statusCode);
                     break;
                 case CABLES:
-                    query = Accounts.getAccountInventory(options.getLastAccountSelected()
+                    query = Accounts.getAccountInventory(curAccount
                             .accountid,CrmEntities.AccountProducts.ITEM_GROUP_LICENSES, statusCode);
                     break;
                 case LICENSES:
-                    query = Accounts.getAccountInventory(options.getLastAccountSelected()
+                    query = Accounts.getAccountInventory(curAccount
                             .accountid,CrmEntities.AccountProducts.ITEM_GROUP_CABLES, statusCode);
                     break;
             }
@@ -884,17 +894,9 @@ public class Activity_AccountInfo extends AppCompatActivity {
 
         protected void populateList() {
 
-            btnChooseAccount.setVisibility(options.getLastAccountSelected() == null ? View.VISIBLE : View.GONE);
-
-            // getCurrentMenuChoices();
+            btnChooseAccount.setVisibility(curAccount == null ? View.VISIBLE : View.GONE);
 
             ArrayList<CrmEntities.AccountProducts.AccountProduct> productList = new ArrayList<>();
-
-            boolean addedOnsiteHeader = false;
-            boolean addedReturnedHeader = false;
-            boolean addedExpiredHeader = false;
-            boolean addedLostHeader = false;
-
 
             Log.i(TAG, "populateTripList: Preparing the dividers and trips...");
             for (int i = 0; i < (custInventory.size()); i++) {
@@ -910,7 +912,7 @@ public class Activity_AccountInfo extends AppCompatActivity {
                 adapter.setClickListener(new AccountInventoryRecyclerAdapter.ItemClickListener() {
                     @Override
                     public void onItemClick(View view, int position) {
-
+                        Toast.makeText(context, custInventory.get(position).productDescription, Toast.LENGTH_SHORT).show();
                     }
                 });
                 recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -981,7 +983,7 @@ public class Activity_AccountInfo extends AppCompatActivity {
             }
             WritableCellFormat capitalFormat = new WritableCellFormat(capitalFont);
 
-            spreadsheet.addCell(SHEET1, 0, 0, options.getLastAccountSelected().accountName, headerFormat);
+            spreadsheet.addCell(SHEET1, 0, 0, curAccount.accountName, headerFormat);
 
             // Header row
             spreadsheet.addCell(SHEET1, 0, 1, "Product");
