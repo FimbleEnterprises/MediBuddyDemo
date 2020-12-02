@@ -20,7 +20,7 @@
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/producttype"
+        android:id="@+id/action_producttype"
         android:orderInCategory="98"
         android:title="@string/product_type_menu_title">
         <menu>
@@ -60,7 +60,7 @@
     </item>
 
     <item
-        android:id="@+id/productstatus"
+        android:id="@+id/action_productstatus"
         android:orderInCategory="99"
         android:title="@string/status_menu_title">
         <menu>

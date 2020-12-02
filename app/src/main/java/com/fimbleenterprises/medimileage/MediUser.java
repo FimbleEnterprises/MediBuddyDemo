@@ -364,14 +364,31 @@ public class MediUser implements Parcelable {
         ds.deleteMe();
     }
 
+    /**
+     * Returns the current user as saved in the local database.
+     */
     public static MediUser getMe(Context context) {
         MySqlDatasource ds = new MySqlDatasource(context);
         return ds.getMe();
     }
 
+    /**
+     * Returns the current user as saved in the local database.
+     */
     public static MediUser getMe() {
         MySqlDatasource ds = new MySqlDatasource(MyApp.getAppContext());
         return ds.getMe();
+    }
+
+    /**
+     * Builds a basic Territory object using this object's territoryid and territoryname properties.
+     * @return A Territory object using this object's territory properties
+     */
+    public Territory getTerritory() {
+        Territory territory = new Territory();
+        territory.territoryName = territoryname;
+        territory.territoryid = territoryid;
+        return territory;
     }
 
     public static void updateCrmWithMyMileBuddyVersion(Context context, final MyInterfaces.CrmRequestListener callback) {

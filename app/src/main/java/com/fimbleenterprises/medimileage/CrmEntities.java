@@ -1349,6 +1349,34 @@ public class CrmEntities {
         }
 
         /**
+         * Will query CRM using the supplied territory id and retrieve all opportunities.
+         * That's it.  That's all it does.
+         * @param listener An interface that constructs a Territories object and returns it on success.
+         */
+        public static void retrieveOpportunities(String territoryId, final MyInterfaces.GetOpportunitiesListener listener) {
+            String query = Queries.Opportunities.getOpportunitiesByTerritory(territoryId);
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            Requests.Argument argument = new Requests.Argument("query", query);
+            args.add(argument);
+            Requests.Request request = new Requests.Request(Requests.Request.GET, args);
+            Crm crm = new Crm();
+            crm.makeCrmRequest(MyApp.getAppContext(), request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    String response = new String(responseBody);
+                    listener.onSuccess(new CrmEntities.Opportunities(response));
+                    Log.i(TAG, "onSuccess " + response);
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
+                    listener.onFailure(error.getLocalizedMessage());
+                }
+            });
+        }
+
+        /**
          * Will query CRM using the current user's territory id and retrieve all opportunities in their
          * territory.  When obtained they will be saved locally as JSON to shared preferences.
          */
@@ -1458,6 +1486,10 @@ public class CrmEntities {
 
             public DateTime getEstimatedClose() {
                 return new DateTime(estimatedCloseDate);
+            }
+
+            public String getPrettyEstimatedValue() {
+                return Helpers.Numbers.convertToCurrency(floatEstimatedValue);
             }
 
             public Opportunity(JSONObject json) {

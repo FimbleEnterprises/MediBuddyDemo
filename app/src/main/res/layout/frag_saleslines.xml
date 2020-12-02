@@ -6,6 +6,16 @@
     android:layout_height="match_parent"
     tools:context=".Activity_TerritoryData">
 
+    <Button
+        android:id="@+id/btnChooseAct"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:background="@drawable/btn_glass_gray"
+        android:padding="10dp"
+        android:text="Choose account..."
+        android:visibility="invisible" />
+
     <TextView
         android:id="@+id/txtNoSales"
         android:layout_width="wrap_content"

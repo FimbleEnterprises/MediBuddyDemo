@@ -124,7 +124,7 @@
     <string name="action_update">Check for update</string>
 
     <string name="title_activity_aggregate_stats">AggregateStats</string>
-    <string name="menu_aggregated_mileage_stats">Mileage stuff</string>
+    <string name="menu_aggregated_mileage_stats">Aggregated Mileage Stats</string>
     <string name="lastest_version">You are running the most recent version</string>
     <string name="logout">Logout</string>
     <string name="login">Login</string>
@@ -247,5 +247,10 @@
     <string name="search_hint">Serial number</string>
     <string name="title_activity_search_results">Search results</string>
     <string name="menu_account_info_explicit">My Fucking Accounts</string>
+    <string name="menu_my_opportunities">My Opportunities</string>
+    <string name="menu_myopportunities">My Opportunities</string>
+    <string name="menu_myopportunities_explicit">Opporfuckingtunities</string>
+    <string name="opportunities_about_this_list_from_main_nav_drawer">These are opportunities in your territory.</string>
+    <string name="retrieving_opportunities">Retrieving opportunities...</string>
 
 </resources>

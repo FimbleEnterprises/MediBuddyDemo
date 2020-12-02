@@ -124,7 +124,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         navigationView.setNavigationItemSelectedListener(this);
         drawer.addDrawerListener(this);
 
-        // Initialize the broadcast receiver
+        // Initialize the broadcast receiver that handles current trip states/updates
         locFilter.addAction(MyLocationService.STOP_TRIP_ACTION);
         locReceiver = new BroadcastReceiver() {
             @Override
@@ -144,6 +144,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Toast.makeText(this, getString(R.string.must_login), Toast.LENGTH_SHORT).show();
         }
 
+        // Try in the background to set the current reimbursement rate
         try {
             MyLocationService.setReimbursementRate(new MyInterfaces.ReimbursementRateCallback() {
                 @Override
@@ -169,6 +170,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             e.printStackTrace();
         }
 
+        // Prompt for storage permissions if necessary
         if (checkStoragePermission()) {
             if (options.getCheckForUpdates()) {
                 checkForUpdate(true);
@@ -177,6 +179,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},PERMISSION_UPDATE);
         }
 
+        // If we end up doing push notifications then these FCM tokens will be required
         try {
             // Requests the device's FCM token when instantiated and saves it to preferences.
             fcmService = new MyFirebaseMessagingService(this);
@@ -184,12 +187,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             e.printStackTrace();
         }
 
+        // Grab opportunities and save them as JSON locally in the background
         try {
             retrieveAndSaveOpportunities();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+        // Update usage metrics to CRM; specifically app version
         try {
             MediUser.updateCrmWithMyMileBuddyVersion(activity, new MyInterfaces.CrmRequestListener() {
                 @Override
@@ -252,16 +257,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (item.getItemId() == R.id.nav_settings) {
             Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
             startActivityForResult(intent, 0);
-            drawer.closeDrawer(navigationView);
-        } else if (item.getItemId() == R.id.nav_stats) {
+            // drawer.closeDrawer(navigationView);
+        } else if (item.getItemId() == R.id.nav_aggregatedmileagestats) {
             startActivity(new Intent(activity, AggregateStatsActivity.class));
-            drawer.closeDrawer(navigationView);
-        } else if (item.getItemId() == R.id.nav_territoryinfo) {
+            // drawer.closeDrawer(navigationView);
+        } else if (item.getItemId() == R.id.nav_myterritory) {
             startActivity(new Intent(activity, Activity_TerritoryData.class));
-            drawer.closeDrawer(navigationView);
-        } else if (item.getItemId() == R.id.nav_accountinfo) {
+            // drawer.closeDrawer(navigationView);
+        } else if (item.getItemId() == R.id.nav_myaccounts) {
             startActivity(new Intent(activity, Activity_AccountInfo.class));
-            drawer.closeDrawer(navigationView);
+            // drawer.closeDrawer(navigationView);
+        } else if (item.getItemId() == R.id.nav_myopportunities) {
+            Intent oppIntent = new Intent(activity, FullscreenActivityChooseOpportunity.class);
+            oppIntent.setAction(FullscreenActivityChooseOpportunity.FROM_MAIN_NAV_DRAWER);
+            startActivity(oppIntent);
+            // drawer.closeDrawer(navigationView);
         } else {
             try {
                 Log.i(TAG, "onNavigationItemSelected index:" + item.getItemId());
@@ -469,18 +479,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         
         if (options.isExplicitMode()) {
             menu.findItem(R.id.nav_home).setTitle(R.string.menu_mileage_explicit);
-            menu.findItem(R.id.nav_stats).setTitle(R.string.menu_stats_explicit);
+            menu.findItem(R.id.nav_aggregatedmileagestats).setTitle(R.string.menu_stats_explicit);
             menu.findItem(R.id.nav_data).setTitle(R.string.menu_data_explicit);
-            menu.findItem(R.id.nav_territoryinfo).setTitle(R.string.menu_other_fucking_sales_shit);
-            menu.findItem(R.id.nav_accountinfo).setTitle(getString(R.string.menu_account_info_explicit));
+            menu.findItem(R.id.nav_myterritory).setTitle(R.string.menu_other_fucking_sales_shit);
+            menu.findItem(R.id.nav_myaccounts).setTitle(getString(R.string.menu_account_info_explicit));
+            menu.findItem(R.id.nav_myopportunities).setTitle(getString(R.string.menu_myopportunities_explicit));
             menu.findItem(R.id.nav_settings).setTitle(R.string.menu_settings_explicit);
             menu.findItem(R.id.nav_user_trips).setTitle(R.string.menu_users_explicit);
         } else {
             menu.findItem(R.id.nav_home).setTitle(R.string.menu_mileage);
-            menu.findItem(R.id.nav_stats).setTitle(R.string.menu_aggregated_mileage_stats);
+            menu.findItem(R.id.nav_aggregatedmileagestats).setTitle(R.string.menu_aggregated_mileage_stats);
             menu.findItem(R.id.nav_data).setTitle(R.string.menu_data);
-            menu.findItem(R.id.nav_territoryinfo).setTitle(R.string.menu_territory_info);
-            menu.findItem(R.id.nav_accountinfo).setTitle(getString(R.string.menu_account_info));
+            menu.findItem(R.id.nav_myterritory).setTitle(R.string.menu_territory_info);
+            menu.findItem(R.id.nav_myaccounts).setTitle(getString(R.string.menu_account_info));
+            menu.findItem(R.id.nav_myopportunities).setTitle(getString(R.string.menu_myopportunities));
             menu.findItem(R.id.nav_settings).setTitle(R.string.menu_settings);
             menu.findItem(R.id.nav_user_trips).setTitle(R.string.menu_users);
         }

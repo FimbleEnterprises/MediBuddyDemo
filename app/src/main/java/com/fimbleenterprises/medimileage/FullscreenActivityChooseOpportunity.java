@@ -9,11 +9,18 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -31,6 +38,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
@@ -51,6 +59,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
     ArrayList<BasicObject> objects = new ArrayList<>();
     BasicObjectRecyclerAdapter adapter;
     public static final int REQUESTCODE = 011;
+    public static final String FROM_MAIN_NAV_DRAWER = "FROM_MAIN_NAV_DRAWER";
     public static final String OPPORTUNITY_RESULT = "OPPORTUNITY_RESULT";
     public static final String FULLTRIP = "FULLTRIP";
     FullTrip fulltrip;
@@ -60,15 +69,18 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
     String baseMsg;
     String pendingNotetext;
     boolean isLaunchedFromExternalApp = false;
+    boolean wasLauchedFromMainNavDrawer = false;
+    Territory currentTerritory;
+    CrmEntities.Opportunities opportunities;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.context = this;
-
         objects = new ArrayList<>();
-
         options = new MySettingsHelper(context);
+        currentTerritory = MediUser.getMe().getTerritory();
+        opportunities = options.getSavedOpportunities();
         setContentView(R.layout.activity_fullscreen_choose_opportunity);
         listView = findViewById(R.id.rvBasicObjects);
 
@@ -84,7 +96,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         refreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
-                getOpportunities();
+                getOpportunities(true);
             }
         });
 
@@ -94,8 +106,9 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         if (receivedIntent != null) {
             isLaunchedFromExternalApp = (receivedAction != null && receivedAction.equals(Intent.ACTION_SEND));
             fulltrip = receivedIntent.getParcelableExtra(FULLTRIP);
+            wasLauchedFromMainNavDrawer = receivedAction.equals(FROM_MAIN_NAV_DRAWER);
             this.setTitle("Choose opportunity");
-            getOpportunities();
+            getOpportunities(true);
         } else {
             finish();
         }
@@ -122,6 +135,67 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         });
         mySwipeHandler.addView(listView);
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (data.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT) != null) {
+            currentTerritory = data.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
+            getOpportunities(false);
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.my_opportunities, menu);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+
+        Typeface typeface = getResources().getFont(R.font.casual);
+
+        for (int i = 0; i < menu.size(); i++) {
+            MenuItem mi = menu.getItem(i);
+            //for aapplying a font to subMenu ...
+            SubMenu subMenu = mi.getSubMenu();
+            if (subMenu != null && subMenu.size() > 0) {
+                for (int j = 0; j < subMenu.size(); j++) {
+                    MenuItem subMenuItem = subMenu.getItem(j);
+                    applyFontToMenuItem(subMenuItem, typeface);
+                }
+            }
+            //the method we have create in activity
+            applyFontToMenuItem(mi, typeface);
+        }
+
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+
+        switch (item.getItemId()) {
+
+            case R.id.action_choose_territory :
+                Intent intent = new Intent(context, FullscreenActivityChooseTerritory.class);
+                intent.putExtra(FullscreenActivityChooseTerritory.CURRENT_TERRITORY, currentTerritory);
+                startActivityForResult(intent, 11);
+                break;
+
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void applyFontToMenuItem(MenuItem mi, Typeface font) {
+        SpannableString mNewTitle = new SpannableString(mi.getTitle());
+        mNewTitle.setSpan(new CustomTypefaceSpan("", font), 0, mNewTitle.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+        mi.setTitle(mNewTitle);
     }
 
     @Override
@@ -217,60 +291,6 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         return null;
     }
 
-    private Notification buildNotification(String title, String text, Opportunity opportunity, boolean onClickGoesToOpportunity, boolean showProgress){
-
-        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
-            ((NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(
-                    new NotificationChannel(MyAttachmentUploadService.NOTIFICATION_CHANNEL,NOTIFICATION_SERVICE,NotificationManager.IMPORTANCE_HIGH));
-        }
-
-        Intent onClickIntent = new Intent();
-
-        if (onClickGoesToOpportunity) {
-            onClickIntent = new Intent(context, OpportunityActivity.class);
-            onClickIntent.putExtra(OpportunityActivity.OPPORTUNITY_TAG, opportunity);
-        }
-
-        // The PendingIntent to launch our activity if the user selects
-        // this notification
-        PendingIntent contentIntent = PendingIntent.getActivity(this,
-                0, onClickIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        NotificationCompat.BigTextStyle style;
-        if (onClickGoesToOpportunity) {
-            style = new NotificationCompat.BigTextStyle()
-                    .bigText(text);
-        } else {
-            style = new NotificationCompat.BigTextStyle()
-                    .bigText("Your file is being uploaded and will be attached when finished.  Stand by!");
-        }
-
-        Notification notification = new NotificationCompat.Builder(this, MyAttachmentUploadService.NOTIFICATION_CHANNEL)
-                .setContentTitle(title)
-                .setContentText(text)
-                .setOnlyAlertOnce(true) // so when data is updated don't make sound and alert in android 8.0+
-                .setOngoing(false)
-                .setStyle(style)
-                .setProgress(0,0,showProgress)
-                .setSmallIcon(R.drawable.notification_small_car)
-                .setContentIntent(contentIntent)
-                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.car2_static_round_tparent_icon))
-                .build();
-
-        return notification;
-    }
-
-    /**
-     * This is the method that can be called to update the Notification
-     */
-    private void updateNotification(String title, String text, Opportunity opportunity, boolean onClickGoesToOpportunity, boolean showProgress){
-
-        Notification notification= buildNotification(title, text, opportunity, onClickGoesToOpportunity, showProgress);
-
-        NotificationManager mNotificationManager=(NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(MyAttachmentUploadService.START_ID, notification);
-    }
-
     ArrayList<BasicObject> buildOpportunityListBasedOnTrip() {
         if (objects == null) {
             objects = new ArrayList<>();
@@ -279,25 +299,23 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
 
         MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
         CrmEntities.CrmAddresses accountAddresses = options.getAllSavedCrmAddresses();
-        CrmEntities.Opportunities savedOpportunities = options.getSavedOpportunities();
 
         ArrayList<Opportunity> nearbyOpportunities = new ArrayList<>();
         ArrayList<Opportunity> notNearbyOpportunities = new ArrayList<>();
-        ArrayList<BasicObject> fullList = new ArrayList<>();
 
         if (    // Validate parameters before evaluating them
                 fulltrip.getTripEntries() == null ||
                         fulltrip.getTripEntries().size() < 1 ||
                         accountAddresses == null ||
                         accountAddresses.list.size() < 1 ||
-                        savedOpportunities == null ||
-                        savedOpportunities.list.size() < 1
+                        opportunities == null ||
+                        opportunities.list.size() < 1
         ) { return objects; }
 
         TripEntry startEntry = fulltrip.tripEntries.get(0);
         TripEntry endEntry = fulltrip.tripEntries.get(fulltrip.tripEntries.size() - 1);
 
-        for (Opportunity opp : savedOpportunities.list) {
+        for (Opportunity opp : opportunities.list) {
             CrmEntities.CrmAddresses.CrmAddress oppAddy = opp.tryGetCrmAddress();
             if (oppAddy != null) {
                 if (oppAddy.isNearby(startEntry)) {
@@ -318,16 +336,20 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
             objects.add(emptyObject);
         }
         for (Opportunity nearbyOpp : nearbyOpportunities) {
-            BasicObject obj = new BasicObject(nearbyOpp.name, nearbyOpp.accountname, nearbyOpp);
+            BasicObject obj = new BasicObject(nearbyOpp.name, nearbyOpp.getPrettyEstimatedValue(), nearbyOpp);
+            obj.middleText = nearbyOpp.accountname;
+            obj.topRightText = nearbyOpp.probabilityPretty;
+            obj.iconResource = R.drawable.opportunity_icon;
             objects.add(obj);
         }
         objects.add(new BasicObject("Other"));
         for (Opportunity otherOpp : notNearbyOpportunities) {
-            BasicObject obj = new BasicObject(otherOpp.name, otherOpp.accountname, otherOpp);
+            BasicObject obj = new BasicObject(otherOpp.name, otherOpp.getPrettyEstimatedValue(), otherOpp);
+            obj.middleText = otherOpp.accountname;
+            obj.topRightText = otherOpp.probabilityPretty;
+            obj.iconResource = R.drawable.opportunity_icon;
             objects.add(obj);
         }
-
-
 
         return objects;
     }
@@ -339,11 +361,13 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         objects.clear();
 
         MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
-        CrmEntities.CrmAddresses accountAddresses = options.getAllSavedCrmAddresses();
-        CrmEntities.Opportunities savedOpportunities = options.getSavedOpportunities();
+        CrmEntities.Opportunities savedOpportunities = opportunities;
 
         for (Opportunity opp : savedOpportunities.list) {
-            BasicObject obj = new BasicObject(opp.name, opp.accountname, opp);
+            BasicObject obj = new BasicObject(opp.name, opp.getPrettyEstimatedValue(), opp);
+            obj.middleText = opp.accountname;
+            obj.topRightText = opp.probabilityPretty;
+            obj.iconResource = R.drawable.opportunity_icon;
             objects.add(obj);
         }
 
@@ -351,15 +375,38 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
     }
 
     @SuppressLint("StaticFieldLeak")
-    void getOpportunities() {
+    void getOpportunities(boolean useCached) {
 
-        if (!options.hasSavedOpportunities()) {
-            Toast.makeText(context, "Retrieving your opportunities - try again in a minute or so.", Toast.LENGTH_LONG).show();
-            CrmEntities.Opportunities.retrieveAndSaveOpportunities();
-            finish();
-            return;
+        if (useCached) {
+            if (!options.hasSavedOpportunities()) {
+                Toast.makeText(context, "Retrieving your opportunities - try again in a minute or so.", Toast.LENGTH_LONG).show();
+                CrmEntities.Opportunities.retrieveAndSaveOpportunities();
+                finish();
+                return;
+            }
+        } else {
+            final MyProgressDialog myProgressDialog = new MyProgressDialog(context, getString(R.string.retrieving_opportunities));
+            myProgressDialog.show();
+            CrmEntities.Opportunities.retrieveOpportunities(currentTerritory.territoryid, new MyInterfaces.GetOpportunitiesListener() {
+                @Override
+                public void onSuccess(CrmEntities.Opportunities crmOpportunities) {
+                    opportunities = crmOpportunities;
+                    populateOpportunities();
+                    myProgressDialog.dismiss();
+                }
+
+                @Override
+                public void onFailure(String error) {
+                    Toast.makeText(context, "Failed to get opportunities!\n" + error, Toast.LENGTH_LONG).show();
+                }
+            });
         }
 
+        buildOpportunityList();
+
+    }
+
+    void buildOpportunityList() {
         final MyProgressDialog dialog = new MyProgressDialog(context , baseMsg);
 
         AsyncTask<String, String, String> task = new AsyncTask<String, String, String>() {
@@ -371,6 +418,8 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
 
                 if (isLaunchedFromExternalApp) {
                     objects = buildOpportunityListBasedOnExternalApp();
+                } else if (wasLauchedFromMainNavDrawer) {
+                    objects = buildOpportunityListBasedOnExternalApp();
                 } else {
                     objects = buildOpportunityListBasedOnTrip();
                 }
@@ -378,7 +427,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
                 try {
                     for (BasicObject o : objects) {
                         // Crashed here a couple of times while working on the background uploader.  Will put a STOP here to try and debug it next time it happens.
-                        o.iconResource = (o.isHeader ? -1 : R.drawable.about_icon_black_48x48);
+                        o.iconResource = (o.isHeader ? -1 : o.iconResource);
                     }
                 } catch (Exception e) { e.printStackTrace(); }
                 return "";
@@ -412,7 +461,6 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         } else {
             task.execute();
         }
-
     }
 
     void populateOpportunities() {
@@ -420,11 +468,15 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         TextView txtMain = findViewById(R.id.txtDescription);
 
         if (isLaunchedFromExternalApp) {
-            if (options.isExplicitMode()) {
-                txtMain.setText(getString(R.string.opportunity_picker_main_text_external_launch_explicit));
-            } else {
-                txtMain.setText(getString(R.string.opportunity_picker_main_text_external_launch));
+            if (!wasLauchedFromMainNavDrawer) {
+                if (options.isExplicitMode()) {
+                    txtMain.setText(getString(R.string.opportunity_picker_main_text_external_launch_explicit));
+                } else {
+                    txtMain.setText(getString(R.string.opportunity_picker_main_text_external_launch));
+                }
             }
+        } else if (wasLauchedFromMainNavDrawer) {
+            txtMain.setText(getString(R.string.opportunities_about_this_list_from_main_nav_drawer));
         }
 
         adapter = new BasicObjectRecyclerAdapter(this, objects);

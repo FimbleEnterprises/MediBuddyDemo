@@ -109,4 +109,9 @@ public class MyInterfaces {
         public void onSuccess(File decodedFile);
         public void onFailure(String error);
     }
+
+    public interface GetOpportunitiesListener {
+        void onSuccess(CrmEntities.Opportunities opportunities);
+        void onFailure(String error);
+    }
 }

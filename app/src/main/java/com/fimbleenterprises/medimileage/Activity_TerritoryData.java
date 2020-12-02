@@ -171,8 +171,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
         try {
             territory = data.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
-
-             sectionsPagerAdapter.notifyDataSetChanged();
+            sectionsPagerAdapter.notifyDataSetChanged();
 
             Intent dateChanged = new Intent(DATE_CHANGED);
             dateChanged.putExtra(YEAR, yearNum);
@@ -592,7 +591,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
             boolean addedThisMonthHeader = false;
             boolean addedOlderHeader = false;
 
-            // Now today's date attributes
+            // Sorting criteria based on date - these will be used when constructing header rows
             int todayDayOfYear = Helpers.DatesAndTimes.returnDayOfYear(DateTime.now());
             int todayWeekOfYear = Helpers.DatesAndTimes.returnWeekOfYear(DateTime.now());
             int todayMonthOfYear = Helpers.DatesAndTimes.returnMonthOfYear(DateTime.now());
