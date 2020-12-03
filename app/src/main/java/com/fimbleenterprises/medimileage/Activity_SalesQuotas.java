@@ -23,12 +23,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-/*import com.anychart.APIlib;
-import com.anychart.AnyChart;
-import com.anychart.AnyChartView;
-import com.anychart.chart.common.dataentry.DataEntry;
-import com.anychart.chart.common.dataentry.ValueDataEntry;
-import com.anychart.charts.Cartesian;*/
 import com.github.mikephil.charting.charts.HorizontalBarChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.BarData;
@@ -50,9 +44,6 @@ import com.scwang.smart.refresh.layout.api.RefreshLayout;
 import com.scwang.smart.refresh.layout.listener.OnLoadMoreListener;
 import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
-import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts;
-import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts.OrderProduct;
-
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
@@ -68,7 +59,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.PagerTitleStrip;
 import cz.msebera.android.httpclient.Header;
 
-public class Activity_TerritoryData extends AppCompatActivity {
+import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts;
+import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts.OrderProduct;
+
+/*import com.anychart.APIlib;
+import com.anychart.AnyChart;
+import com.anychart.AnyChartView;
+import com.anychart.chart.common.dataentry.DataEntry;
+import com.anychart.chart.common.dataentry.ValueDataEntry;
+import com.anychart.charts.Cartesian;*/
+
+public class Activity_SalesQuotas extends AppCompatActivity {
     public static Activity activity;
     public static EditText title;
     public static MyUnderlineEditText date;
@@ -241,39 +242,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         menu.findItem(R.id.action_west_region).setChecked(!isEastRegion);
 
         switch (mViewPager.currentPosition) {
-            case 0 : // Sales lines
-                menu.findItem(R.id.action_west_region).setVisible(false);
-                menu.findItem(R.id.action_east_region).setVisible(false);
-                menu.findItem(R.id.action_this_year).setVisible(false);
-                menu.findItem(R.id.action_last_year).setVisible(false);
-
-                menu.findItem(R.id.action_this_month).setVisible(true);
-                menu.findItem(R.id.action_last_month).setVisible(true);
-                menu.findItem(R.id.action_choose_month).setVisible(true);
-                menu.findItem(R.id.action_choose_territory).setVisible(true);
-                break;
-            case 1 : // Opportunities
-                menu.findItem(R.id.action_west_region).setVisible(false);
-                menu.findItem(R.id.action_east_region).setVisible(false);
-                menu.findItem(R.id.action_this_year).setVisible(false);
-                menu.findItem(R.id.action_last_year).setVisible(false);
-
-                menu.findItem(R.id.action_this_month).setVisible(false);
-                menu.findItem(R.id.action_last_month).setVisible(false);
-                menu.findItem(R.id.action_choose_month).setVisible(false);
-                menu.findItem(R.id.action_choose_territory).setVisible(true);
-            case 2 : // Cases
-                menu.findItem(R.id.action_west_region).setVisible(false);
-                menu.findItem(R.id.action_east_region).setVisible(false);
-                menu.findItem(R.id.action_this_year).setVisible(false);
-                menu.findItem(R.id.action_last_year).setVisible(false);
-
-                menu.findItem(R.id.action_this_month).setVisible(false);
-                menu.findItem(R.id.action_last_month).setVisible(false);
-                menu.findItem(R.id.action_choose_month).setVisible(false);
-                menu.findItem(R.id.action_choose_territory).setVisible(true);
-                break;
-            case 3 : // MTD
+            case 0 : // MTD
                 menu.findItem(R.id.action_this_year).setVisible(false);
                 menu.findItem(R.id.action_last_year).setVisible(false);
                 menu.findItem(R.id.action_choose_territory).setVisible(false);
@@ -284,7 +253,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 menu.findItem(R.id.action_last_month).setVisible(true);
                 menu.findItem(R.id.action_choose_month).setVisible(true);
                 break;
-            case 4 : // YTD
+            case 1 : // YTD
                 menu.findItem(R.id.action_this_month).setVisible(false);
                 menu.findItem(R.id.action_last_month).setVisible(false);
                 menu.findItem(R.id.action_choose_month).setVisible(false);
@@ -312,7 +281,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 intent.putExtra(FullscreenActivityChooseTerritory.CACHED_TERRITORIES, cachedTerritories);
                 startActivityForResult(intent, 0);
                 break;
-                
+
             case R.id.action_east_region :
                 isEastRegion = true;
                 sendBroadcastUsingExistingValues();
@@ -408,30 +377,6 @@ public class Activity_TerritoryData extends AppCompatActivity {
             Log.w(TAG, "getItem: PAGER POSITION: " + position);
 
             if (position == 0) {
-                Fragment fragment = new Frag_SalesLines();
-                Bundle args = new Bundle();
-                args.putInt(Frag_SalesLines.ARG_SECTION_NUMBER, position + 1);
-                fragment.setArguments(args);
-                return fragment;
-            }
-
-            if (position == 1) {
-                Fragment fragment = new Frag_Opportunities();
-                Bundle args = new Bundle();
-                args.putInt(Frag_Opportunities.ARG_SECTION_NUMBER, position + 1);
-                fragment.setArguments(args);
-                return fragment;
-            }
-
-            if (position == 2) {
-                Fragment fragment = new Frag_Cases();
-                Bundle args = new Bundle();
-                args.putInt(Frag_Opportunities.ARG_SECTION_NUMBER, position + 1);
-                fragment.setArguments(args);
-                return fragment;
-            }
-
-            /*if (position == 3) {
                 Fragment fragment = new Frag_Goals_MTD();
                 Bundle args = new Bundle();
                 args.putInt(Frag_Goals_MTD.ARG_SECTION_NUMBER, position + 1);
@@ -439,19 +384,19 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 return fragment;
             }
 
-            if (position == 4) {
+            if (position == 1) {
                 Fragment fragment = new Frag_Goals_YTD();
                 Bundle args = new Bundle();
                 args.putInt(Frag_Goals_YTD.ARG_SECTION_NUMBER, position + 1);
                 fragment.setArguments(args);
                 return fragment;
-            }*/
+            }
             return null;
         }
 
         @Override
         public int getCount() {
-            return 3;
+            return 2;
         }
 
         @Override
@@ -461,571 +406,22 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
             switch (position) {
                 case 0:
-                    return "Sales Lines (" + territory.territoryName + ")";
+                    return "MTD Goals by Region";
                 case 1:
-                    return "Opportunities (" + territory.territoryName + ")";
-                case 2:
-                    return "Cases (" + territory.territoryName + ")";
+                    return "YTD Goals by Region";
             }
             return null;
         }
     }
 
     //region ********************************** FRAGS *****************************************
-    public static class Frag_SalesLines extends Fragment {
-        public static final String ARG_SECTION_NUMBER = "section_number";
-        public View root;
-        public RecyclerView recyclerView;
-        RefreshLayout refreshLayout;
-        OrderLineRecyclerAdapter adapter;
-        ArrayList<OrderProducts.OrderProduct> allOrders = new ArrayList<>();
-        TextView txtNoSales;
-        BroadcastReceiver salesLinesReceiver;
 
-        @Nullable
-        @Override
-        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                                 @Nullable Bundle savedInstanceState) {
-            root = inflater.inflate(R.layout.frag_saleslines, container, false);
-            txtNoSales = root.findViewById(R.id.txtNoSales);
-            refreshLayout = root.findViewById(R.id.refreshLayout);
-            RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
-            refreshLayout.setRefreshHeader(new MaterialHeader(getContext()));
-            refreshLayout.setOnRefreshListener(new OnRefreshListener() {
-                @Override
-                public void onRefresh(RefreshLayout refreshlayout) {
-                    getSalesLines();
-                }
-            });
-            refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
-                @Override
-                public void onLoadMore(RefreshLayout refreshlayout) {
-                    refreshlayout.finishLoadMore(500/*,false*/);
-                }
-            });
-
-            txtNoSales.setVisibility( (allOrders == null || allOrders.size() == 0) ? View.VISIBLE : View.GONE);
-
-            recyclerView = root.findViewById(R.id.orderLinesRecyclerview);
-            super.onCreateView(inflater, container, savedInstanceState);
-
-            salesLinesReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    Log.i(TAG, "onReceive Received month and year broadcast! (sales lines frag)");
-                    monthNum = intent.getIntExtra(MONTH, DateTime.now().getMonthOfYear());
-                    yearNum = intent.getIntExtra(YEAR, DateTime.now().getYear());
-                    getSalesLines();
-                }
-            };
-
-            if (allOrders == null || allOrders.size() == 0) {
-                getSalesLines();
-            } else {
-                populateList();
-            }
-
-            return root;
-        }
-
-        @Override
-        public void onStop() {
-            super.onStop();
-
-        }
-
-        @Override
-        public void onDestroyView() {
-            super.onDestroyView();
-            getActivity().unregisterReceiver(salesLinesReceiver);
-            Log.i(TAG, "onPause Unregistered the sales lines receiver");
-        }
-
-        @Override
-        public void onResume() {
-            getActivity().registerReceiver(salesLinesReceiver, intentFilterMonthYear);
-
-            Log.i(TAG, "onResume Registered the sales lines receiver");
-            super.onResume();
-        }
-
-        @Override
-        public void onPause() {
-
-            super.onPause();
-        }
-
-        protected void getSalesLines() {
-            refreshLayout.autoRefreshAnimationOnly();
-
-            String query = null;
-
-            if (monthNum == DateTime.now().getMonthOfYear()) {
-                query = Queries.OrderLines.getOrderLines(territory.territoryid,
-                        Queries.Operators.DateOperator.THIS_MONTH);
-            } else if (monthNum == DateTime.now().minusMonths(1).getMonthOfYear()) {
-                query = Queries.OrderLines.getOrderLines(territory.territoryid,
-                        Queries.Operators.DateOperator.LAST_MONTH);
-            } else {
-                query = Queries.OrderLines.getOrderLines(territory.territoryid, monthNum);
-            }
-
-            txtNoSales.setVisibility(View.GONE);
-
-            ArrayList<Requests.Argument> args = new ArrayList<>();
-            Requests.Argument argument = new Requests.Argument("query", query);
-            args.add(argument);
-            Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
-            Crm crm = new Crm();
-            crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                    try {
-                        String response = new String(responseBody);
-                        Log.i(TAG, "onSuccess " + response);
-                        allOrders = new OrderProducts(response).list;
-                        populateList();
-                        refreshLayout.finishRefresh();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                    Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
-
-                    refreshLayout.finishRefresh();
-                }
-            });
-        }
-
-        protected void populateList() {
-
-            ArrayList<OrderProducts.OrderProduct> orderList = new ArrayList<>();
-
-            boolean addedTodayHeader = false;
-            boolean addedYesterdayHeader = false;
-            boolean addedThisWeekHeader = false;
-            boolean addedThisMonthHeader = false;
-            boolean addedOlderHeader = false;
-
-            // Sorting criteria based on date - these will be used when constructing header rows
-            int todayDayOfYear = Helpers.DatesAndTimes.returnDayOfYear(DateTime.now());
-            int todayWeekOfYear = Helpers.DatesAndTimes.returnWeekOfYear(DateTime.now());
-            int todayMonthOfYear = Helpers.DatesAndTimes.returnMonthOfYear(DateTime.now());
-
-            Log.i(TAG, "populateTripList: Preparing the dividers and trips...");
-            for (int i = 0; i < (allOrders.size()); i++) {
-                int tripDayOfYear = Helpers.DatesAndTimes.returnDayOfYear(allOrders.get(i).orderDate);
-                int tripWeekOfYear = Helpers.DatesAndTimes.returnWeekOfYear(allOrders.get(i).orderDate);
-                int tripMonthOfYear = Helpers.DatesAndTimes.returnMonthOfYear(allOrders.get(i).orderDate);
-
-                // Trip was today
-                if (tripDayOfYear == todayDayOfYear) {
-                    if (addedTodayHeader == false) {
-                        OrderProducts.OrderProduct headerObj = new OrderProducts.OrderProduct();
-                        headerObj.isSeparator = true;
-                        headerObj.setTitle("Today");
-                        orderList.add(headerObj);
-                        addedTodayHeader = true;
-                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Today' - This will not be added again!");
-                    }
-                    // Trip was yesterday
-                } else if (tripDayOfYear == (todayDayOfYear - 1)) {
-                    if (addedYesterdayHeader == false) {
-                        OrderProduct headerObj = new OrderProduct();
-                        headerObj.isSeparator = true;
-                        headerObj.setTitle("Yesterday");
-                        orderList.add(headerObj);
-                        addedYesterdayHeader = true;
-                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Yesterday' - This will not be added again!");
-                    }
-
-                    // Trip was this week
-                } else if (tripWeekOfYear == todayWeekOfYear) {
-                    if (addedThisWeekHeader == false) {
-                        OrderProduct headerObj = new OrderProduct();
-                        headerObj.isSeparator = true;
-                        headerObj.setTitle("This week");
-                        orderList.add(headerObj);
-                        addedThisWeekHeader = true;
-                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'This week' - This will not be added again!");
-                    }
-
-                    // Trip was this month
-                } else if (tripMonthOfYear == todayMonthOfYear) {
-                    if (addedThisMonthHeader == false) {
-                        OrderProduct headerObj = new OrderProduct();
-                        headerObj.isSeparator = true;
-                        headerObj.setTitle("This month");
-                        orderList.add(headerObj);
-                        addedThisMonthHeader = true;
-                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'This month' - This will not be added again!");
-                    }
-
-                    // Trip was older than this month
-                } else if (tripMonthOfYear < todayMonthOfYear) {
-                    if (addedOlderHeader == false) {
-                        OrderProduct headerObj = new OrderProduct();
-                        headerObj.isSeparator = true;
-                        headerObj.setTitle("Last month and older");
-                        orderList.add(headerObj);
-                        addedOlderHeader = true;
-                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Older' - This will not be added again!");
-                    }
-                }
-
-                OrderProducts.OrderProduct orderProduct = allOrders.get(i);
-                orderList.add(orderProduct);
-            }
-
-            Log.i(TAG, "populateTripList Finished preparing the dividers and trips.");
-
-            if (!getActivity().isFinishing()) {
-                adapter = new OrderLineRecyclerAdapter(getContext(), orderList);
-                adapter.setClickListener(new OrderLineRecyclerAdapter.ItemClickListener() {
-                    @Override
-                    public void onItemClick(View view, int position) {
-
-                    }
-                });
-                recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-                recyclerView.setAdapter(adapter);
-
-                refreshLayout.finishRefresh();
-            } else {
-                Log.w(TAG, "populateList: CAN'T POPULATE AS THE ACTIVITY IS FINISHING!!!");
-            }
-
-            txtNoSales.setVisibility( (allOrders == null || allOrders.size() == 0) ? View.VISIBLE : View.GONE);
-        }
-    }
-
-    public static class Frag_Opportunities extends Fragment {
-        public static final String ARG_SECTION_NUMBER = "section_number";
-        public View rootView;
-        public RecyclerView listview;
-        RefreshLayout refreshLayout;
-        public ArrayList<Territory> cachedTerritories;
-        public Territory curTerritory;
-        public CrmEntities.Opportunities opportunities;
-        ArrayList<BasicObject> objects = new ArrayList<>();
-        BasicObjectRecyclerAdapter adapter;
-        BroadcastReceiver opportunitiesReceiver;
-
-        @Nullable
-        @Override
-        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-            rootView = inflater.inflate(R.layout.frag_opportunities, container, false);
-            listview = rootView.findViewById(R.id.opportunitiesRecyclerview);
-            refreshLayout = rootView.findViewById(R.id.refreshLayout);
-
-            super.onCreateView(inflater, container, savedInstanceState);
-
-            // Gifts from Santa - open present and do stuff with what we got!
-            opportunitiesReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    Log.i(TAG, "onReceive Opportunities frag received a broadcast!");
-
-                    // User made an options menu selection - receive the details of that choice
-                    // via the broadcast sent by the parent activity.
-                    if (intent.getAction().equals(MENU_SELECTION)) {
-                        if (intent.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT) != null) {
-                            curTerritory = intent.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
-                            getOpportunities();
-                        }
-                    }
-                }
-            };
-
-
-            if (curTerritory == null) {
-                curTerritory = MediUser.getMe().getTerritory();
-            }
-
-            if (opportunities == null && curTerritory != null) {
-                getOpportunities();
-            } else {
-                populateList();
-            }
-
-            return rootView;
-        }
-
-        @Override
-        public void onPause() {
-            super.onPause();
-
-            Log.i(TAG, "onResume Unregistered opportunities receiver");
-        }
-
-        @Override
-        public void onDestroyView() {
-            getActivity().unregisterReceiver(opportunitiesReceiver);
-            super.onDestroyView();
-        }
-
-        @Override
-        public void onResume() {
-            super.onResume();
-            IntentFilter intentFilterMenuSelection = new IntentFilter(MENU_SELECTION);
-            getActivity().registerReceiver(opportunitiesReceiver, intentFilterMenuSelection);
-            Log.i(TAG, "onResume Registered opportunities receiver");
-        }
-
-        public void getOpportunities() {
-            refreshLayout.autoRefresh();
-            CrmEntities.Opportunities.retrieveOpportunities(curTerritory.territoryid, new MyInterfaces.GetOpportunitiesListener() {
-                @Override
-                public void onSuccess(CrmEntities.Opportunities crmOpportunities) {
-                    opportunities = crmOpportunities;
-                    populateList();
-                    // populateOpportunities();
-                    refreshLayout.finishRefresh();
-                }
-
-                @Override
-                public void onFailure(String error) {
-                    refreshLayout.finishRefresh();
-                    Toast.makeText(context, "Failed to get opportunities!\n" + error, Toast.LENGTH_LONG).show();
-                }
-            });
-        }
-
-        void populateList() {
-            objects = new ArrayList<>();
-            for (CrmEntities.Opportunities.Opportunity opp : opportunities.list) {
-                BasicObject object = new BasicObject(opp.name, opp.dealTypePretty, opp);
-                object.middleText = opp.accountname;
-                object.topRightText = opp.probabilityPretty;
-                objects.add(object);
-            }
-
-            adapter = new BasicObjectRecyclerAdapter(context, objects);
-            listview.setLayoutManager(new LinearLayoutManager(context));
-            listview.setAdapter(adapter);
-            adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
-                @Override
-                public void onItemClick(View view, int position) {
-                    CrmEntities.Opportunities.Opportunity selectedOpportunity =
-                            (CrmEntities.Opportunities.Opportunity) objects.get(position).object;
-
-                    Intent intent = new Intent(context, OpportunityActivity.class);
-                    intent.putExtra(OpportunityActivity.OPPORTUNITY_TAG, selectedOpportunity);
-                    startActivity(intent);
-
-                    // showOpportunityOptions(selectedOpportunity);
-                }
-            });
-        }
-
-        void showOpportunityOptions(final CrmEntities.Opportunities.Opportunity opportunity) {
-
-            final Dialog dialog = new Dialog(context);
-            dialog.setContentView(R.layout.dialog_opportunity_options);
-
-            // Fields
-            TextView txtAccount;
-            TextView txtTopic;
-            TextView txtStatus;
-            TextView txtDealStatus;
-            TextView txtDealType;
-            TextView txtCloseProb;
-            TextView txtBackground;
-
-            txtAccount = dialog.findViewById(R.id.textView_OppAccount);
-            txtTopic = dialog.findViewById(R.id.textView_OppTopic);
-            txtStatus = dialog.findViewById(R.id.textView_OppStatus);
-            txtDealStatus = dialog.findViewById(R.id.textView_OppDealStatus);
-            txtDealType = dialog.findViewById(R.id.textView_OppDealType);
-            txtCloseProb = dialog.findViewById(R.id.textView_OppCloseProb);
-            txtBackground = dialog.findViewById(R.id.textView_OppBackground);
-
-            txtAccount.setText(opportunity.accountname);
-            txtTopic.setText(opportunity.name);
-            txtStatus.setText(opportunity.status);
-            txtDealStatus.setText(opportunity.dealStatus);
-            txtDealType.setText(opportunity.dealTypePretty);
-            txtCloseProb.setText(opportunity.probabilityPretty);
-
-            String bgTruncated = "";
-            if (opportunity.currentSituation != null && opportunity.currentSituation.length() > 125) {
-                bgTruncated = opportunity.currentSituation.substring(0, 125) + "...\n";
-            } else {
-                bgTruncated = opportunity.currentSituation;
-            }
-
-            txtBackground.setText(bgTruncated);
-
-            Button btnQuickNote;
-            btnQuickNote = dialog.findViewById(R.id.btn_add_quick_note);
-            btnQuickNote.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    dialog.dismiss();
-                    showAddNoteDialog(opportunity);
-                }
-            });
-
-            Button btnViewOpportunity;
-            btnViewOpportunity = dialog.findViewById(R.id.btn_view_opportunity);
-            btnViewOpportunity.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent = new Intent(context, OpportunityActivity.class);
-                    intent.putExtra(OpportunityActivity.OPPORTUNITY_TAG, opportunity);
-                    startActivity(intent);
-                    dialog.dismiss();
-                }
-            });
-
-            dialog.setCancelable(true);
-            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-            dialog.show();
-        }
-
-        void showAddNoteDialog(final CrmEntities.Opportunities.Opportunity opportunity) {
-            CrmEntities.Annotations.showAddNoteDialog(context, opportunity.opportunityid, new MyInterfaces.CrmRequestListener() {
-                @Override
-                public void onComplete(Object result) {
-                    Log.i(TAG, "onComplete ");
-                    final Helpers.Notifications notifications = new Helpers.Notifications(context);
-                    notifications.create("Opportunity note created",
-                            "Your note was added to the opportunity!", false);
-                    notifications.show();
-                    notifications.setAutoCancel(6000);
-                }
-
-                @Override
-                public void onProgress(Crm.AsyncProgress progress) {
-                    Log.i(TAG, "onProgress ");
-                }
-
-                @Override
-                public void onFail(String error) {
-                    Log.i(TAG, "onFail ");
-                }
-            });
-
-        }
-
-    }
-
-    public static class Frag_Cases extends Fragment {
-        public static final String ARG_SECTION_NUMBER = "section_number";
-        public View rootView;
-        public RecyclerView listview;
-        RefreshLayout refreshLayout;
-        BroadcastReceiver casesReceiver;
-        CrmEntities.Tickets tickets;
-        ArrayList<BasicObject> objects = new ArrayList<>();
-        BasicObjectRecyclerAdapter adapter;
-
-        @Nullable
-        @Override
-        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-            rootView = inflater.inflate(R.layout.frag_cases, container, false);
-            listview = rootView.findViewById(R.id.casesRecyclerview);
-            refreshLayout = rootView.findViewById(R.id.refreshLayout);
-            super.onCreateView(inflater, container, savedInstanceState);
-
-            casesReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    Log.i(TAG, "onReceive Received month and year broadcast! (cases frag)");
-                    monthNum = intent.getIntExtra(MONTH, DateTime.now().getMonthOfYear());
-                    yearNum = intent.getIntExtra(YEAR, DateTime.now().getYear());
-                }
-            };
-
-            if (objects == null || objects.size() == 0) {
-                getTickets();
-            } else {
-                populateList();
-            }
-
-            return rootView;
-        }
-
-        void getTickets() {
-            refreshLayout.autoRefresh();
-            String query = Queries.Tickets.getTickets(territory.territoryid);
-            ArrayList<Requests.Argument> args = new ArrayList<>();
-            args.add(new Requests.Argument("query", query));
-            Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
-
-            Crm crm = new Crm();
-            crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                    String response = new String(responseBody);
-                    Log.i(TAG, "onSuccess " + response);
-                    tickets = new CrmEntities.Tickets(response);
-                    populateList();
-                    refreshLayout.finishRefresh();
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                    refreshLayout.finishRefresh();
-                }
-            });
-        }
-
-        void populateList() {
-
-            objects.clear();
-
-            for (CrmEntities.Tickets.Ticket ticket : tickets.list) {
-                BasicObject object = new BasicObject(ticket.title, ticket.ticketnumber, ticket);
-                object.middleText = ticket.customerFormatted;
-                object.topRightText = ticket.statecodeFormatted;
-                objects.add(object);
-            }
-
-            adapter = new BasicObjectRecyclerAdapter(context, objects);
-            listview.setLayoutManager(new LinearLayoutManager(context));
-            listview.setAdapter(adapter);
-            adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
-                @Override
-                public void onItemClick(View view, int position) {
-                    BasicObject object = objects.get(position);
-                    CrmEntities.Tickets.Ticket ticket = (CrmEntities.Tickets.Ticket) object.object;
-                    Toast.makeText(context, ticket.ticketnumber, Toast.LENGTH_SHORT).show();
-                }
-            });
-
-        }
-
-        @Override
-        public void onResume() {
-            super.onResume();
-            getActivity().registerReceiver(casesReceiver, intentFilterMonthYear);
-            Log.i(TAG, "onResume Registered the cases receiver");
-        }
-
-        @Override
-        public void onPause() {
-            super.onPause();
-        }
-
-        @Override
-        public void onDestroyView() {
-            super.onDestroyView();
-            getActivity().unregisterReceiver(casesReceiver);
-            Log.i(TAG, "onPause Unregistered the cases receiver");
-        }
-    }
-
-/*
-public static class Frag_Goals_MTD extends Fragment {
+    public static class Frag_Goals_MTD extends Fragment {
         private View rootView;
         public static final String ARG_SECTION_NUMBER = "section_number";
         // ProgressBar pbLoading;
-        *//*Cartesian bar;
-        AnyChartView anyChartView;*//*
+        /*Cartesian bar;
+        AnyChartView anyChartView;*/
         RefreshLayout mtdRefreshLayout;
         HorizontalBarChart chartMtd;
         TextView txtChartTitle;
@@ -1063,7 +459,7 @@ public static class Frag_Goals_MTD extends Fragment {
             mtdRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
                 @Override
                 public void onLoadMore(RefreshLayout refreshlayout) {
-                    refreshlayout.finishLoadMore(1*//*,false*//*);
+                    refreshlayout.finishLoadMore(1/*,false*/);
                 }
             });
 
@@ -1254,8 +650,8 @@ public static class Frag_Goals_MTD extends Fragment {
         private View rootView;
         public static final String ARG_SECTION_NUMBER = "section_number";
         // ProgressBar pbLoading;
-        *//*Cartesian bar;
-        AnyChartView anyChartView;*//*
+        /*Cartesian bar;
+        AnyChartView anyChartView;*/
         RefreshLayout ytdRefreshLayout;
         TextView txtChartTitle;
         HorizontalBarChart chartYtd;
@@ -1292,7 +688,7 @@ public static class Frag_Goals_MTD extends Fragment {
             ytdRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
                 @Override
                 public void onLoadMore(RefreshLayout refreshlayout) {
-                    refreshlayout.finishLoadMore(1*//*,false*//*);
+                    refreshlayout.finishLoadMore(1/*,false*/);
                 }
             });
 
@@ -1478,6 +874,6 @@ public static class Frag_Goals_MTD extends Fragment {
         }
 
     }
-    */
+
     // endregion
 }

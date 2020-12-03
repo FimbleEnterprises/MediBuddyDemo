@@ -267,9 +267,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (item.getItemId() == R.id.nav_myaccounts) {
             startActivity(new Intent(activity, Activity_AccountInfo.class));
             // drawer.closeDrawer(navigationView);
-        } else if (item.getItemId() == R.id.nav_myopportunities) {
-            Intent oppIntent = new Intent(activity, FullscreenActivityChooseOpportunity.class);
-            oppIntent.setAction(FullscreenActivityChooseOpportunity.FROM_MAIN_NAV_DRAWER);
+        } else if (item.getItemId() == R.id.nav_salesquotas) {
+            Intent oppIntent = new Intent(activity, Activity_SalesQuotas.class);
             startActivity(oppIntent);
             // drawer.closeDrawer(navigationView);
         } else {
@@ -483,7 +482,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             menu.findItem(R.id.nav_data).setTitle(R.string.menu_data_explicit);
             menu.findItem(R.id.nav_myterritory).setTitle(R.string.menu_other_fucking_sales_shit);
             menu.findItem(R.id.nav_myaccounts).setTitle(getString(R.string.menu_account_info_explicit));
-            menu.findItem(R.id.nav_myopportunities).setTitle(getString(R.string.menu_myopportunities_explicit));
+            menu.findItem(R.id.nav_salesquotas).setTitle(getString(R.string.menu_salesquotas_explicit));
             menu.findItem(R.id.nav_settings).setTitle(R.string.menu_settings_explicit);
             menu.findItem(R.id.nav_user_trips).setTitle(R.string.menu_users_explicit);
         } else {
@@ -492,7 +491,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             menu.findItem(R.id.nav_data).setTitle(R.string.menu_data);
             menu.findItem(R.id.nav_myterritory).setTitle(R.string.menu_territory_info);
             menu.findItem(R.id.nav_myaccounts).setTitle(getString(R.string.menu_account_info));
-            menu.findItem(R.id.nav_myopportunities).setTitle(getString(R.string.menu_myopportunities));
+            menu.findItem(R.id.nav_salesquotas).setTitle(getString(R.string.menu_salesquotas));
             menu.findItem(R.id.nav_settings).setTitle(R.string.menu_settings);
             menu.findItem(R.id.nav_user_trips).setTitle(R.string.menu_users);
         }

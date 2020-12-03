@@ -33,9 +33,9 @@
                     android:icon="@drawable/ic_carot_right"
                     android:title="@string/menu_account_info" />
                 <item
-                    android:id="@+id/nav_myopportunities"
+                    android:id="@+id/nav_salesquotas"
                     android:icon="@drawable/ic_carot_right"
-                    android:title="@string/menu_my_opportunities" />
+                    android:title="@string/menu_salesquotas" />
                 <item
                     android:id="@+id/nav_settings"
                     android:icon="@drawable/settings_36x36"
