@@ -2026,6 +2026,286 @@ public class CrmEntities {
 
     }
 
+    public static class Tickets {
+
+        ArrayList<Ticket> list = new ArrayList<>();
+
+        public Tickets(String crmResponse) {
+            try {
+                JSONObject rootObject = new JSONObject(crmResponse);
+                JSONArray rootArray = rootObject.getJSONArray("value");
+                for (int i = 0; i < rootArray.length(); i++) {
+                    JSONObject json = rootArray.getJSONObject(i);
+                    list.add(new Ticket(json));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public static class Ticket {
+
+            public String etag;
+            public String statecodeFormatted;
+            public int statecode;
+            public String statusFormatted;
+            public int statuscode;
+            public String caseTypeFormatted;
+            public int casetype;
+            public DateTime createdon;
+            public String ticketnumber;
+            public String ownerName;
+            public String ownerid;
+            public DateTime modifiedon;
+            public String title;
+            public String priorityFormatted;
+            public int priority;
+            public String description;
+            public String modifiedByFormatted;
+            public String modifiedBy;
+            public String caseOriginFormatted;
+            public int caseorigin;
+            public String customerFormatted;
+            public String customerid;
+            public String subjectid;
+            public String subjectFormatted;
+            public String createdby;
+            public String createdByFormatted;
+            public String ticketid;
+            public String territoryid;
+            public String territoryFormatted;
+            public String repFormatted;
+            public String repid;
+                        
+            public Ticket(JSONObject json) {
+                try {
+                    if (!json.isNull("etag")) {
+                        this.etag = (json.getString("etag"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("statecodeFormattedValue")) {
+                        this.statecodeFormatted = (json.getString("statecodeFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("statecode")) {
+                        this.statecode = (json.getInt("statecode"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("statuscodeFormattedValue")) {
+                        this.statusFormatted = (json.getString("statuscodeFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("statuscode")) {
+                        this.statuscode = (json.getInt("statuscode"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("casetypecodeFormattedValue")) {
+                        this.caseTypeFormatted = (json.getString("casetypecodeFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("casetypecode")) {
+                        this.casetype = (json.getInt("casetypecode"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("createdon")) {
+                        this.createdon = (new DateTime(json.getString("createdon")));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("ticketnumber")) {
+                        this.ticketnumber = (json.getString("ticketnumber"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_ownerid_valueFormattedValue")) {
+                        this.ownerName = (json.getString("_ownerid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_ownerid_value")) {
+                        this.ownerid = (json.getString("_ownerid_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                   if (!json.isNull("modifiedon")) {
+                       this.modifiedon = (new DateTime(json.getString("modifiedon")));
+                   }
+                } catch (JSONException e) {
+                   e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("title")) {
+                        this.title = (json.getString("title"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("prioritycode")) {
+                        this.priority = (json.getInt("prioritycode"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("prioritycodeFormattedValue")) {
+                        this.priorityFormatted = (json.getString("prioritycodeFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("description")) {
+                        this.description = (json.getString("description"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_modifiedby_valueFormattedValue")) {
+                        this.modifiedByFormatted = (json.getString("_modifiedby_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_modifiedby_value")) {
+                        this.modifiedBy = (json.getString("_modifiedby_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("caseorigincode")) {
+                        this.caseorigin = (json.getInt("caseorigincode"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("caseorigincodeFormattedValue")) {
+                        this.caseOriginFormatted = (json.getString("caseorigincodeFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_subjectid_valueFormattedValue")) {
+                        this.subjectFormatted = (json.getString("_subjectid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_subjectid_value")) {
+                        this.subjectid = (json.getString("_subjectid_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_subjectid_valueFormattedValue")) {
+                        this.subjectFormatted = (json.getString("_subjectid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_createdby_valueFormattedValue")) {
+                        this.createdByFormatted = (json.getString("_createdby_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_createdby_value")) {
+                        this.createdby = (json.getString("_createdby_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_customerid_valueFormattedValue")) {
+                        this.customerFormatted = (json.getString("_customerid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_customerid_value")) {
+                        this.customerid = (json.getString("_customerid_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("incidentid")) {
+                        this.ticketid = (json.getString("incidentid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_4b5945b8a4a64613afc1ae1d5e6828c7_territoryidFormattedValue")) {
+                        this.territoryFormatted = (json.getString("a_4b5945b8a4a64613afc1ae1d5e6828c7_territoryidFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_4b5945b8a4a64613afc1ae1d5e6828c7_territoryid")) {
+                        this.territoryid = (json.getString("a_4b5945b8a4a64613afc1ae1d5e6828c7_territoryid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_4b5945b8a4a64613afc1ae1d5e6828c7_msus_salesrepFormattedValue")) {
+                        this.repFormatted = (json.getString("a_4b5945b8a4a64613afc1ae1d5e6828c7_msus_salesrepFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_4b5945b8a4a64613afc1ae1d5e6828c7_msus_salesrep")) {
+                        this.repid = (json.getString("a_4b5945b8a4a64613afc1ae1d5e6828c7_msus_salesrep"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
     public static class Accounts implements Parcelable {
         private static final String TAG = "Accounts";
         public ArrayList<Account> list = new ArrayList<>();

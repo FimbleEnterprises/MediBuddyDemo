@@ -9,20 +9,19 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /*import com.anychart.APIlib;
 import com.anychart.AnyChart;
@@ -30,16 +29,12 @@ import com.anychart.AnyChartView;
 import com.anychart.chart.common.dataentry.DataEntry;
 import com.anychart.chart.common.dataentry.ValueDataEntry;
 import com.anychart.charts.Cartesian;*/
-import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.HorizontalBarChart;
-import com.github.mikephil.charting.components.Description;
-import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
@@ -61,7 +56,6 @@ import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts.OrderP
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -90,23 +84,21 @@ public class Activity_TerritoryData extends AppCompatActivity {
     public static SectionsPagerAdapter sectionsPagerAdapter;
     public static androidx.fragment.app.FragmentManager fragMgr;
     public static MySettingsHelper options;
+    ArrayList<Territory> cachedTerritories = new ArrayList<>();
 
-    // Receivers for date range changes at the activity level
+    public static final String MENU_SELECTION = "MENU_SELECTION";
+
+    // Intent filters for the various fragment's broadcast receivers.
     public static IntentFilter intentFilterMonthYear;
-    public static BroadcastReceiver goalsReceiverMtd;
-    public static BroadcastReceiver goalsReceiverYtd;
-    public static BroadcastReceiver salesLinesReceiver;
-    public static BroadcastReceiver casesReceiver;
-    public static BroadcastReceiver opportunitiesReceiver;
 
     // vars for the date ranges
     public static int monthNum;
     public static int yearNum;
 
-    // var for region
+    // flag for region
     public static boolean isEastRegion = true;
 
-    // var for territoryid
+    // var for territory shared with all fragments that want or need it
     public static Territory territory;
 
     // The popup dialog for goals represented by the chart.
@@ -171,12 +163,18 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
         try {
             territory = data.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
+            cachedTerritories = data.getParcelableArrayListExtra(FullscreenActivityChooseTerritory.CACHED_TERRITORIES);
             sectionsPagerAdapter.notifyDataSetChanged();
 
-            Intent dateChanged = new Intent(DATE_CHANGED);
+            Intent intent = new Intent(MENU_SELECTION);
+            intent.setAction(MENU_SELECTION);
+            intent.putExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT, territory);
+            sendBroadcast(intent);
+
+            /*Intent dateChanged = new Intent(DATE_CHANGED);
             dateChanged.putExtra(YEAR, yearNum);
             dateChanged.putExtra(MONTH, monthNum);
-            sendBroadcast(dateChanged);
+            sendBroadcast(dateChanged);*/
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -254,7 +252,28 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 menu.findItem(R.id.action_choose_month).setVisible(true);
                 menu.findItem(R.id.action_choose_territory).setVisible(true);
                 break;
-            case 1 : // MTD
+            case 1 : // Opportunities
+                menu.findItem(R.id.action_west_region).setVisible(false);
+                menu.findItem(R.id.action_east_region).setVisible(false);
+                menu.findItem(R.id.action_this_year).setVisible(false);
+                menu.findItem(R.id.action_last_year).setVisible(false);
+
+                menu.findItem(R.id.action_this_month).setVisible(false);
+                menu.findItem(R.id.action_last_month).setVisible(false);
+                menu.findItem(R.id.action_choose_month).setVisible(false);
+                menu.findItem(R.id.action_choose_territory).setVisible(true);
+            case 2 : // Cases
+                menu.findItem(R.id.action_west_region).setVisible(false);
+                menu.findItem(R.id.action_east_region).setVisible(false);
+                menu.findItem(R.id.action_this_year).setVisible(false);
+                menu.findItem(R.id.action_last_year).setVisible(false);
+
+                menu.findItem(R.id.action_this_month).setVisible(false);
+                menu.findItem(R.id.action_last_month).setVisible(false);
+                menu.findItem(R.id.action_choose_month).setVisible(false);
+                menu.findItem(R.id.action_choose_territory).setVisible(true);
+                break;
+            case 3 : // MTD
                 menu.findItem(R.id.action_this_year).setVisible(false);
                 menu.findItem(R.id.action_last_year).setVisible(false);
                 menu.findItem(R.id.action_choose_territory).setVisible(false);
@@ -265,7 +284,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 menu.findItem(R.id.action_last_month).setVisible(true);
                 menu.findItem(R.id.action_choose_month).setVisible(true);
                 break;
-            case 2 : // YTD
+            case 4 : // YTD
                 menu.findItem(R.id.action_this_month).setVisible(false);
                 menu.findItem(R.id.action_last_month).setVisible(false);
                 menu.findItem(R.id.action_choose_month).setVisible(false);
@@ -284,13 +303,13 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        Intent dateChanged;
         DateTime now = DateTime.now();
         DateTime aMonthAgo = now.minusMonths(1);
         switch (item.getItemId()) {
             case R.id.action_choose_territory :
                 Intent intent = new Intent(context, FullscreenActivityChooseTerritory.class);
                 intent.putExtra(FullscreenActivityChooseTerritory.CURRENT_TERRITORY, territory);
+                intent.putExtra(FullscreenActivityChooseTerritory.CACHED_TERRITORIES, cachedTerritories);
                 startActivityForResult(intent, 0);
                 break;
                 
@@ -397,22 +416,6 @@ public class Activity_TerritoryData extends AppCompatActivity {
             }
 
             if (position == 1) {
-                Fragment fragment = new Frag_Goals_MTD();
-                Bundle args = new Bundle();
-                args.putInt(Frag_Goals_MTD.ARG_SECTION_NUMBER, position + 1);
-                fragment.setArguments(args);
-                return fragment;
-            }
-
-            if (position == 2) {
-                Fragment fragment = new Frag_Goals_YTD();
-                Bundle args = new Bundle();
-                args.putInt(Frag_Goals_YTD.ARG_SECTION_NUMBER, position + 1);
-                fragment.setArguments(args);
-                return fragment;
-            }
-
-            if (position == 3) {
                 Fragment fragment = new Frag_Opportunities();
                 Bundle args = new Bundle();
                 args.putInt(Frag_Opportunities.ARG_SECTION_NUMBER, position + 1);
@@ -420,10 +423,26 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 return fragment;
             }
 
-            if (position == 4) {
+            if (position == 2) {
                 Fragment fragment = new Frag_Cases();
                 Bundle args = new Bundle();
                 args.putInt(Frag_Opportunities.ARG_SECTION_NUMBER, position + 1);
+                fragment.setArguments(args);
+                return fragment;
+            }
+
+            if (position == 3) {
+                Fragment fragment = new Frag_Goals_MTD();
+                Bundle args = new Bundle();
+                args.putInt(Frag_Goals_MTD.ARG_SECTION_NUMBER, position + 1);
+                fragment.setArguments(args);
+                return fragment;
+            }
+
+            if (position == 4) {
+                Fragment fragment = new Frag_Goals_YTD();
+                Bundle args = new Bundle();
+                args.putInt(Frag_Goals_YTD.ARG_SECTION_NUMBER, position + 1);
                 fragment.setArguments(args);
                 return fragment;
             }
@@ -432,7 +451,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return 3;
+            return 5;
         }
 
         @Override
@@ -444,20 +463,19 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 case 0:
                     return "Sales Lines (" + territory.territoryName + ")";
                 case 1:
-                    return "MTD Goals by Region";
+                    return "Opportunities (" + territory.territoryName + ")";
                 case 2:
-                    return "YTD Goals by Region";
+                    return "Cases (" + territory.territoryName + ")";
                 case 3:
-                    return "Opportunities";
+                    return "MTD Goals by Region";
                 case 4:
-                    return "Cases";
+                    return "YTD Goals by Region";
             }
             return null;
         }
     }
 
     //region ********************************** FRAGS *****************************************
-
     public static class Frag_SalesLines extends Fragment {
         public static final String ARG_SECTION_NUMBER = "section_number";
         public View root;
@@ -466,6 +484,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         OrderLineRecyclerAdapter adapter;
         ArrayList<OrderProducts.OrderProduct> allOrders = new ArrayList<>();
         TextView txtNoSales;
+        BroadcastReceiver salesLinesReceiver;
 
         @Nullable
         @Override
@@ -504,7 +523,11 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 }
             };
 
-            getSalesLines();
+            if (allOrders == null || allOrders.size() == 0) {
+                getSalesLines();
+            } else {
+                populateList();
+            }
 
             return root;
         }
@@ -683,6 +706,318 @@ public class Activity_TerritoryData extends AppCompatActivity {
         }
     }
 
+    public static class Frag_Opportunities extends Fragment {
+        public static final String ARG_SECTION_NUMBER = "section_number";
+        public View rootView;
+        public RecyclerView listview;
+        RefreshLayout refreshLayout;
+        public ArrayList<Territory> cachedTerritories;
+        public Territory curTerritory;
+        public CrmEntities.Opportunities opportunities;
+        ArrayList<BasicObject> objects = new ArrayList<>();
+        BasicObjectRecyclerAdapter adapter;
+        BroadcastReceiver opportunitiesReceiver;
+
+        @Nullable
+        @Override
+        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            rootView = inflater.inflate(R.layout.frag_opportunities, container, false);
+            listview = rootView.findViewById(R.id.opportunitiesRecyclerview);
+            refreshLayout = rootView.findViewById(R.id.refreshLayout);
+
+            super.onCreateView(inflater, container, savedInstanceState);
+
+            // Gifts from Santa - open present and do stuff with what we got!
+            opportunitiesReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Log.i(TAG, "onReceive Opportunities frag received a broadcast!");
+
+                    // User made an options menu selection - receive the details of that choice
+                    // via the broadcast sent by the parent activity.
+                    if (intent.getAction().equals(MENU_SELECTION)) {
+                        if (intent.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT) != null) {
+                            curTerritory = intent.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
+                            getOpportunities();
+                        }
+                    }
+                }
+            };
+
+
+            if (curTerritory == null) {
+                curTerritory = MediUser.getMe().getTerritory();
+            }
+
+            if (opportunities == null && curTerritory != null) {
+                getOpportunities();
+            } else {
+                populateList();
+            }
+
+            return rootView;
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+
+            Log.i(TAG, "onResume Unregistered opportunities receiver");
+        }
+
+        @Override
+        public void onDestroyView() {
+            getActivity().unregisterReceiver(opportunitiesReceiver);
+            super.onDestroyView();
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            IntentFilter intentFilterMenuSelection = new IntentFilter(MENU_SELECTION);
+            getActivity().registerReceiver(opportunitiesReceiver, intentFilterMenuSelection);
+            Log.i(TAG, "onResume Registered opportunities receiver");
+        }
+
+        public void getOpportunities() {
+            refreshLayout.autoRefresh();
+            CrmEntities.Opportunities.retrieveOpportunities(curTerritory.territoryid, new MyInterfaces.GetOpportunitiesListener() {
+                @Override
+                public void onSuccess(CrmEntities.Opportunities crmOpportunities) {
+                    opportunities = crmOpportunities;
+                    populateList();
+                    // populateOpportunities();
+                    refreshLayout.finishRefresh();
+                }
+
+                @Override
+                public void onFailure(String error) {
+                    refreshLayout.finishRefresh();
+                    Toast.makeText(context, "Failed to get opportunities!\n" + error, Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+
+        void populateList() {
+            objects = new ArrayList<>();
+            for (CrmEntities.Opportunities.Opportunity opp : opportunities.list) {
+                BasicObject object = new BasicObject(opp.name, opp.dealTypePretty, opp);
+                object.middleText = opp.accountname;
+                object.topRightText = opp.probabilityPretty;
+                objects.add(object);
+            }
+
+            adapter = new BasicObjectRecyclerAdapter(context, objects);
+            listview.setLayoutManager(new LinearLayoutManager(context));
+            listview.setAdapter(adapter);
+            adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
+                @Override
+                public void onItemClick(View view, int position) {
+                    CrmEntities.Opportunities.Opportunity selectedOpportunity =
+                            (CrmEntities.Opportunities.Opportunity) objects.get(position).object;
+                    showOpportunityOptions(selectedOpportunity);
+                }
+            });
+        }
+
+        void showOpportunityOptions(final CrmEntities.Opportunities.Opportunity opportunity) {
+
+            final Dialog dialog = new Dialog(context);
+            dialog.setContentView(R.layout.dialog_opportunity_options);
+
+            // Fields
+            TextView txtAccount;
+            TextView txtTopic;
+            TextView txtStatus;
+            TextView txtDealStatus;
+            TextView txtDealType;
+            TextView txtCloseProb;
+            TextView txtBackground;
+
+            txtAccount = dialog.findViewById(R.id.textView_OppAccount);
+            txtTopic = dialog.findViewById(R.id.textView_OppTopic);
+            txtStatus = dialog.findViewById(R.id.textView_OppStatus);
+            txtDealStatus = dialog.findViewById(R.id.textView_OppDealStatus);
+            txtDealType = dialog.findViewById(R.id.textView_OppDealType);
+            txtCloseProb = dialog.findViewById(R.id.textView_OppCloseProb);
+            txtBackground = dialog.findViewById(R.id.textView_OppBackground);
+
+            txtAccount.setText(opportunity.accountname);
+            txtTopic.setText(opportunity.name);
+            txtStatus.setText(opportunity.status);
+            txtDealStatus.setText(opportunity.dealStatus);
+            txtDealType.setText(opportunity.dealTypePretty);
+            txtCloseProb.setText(opportunity.probabilityPretty);
+
+            String bgTruncated = "";
+            if (opportunity.currentSituation != null && opportunity.currentSituation.length() > 125) {
+                bgTruncated = opportunity.currentSituation.substring(0, 125) + "...\n";
+            } else {
+                bgTruncated = opportunity.currentSituation;
+            }
+
+            txtBackground.setText(bgTruncated);
+
+            Button btnQuickNote;
+            btnQuickNote = dialog.findViewById(R.id.btn_add_quick_note);
+            btnQuickNote.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    dialog.dismiss();
+                    showAddNoteDialog(opportunity);
+                }
+            });
+
+            Button btnViewOpportunity;
+            btnViewOpportunity = dialog.findViewById(R.id.btn_view_opportunity);
+            btnViewOpportunity.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(context, OpportunityActivity.class);
+                    intent.putExtra(OpportunityActivity.OPPORTUNITY_TAG, opportunity);
+                    startActivity(intent);
+                    dialog.dismiss();
+                }
+            });
+
+            dialog.setCancelable(true);
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            dialog.show();
+        }
+
+        void showAddNoteDialog(final CrmEntities.Opportunities.Opportunity opportunity) {
+            CrmEntities.Annotations.showAddNoteDialog(context, opportunity.opportunityid, new MyInterfaces.CrmRequestListener() {
+                @Override
+                public void onComplete(Object result) {
+                    Log.i(TAG, "onComplete ");
+                    final Helpers.Notifications notifications = new Helpers.Notifications(context);
+                    notifications.create("Opportunity note created",
+                            "Your note was added to the opportunity!", false);
+                    notifications.show();
+                    notifications.setAutoCancel(6000);
+                }
+
+                @Override
+                public void onProgress(Crm.AsyncProgress progress) {
+                    Log.i(TAG, "onProgress ");
+                }
+
+                @Override
+                public void onFail(String error) {
+                    Log.i(TAG, "onFail ");
+                }
+            });
+
+        }
+
+    }
+
+    public static class Frag_Cases extends Fragment {
+        public static final String ARG_SECTION_NUMBER = "section_number";
+        public View rootView;
+        public RecyclerView listview;
+        RefreshLayout refreshLayout;
+        BroadcastReceiver casesReceiver;
+        CrmEntities.Tickets tickets;
+        ArrayList<BasicObject> objects = new ArrayList<>();
+        BasicObjectRecyclerAdapter adapter;
+
+        @Nullable
+        @Override
+        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            rootView = inflater.inflate(R.layout.frag_cases, container, false);
+            listview = rootView.findViewById(R.id.casesRecyclerview);
+            refreshLayout = rootView.findViewById(R.id.refreshLayout);
+            super.onCreateView(inflater, container, savedInstanceState);
+
+            casesReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Log.i(TAG, "onReceive Received month and year broadcast! (cases frag)");
+                    monthNum = intent.getIntExtra(MONTH, DateTime.now().getMonthOfYear());
+                    yearNum = intent.getIntExtra(YEAR, DateTime.now().getYear());
+                }
+            };
+
+            if (objects == null || objects.size() == 0) {
+                getTickets();
+            } else {
+                populateList();
+            }
+
+            return rootView;
+        }
+
+        void getTickets() {
+            refreshLayout.autoRefresh();
+            String query = Queries.Tickets.getTickets(territory.territoryid);
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            args.add(new Requests.Argument("query", query));
+            Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
+
+            Crm crm = new Crm();
+            crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    String response = new String(responseBody);
+                    Log.i(TAG, "onSuccess " + response);
+                    tickets = new CrmEntities.Tickets(response);
+                    populateList();
+                    refreshLayout.finishRefresh();
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    refreshLayout.finishRefresh();
+                }
+            });
+        }
+
+        void populateList() {
+
+            objects.clear();
+
+            for (CrmEntities.Tickets.Ticket ticket : tickets.list) {
+                BasicObject object = new BasicObject(ticket.title, ticket.ticketnumber, ticket);
+                object.middleText = ticket.customerFormatted;
+                object.topRightText = ticket.statecodeFormatted;
+                objects.add(object);
+            }
+
+            adapter = new BasicObjectRecyclerAdapter(context, objects);
+            listview.setLayoutManager(new LinearLayoutManager(context));
+            listview.setAdapter(adapter);
+            adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
+                @Override
+                public void onItemClick(View view, int position) {
+                    BasicObject object = objects.get(position);
+                    CrmEntities.Tickets.Ticket ticket = (CrmEntities.Tickets.Ticket) object.object;
+                    Toast.makeText(context, ticket.ticketnumber, Toast.LENGTH_SHORT).show();
+                }
+            });
+
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            getActivity().registerReceiver(casesReceiver, intentFilterMonthYear);
+            Log.i(TAG, "onResume Registered the cases receiver");
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+        }
+
+        @Override
+        public void onDestroyView() {
+            super.onDestroyView();
+            getActivity().unregisterReceiver(casesReceiver);
+            Log.i(TAG, "onPause Unregistered the cases receiver");
+        }
+    }
+
     public static class Frag_Goals_MTD extends Fragment {
         private View rootView;
         public static final String ARG_SECTION_NUMBER = "section_number";
@@ -692,11 +1027,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
         RefreshLayout mtdRefreshLayout;
         HorizontalBarChart chartMtd;
         TextView txtChartTitle;
-
-        @Override
-        public void onCreate(@Nullable Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-        }
+        CrmEntities.Goals goals;
+        BroadcastReceiver goalsReceiverMtd;
 
         @Nullable
         @Override
@@ -741,7 +1073,11 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 yearNum = DateTime.now().getYear();
             }
 
-            getMtdGoalsByRegion();
+            if (goals == null || goals.list.size() == 0) {
+                getMtdGoalsByRegion();
+            }else {
+                populateChartMtd();
+            }
             return rootView;
         }
 
@@ -754,9 +1090,14 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
         @Override
         public void onPause() {
+            super.onPause();
+        }
+
+        @Override
+        public void onDestroyView() {
+            super.onDestroyView();
             getActivity().unregisterReceiver(goalsReceiverMtd);
             Log.i(TAG, "onPause Unregistered the goals receiver");
-            super.onPause();
         }
 
         void getMtdGoalsByRegion() {
@@ -774,9 +1115,9 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                     String response = new String(responseBody);
-                    CrmEntities.Goals goals = new CrmEntities.Goals(response);
+                    goals = new CrmEntities.Goals(response);
                     Log.i(TAG, "onSuccess " + response);
-                    populateChartMtd(goals);
+                    populateChartMtd();
                     mtdRefreshLayout.finishRefresh();
                 }
 
@@ -789,7 +1130,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
             });
         }
 
-        void populateChartMtd(final CrmEntities.Goals goals) {
+        void populateChartMtd() {
 
             String title = "MTD Goals " + getRegionName() + " (month: " + monthNum + ", year: " + yearNum + ")";
             
@@ -916,11 +1257,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
         RefreshLayout ytdRefreshLayout;
         TextView txtChartTitle;
         HorizontalBarChart chartYtd;
-
-        @Override
-        public void onCreate(@Nullable Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-        }
+        CrmEntities.Goals goals;
+        BroadcastReceiver goalsReceiverYtd;
 
         @Nullable
         @Override
@@ -964,7 +1302,11 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 yearNum = DateTime.now().getYear();
             }
 
-            getYtdGoalsByRegion();
+            if (goals == null || goals.list.size() == 0) {
+                getYtdGoalsByRegion();
+            } else {
+                populateChartYtd();
+            }
             return rootView;
         }
 
@@ -977,9 +1319,14 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
         @Override
         public void onPause() {
+            super.onPause();
+        }
+
+        @Override
+        public void onDestroyView() {
+            super.onDestroyView();
             getActivity().unregisterReceiver(goalsReceiverYtd);
             Log.i(TAG, "onPause Unregistered the goals receiver");
-            super.onPause();
         }
 
         void getYtdGoalsByRegion() {
@@ -997,9 +1344,9 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                     String response = new String(responseBody);
-                    CrmEntities.Goals goals = new CrmEntities.Goals(response);
+                    goals = new CrmEntities.Goals(response);
                     Log.i(TAG, "onSuccess " + response);
-                    populateChartYtd(goals);
+                    populateChartYtd();
                     ytdRefreshLayout.finishRefresh();
                 }
 
@@ -1012,7 +1359,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
             });
         }
 
-        void populateChartYtd(final CrmEntities.Goals goals) {
+        void populateChartYtd() {
 
             String title = "YTD Goals " + getRegionName() + " (year: " + yearNum + ")";
 
@@ -1129,99 +1476,5 @@ public class Activity_TerritoryData extends AppCompatActivity {
         }
 
     }
-
-    public static class Frag_Opportunities extends Fragment {
-        public static final String ARG_SECTION_NUMBER = "section_number";
-        public View rootView;
-        public RecyclerView listview;
-        RefreshLayout refreshLayout;
-
-        @Override
-        public void onCreate(@Nullable Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-        }
-
-        @Override
-        public void onPause() {
-            super.onPause();
-            getActivity().unregisterReceiver(opportunitiesReceiver);
-            Log.i(TAG, "onResume Unregistered opportunities receiver");
-        }
-
-        @Override
-        public void onResume() {
-            super.onResume();
-            getActivity().registerReceiver(opportunitiesReceiver, intentFilterMonthYear);
-            Log.i(TAG, "onResume Registered opportunities receiver");
-        }
-
-        @Nullable
-        @Override
-        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-            rootView = inflater.inflate(R.layout.frag_saleslines, container, false);
-            listview = rootView.findViewById(R.id.opportunitiesRecyclerview);
-            refreshLayout = rootView.findViewById(R.id.refreshLayout);
-
-            super.onCreateView(inflater, container, savedInstanceState);
-            opportunitiesReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    Log.i(TAG, "onReceive Received month and year broadcast! (opportunities frag)");
-                    monthNum = intent.getIntExtra(MONTH, DateTime.now().getMonthOfYear());
-                    yearNum = intent.getIntExtra(YEAR, DateTime.now().getYear());
-                }
-            };
-
-
-            return rootView;
-        }
-
-    }
-
-    public static class Frag_Cases extends Fragment {
-        public static final String ARG_SECTION_NUMBER = "section_number";
-        public View rootView;
-        public RecyclerView listview;
-        RefreshLayout refreshLayout;
-
-        @Override
-        public void onCreate(@Nullable Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-        }
-
-        @Nullable
-        @Override
-        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-            rootView = inflater.inflate(R.layout.frag_saleslines, container, false);
-            listview = rootView.findViewById(R.id.casesRecyclerview);
-            refreshLayout = rootView.findViewById(R.id.refreshLayout);
-            super.onCreateView(inflater, container, savedInstanceState);
-
-            casesReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    Log.i(TAG, "onReceive Received month and year broadcast! (cases frag)");
-                    monthNum = intent.getIntExtra(MONTH, DateTime.now().getMonthOfYear());
-                    yearNum = intent.getIntExtra(YEAR, DateTime.now().getYear());
-                }
-            };
-
-            return rootView;
-        }
-
-        @Override
-        public void onResume() {
-            super.onResume();
-            getActivity().registerReceiver(casesReceiver, intentFilterMonthYear);
-            Log.i(TAG, "onResume Registered the cases receiver");
-        }
-
-        @Override
-        public void onPause() {
-            super.onPause();
-            getActivity().unregisterReceiver(casesReceiver);
-            Log.i(TAG, "onPause Unregistered the cases receiver");
-        }
-    }
-
+    // endregion
 }

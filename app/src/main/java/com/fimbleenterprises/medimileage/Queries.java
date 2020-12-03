@@ -175,6 +175,54 @@ public class Queries {
             String rslt = query.construct();
             return rslt;
         }
+
+        public static String getTickets(String territoryid) {
+            QueryFactory query = new QueryFactory("incident");
+            query.addColumn("ticketnumber");
+            query.addColumn("title");
+            query.addColumn("createdon");
+            query.addColumn("customerid");
+            query.addColumn("ownerid");
+            query.addColumn("caseorigincode");
+            query.addColumn("statuscode");
+            query.addColumn("new_accountnumber");
+            query.addColumn("incidentid");
+            query.addColumn("subjectid");
+            query.addColumn("statecode");
+            query.addColumn("stageid");
+            query.addColumn("processid");
+            query.addColumn("prioritycode");
+            query.addColumn("modifiedon");
+            query.addColumn("modifiedby");
+            query.addColumn("description");
+            query.addColumn("createdby");
+            query.addColumn("casetypecode");
+            query.addColumn("incidentstagecode");
+
+            Filter.FilterCondition condition = new Filter.FilterCondition("territoryid",
+                    Filter.Operator.EQUALS, territoryid);
+
+            LinkEntity linkEntity = new LinkEntity("account", "accountid",
+                    "customerid", "a_4b5945b8a4a64613afc1ae1d5e6828c7");
+            linkEntity.addColumn(new EntityColumn("territoryid"));
+            linkEntity.addColumn(new EntityColumn("msus_salesrep"));
+            Filter filter = new Filter(AND);
+            filter.addCondition(condition);
+            query.addLinkEntity(linkEntity);
+
+            SortClause sortClause = new SortClause("createdon", true, SortClause.ClausePosition.ONE);
+            query.addSortClause(sortClause);
+
+            Filter.FilterCondition condition1 = new Filter.FilterCondition("createdon",
+                    getDateOperator(Operators.DateOperator.LAST_X_MONTHS), "3");
+            Filter filter1 = new Filter(AND,condition1);
+
+            query.setFilter(filter1);
+
+            return query.construct();
+
+        }
+
     }
 
     public static class Users {

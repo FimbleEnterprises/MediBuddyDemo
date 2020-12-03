@@ -62,7 +62,7 @@ public class FullscreenActivityChooseTerritory extends AppCompatActivity {
         }
 
         // Use cached territories if they exist
-        if (cachedTerritories == null) {
+        if (cachedTerritories == null || cachedTerritories.size() == 0) {
             getTerritories();
         } else {
             populateTerritories();
