@@ -2030,6 +2030,20 @@ public class CrmEntities {
 
         ArrayList<Ticket> list = new ArrayList<>();
 
+        // status codes
+        public static final int IN_PROGRESS = 1;
+        public static final int ON_HOLD = 2;
+        public static final int TO_BE_INSPECTED = 100000002;
+        public static final int WAITING_ON_REP = 3;
+        public static final int WAITING_FOR_PRODUCT = 4;
+        public static final int WAITING_ON_CUSTOMER = 100000001;
+        public static final int TO_BE_BILLED = 100000003;
+        public static final int PROBLEM_SOLVED = 5;
+
+        // state codes
+        public static final int OPEN = 0;
+        public static final int RESOLVED = 1;
+
         public Tickets(String crmResponse) {
             try {
                 JSONObject rootObject = new JSONObject(crmResponse);

@@ -229,7 +229,7 @@ public class Activity_SalesQuotas extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(@NonNull Menu menu) {
-        getMenuInflater().inflate(R.menu.sales_menu, menu);
+        getMenuInflater().inflate(R.menu.territory_menu, menu);
 
         super.onCreateOptionsMenu(menu);
         return true;

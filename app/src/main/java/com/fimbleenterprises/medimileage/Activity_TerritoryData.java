@@ -4,12 +4,15 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.SearchManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -55,12 +58,14 @@ import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts.OrderP
 
 import org.joda.time.DateTime;
 
+import java.time.DateTimeException;
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -84,16 +89,20 @@ public class Activity_TerritoryData extends AppCompatActivity {
     public static SectionsPagerAdapter sectionsPagerAdapter;
     public static androidx.fragment.app.FragmentManager fragMgr;
     public static MySettingsHelper options;
-    ArrayList<Territory> cachedTerritories = new ArrayList<>();
+    public ArrayList<Territory> cachedTerritories = new ArrayList<>();
+    SearchView searchView;
 
     public static final String MENU_SELECTION = "MENU_SELECTION";
 
     // Intent filters for the various fragment's broadcast receivers.
-    public static IntentFilter intentFilterMonthYear;
+    // public static IntentFilter intentFilterMonthYear;
 
     // vars for the date ranges
     public static int monthNum;
     public static int yearNum;
+
+    // vars for case status
+    public static int case_status = CrmEntities.Tickets.IN_PROGRESS;
 
     // flag for region
     public static boolean isEastRegion = true;
@@ -105,7 +114,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
     public static Dialog chartPopupDialog;
 
     public final static String TAG = "TerritoryData";
-    public static final String DATE_CHANGED = "DATE_CHANGED";
+    // public static final String DATE_CHANGED = "DATE_CHANGED";
     public static final String MONTH = "MONTH";
     public static final String YEAR = "YEAR";
 
@@ -117,7 +126,6 @@ public class Activity_TerritoryData extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         context = this;
         activity = this;
-        intentFilterMonthYear = new IntentFilter(DATE_CHANGED);
 
         // Log a metric
         MileBuddyMetrics.updateMetric(this, MileBuddyMetrics.MetricName.LAST_ACCESSED_TERRITORY_DATA, DateTime.now());
@@ -155,6 +163,19 @@ public class Activity_TerritoryData extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (searchView != null && !searchView.isIconified()) {
+                searchView.setIconified(true);
+            } else {
+                onBackPressed();
+            }
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     @Override
@@ -228,7 +249,17 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(@NonNull Menu menu) {
-        getMenuInflater().inflate(R.menu.sales_menu, menu);
+        getMenuInflater().inflate(R.menu.territory_menu, menu);
+
+        // Associate searchable configuration with the SearchView
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        searchView = (SearchView) menu.findItem(R.id.search).getActionView();
+        searchView.setSearchableInfo( searchManager.getSearchableInfo(new
+                ComponentName(this, SearchResultsActivity.class)));
+
+        if (searchView != null) {
+            searchView.setInputType(InputType.TYPE_CLASS_NUMBER);
+        }
 
         super.onCreateOptionsMenu(menu);
         return true;
@@ -251,6 +282,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 menu.findItem(R.id.action_last_month).setVisible(true);
                 menu.findItem(R.id.action_choose_month).setVisible(true);
                 menu.findItem(R.id.action_choose_territory).setVisible(true);
+
+                menu.findItem(R.id.action_case_status).setVisible(false);
                 break;
             case 1 : // Opportunities
                 menu.findItem(R.id.action_west_region).setVisible(false);
@@ -262,6 +295,9 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 menu.findItem(R.id.action_last_month).setVisible(false);
                 menu.findItem(R.id.action_choose_month).setVisible(false);
                 menu.findItem(R.id.action_choose_territory).setVisible(true);
+
+                menu.findItem(R.id.action_case_status).setVisible(false);
+                break;
             case 2 : // Cases
                 menu.findItem(R.id.action_west_region).setVisible(false);
                 menu.findItem(R.id.action_east_region).setVisible(false);
@@ -272,30 +308,62 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 menu.findItem(R.id.action_last_month).setVisible(false);
                 menu.findItem(R.id.action_choose_month).setVisible(false);
                 menu.findItem(R.id.action_choose_territory).setVisible(true);
-                break;
-            case 3 : // MTD
-                menu.findItem(R.id.action_this_year).setVisible(false);
-                menu.findItem(R.id.action_last_year).setVisible(false);
-                menu.findItem(R.id.action_choose_territory).setVisible(false);
 
-                menu.findItem(R.id.action_west_region).setVisible(true);
-                menu.findItem(R.id.action_east_region).setVisible(true);
-                menu.findItem(R.id.action_this_month).setVisible(true);
-                menu.findItem(R.id.action_last_month).setVisible(true);
-                menu.findItem(R.id.action_choose_month).setVisible(true);
-                break;
-            case 4 : // YTD
-                menu.findItem(R.id.action_this_month).setVisible(false);
-                menu.findItem(R.id.action_last_month).setVisible(false);
-                menu.findItem(R.id.action_choose_month).setVisible(false);
-                menu.findItem(R.id.action_choose_territory).setVisible(false);
+                menu.findItem(R.id.action_case_status).setVisible(true);
 
-                menu.findItem(R.id.action_west_region).setVisible(true);
-                menu.findItem(R.id.action_east_region).setVisible(true);
-                menu.findItem(R.id.action_this_year).setVisible(true);
-                menu.findItem(R.id.action_last_year).setVisible(true);
-                break;
+                // Set case status values
+                switch (case_status) {
+                    case CrmEntities.Tickets.IN_PROGRESS :
+                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(true);
+                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
+                        break;
+                    case CrmEntities.Tickets.ON_HOLD :
+                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(true);
+                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
+                        break;
+                    case CrmEntities.Tickets.TO_BE_INSPECTED :
+                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(true);
+                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
+                        break;
+                    case CrmEntities.Tickets.WAITING_FOR_PRODUCT :
+                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(true);
+                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
+                        break;
+                    case CrmEntities.Tickets.WAITING_ON_CUSTOMER :
+                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(true);
+                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
+                        break;
+                    case CrmEntities.Tickets.TO_BE_BILLED :
+                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(true);
+                        break;
+                }
 
+                break;
         }
 
         return super.onPreparePanel(featureId, view, menu);
@@ -306,13 +374,17 @@ public class Activity_TerritoryData extends AppCompatActivity {
         DateTime now = DateTime.now();
         DateTime aMonthAgo = now.minusMonths(1);
         switch (item.getItemId()) {
+            case 16908332 :
+                if (searchView.isIconified()) {
+                    onBackPressed();
+                }
+                break;
             case R.id.action_choose_territory :
                 Intent intent = new Intent(context, FullscreenActivityChooseTerritory.class);
                 intent.putExtra(FullscreenActivityChooseTerritory.CURRENT_TERRITORY, territory);
                 intent.putExtra(FullscreenActivityChooseTerritory.CACHED_TERRITORIES, cachedTerritories);
                 startActivityForResult(intent, 0);
                 break;
-                
             case R.id.action_east_region :
                 isEastRegion = true;
                 sendBroadcastUsingExistingValues();
@@ -342,8 +414,35 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 yearNum = aMonthAgo.getYear();
                 sendBroadcastUsingExistingValues();
                 break;
+            case R.id.action_change_case_status_inprogress:
+                case_status = CrmEntities.Tickets.IN_PROGRESS;
+                sendBroadcastUsingExistingValues();
+                break;
+            case R.id.action_change_case_status_on_hold:
+                case_status = CrmEntities.Tickets.ON_HOLD;
+                sendBroadcastUsingExistingValues();
+                break;
+            case R.id.action_change_case_status_to_be_inspected:
+                case_status = CrmEntities.Tickets.TO_BE_INSPECTED;
+                sendBroadcastUsingExistingValues();
+                break;
+            case R.id.action_change_case_status_waiting_for_product:
+                case_status = CrmEntities.Tickets.WAITING_FOR_PRODUCT;
+                sendBroadcastUsingExistingValues();
+                break;
+            case R.id.action_change_case_status_waiting_on_customer:
+                case_status = CrmEntities.Tickets.WAITING_ON_CUSTOMER;
+                sendBroadcastUsingExistingValues();
+                break;
+            case R.id.action_change_case_status_to_be_billed:
+                case_status = CrmEntities.Tickets.TO_BE_BILLED;
+                sendBroadcastUsingExistingValues();
+                break;
+            case R.id.action_change_case_status_problem_solved:
+                case_status = CrmEntities.Tickets.PROBLEM_SOLVED;
+                sendBroadcastUsingExistingValues();
+                break;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -354,26 +453,10 @@ public class Activity_TerritoryData extends AppCompatActivity {
     }
 
     public static void sendBroadcastUsingExistingValues() {
-        Intent dateChanged = dateChanged = new Intent(DATE_CHANGED);
-        dateChanged.putExtra(MONTH, monthNum);
-        dateChanged.putExtra(YEAR, yearNum);
-        activity.sendBroadcast(dateChanged);
-    }
-
-    public static String getRegionid() {
-        if (isEastRegion) {
-            return Queries.EAST_REGIONID;
-        } else {
-            return Queries.WEST_REGIONID;
-        }
-    }
-
-    public static String getRegionName() {
-        if (isEastRegion) {
-            return "East Region";
-        } else {
-            return "West Region";
-        }
+        Intent menuActionIntent = new Intent(MENU_SELECTION);
+        menuActionIntent.putExtra(MONTH, monthNum);
+        menuActionIntent.putExtra(YEAR, yearNum);
+        activity.sendBroadcast(menuActionIntent);
     }
 
     @SuppressLint("NewApi")
@@ -382,7 +465,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         mpd.setListener(new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                Intent dateChanged = new Intent(DATE_CHANGED);
+                Intent dateChanged = new Intent(MENU_SELECTION);
                 dateChanged.putExtra(MONTH, month);
                 dateChanged.putExtra(YEAR, year);
                 monthNum = month;
@@ -453,6 +536,28 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public int getCount() {
             return 3;
         }
+        
+        public String getCaseCriteriaTitleAddendum() {
+            switch (case_status) {
+                case CrmEntities.Tickets.IN_PROGRESS :
+                    return " - In progress";
+                case CrmEntities.Tickets.ON_HOLD :
+                    return " - On hold";
+                case CrmEntities.Tickets.TO_BE_BILLED :
+                    return " - To be billed";
+                case CrmEntities.Tickets.TO_BE_INSPECTED :
+                    return " - To be inspected";
+                case CrmEntities.Tickets.WAITING_ON_CUSTOMER :
+                    return " - Waiting on customer";
+                case CrmEntities.Tickets.WAITING_ON_REP :
+                    return " - Waiting on rep";
+                case CrmEntities.Tickets.WAITING_FOR_PRODUCT :
+                    return " - Waiting for product";
+                case CrmEntities.Tickets.PROBLEM_SOLVED :
+                    return " - Problem solved";
+            }
+            return null;
+        }
 
         @Override
         public CharSequence getPageTitle(int position) {
@@ -465,7 +570,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 case 1:
                     return "Opportunities (" + territory.territoryName + ")";
                 case 2:
-                    return "Cases (" + territory.territoryName + ")";
+                    return "Cases (" + territory.territoryName + ")" + getCaseCriteriaTitleAddendum();
             }
             return null;
         }
@@ -543,7 +648,9 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
         @Override
         public void onResume() {
-            getActivity().registerReceiver(salesLinesReceiver, intentFilterMonthYear);
+            IntentFilter filter = new IntentFilter(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
+            filter.addAction(MENU_SELECTION);
+            getActivity().registerReceiver(salesLinesReceiver, filter);
 
             Log.i(TAG, "onResume Registered the sales lines receiver");
             super.onResume();
@@ -922,6 +1029,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         CrmEntities.Tickets tickets;
         ArrayList<BasicObject> objects = new ArrayList<>();
         BasicObjectRecyclerAdapter adapter;
+        TextView txtNoTickets;
 
         @Nullable
         @Override
@@ -929,14 +1037,20 @@ public class Activity_TerritoryData extends AppCompatActivity {
             rootView = inflater.inflate(R.layout.frag_cases, container, false);
             listview = rootView.findViewById(R.id.casesRecyclerview);
             refreshLayout = rootView.findViewById(R.id.refreshLayout);
+            refreshLayout.setOnRefreshListener(new OnRefreshListener() {
+                @Override
+                public void onRefresh(@NonNull RefreshLayout refreshLayout) {
+                    populateList();
+                }
+            });
             super.onCreateView(inflater, container, savedInstanceState);
 
             casesReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     Log.i(TAG, "onReceive Received month and year broadcast! (cases frag)");
-                    monthNum = intent.getIntExtra(MONTH, DateTime.now().getMonthOfYear());
-                    yearNum = intent.getIntExtra(YEAR, DateTime.now().getYear());
+                    mViewPager.getAdapter().notifyDataSetChanged();
+                    getTickets();
                 }
             };
 
@@ -946,12 +1060,14 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 populateList();
             }
 
+            txtNoTickets = rootView.findViewById(R.id.txtNoTickets);
+
             return rootView;
         }
 
         void getTickets() {
             refreshLayout.autoRefresh();
-            String query = Queries.Tickets.getTickets(territory.territoryid);
+            String query = Queries.Tickets.getTickets(territory.territoryid, case_status);
             ArrayList<Requests.Argument> args = new ArrayList<>();
             args.add(new Requests.Argument("query", query));
             Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
@@ -964,7 +1080,6 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     Log.i(TAG, "onSuccess " + response);
                     tickets = new CrmEntities.Tickets(response);
                     populateList();
-                    refreshLayout.finishRefresh();
                 }
 
                 @Override
@@ -978,11 +1093,14 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
             objects.clear();
 
-            for (CrmEntities.Tickets.Ticket ticket : tickets.list) {
-                BasicObject object = new BasicObject(ticket.title, ticket.ticketnumber, ticket);
-                object.middleText = ticket.customerFormatted;
-                object.topRightText = ticket.statecodeFormatted;
-                objects.add(object);
+            if (tickets != null) {
+                for (CrmEntities.Tickets.Ticket ticket : tickets.list) {
+                    BasicObject object = new BasicObject(ticket.title, ticket.ticketnumber, ticket);
+                    object.middleText = ticket.customerFormatted;
+                    object.topRightText = ticket.statecodeFormatted;
+                    object.bottomRightText = ticket.statusFormatted;
+                    objects.add(object);
+                }
             }
 
             adapter = new BasicObjectRecyclerAdapter(context, objects);
@@ -993,16 +1111,26 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 public void onItemClick(View view, int position) {
                     BasicObject object = objects.get(position);
                     CrmEntities.Tickets.Ticket ticket = (CrmEntities.Tickets.Ticket) object.object;
-                    Toast.makeText(context, ticket.ticketnumber, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Coming soon!", Toast.LENGTH_SHORT).show();
                 }
             });
+
+            txtNoTickets.setVisibility(objects.size() == 0 ? View.VISIBLE : View.GONE);
+
+            try {
+                refreshLayout.finishRefresh();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
         }
 
         @Override
         public void onResume() {
             super.onResume();
-            getActivity().registerReceiver(casesReceiver, intentFilterMonthYear);
+            IntentFilter filter = new IntentFilter(MENU_SELECTION);
+            filter.addAction(MENU_SELECTION);
+            getActivity().registerReceiver(casesReceiver, filter);
             Log.i(TAG, "onResume Registered the cases receiver");
         }
 

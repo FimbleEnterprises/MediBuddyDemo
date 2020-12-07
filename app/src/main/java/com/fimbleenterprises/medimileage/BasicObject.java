@@ -6,6 +6,7 @@ class BasicObject {
     String subtitle;
     String middleText;
     String topRightText;
+    String bottomRightText;
     Object object;
     int iconResource = -1;
     boolean isSelected = false;
@@ -34,6 +35,16 @@ class BasicObject {
         this.middleText = middleText;
         this.subtitle = subtitle;
         this.topRightText = topRightText;
+        this.object = object;
+        this.iconResource = R.drawable.car_icon_circular;
+    }
+
+    public BasicObject (String name, String subtitle, String middleText, String topRightText, String bottomRightText, Object object) {
+        this.title = name;
+        this.middleText = middleText;
+        this.subtitle = subtitle;
+        this.topRightText = topRightText;
+        this.bottomRightText = bottomRightText;
         this.object = object;
         this.iconResource = R.drawable.car_icon_circular;
     }

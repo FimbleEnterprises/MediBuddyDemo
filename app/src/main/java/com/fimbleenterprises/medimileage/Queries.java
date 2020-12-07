@@ -131,6 +131,16 @@ public class Queries {
     }
 
     public static class Tickets {
+
+        // status codes
+        public static final int IN_PROGRESS = 1;
+        public static final int ON_HOLD = 2;
+        public static final int TO_BE_INSPECTED = 100000002;
+        public static final int WAITING_ON_REP = 3;
+        public static final int WAITING_FOR_PRODUCT = 4;
+        public static final int WAITING_ON_CUSTOMER = 100000001;
+        public static final int TO_BE_BILLED = 100000003;
+
         public static String getCase(String caseid) {
 
             // Instantiate a new constructor for the case entity and add the columns we want to see
@@ -208,6 +218,7 @@ public class Queries {
             linkEntity.addColumn(new EntityColumn("msus_salesrep"));
             Filter filter = new Filter(AND);
             filter.addCondition(condition);
+            linkEntity.addFilter(filter);
             query.addLinkEntity(linkEntity);
 
             SortClause sortClause = new SortClause("createdon", true, SortClause.ClausePosition.ONE);
@@ -220,9 +231,59 @@ public class Queries {
             query.setFilter(filter1);
 
             return query.construct();
-
         }
 
+        public static String getTickets(String territoryid, int statuscode) {
+            QueryFactory query = new QueryFactory("incident");
+            query.addColumn("ticketnumber");
+            query.addColumn("title");
+            query.addColumn("createdon");
+            query.addColumn("customerid");
+            query.addColumn("ownerid");
+            query.addColumn("caseorigincode");
+            query.addColumn("statuscode");
+            query.addColumn("new_accountnumber");
+            query.addColumn("incidentid");
+            query.addColumn("subjectid");
+            query.addColumn("statecode");
+            query.addColumn("stageid");
+            query.addColumn("processid");
+            query.addColumn("prioritycode");
+            query.addColumn("modifiedon");
+            query.addColumn("modifiedby");
+            query.addColumn("description");
+            query.addColumn("createdby");
+            query.addColumn("casetypecode");
+            query.addColumn("incidentstagecode");
+
+            Filter.FilterCondition condition = new Filter.FilterCondition("territoryid",
+                    Filter.Operator.EQUALS, territoryid);
+
+            LinkEntity linkEntity = new LinkEntity("account", "accountid",
+                    "customerid", "a_4b5945b8a4a64613afc1ae1d5e6828c7");
+            linkEntity.addColumn(new EntityColumn("territoryid"));
+            linkEntity.addColumn(new EntityColumn("msus_salesrep"));
+            Filter filter = new Filter(AND);
+            filter.addCondition(condition);
+            linkEntity.addFilter(filter);
+            query.addLinkEntity(linkEntity);
+
+            SortClause sortClause = new SortClause("createdon", true, SortClause.ClausePosition.ONE);
+            query.addSortClause(sortClause);
+
+            Filter.FilterCondition condition1 = new Filter.FilterCondition("createdon",
+                    getDateOperator(Operators.DateOperator.LAST_X_MONTHS), "3");
+            Filter.FilterCondition condition2 = new Filter.FilterCondition("statuscode",
+                    Filter.Operator.EQUALS, Integer.toString(statuscode));
+
+            Filter filter1 = new Filter(AND);
+            filter1.addCondition(condition1);
+            filter1.addCondition(condition2);
+            query.setFilter(filter1);
+
+            return query.construct();
+
+        }
     }
 
     public static class Users {

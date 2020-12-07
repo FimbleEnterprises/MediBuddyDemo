@@ -49,6 +49,7 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
         holder.txtSubtext.setText(object.subtitle);
         holder.txtMiddleText.setText(object.middleText);
         holder.txtTopRightText.setText(object.topRightText);
+        holder.txtBottomRightText.setText(object.bottomRightText);
         holder.itemView.setLongClickable(true);
 
         // Hide the icon if it is not explicitly set
@@ -76,6 +77,9 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
         // Hide the middle text field if it is null
         holder.txtTopRightText.setVisibility(object.topRightText == null ? View.GONE : View.VISIBLE);
 
+        // Hide the middle text field if it is null
+        holder.txtBottomRightText.setVisibility(object.bottomRightText == null ? View.GONE : View.VISIBLE);
+
         // Hide/show fields based on whether this object is being used as a header/title row
         holder.txtSubtext.setVisibility(object.isHeader ? View.GONE : View.VISIBLE);
         holder.img.setVisibility(object.isHeader ? View.GONE : View.VISIBLE);
@@ -85,7 +89,7 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
             holder.layout.setBackground(null);
         } else {
             holder.txtMainText.setTypeface(face, Typeface.BOLD);
-            holder.layout.setBackgroundResource(R.drawable.rounded_container_white_thin_border);
+            holder.layout.setBackgroundResource(R.drawable.btn_glass_gray_black_border_label_bg);
         }
 
         if (object.isEmpty) {
@@ -111,6 +115,7 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
         TextView txtMiddleText;
         TextView txtSubtext;
         TextView txtTopRightText;
+        TextView txtBottomRightText;
         RelativeLayout layout;
         ImageView img;
 
@@ -122,6 +127,7 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
             txtMiddleText = itemView.findViewById(R.id.textView_BasicObjectRowMiddleText);
             txtSubtext = itemView.findViewById(R.id.textView_BasicObjectRowSubtext);
             txtTopRightText = itemView.findViewById(R.id.textView_BasicObjectTopRightText);
+            txtBottomRightText = itemView.findViewById(R.id.textView_BasicObjectBottomRightText);
             img = itemView.findViewById(R.id.imageView_BasicObjectIcon);
 
             itemView.setOnClickListener(this);

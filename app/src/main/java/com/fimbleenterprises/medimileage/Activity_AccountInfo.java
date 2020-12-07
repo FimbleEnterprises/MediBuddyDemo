@@ -73,14 +73,13 @@ public class Activity_AccountInfo extends AppCompatActivity {
     public static androidx.fragment.app.FragmentManager fragMgr;
     public static MySettingsHelper options;
 
-    public static final int PRODUCTFAMILY_MENU_ROOT = 3;
-    public static final int PRODUCTSTATUS_MENU_ROOT = 4;
+    public static final int PRODUCTFAMILY_MENU_ROOT = 2;
+    public static final int PRODUCTSTATUS_MENU_ROOT = 3;
 
     // Receivers for date range changes at the activity level
     public static IntentFilter intentFilterMenuAction;
     public static BroadcastReceiver inventoryMenuItemSelectedReceiver;
     public static BroadcastReceiver salesMenuItemSelectedReceiver;
-    SearchView searchView;
 
     // vars for the date ranges
     public static int monthNum;
@@ -219,14 +218,14 @@ public class Activity_AccountInfo extends AppCompatActivity {
         if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
             Log.i(TAG, "onKeyDown back pressed!");
 
-            if (!searchView.isIconified()) {
+            /*if (!searchView.isIconified()) {
                 searchView.onActionViewCollapsed();
                 return true;
             } else if (curAccount != null) {
                 curAccount = null;
                 sendMenuItemSelectedBroadcast();
                 return true;
-            }
+            }*/
 
         }
 
@@ -279,16 +278,6 @@ public class Activity_AccountInfo extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(@NonNull Menu menu) {
         getMenuInflater().inflate(R.menu.account_stuff, menu);
-
-        // Associate searchable configuration with the SearchView
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        searchView = (SearchView) menu.findItem(R.id.search).getActionView();
-        searchView.setSearchableInfo( searchManager.getSearchableInfo(new
-                ComponentName(this, SearchResultsActivity.class)));
-
-        if (searchView != null) {
-            searchView.setInputType(InputType.TYPE_CLASS_NUMBER);
-        }
 
         optionsMenu = menu;
         super.onCreateOptionsMenu(menu);

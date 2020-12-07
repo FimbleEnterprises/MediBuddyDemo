@@ -251,5 +251,17 @@
     <string name="menu_salesquotas_explicit">Fucking Quotas</string>
     <string name="opportunities_about_this_list_from_main_nav_drawer">These are opportunities in your territory.</string>
     <string name="retrieving_opportunities">Retrieving opportunities...</string>
+    <string name="change_case_state">Case state</string>
+    <string name="action_case_state_open">Open</string>
+    <string name="action_case_state_resolved">Resolved</string>
+    <string name="action_case_status_waiting_on_rep">Waiting on rep</string>
+    <string name="change_case_status">Case status</string>
+    <string name="action_case_state_in_progress">In progress</string>
+    <string name="action_case_status_on_hold">On hold</string>
+    <string name="action_case_status_to_be_inspected">To be inspected</string>
+    <string name="action_case_status_waiting_for_product">Waiting for product</string>
+    <string name="action_case_status_waiting_on_customer">Waiting on customer</string>
+    <string name="action_case_status_to_be_billed">To be billed</string>
+    <string name="action_case_status_problem_solved">Problem solved</string>
 
 </resources>

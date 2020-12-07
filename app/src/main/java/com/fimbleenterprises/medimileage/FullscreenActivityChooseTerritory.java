@@ -106,6 +106,11 @@ public class FullscreenActivityChooseTerritory extends AppCompatActivity {
                 String result = new String(responseBody);
                 cachedTerritories = Territory.createMany(result);
                 populateTerritories();
+                // This will return the cached territories even if a territory is not selected.
+                Intent intent = new Intent(TERRITORY_RESULT);
+                intent.putExtra(TERRITORY_RESULT, currentTerritory);
+                intent.putExtra(CACHED_TERRITORIES, cachedTerritories);
+                setResult(TERRITORY_CHOSEN_RESULT, intent);
                 dialog.dismiss();
                 Log.i(TAG, "onSuccess Response is " + result.length() + " chars long");
             }
@@ -124,7 +129,7 @@ public class FullscreenActivityChooseTerritory extends AppCompatActivity {
         for (Territory t : cachedTerritories) {
             BasicObject basicObject = new BasicObject(t.territoryName, t.repName, t);
             basicObject.iconResource = R.drawable.next32;
-            if (currentTerritory.territoryid.equals(t.territoryid)) {
+            if (currentTerritory != null && currentTerritory.territoryid.equals(t.territoryid)) {
                 basicObject.isSelected = true;
             }
             objects.add(basicObject);

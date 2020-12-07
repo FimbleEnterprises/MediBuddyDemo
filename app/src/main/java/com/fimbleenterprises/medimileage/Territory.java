@@ -104,6 +104,10 @@ public class Territory implements Parcelable {
         }
     }
 
+    @Override
+    public String toString() {
+        return this.territoryName + " - " + this.repName;
+    }
 
     protected Territory(Parcel in) {
         etag = in.readString();
