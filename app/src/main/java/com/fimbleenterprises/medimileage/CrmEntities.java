@@ -315,7 +315,7 @@ public class CrmEntities {
                             new Containers.AnnotationCreationContainer();
                     annotationContainer.notetext = this.notetext;
                     annotationContainer.subject = this.subject;
-                    annotationContainer.objectidtypecode = "opportunity";
+                    annotationContainer.objectidtypecode = objectEntityName;
                     annotationContainer.objectid = objectid;
                     if (this.documentBody != null) {
                         annotationContainer.documentbody = this.documentBody;
@@ -2090,6 +2090,10 @@ public class CrmEntities {
             public String territoryFormatted;
             public String repFormatted;
             public String repid;
+
+            public Ticket() {
+
+            }
                         
             public Ticket(JSONObject json) {
                 try {
@@ -2316,6 +2320,27 @@ public class CrmEntities {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+            }
+
+            public BasicEntity toGenericActivity() {
+
+                BasicEntity entity = new BasicEntity(this);
+                entity.list.add(new BasicEntity.BasicEntityField("Ticket number:", this.ticketnumber));
+                entity.list.add(new BasicEntity.BasicEntityField("Title:", this.title));
+                entity.list.add(new BasicEntity.BasicEntityField("Customer:", this.customerFormatted));
+                entity.list.add(new BasicEntity.BasicEntityField("Status:", this.statusFormatted));
+                entity.list.add(new BasicEntity.BasicEntityField("Description:", this.description));
+                entity.list.add(new BasicEntity.BasicEntityField("Subject:", this.subjectFormatted));
+                entity.list.add(new BasicEntity.BasicEntityField("Type:", this.caseTypeFormatted));
+                entity.list.add(new BasicEntity.BasicEntityField("Territory:", this.territoryFormatted));
+                entity.list.add(new BasicEntity.BasicEntityField("Rep:", this.repFormatted));
+                entity.list.add(new BasicEntity.BasicEntityField("Origin:", this.caseOriginFormatted));
+                entity.list.add(new BasicEntity.BasicEntityField("Created on:", Helpers.DatesAndTimes.getPrettyDateAndTime(this.createdon)));
+                entity.list.add(new BasicEntity.BasicEntityField("Created by:", this.createdByFormatted));
+                entity.list.add(new BasicEntity.BasicEntityField("Modified by:", this.modifiedByFormatted));
+                entity.list.add(new BasicEntity.BasicEntityField("Modified on:", Helpers.DatesAndTimes.getPrettyDateAndTime(this.modifiedon)));
+                entity.list.add(new BasicEntity.BasicEntityField("Case type:", this.caseTypeFormatted));
+                return entity;
             }
         }
     }

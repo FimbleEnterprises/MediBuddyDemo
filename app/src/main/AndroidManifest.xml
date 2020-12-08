@@ -22,6 +22,7 @@
         android:roundIcon="@mipmap/car2_static_round_tparent_icon"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".BasicEntityActivity"></activity>
         <activity
             android:name=".SearchResultsActivity"
             android:label="@string/title_activity_search_results"
@@ -29,15 +30,16 @@
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
-            <meta-data android:name="android.app.searchable"
-                android:resource="@xml/searchable"/>
-        </activity>
 
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
+        </activity>
         <activity
             android:name=".ReceiveShareForOppNote"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_receive_share_for_opp_note"
-            android:theme="@style/FullscreenTheme"></activity>
+            android:theme="@style/FullscreenTheme" />
         <activity
             android:name=".OpportunityActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"

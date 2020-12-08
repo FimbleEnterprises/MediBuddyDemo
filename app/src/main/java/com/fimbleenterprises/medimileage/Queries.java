@@ -181,6 +181,13 @@ public class Queries {
             linkEntity_accountStuff.addColumn(new EntityColumn("accountnumber"));
             query.addLinkEntity(linkEntity_accountStuff);
 
+            // Link entity creation to join the contact info
+            LinkEntity linkEntity_contact = new LinkEntity("contact", "contactid", "new_mw_contact", "a_b49161e62067e71180d6005056a36b9b");
+            linkEntity_contact.addColumn(new EntityColumn("fullname"));
+            linkEntity_contact.addColumn(new EntityColumn("emailaddress1"));
+            linkEntity_contact.addColumn(new EntityColumn("telephone1"));
+            query.addLinkEntity(linkEntity_contact);
+
             // Spit out the encoded query
             String rslt = query.construct();
             return rslt;
@@ -220,6 +227,13 @@ public class Queries {
             filter.addCondition(condition);
             linkEntity.addFilter(filter);
             query.addLinkEntity(linkEntity);
+
+            // Link entity creation to join the contact info
+            LinkEntity linkEntity_contact = new LinkEntity("contact", "contactid", "new_mw_contact", "a_b49161e62067e71180d6005056a36b9b");
+            linkEntity_contact.addColumn(new EntityColumn("fullname"));
+            linkEntity_contact.addColumn(new EntityColumn("emailaddress1"));
+            linkEntity_contact.addColumn(new EntityColumn("telephone1"));
+            query.addLinkEntity(linkEntity_contact);
 
             SortClause sortClause = new SortClause("createdon", true, SortClause.ClausePosition.ONE);
             query.addSortClause(sortClause);
@@ -267,6 +281,13 @@ public class Queries {
             filter.addCondition(condition);
             linkEntity.addFilter(filter);
             query.addLinkEntity(linkEntity);
+
+            // Link entity creation to join the contact info
+            LinkEntity linkEntity_contact = new LinkEntity("contact", "contactid", "new_mw_contact", "a_b49161e62067e71180d6005056a36b9b");
+            linkEntity_contact.addColumn(new EntityColumn("fullname"));
+            linkEntity_contact.addColumn(new EntityColumn("emailaddress1"));
+            linkEntity_contact.addColumn(new EntityColumn("telephone1"));
+            query.addLinkEntity(linkEntity_contact);
 
             SortClause sortClause = new SortClause("createdon", true, SortClause.ClausePosition.ONE);
             query.addSortClause(sortClause);

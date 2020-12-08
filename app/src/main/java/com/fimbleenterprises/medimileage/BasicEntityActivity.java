@@ -4,20 +4,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import cz.msebera.android.httpclient.Header;
 
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Typeface;
+import android.content.IntentFilter;
 import android.os.Bundle;
-import android.text.Spannable;
-import android.text.SpannableString;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.SubMenu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -27,16 +22,11 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.fimbleenterprises.medimileage.CrmEntities.Annotations.Annotation;
-import com.fimbleenterprises.medimileage.CrmEntities.Opportunities.Opportunity;
-import com.google.android.gms.maps.internal.ICameraUpdateFactoryDelegate;
 import com.jaiselrahman.filepicker.activity.FilePickerActivity;
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.model.MediaFile;
 import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.scwang.smart.refresh.layout.SmartRefreshLayout;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
-import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
 import org.joda.time.DateTime;
 
@@ -44,120 +34,93 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * An example full-screen activity that shows and hides the system UI (i.e.
- * status bar and navigation/system bar) with user interaction.
- */
-public class OpportunityActivity extends AppCompatActivity {
-    private static final String TAG = "OpportunityActivity";
-    public static final String OPPORTUNITY_TAG = "OPPORTUNITY_TAG";
+public class BasicEntityActivity extends AppCompatActivity {
+
+    public static final String ENTITY_LOGICAL_NAME = "ENTITY_LOGICAL_NAME";
+    public static final String GSON_STRING = "GSON_STRING";
+    public static final String ENTITYID = "ENTITYID";
+    public static final String CLICK_ACTION = "CLICK_ACTION";
+    public static final String LABEL = "LABEL";
+    public static final String VALUE = "VALUE";
+    public static final String LIST_POSITION = "LIST_POSITION";
+    public static final String ACTIVITY_TITLE = "ACTIVITY_TITLE";
+    private static final String TAG = "BasicEntityActivity";
     private static final int FILE_REQUEST_CODE = 88;
-    private static final String ATTACHMENT_ANNOTATION = "ATTACHMENT_ANNOTATION";
-    public Opportunity opportunity;
+
+    Context context;
+    String entityid;
+    String entityLogicalName;
+    String activityTitle;
     NonScrollRecyclerView notesListView;
-    Annotation newImageBaseAnnotation;
+    CrmEntities.Annotations.Annotation newImageBaseAnnotation;
     Dialog dialogNoteOptions;
     public static final int PERM_REQUEST_CAMERA_ADD_ATTACHMENT = 11;
     AnnotationsAdapter adapterNotes;
     String pendingNote;
-    Context context;
-
-    // Fields
-    TextView txtAccount;
-    TextView txtTopic;
-    TextView txtStatus;
-    TextView txtDealStatus;
-    TextView txtDealType;
-    TextView txtCloseProb;
-    TextView txtBackground;
-    SmartRefreshLayout refreshLayout;
+    RefreshLayout refreshLayout;
+    CrmEntities.Annotations.Annotation lastClickedNote;
     TextView txtNotesLoading;
     ProgressBar pbNotesLoading;
     ImageButton btnAddNote;
-    Annotation lastClickedNote;
+
+    BasicEntity basicEntity;
+
+    public static IntentFilter getIntentFilter() {
+        return new IntentFilter(CLICK_ACTION);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.activity_opportunity);
-
-        setTitle("Opportunity Details");
-
-        this.context = this;
-
-        notesListView = findViewById(R.id.notesRecyclerView);
+        context = this;
+        setContentView(R.layout.basic_entity_activity);
 
         refreshLayout = findViewById(R.id.refreshLayout);
-        refreshLayout.setOnRefreshListener(new OnRefreshListener() {
+        notesListView = findViewById(R.id.notesRecyclerView);
+        txtNotesLoading = findViewById(R.id.textViewopportunityNotesLoading);
+        btnAddNote = findViewById(R.id.btnAddNote);
+        btnAddNote.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onRefresh(@NonNull RefreshLayout refreshLayout) {
-                getOpportunityNotes();
+            public void onClick(View view) {
+                CrmEntities.Annotations.Annotation newNote = new CrmEntities.Annotations.Annotation();
+                newNote.subject = "MileBuddy added note";
+                newNote.objectid = entityid;
+                newNote.isDocument = false;
+                newNote.objectEntityName = entityLogicalName;
+                showAddEditNote(newNote);
+            }
+        });
+        pbNotesLoading = findViewById(R.id.progressBarWorking);
+
+        String gson = getIntent().getStringExtra(GSON_STRING);
+        entityid = getIntent().getStringExtra(ENTITYID);
+        entityLogicalName = getIntent().getStringExtra(ENTITY_LOGICAL_NAME);
+        activityTitle = getIntent().getStringExtra(ACTIVITY_TITLE);
+        setTitle(activityTitle);
+
+        getNotes();
+
+        this.basicEntity = new BasicEntity(gson);
+
+        NonScrollRecyclerView recyclerView = findViewById(R.id.rvBasicObjects);
+        BasicEntityActivityObjectRecyclerAdapter adapter =
+                new BasicEntityActivityObjectRecyclerAdapter(this, this.basicEntity.list);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setNestedScrollingEnabled(false); // Disables scrolling
+        recyclerView.setAdapter(adapter);
+
+
+        adapter.setClickListener(new BasicEntityActivityObjectRecyclerAdapter.ItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                Intent intent = new Intent(CLICK_ACTION);
+                intent.putExtra(LABEL, basicEntity.list.get(position).label);
+                intent.putExtra(VALUE, basicEntity.list.get(position).value);
+                intent.putExtra(LIST_POSITION, position);
+                sendBroadcast(intent);
             }
         });
 
-        Intent intent = getIntent();
-        if (intent != null && intent.hasExtra(OPPORTUNITY_TAG)) {
-            opportunity = intent.getParcelableExtra(OPPORTUNITY_TAG);
-            Log.i(TAG, "onCreate Opportunity was passed (" + opportunity.name + ")");
-            populateOppDetails();
-            getOpportunityNotes();
-        }
-
-        Helpers.Files.AttachmentTempFiles.makeDirectory();
-        Helpers.Files.AttachmentTempFiles.clear();
-
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.basic_list_menu, menu);
-
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-
-        Typeface typeface = getResources().getFont(R.font.casual);
-
-        for (int i = 0; i < menu.size(); i++) {
-            MenuItem mi = menu.getItem(i);
-            //for aapplying a font to subMenu ...
-            SubMenu subMenu = mi.getSubMenu();
-            if (subMenu != null && subMenu.size() > 0) {
-                for (int j = 0; j < subMenu.size(); j++) {
-                    MenuItem subMenuItem = subMenu.getItem(j);
-                    applyFontToMenuItem(subMenuItem, typeface);
-                }
-            }
-            //the method we have create in activity
-            applyFontToMenuItem(mi, typeface);
-        }
-
-        return super.onPrepareOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-
-        switch (item.getItemId()) {
-
-            case R.id.action_refresh :
-                refreshLayout.autoRefreshAnimationOnly();
-                getOpportunityNotes();
-                break;
-
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    private void applyFontToMenuItem(MenuItem mi, Typeface font) {
-        SpannableString mNewTitle = new SpannableString(mi.getTitle());
-        mNewTitle.setSpan(new CustomTypefaceSpan("", font), 0, mNewTitle.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-        mi.setTitle(mNewTitle);
     }
 
     @Override
@@ -255,49 +218,14 @@ public class OpportunityActivity extends AppCompatActivity {
             }
         }
 
-     }
-
-    void populateOppDetails() {
-
-        txtNotesLoading = findViewById(R.id.textViewopportunityNotesLoading);
-        btnAddNote = findViewById(R.id.btnAddNote);
-        pbNotesLoading = findViewById(R.id.progressBarWorking);
-        btnAddNote.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Annotation newNote = new Annotation();
-                newNote.subject = "MileBuddy added note";
-                newNote.objectid = opportunity.opportunityid;
-                newNote.isDocument = false;
-                newNote.objectEntityName = "opportunity";
-                showAddEditNote(newNote);
-            }
-        });
-
-        txtAccount = findViewById(R.id.textView_OppAccount);
-        txtTopic = findViewById(R.id.textView_OppTopic);
-        txtStatus = findViewById(R.id.textView_OppStatus);
-        txtDealStatus = findViewById(R.id.textView_OppDealStatus);
-        txtDealType = findViewById(R.id.textView_OppDealType);
-        txtCloseProb = findViewById(R.id.textView_OppCloseProb);
-        txtBackground = findViewById(R.id.textView_OppBackground);
-        txtAccount.setText(opportunity.accountname);
-        txtTopic.setText(opportunity.name);
-        txtStatus.setText(opportunity.status);
-        txtDealStatus.setText(opportunity.dealStatus);
-        txtDealType.setText(opportunity.dealTypePretty);
-        txtCloseProb.setText(opportunity.probabilityPretty);
-        txtBackground.setText(opportunity.currentSituation);
-
-        Helpers.Animations.pulseAnimation(btnAddNote);
     }
 
-    void showAddEditNote(@Nullable final Annotation clickedNote) {
+    void showAddEditNote(@Nullable final CrmEntities.Annotations.Annotation clickedNote) {
 
         final boolean isEditing = clickedNote.annotationid != null;
         final String originalSubject = clickedNote.subject;
 
-        final Dialog dialog = new Dialog(OpportunityActivity.this);
+        final Dialog dialog = new Dialog(context);
         dialog.setContentView(R.layout.dialog_note);
         final EditText noteBody = dialog.findViewById(R.id.body_text);
         dialog.setTitle("Note");
@@ -368,7 +296,7 @@ public class OpportunityActivity extends AppCompatActivity {
                         Toast.makeText(context, "Failed to add/edit note!\n\n" + error.toString(), Toast.LENGTH_SHORT).show();
                         // addEditNoteProgressDialog.dismiss();
                         clickedNote.inUse = false;
-                        getOpportunityNotes();
+                        getNotes();
                         dialog.dismiss();
                         dialog.show();
                     }
@@ -403,9 +331,9 @@ public class OpportunityActivity extends AppCompatActivity {
 
     }
 
-    void getOpportunityNotes() {
+    void getNotes() {
         ArrayList<Requests.Argument> args = new ArrayList<>();
-        Requests.Argument argument = new Requests.Argument("query", Queries.Annotations.getAnnotations(opportunity.opportunityid));
+        Requests.Argument argument = new Requests.Argument("query", Queries.Annotations.getAnnotations(entityid));
         args.add(argument);
         Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
 
@@ -422,14 +350,14 @@ public class OpportunityActivity extends AppCompatActivity {
                 String response = new String(responseBody);
                 final CrmEntities.Annotations annotations = new CrmEntities.Annotations(response);
                 adapterNotes = new AnnotationsAdapter(getApplicationContext(), annotations.list);
-                notesListView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+                notesListView.setLayoutManager(new LinearLayoutManager(context));
                 notesListView.setAdapter(adapterNotes);
                 /*notesListView.addItemDecoration(new DividerItemDecoration(getApplicationContext(),
                         DividerItemDecoration.VERTICAL));*/
                 adapterNotes.setClickListener(new AnnotationsAdapter.ItemClickListener() {
                     @Override
                     public void onItemClick(View view, int position) {
-                        Annotation note = annotations.list.get(position);
+                        CrmEntities.Annotations.Annotation note = annotations.list.get(position);
                         // If the note belongs to the user or if it has an attachment, show the note
                         // options dialog
                         if (note.belongsTo(MediUser.getMe().systemuserid) || (note.isDocument) ) {
@@ -439,7 +367,7 @@ public class OpportunityActivity extends AppCompatActivity {
                         }
                     }
                 });
-                refreshLayout.finishRefresh();
+                // refreshLayout.finishRefresh();
                 txtNotesLoading.setVisibility(View.GONE);
                 pbNotesLoading.setVisibility(View.GONE);
             }
@@ -454,8 +382,8 @@ public class OpportunityActivity extends AppCompatActivity {
             }
         });
     }
-    
-    void showNoteOptions(final Annotation clickedNote) {
+
+    void showNoteOptions(final CrmEntities.Annotations.Annotation clickedNote) {
         dialogNoteOptions = new Dialog(context);
         final Context c = context;
         dialogNoteOptions.setContentView(R.layout.dialog_note_options);
@@ -497,7 +425,7 @@ public class OpportunityActivity extends AppCompatActivity {
                     public void onNo(@Nullable Object object) {
                         Toast.makeText(context, "Failed to delete note!\n" + object.toString(), Toast.LENGTH_SHORT).show();
                         clickedNote.inUse = false;
-                        getOpportunityNotes();
+                        getNotes();
                     }
                 });
                 dialogNoteOptions.dismiss();
@@ -517,7 +445,7 @@ public class OpportunityActivity extends AppCompatActivity {
                         public void onComplete(Object result) {
                             String response = result.toString();
                             CrmEntities.Annotations annotations = new CrmEntities.Annotations(response);
-                            Annotation annotation;
+                            CrmEntities.Annotations.Annotation annotation;
                             if (annotations.list.size() > 0) {
                                 annotation = annotations.list.get(0);
                                 Log.i(TAG, "onSuccess Annotation retrieved: " + annotation.toString());
@@ -565,7 +493,7 @@ public class OpportunityActivity extends AppCompatActivity {
                         public void onComplete(Object result) {
                             String response = new String(result.toString());
                             CrmEntities.Annotations annotations = new CrmEntities.Annotations(response);
-                            Annotation annotation;
+                            CrmEntities.Annotations.Annotation annotation;
                             if (annotations.list.size() > 0) {
                                 annotation = annotations.list.get(0);
                                 Log.i(TAG, "onSuccess Annotation retrieved: " + annotation.toString());
@@ -635,7 +563,7 @@ public class OpportunityActivity extends AppCompatActivity {
                         Toast.makeText(context, "Failed to remove attachment\nError: " + object.toString(), Toast.LENGTH_SHORT).show();
                         clickedNote.inUse = false;
                         adapterNotes.notifyDataSetChanged();
-                        getOpportunityNotes();
+                        getNotes();
                     }
                 });
                 clickedNote.isDocument = true;
@@ -708,10 +636,5 @@ public class OpportunityActivity extends AppCompatActivity {
         btnDelete.setEnabled(clickedNote.createdByValue.equals(MediUser.getMe().systemuserid) ? true : false);
         txtNoteYourNote.setVisibility(clickedNote.createdByValue.equals(MediUser.getMe().systemuserid) ? View.GONE : View.VISIBLE);
 
-    }
-
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
     }
 }

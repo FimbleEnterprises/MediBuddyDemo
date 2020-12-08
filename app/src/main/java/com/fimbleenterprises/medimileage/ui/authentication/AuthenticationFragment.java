@@ -1,7 +1,9 @@
 package com.fimbleenterprises.medimileage.ui.authentication;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,8 +18,11 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 
+import com.fimbleenterprises.medimileage.BasicEntity;
+import com.fimbleenterprises.medimileage.BasicEntityActivity;
 import com.fimbleenterprises.medimileage.BuildConfig;
 import com.fimbleenterprises.medimileage.Crm;
+import com.fimbleenterprises.medimileage.CrmEntities;
 import com.fimbleenterprises.medimileage.MediUser;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.MyProgressDialog;
@@ -29,6 +34,8 @@ import com.fimbleenterprises.medimileage.Requests;
 import com.fimbleenterprises.medimileage.RestResponse;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestHandle;
+
+import org.joda.time.DateTime;
 
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -47,6 +54,7 @@ public class AuthenticationFragment extends Fragment {
     EditText txtUsername;
     EditText txtPassword;
     RequestHandle requestHandle;
+    BroadcastReceiver testReceiver;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -63,6 +71,53 @@ public class AuthenticationFragment extends Fragment {
         txtUsername = root.findViewById(R.id.text_username);
         txtPassword = root.findViewById(R.id.text_password);
         btnLogin = root.findViewById(R.id.btnLogin);
+
+
+        /*******************************************************************************************
+                                         TESTING
+        *******************************************************************************************/
+
+        /*CrmEntities.Tickets.Ticket ticket = new CrmEntities.Tickets.Ticket();
+        ticket.ticketnumber = "CAS-24556-XYY";
+        ticket.repFormatted = "John Plante";
+        ticket.territoryFormatted = "10010";
+        ticket.customerFormatted = "Some hospital";
+        ticket.createdByFormatted = "Matt Weber";
+        ticket.title = "PQ32 s/n 2333 does not work";
+        ticket.createdon = DateTime.now();
+        ticket.subjectFormatted = "Complaint (Probe)";
+        ticket.modifiedByFormatted = "Matt Weber";
+        ticket.modifiedon = DateTime.now();
+        ticket.statusFormatted = "In progress";
+        ticket.description = "John mailed this in.  Contact Kristy with the findings.";
+
+        BasicEntity basicEntity = ticket.toGenericActivity();
+        String gsonString = basicEntity.toGson();
+
+        Intent intent = new Intent(getContext(), BasicEntityActivity.class);
+        intent.putExtra(BasicEntityActivity.GSON_STRING, gsonString);
+        startActivity(intent);
+
+        if (1 == 1) {
+            return null;
+        }
+
+        testReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                int pos = intent.getIntExtra(BasicEntityActivity.LIST_POSITION, -1);
+                String label = intent.getStringExtra(BasicEntityActivity.LABEL);
+                String value = intent.getStringExtra(BasicEntityActivity.VALUE);
+
+                Toast.makeText(context, "Label: " + label + ", Value: " + value + ", Position: " + pos, Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        getContext().registerReceiver(testReceiver, BasicEntityActivity.getIntentFilter());*/
+
+        /*******************************************************************************************
+                                        END TESTING
+        *******************************************************************************************/
 
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -124,13 +179,18 @@ public class AuthenticationFragment extends Fragment {
     public void onStart() {
         options.authenticateFragIsVisible(true);
         super.onStart();
-
     }
 
     @Override
     public void onStop() {
         options.authenticateFragIsVisible(false);
         super.onStop();
+
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 
     void configureViews() {

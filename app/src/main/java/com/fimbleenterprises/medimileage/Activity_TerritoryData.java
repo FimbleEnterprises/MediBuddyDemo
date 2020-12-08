@@ -1111,7 +1111,13 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 public void onItemClick(View view, int position) {
                     BasicObject object = objects.get(position);
                     CrmEntities.Tickets.Ticket ticket = (CrmEntities.Tickets.Ticket) object.object;
-                    Toast.makeText(context, "Coming soon!", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(context, BasicEntityActivity.class);
+                    intent.putExtra(BasicEntityActivity.GSON_STRING, ticket.toGenericActivity().toGson());
+                    intent.putExtra(BasicEntityActivity.ENTITYID, ticket.ticketid);
+                    intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "incident");
+                    intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Ticket " + ticket.ticketnumber);
+                    startActivity(intent);
+                    // Toast.makeText(context, "Coming soon!", Toast.LENGTH_SHORT).show();
                 }
             });
 
