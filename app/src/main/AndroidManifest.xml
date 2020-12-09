@@ -22,7 +22,16 @@
         android:roundIcon="@mipmap/car2_static_round_tparent_icon"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".BasicEntityActivity"></activity>
+        <activity
+            android:name=".BasicEntityActivity"
+            android:exported="true">
+            <intent-filter >
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:host="crmauth.medistim.com" android:scheme="https"/>
+            </intent-filter>
+        </activity>
         <activity
             android:name=".SearchResultsActivity"
             android:label="@string/title_activity_search_results"

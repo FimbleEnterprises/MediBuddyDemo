@@ -2172,6 +2172,7 @@ public class CrmEntities {
         ArrayList<Ticket> list = new ArrayList<>();
 
         // status codes
+        public static final int NOT_RESOLVED = 50;
         public static final int IN_PROGRESS = 1;
         public static final int ON_HOLD = 2;
         public static final int TO_BE_INSPECTED = 100000002;

@@ -1,24 +1,20 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/LinearLayout_MapMaster"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_marginTop="1dp"
-    android:background="#EE7420"
-    android:orientation="vertical"
-    tools:mContext=".Activity_MapView" >
+	android:id="@+id/LinearLayout_MapMaster"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:layout_marginTop="1dp"
+	android:orientation="vertical"
+	tools:mContext=".Activity_MapView">
 
 	<RelativeLayout
 		android:id="@+id/layout_SpeedDistanceDataPanel"
 		android:layout_width="match_parent"
 		android:layout_height="410dp"
-		android:layout_marginLeft="2dp"
-		android:layout_marginTop="2dp"
-		android:layout_marginRight="2dp"
-		android:layout_marginBottom="2dp"
+		android:layout_margin="2dp"
 		android:layout_weight=".72"
-		android:background="#EEEEEE">
+		android:background="@drawable/btn_glass_navy_border">
 
 		<TextView
 			android:id="@+id/textView_TripName"
@@ -53,18 +49,18 @@
 					android:layout_height="wrap_content"
 					android:layout_weight="1">
 
-                    <TextView
-                        android:id="@+id/TextView_distance_lbl"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
-                        android:fontFamily="casual"
-                        android:text="Distance:"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="#000000"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
+					<TextView
+						android:id="@+id/TextView_distance_lbl"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:fontFamily="casual"
+						android:text="Distance:"
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textColor="#000000"
+						android:textSize="13sp"
+						android:textStyle="bold" />
 
 				</FrameLayout>
 
@@ -73,17 +69,17 @@
 					android:layout_height="wrap_content"
 					android:layout_weight="1">
 
-                    <TextView
-                        android:id="@+id/TextView_distance"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
-                        android:fontFamily="casual"
-                        android:text="55 miles"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="#606060"
-                        android:textSize="13sp" />
+					<TextView
+						android:id="@+id/TextView_distance"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:fontFamily="casual"
+						android:text="55 miles"
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textColor="#606060"
+						android:textSize="13sp" />
 
 				</FrameLayout>
 
@@ -92,18 +88,18 @@
 					android:layout_height="wrap_content"
 					android:layout_weight="1">
 
-                    <TextView
-                        android:id="@+id/TextView_topSpeed_lbl"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
-                        android:fontFamily="casual"
-                        android:text="Top speed:"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="#000000"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
+					<TextView
+						android:id="@+id/TextView_topSpeed_lbl"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:fontFamily="casual"
+						android:text="Top speed:"
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textColor="#000000"
+						android:textSize="13sp"
+						android:textStyle="bold" />
 
 				</FrameLayout>
 
@@ -112,17 +108,17 @@
 					android:layout_height="wrap_content"
 					android:layout_weight="1">
 
-                    <TextView
-                        android:id="@+id/TextView_topSpeed"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
-                        android:fontFamily="casual"
-                        android:text="55 mph"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="#606060"
-                        android:textSize="13sp" />
+					<TextView
+						android:id="@+id/TextView_topSpeed"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:fontFamily="casual"
+						android:text="55 mph"
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textColor="#606060"
+						android:textSize="13sp" />
 				</FrameLayout>
 			</TableRow>
 
@@ -136,18 +132,18 @@
 					android:layout_height="wrap_content"
 					android:layout_weight="1">
 
-                    <TextView
-                        android:id="@+id/TextView_duration_lbl"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
-                        android:fontFamily="casual"
-                        android:text="Duration:"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="#000000"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
+					<TextView
+						android:id="@+id/TextView_duration_lbl"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:fontFamily="casual"
+						android:text="Duration:"
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textColor="#000000"
+						android:textSize="13sp"
+						android:textStyle="bold" />
 
 				</FrameLayout>
 
@@ -156,17 +152,17 @@
 					android:layout_height="wrap_content"
 					android:layout_weight="1">
 
-                    <TextView
-                        android:id="@+id/TextView_duration"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
-                        android:fontFamily="casual"
-                        android:text="19 mins"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="#606060"
-                        android:textSize="13sp" />
+					<TextView
+						android:id="@+id/TextView_duration"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:fontFamily="casual"
+						android:text="19 mins"
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textColor="#606060"
+						android:textSize="13sp" />
 				</FrameLayout>
 
 				<FrameLayout
@@ -174,18 +170,18 @@
 					android:layout_height="wrap_content"
 					android:layout_weight="1">
 
-                    <TextView
-                        android:id="@+id/TextView_avgSpeed_lbl"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
-                        android:fontFamily="casual"
-                        android:text="Avg speed:"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="#000000"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
+					<TextView
+						android:id="@+id/TextView_avgSpeed_lbl"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:fontFamily="casual"
+						android:text="Avg speed:"
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textColor="#000000"
+						android:textSize="13sp"
+						android:textStyle="bold" />
 
 				</FrameLayout>
 
@@ -194,17 +190,17 @@
 					android:layout_height="wrap_content"
 					android:layout_weight="1">
 
-                    <TextView
-                        android:id="@+id/TextView_avgSpeed"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
-                        android:fontFamily="casual"
-                        android:text="55 mph"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="#606060"
-                        android:textSize="13sp" />
+					<TextView
+						android:id="@+id/TextView_avgSpeed"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:fontFamily="casual"
+						android:text="55 mph"
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textColor="#606060"
+						android:textSize="13sp" />
 				</FrameLayout>
 			</TableRow>
 
@@ -260,18 +256,18 @@
 					android:layout_height="wrap_content"
 					android:layout_weight="1">
 
-                    <TextView
-                        android:id="@+id/TextView_dateTaken_lbl"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
-                        android:fontFamily="casual"
-                        android:text="Date:"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="#000000"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
+					<TextView
+						android:id="@+id/TextView_dateTaken_lbl"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:fontFamily="casual"
+						android:text="Date:"
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textColor="#000000"
+						android:textSize="13sp"
+						android:textStyle="bold" />
 
 				</FrameLayout>
 
@@ -280,17 +276,17 @@
 					android:layout_height="wrap_content"
 					android:layout_weight="1">
 
-                    <TextView
-                        android:id="@+id/TextView_date"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
-                        android:fontFamily="casual"
-                        android:text="12/12/12"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="#606060"
-                        android:textSize="13sp" />
+					<TextView
+						android:id="@+id/TextView_date"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:fontFamily="casual"
+						android:text="12/12/12"
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textColor="#606060"
+						android:textSize="13sp" />
 
 				</FrameLayout>
 
@@ -299,47 +295,47 @@
 					android:layout_height="wrap_content"
 					android:layout_weight="1">
 
-                    <TextView
-                        android:id="@+id/TextView_submitted_lbl"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
-                        android:fontFamily="casual"
-                        android:text="Amount:"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="#000000"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
+					<TextView
+						android:id="@+id/TextView_submitted_lbl"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:fontFamily="casual"
+						android:text="Amount:"
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textColor="#000000"
+						android:textSize="13sp"
+						android:textStyle="bold" />
 
 				</FrameLayout>
 
-                <FrameLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
 
-                    <TextView
-                        android:id="@+id/TextView_reimbursement"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
-                        android:fontFamily="casual"
-                        android:text="Yes"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="#606060"
-                        android:textSize="13sp" />
-                </FrameLayout>
+					<TextView
+						android:id="@+id/TextView_reimbursement"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:fontFamily="casual"
+						android:text="Yes"
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textColor="#606060"
+						android:textSize="13sp" />
+				</FrameLayout>
 			</TableRow>
 		</TableLayout>
 	</RelativeLayout>
-    
-    <RelativeLayout
-        android:id="@+id/layout_MapView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight=".28" >
+
+	<RelativeLayout
+		android:id="@+id/layout_MapView"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_weight=".28">
 
 		<ProgressBar
 			android:id="@+id/progressBar"
@@ -487,5 +483,5 @@
 			android:background="#00000000"
 			app:srcCompat="@drawable/map_type_icon_96px" />
 	</RelativeLayout>
-    
+
 </LinearLayout>

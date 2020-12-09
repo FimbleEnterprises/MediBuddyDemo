@@ -1,5 +1,7 @@
 package com.fimbleenterprises.medimileage;
 
+import com.google.common.collect.DiscreteDomain;
+
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
@@ -140,6 +142,7 @@ public class Queries {
         public static final int WAITING_FOR_PRODUCT = 4;
         public static final int WAITING_ON_CUSTOMER = 100000001;
         public static final int TO_BE_BILLED = 100000003;
+        public static final int PROBLEM_SOLVED = 5;
 
         public static String getCase(String caseid) {
 
@@ -245,6 +248,68 @@ public class Queries {
             query.setFilter(filter1);
 
             return query.construct();
+        }
+
+        public static String getNonResolvedTickets(String territoryid) {
+            QueryFactory query = new QueryFactory("incident");
+            query.addColumn("ticketnumber");
+            query.addColumn("title");
+            query.addColumn("createdon");
+            query.addColumn("customerid");
+            query.addColumn("ownerid");
+            query.addColumn("caseorigincode");
+            query.addColumn("statuscode");
+            query.addColumn("new_accountnumber");
+            query.addColumn("incidentid");
+            query.addColumn("subjectid");
+            query.addColumn("statecode");
+            query.addColumn("stageid");
+            query.addColumn("processid");
+            query.addColumn("prioritycode");
+            query.addColumn("modifiedon");
+            query.addColumn("modifiedby");
+            query.addColumn("description");
+            query.addColumn("createdby");
+            query.addColumn("casetypecode");
+            query.addColumn("incidentstagecode");
+
+            Filter.FilterCondition condition = new Filter.FilterCondition("territoryid",
+                    Filter.Operator.EQUALS, territoryid);
+
+            LinkEntity linkEntity = new LinkEntity("account", "accountid",
+                    "customerid", "a_4b5945b8a4a64613afc1ae1d5e6828c7");
+            linkEntity.addColumn(new EntityColumn("territoryid"));
+            linkEntity.addColumn(new EntityColumn("msus_salesrep"));
+            Filter filter = new Filter(AND);
+            filter.addCondition(condition);
+            linkEntity.addFilter(filter);
+            query.addLinkEntity(linkEntity);
+
+            // Link entity creation to join the contact info
+            LinkEntity linkEntity_contact = new LinkEntity("contact", "contactid", "new_mw_contact", "a_b49161e62067e71180d6005056a36b9b");
+            linkEntity_contact.addColumn(new EntityColumn("fullname"));
+            linkEntity_contact.addColumn(new EntityColumn("emailaddress1"));
+            linkEntity_contact.addColumn(new EntityColumn("telephone1"));
+            query.addLinkEntity(linkEntity_contact);
+
+
+            SortClause sortClause1 = new SortClause("statuscode", true, SortClause.ClausePosition.ONE);
+            SortClause sortClause2 = new SortClause("createdon", true, SortClause.ClausePosition.TWO);
+            query.addSortClause(sortClause1);
+            query.addSortClause(sortClause2);
+
+            Filter.FilterCondition condition1 = new Filter.FilterCondition("createdon",
+                    getDateOperator(Operators.DateOperator.LAST_X_MONTHS), "3");
+            Filter.FilterCondition condition2 = new Filter.FilterCondition("statuscode",
+                    Filter.Operator.NOT_EQUALS, Integer.toString(PROBLEM_SOLVED));
+
+            Filter filter1 = new Filter(AND);
+            filter1.addCondition(condition1);
+            filter1.addCondition(condition2);
+            query.setFilter(filter1);
+
+            return query.construct();
+
         }
 
         public static String getTickets(String territoryid, int statuscode) {

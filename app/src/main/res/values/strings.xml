@@ -263,5 +263,7 @@
     <string name="action_case_status_waiting_on_customer">Waiting on customer</string>
     <string name="action_case_status_to_be_billed">To be billed</string>
     <string name="action_case_status_problem_solved">Problem solved</string>
+    <string name="action_case_state_not_resolved">Not resolved</string>
+    <string name="action_email">Email...</string>
 
 </resources>

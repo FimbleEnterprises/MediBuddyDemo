@@ -11,8 +11,15 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -36,6 +43,9 @@ import java.util.List;
 
 public class BasicEntityActivity extends AppCompatActivity {
 
+    public static final String MENU_SELECTION = "MENU_SELECTION";
+    public static final String SEND_EMAIL = "SEND_EMAIL";
+    public static final String EXPORT_TO_EXCEL = "EXPORT_TO_EXCEL";
     public static final String ENTITY_LOGICAL_NAME = "ENTITY_LOGICAL_NAME";
     public static final String GSON_STRING = "GSON_STRING";
     public static final String ENTITYID = "ENTITYID";
@@ -44,6 +54,7 @@ public class BasicEntityActivity extends AppCompatActivity {
     public static final String VALUE = "VALUE";
     public static final String LIST_POSITION = "LIST_POSITION";
     public static final String ACTIVITY_TITLE = "ACTIVITY_TITLE";
+    public static final int REQUEST_BASIC = 6288;
     private static final String TAG = "BasicEntityActivity";
     private static final int FILE_REQUEST_CODE = 88;
 
@@ -75,9 +86,11 @@ public class BasicEntityActivity extends AppCompatActivity {
         context = this;
         setContentView(R.layout.basic_entity_activity);
 
+        // Find and get handles on all of our important activity bits
         refreshLayout = findViewById(R.id.refreshLayout);
         notesListView = findViewById(R.id.notesRecyclerView);
         txtNotesLoading = findViewById(R.id.textViewopportunityNotesLoading);
+        pbNotesLoading = findViewById(R.id.progressBarWorking);
         btnAddNote = findViewById(R.id.btnAddNote);
         btnAddNote.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -90,37 +103,94 @@ public class BasicEntityActivity extends AppCompatActivity {
                 showAddEditNote(newNote);
             }
         });
-        pbNotesLoading = findViewById(R.id.progressBarWorking);
 
+        // If the user was cool enough to get here via a URL we should be cool and try to load that record!
+        if (getIntent().getData() != null && getIntent().getData().toString().contains("https://crmauth.medistim.com")) {
+            loadRecordFromUrl();
+            return;
+        }
+
+        // Get the gson string from the intent which should absolutely be there
         String gson = getIntent().getStringExtra(GSON_STRING);
+
         entityid = getIntent().getStringExtra(ENTITYID);
         entityLogicalName = getIntent().getStringExtra(ENTITY_LOGICAL_NAME);
-        activityTitle = getIntent().getStringExtra(ACTIVITY_TITLE);
-        setTitle(activityTitle);
+        setTitle(getIntent().getStringExtra(ACTIVITY_TITLE));
 
-        getNotes();
+        if (gson != null) {
+            getNotes();
+            populateForm(gson);
+        } else {
+            Toast.makeText(context, "Failed to load!", Toast.LENGTH_SHORT).show();
+            finish();
+        }
 
-        this.basicEntity = new BasicEntity(gson);
+    }
 
-        NonScrollRecyclerView recyclerView = findViewById(R.id.rvBasicObjects);
-        BasicEntityActivityObjectRecyclerAdapter adapter =
-                new BasicEntityActivityObjectRecyclerAdapter(this, this.basicEntity.list);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setNestedScrollingEnabled(false); // Disables scrolling
-        recyclerView.setAdapter(adapter);
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.generic_activity_menu, menu);
 
+        return super.onCreateOptionsMenu(menu);
+    }
 
-        adapter.setClickListener(new BasicEntityActivityObjectRecyclerAdapter.ItemClickListener() {
-            @Override
-            public void onItemClick(View view, int position) {
-                Intent intent = new Intent(CLICK_ACTION);
-                intent.putExtra(LABEL, basicEntity.list.get(position).label);
-                intent.putExtra(VALUE, basicEntity.list.get(position).value);
-                intent.putExtra(LIST_POSITION, position);
-                sendBroadcast(intent);
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+
+        Typeface typeface = getResources().getFont(R.font.casual);
+
+        for (int i = 0; i < menu.size(); i++) {
+            MenuItem mi = menu.getItem(i);
+            //for aapplying a font to subMenu ...
+            SubMenu subMenu = mi.getSubMenu();
+            if (subMenu != null && subMenu.size() > 0) {
+                for (int j = 0; j < subMenu.size(); j++) {
+                    MenuItem subMenuItem = subMenu.getItem(j);
+                    applyFontToMenuItem(subMenuItem, typeface);
+                }
             }
-        });
+            //the method we have create in activity
+            applyFontToMenuItem(mi, typeface);
+        }
 
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+
+        Intent intent = new Intent(MENU_SELECTION);
+
+        switch (item.getItemId()) {
+
+            case R.id.action_send_email :
+                intent.putExtra(SEND_EMAIL, SEND_EMAIL);
+                intent.putExtra(ENTITYID, entityid);
+                intent.putExtra(ENTITY_LOGICAL_NAME, entityLogicalName);
+                setResult(RESULT_OK, intent);
+                Log.i(TAG, "onOptionsItemSelected " + SEND_EMAIL + " result was set");
+                finish();
+                break;
+
+            case R.id.action_export_to_excel :
+                intent.putExtra(EXPORT_TO_EXCEL, EXPORT_TO_EXCEL);
+                intent.putExtra(ENTITYID, entityid);
+                intent.putExtra(ENTITY_LOGICAL_NAME, entityLogicalName);
+                setResult(RESULT_OK, intent);
+                Log.i(TAG, "onOptionsItemSelected " + EXPORT_TO_EXCEL + " result was set");
+                finish();
+                break;
+
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void applyFontToMenuItem(MenuItem mi, Typeface font) {
+        SpannableString mNewTitle = new SpannableString(mi.getTitle());
+        mNewTitle.setSpan(new CustomTypefaceSpan("", font), 0, mNewTitle.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+        mi.setTitle(mNewTitle);
     }
 
     @Override
@@ -218,6 +288,115 @@ public class BasicEntityActivity extends AppCompatActivity {
             }
         }
 
+    }
+
+    void populateForm(String gson) {
+        this.basicEntity = new BasicEntity(gson);
+
+        NonScrollRecyclerView recyclerView = findViewById(R.id.rvBasicObjects);
+        BasicEntityActivityObjectRecyclerAdapter adapter =
+                new BasicEntityActivityObjectRecyclerAdapter(this, this.basicEntity.list);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setNestedScrollingEnabled(false); // Disables scrolling
+        recyclerView.setAdapter(adapter);
+    }
+
+    void loadRecordFromUrl() {
+        // https://crmauth.medistim.com/main.aspx?etc=3&id=%7bbbc26479-adfd-ea11-810b-005056a36b9b%7d&pagetype=entityrecord
+        try {
+            String url = getIntent().getData().toString();
+            int pos1 = url.indexOf("etc=") + 4;
+            int pos2 = url.indexOf("&id=%7b");
+            int pos4 = url.indexOf("&pagetype=");
+            int entityTypeCode = Integer.parseInt(url.substring(pos1, pos2)); // e.g. 3
+            final String guid = url.substring(pos2 + 4, pos4).replace("%7b","").replace("%7d","");
+
+            // ***********************************************************************************
+            //                                      CASE
+            // ***********************************************************************************
+            if (entityTypeCode == Crm.ETC_INCIDENT) {
+                final MyProgressDialog dialog = new MyProgressDialog(context, "Retrieving ticket with id: " + guid + "...");
+
+                String query = Queries.Tickets.getCase(guid);
+                ArrayList<Requests.Argument> args = new ArrayList<>();
+                args.add(new Requests.Argument("query", query));
+                Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
+                Crm crm = new Crm();
+                crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+
+                        CrmEntities.Tickets tickets = new CrmEntities.Tickets(new String(responseBody));
+
+                        String gson = tickets.list.get(0).toBasicEntity().toGson();
+                        entityid = guid;
+                        entityLogicalName = "incident";
+                        activityTitle = "Ticket";
+                        setTitle(activityTitle);
+
+                        populateForm(gson);
+                        getNotes();
+
+                        dialog.dismiss();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                        Toast.makeText(BasicEntityActivity.this, "Failed to get record!", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                });
+                dialog.show();
+                Log.i(TAG, "onCreate Case record link was parsed!");
+
+            // ***********************************************************************************
+            //                                    OPPORTUNITY
+            // ***********************************************************************************
+            } else if (entityTypeCode == Crm.ETC_OPPORTUNITY) {
+                final MyProgressDialog dialog = new MyProgressDialog(context, "Retrieving ticket with id: " + guid + "...");
+
+                String query = Queries.Opportunities.getOpportunityDetails(guid);
+                ArrayList<Requests.Argument> args = new ArrayList<>();
+                args.add(new Requests.Argument("query", query));
+                Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
+                Crm crm = new Crm();
+                crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+
+                        CrmEntities.Opportunities opportunities = new CrmEntities.Opportunities(new String(responseBody));
+
+                        String gson = opportunities.list.get(0).toBasicEntity().toGson();
+                        entityid = guid;
+                        entityLogicalName = "opportunity";
+                        activityTitle = "Opportunity";
+                        setTitle(activityTitle);
+
+                        populateForm(gson);
+                        getNotes();
+
+                        dialog.dismiss();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                        Toast.makeText(BasicEntityActivity.this, "Failed to get record!", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                });
+                dialog.show();
+                Log.i(TAG, "onCreate Case record link was parsed!");
+            }
+
+            Log.i(TAG, "onCreate GUID: " + guid);
+            Log.i(TAG, "onCreate Type: " + entityTypeCode);
+            Toast.makeText(context, "Typecode: " + entityTypeCode + "\nGuid: " + guid, Toast.LENGTH_SHORT).show();
+
+        } catch (Exception e) {
+            Toast.makeText(context, e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+            finish();
+        }
     }
 
     void showAddEditNote(@Nullable final CrmEntities.Annotations.Annotation clickedNote) {

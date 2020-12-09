@@ -21,6 +21,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/txtLabel"
-        android:text="Some value" />
+        android:enabled="false"
+        android:fadeScrollbars="true"
+        android:text="Some value"
+        android:textColor="@drawable/my_edit_eext_style" />
 
 </RelativeLayout>

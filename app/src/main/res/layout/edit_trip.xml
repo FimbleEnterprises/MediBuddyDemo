@@ -215,10 +215,14 @@
 					android:layout_height="wrap_content"
 					android:layout_weight="1">
 
-					<CalendarView
-						android:id="@+id/calendarView"
+					<Button
+						android:id="@+id/btnChangeDate"
 						android:layout_width="match_parent"
-						android:layout_height="wrap_content" />
+						android:layout_height="wrap_content"
+						android:layout_margin="5dp"
+						android:background="@drawable/btn_blue"
+						android:text="12/29/1978" />
+
 				</FrameLayout>
 			</TableRow>
 
@@ -230,18 +234,7 @@
 				<FrameLayout
 					android:layout_width="0dp"
 					android:layout_height="wrap_content"
-					android:layout_weight="1">
-
-					<LinearLayout
-						android:id="@+id/companyWide_topBorder"
-						android:layout_width="325dp"
-						android:layout_height="2dp"
-						android:layout_gravity="center_horizontal"
-						android:background="#000000"
-						android:orientation="vertical"
-						android:visibility="visible" />
-
-				</FrameLayout>
+					android:layout_weight="1"/>
 			</TableRow>
 
 

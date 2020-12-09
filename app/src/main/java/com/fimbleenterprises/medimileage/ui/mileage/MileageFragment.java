@@ -39,6 +39,7 @@ import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.NavController;
@@ -51,6 +52,7 @@ import com.bumptech.glide.Glide;
 import com.fimbleenterprises.medimileage.Activity_ManualTrip;
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.CrmEntities;
+import com.fimbleenterprises.medimileage.DatePickerFragment;
 import com.fimbleenterprises.medimileage.FullTrip;
 import com.fimbleenterprises.medimileage.FullscreenActivityChooseOpportunity;
 import com.fimbleenterprises.medimileage.Helpers;
@@ -891,7 +893,8 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         final Dialog dialog = new Dialog(getContext());
         final Context c = getContext();
         dialog.setContentView(R.layout.edit_trip);
-        final CalendarView dtTripDate = dialog.findViewById(R.id.calendarView);
+        final Button btnChangeDate = dialog.findViewById(R.id.btnChangeDate);
+        btnChangeDate.setText(clickedTrip.getPrettyDate());
         Button btnSaveTrip = dialog.findViewById(R.id.button_NameAndCreateTrip);
         final AutoCompleteTextView txtName = dialog.findViewById(R.id.autocomplete_EditText_NameTrip);
         final EditText txtDistance = dialog.findViewById(R.id.editTxt_Distance);
@@ -935,6 +938,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 dialogTripOptions.dismiss();
             }
         });
+
         dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
             @Override
             public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
@@ -946,13 +950,21 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 }
             }
         });
-        dtTripDate.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+
+        btnChangeDate.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onSelectedDayChange(@NonNull CalendarView calendarView, int i, int i1, int i2) {
-                newDate[0] = new DateTime(i, i1 + 1, i2,0,0).getMillis();
+            public void onClick(View view) {
+                DialogFragment newFragment = new DatePickerFragment(new MyInterfaces.DateSelector() {
+                    @Override
+                    public void onDateSelected(DateTime selectedDate, String selectedDateStr) {
+                        btnChangeDate.setText(selectedDateStr);
+                        clickedTrip.setDateTime(selectedDate);
+                    }
+                });
+                ((DatePickerFragment) newFragment).setShowDate(clickedTrip.getDateTime());
+                newFragment.show(getActivity().getSupportFragmentManager(), "datePicker");
             }
         });
-        dtTripDate.setDate(clickedTrip.getDateTime().getMillis());
         dialog.show();
     }
 
@@ -1249,6 +1261,140 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             }
         });
 
+    }
+
+    void showTripOptions(final FullTrip clickedTrip) {
+        // custom dialog
+        final Dialog dialog = new Dialog(getContext());
+        dialog.setContentView(R.layout.trip_options_minimalist);
+        dialog.setTitle("Trip Options");
+        Button btnEditTrip = dialog.findViewById(R.id.edit_trip);
+        Button btnDeleteTrip = dialog.findViewById(R.id.btnDelete);
+        // Hidden - having this button here doesn't fit with the current design and flow
+        Button btnOpportunity = dialog.findViewById(R.id.btn_opportunities);
+        /*TableRow tableRow = dialog.findViewById(R.id.tableRowopp);
+        tableRow.setVisibility(clickedTrip.hasAssociations() ? View.VISIBLE : View.GONE);
+        btnOpportunity.setEnabled(clickedTrip.getIsSubmitted());*/
+        btnOpportunity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                if (clickedTrip.getIsSubmitted()) {
+                    Intent intent = new Intent(getContext(), FullscreenActivityChooseOpportunity.class);
+                    intent.putExtra(FullscreenActivityChooseOpportunity.FULLTRIP, clickedTrip);
+                    startActivityForResult(intent, FullscreenActivityChooseOpportunity.REQUESTCODE);
+                } else {
+                    Toast.makeText(getContext(), "You have to submit this trip first.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        Button btnSubmit = dialog.findViewById(R.id.btnSubmit);
+        btnSubmit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    dialog.dismiss();
+
+                    if (clickedTrip.getDistanceInMiles() <= 2) {
+                        datasource.deleteEmptyTrips(true, new MyInterfaces.TripDeleteCallback() {
+                            @Override
+                            public void onSuccess(int entriesDeleted) {
+                                if (entriesDeleted > 0) {
+                                    Log.w(TAG, "onSuccess: Deleted " + entriesDeleted + " empty trips.");
+                                    Toast.makeText(getContext(), "Removed " + entriesDeleted + " empty trips.", Toast.LENGTH_SHORT).show();
+                                    populateTripList();
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(String message) {
+                                Toast.makeText(getContext(), "Failed to delete empty trips\n" + message, Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+
+                    isTripSubmitted(clickedTrip);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                Log.i(TAG, "onClick Prepared trip for CRM");
+            }
+        });
+
+        Button btnRecall = dialog.findViewById(R.id.unsubmit_trip);
+        btnRecall.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    dialog.dismiss();
+                    unsubmitTrip(clickedTrip);
+                } catch (UnsupportedEncodingException e) {
+                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        Button btn_ViewTrip = dialog.findViewById(R.id.view_trip);
+        btn_ViewTrip.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getContext(), ViewTripActivity.class);
+                intent.putExtra(ViewTripActivity.CLICKED_TRIP, clickedTrip);
+                startActivity(intent);
+                dialog.dismiss();
+            }
+        });
+
+        btnEditTrip.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                editTrip(clickedTrip);
+                dialog.dismiss();
+            }
+        });
+
+        btnDeleteTrip.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                MyYesNoDialog.show(getContext(), "Are you sure you want to delete this trip?",
+                        new MyYesNoDialog.YesNoListener() {
+                            @Override
+                            public void onYes() {
+                                if (datasource.deleteFulltrip(clickedTrip.getTripcode(), true)) {
+                                    Toast.makeText(getContext(), "Deleted trip.", Toast.LENGTH_SHORT).show();
+                                    populateTripList();
+                                    dialog.dismiss();
+                                }
+                            }
+
+                            @Override
+                            public void onNo() {
+                                Toast.makeText(getContext(), "Cancelled", Toast.LENGTH_SHORT).show();
+                                dialog.dismiss();
+                            }
+                        });
+            }
+        });
+
+        btnEditTrip.setEnabled(!clickedTrip.getIsSubmitted());
+
+        if (options.isExplicitMode()) {
+            btn_ViewTrip.setText(getString(R.string.tripOptions_view_explicit));
+            btnSubmit.setText(getString(R.string.tripOptions_submit_explicit));
+            btnRecall.setText(getString(R.string.tripOptions_recall_explicit));
+            btnEditTrip.setText(getString(R.string.tripOptions_edit_explicit));
+            btnDeleteTrip.setText(getString(R.string.tripOptions_delete_explicit));
+        } else {
+            btn_ViewTrip.setText(getString(R.string.tripOptions_view));
+            btnSubmit.setText(getString(R.string.tripOptions_submit));
+            btnRecall.setText(getString(R.string.tripOptions_recall));
+            btnEditTrip.setText(getString(R.string.tripOptions_edit));
+            btnDeleteTrip.setText(getString(R.string.tripOptions_delete));
+        }
+
+        dialogTripOptions = dialog;
+        dialog.show();
     }
 
     void manageDefaultImage() {
@@ -1727,139 +1873,6 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 dialog.dismiss();
             }
         });
-    }
-
-    void showTripOptions(final FullTrip clickedTrip) {
-        // custom dialog
-        final Dialog dialog = new Dialog(getContext());
-        dialog.setContentView(R.layout.trip_options_minimalist);
-        dialog.setTitle("Trip Options");
-        Button btnEditTrip = dialog.findViewById(R.id.edit_trip);
-        Button btnDeleteTrip = dialog.findViewById(R.id.btnDelete);
-        Button btnOpportunity = dialog.findViewById(R.id.btn_opportunities);
-        /*TableRow tableRow = dialog.findViewById(R.id.tableRowopp);
-        tableRow.setVisibility(clickedTrip.hasAssociations() ? View.VISIBLE : View.GONE);
-        btnOpportunity.setEnabled(clickedTrip.getIsSubmitted());*/
-        btnOpportunity.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                if (clickedTrip.getIsSubmitted()) {
-                    Intent intent = new Intent(getContext(), FullscreenActivityChooseOpportunity.class);
-                    intent.putExtra(FullscreenActivityChooseOpportunity.FULLTRIP, clickedTrip);
-                    startActivityForResult(intent, FullscreenActivityChooseOpportunity.REQUESTCODE);
-                } else {
-                    Toast.makeText(getContext(), "You have to submit this trip first.", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        Button btnSubmit = dialog.findViewById(R.id.btnSubmit);
-        btnSubmit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                try {
-                    dialog.dismiss();
-
-                    if (clickedTrip.getDistanceInMiles() <= 2) {
-                        datasource.deleteEmptyTrips(true, new MyInterfaces.TripDeleteCallback() {
-                            @Override
-                            public void onSuccess(int entriesDeleted) {
-                                if (entriesDeleted > 0) {
-                                    Log.w(TAG, "onSuccess: Deleted " + entriesDeleted + " empty trips.");
-                                    Toast.makeText(getContext(), "Removed " + entriesDeleted + " empty trips.", Toast.LENGTH_SHORT).show();
-                                    populateTripList();
-                                }
-                            }
-
-                            @Override
-                            public void onFailure(String message) {
-                                Toast.makeText(getContext(), "Failed to delete empty trips\n" + message, Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
-
-                    isTripSubmitted(clickedTrip);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                Log.i(TAG, "onClick Prepared trip for CRM");
-            }
-        });
-
-        Button btnRecall = dialog.findViewById(R.id.unsubmit_trip);
-        btnRecall.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                try {
-                    dialog.dismiss();
-                    unsubmitTrip(clickedTrip);
-                } catch (UnsupportedEncodingException e) {
-                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        Button btn_ViewTrip = dialog.findViewById(R.id.view_trip);
-        btn_ViewTrip.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getContext(), ViewTripActivity.class);
-                intent.putExtra(ViewTripActivity.CLICKED_TRIP, clickedTrip);
-                startActivity(intent);
-                dialog.dismiss();
-            }
-        });
-
-        btnEditTrip.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                editTrip(clickedTrip);
-                dialog.dismiss();
-            }
-        });
-
-        btnDeleteTrip.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                MyYesNoDialog.show(getContext(), "Are you sure you want to delete this trip?",
-                    new MyYesNoDialog.YesNoListener() {
-                        @Override
-                        public void onYes() {
-                            if (datasource.deleteFulltrip(clickedTrip.getTripcode(), true)) {
-                                Toast.makeText(getContext(), "Deleted trip.", Toast.LENGTH_SHORT).show();
-                                populateTripList();
-                                dialog.dismiss();
-                            }
-                        }
-
-                        @Override
-                        public void onNo() {
-                            Toast.makeText(getContext(), "Cancelled", Toast.LENGTH_SHORT).show();
-                            dialog.dismiss();
-                        }
-                    });
-            }
-        });
-
-        btnEditTrip.setEnabled(!clickedTrip.getIsSubmitted());
-
-        if (options.isExplicitMode()) {
-            btn_ViewTrip.setText(getString(R.string.tripOptions_view_explicit));
-            btnSubmit.setText(getString(R.string.tripOptions_submit_explicit));
-            btnRecall.setText(getString(R.string.tripOptions_recall_explicit));
-            btnEditTrip.setText(getString(R.string.tripOptions_edit_explicit));
-            btnDeleteTrip.setText(getString(R.string.tripOptions_delete_explicit));
-        } else {
-            btn_ViewTrip.setText(getString(R.string.tripOptions_view));
-            btnSubmit.setText(getString(R.string.tripOptions_submit));
-            btnRecall.setText(getString(R.string.tripOptions_recall));
-            btnEditTrip.setText(getString(R.string.tripOptions_edit));
-            btnDeleteTrip.setText(getString(R.string.tripOptions_delete));
-        }
-
-        dialogTripOptions = dialog;
-        dialog.show();
     }
 
     void showNameTrip() {

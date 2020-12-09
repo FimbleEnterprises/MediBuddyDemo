@@ -40,8 +40,12 @@ import com.scwang.smart.refresh.layout.api.RefreshLayout;
 import com.scwang.smart.refresh.layout.listener.OnLoadMoreListener;
 import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
+import static com.fimbleenterprises.medimileage.BasicEntityActivity.ENTITYID;
+import static com.fimbleenterprises.medimileage.BasicEntityActivity.ENTITY_LOGICAL_NAME;
+import static com.fimbleenterprises.medimileage.BasicEntityActivity.SEND_EMAIL;
 import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts;
 import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts.OrderProduct;
+import static com.fimbleenterprises.medimileage.CrmEntities.Tickets.NOT_RESOLVED;
 
 import org.joda.time.DateTime;
 
@@ -88,7 +92,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
     public static int yearNum;
 
     // vars for case status
-    public static int case_status = CrmEntities.Tickets.IN_PROGRESS;
+    public static int case_status = NOT_RESOLVED;
 
     // flag for region
     public static boolean isEastRegion = true;
@@ -169,6 +173,45 @@ public class Activity_TerritoryData extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         try {
+
+            if (resultCode == RESULT_OK) {
+                Log.i(TAG, "onActivityResult RESULT_CODE == " + resultCode);
+                if (data.getAction().equals(BasicEntityActivity.MENU_SELECTION)) {
+                    Log.i(TAG, "onActivityResult " + MENU_SELECTION);
+
+                    if (data.getStringExtra(SEND_EMAIL) != null) {
+
+                        String emailSuffix = "";
+
+                        Log.i(TAG, "onActivityResult Received a " + SEND_EMAIL + " result extra");
+                        String entityid = data.getStringExtra(ENTITYID);
+                        String entityLogicalName = data.getStringExtra(ENTITY_LOGICAL_NAME);
+                        Log.i(TAG, "onActivityResult Entityid: " + entityid + " - Entity logical name: " + entityLogicalName);
+                        Log.i(TAG, "onActivityResult ");
+
+                        String recordurl = "";
+                        String subject = "";
+
+                        if (entityLogicalName.equals("opportunity")) {
+                            recordurl = Crm.getRecordUrl(entityid, Integer.toString(Crm.ETC_OPPORTUNITY));
+                            subject = "Opportunity";
+                            emailSuffix = "\n\nCRM Link: " + recordurl;
+                            Log.i(TAG, "onActivityResult:: " + recordurl);
+
+                        } else if (entityLogicalName.equals("incident")) {
+                            recordurl = Crm.getRecordUrl(entityid, Integer.toString(Crm.ETC_INCIDENT));
+                            emailSuffix = "\n\nCRM Link: " + recordurl;
+                            subject = "Ticket";
+                            Log.i(TAG, "onActivityResult:: " + recordurl);
+                        }
+
+                        Helpers.Email.sendEmail(emailSuffix + "\n\n", "CRM Link", activity);
+
+                    }
+
+                }
+            }
+
             territory = data.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
             cachedTerritories = data.getParcelableArrayListExtra(FullscreenActivityChooseTerritory.CACHED_TERRITORIES);
             sectionsPagerAdapter.notifyDataSetChanged();
@@ -178,10 +221,6 @@ public class Activity_TerritoryData extends AppCompatActivity {
             intent.putExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT, territory);
             sendBroadcast(intent);
 
-            /*Intent dateChanged = new Intent(DATE_CHANGED);
-            dateChanged.putExtra(YEAR, yearNum);
-            dateChanged.putExtra(MONTH, monthNum);
-            sendBroadcast(dateChanged);*/
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -299,7 +338,17 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
                 // Set case status values
                 switch (case_status) {
+                    case NOT_RESOLVED :
+                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(true);
+                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
+                        break;
                     case CrmEntities.Tickets.IN_PROGRESS :
+                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
                         menu.findItem(R.id.action_change_case_status_inprogress).setChecked(true);
                         menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
                         menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
@@ -308,6 +357,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                         menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
                         break;
                     case CrmEntities.Tickets.ON_HOLD :
+                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
                         menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
                         menu.findItem(R.id.action_change_case_status_on_hold).setChecked(true);
                         menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
@@ -316,6 +366,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                         menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
                         break;
                     case CrmEntities.Tickets.TO_BE_INSPECTED :
+                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
                         menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
                         menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
                         menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(true);
@@ -324,6 +375,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                         menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
                         break;
                     case CrmEntities.Tickets.WAITING_FOR_PRODUCT :
+                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
                         menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
                         menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
                         menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
@@ -332,6 +384,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                         menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
                         break;
                     case CrmEntities.Tickets.WAITING_ON_CUSTOMER :
+                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
                         menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
                         menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
                         menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
@@ -340,6 +393,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                         menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
                         break;
                     case CrmEntities.Tickets.TO_BE_BILLED :
+                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
                         menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
                         menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
                         menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
@@ -398,6 +452,10 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 break;
             case R.id.action_last_year :
                 yearNum = aMonthAgo.getYear();
+                sendBroadcastUsingExistingValues();
+                break;
+            case R.id.action_change_case_status_not_resolved:
+                case_status = NOT_RESOLVED;
                 sendBroadcastUsingExistingValues();
                 break;
             case R.id.action_change_case_status_inprogress:
@@ -525,6 +583,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
         
         public String getCaseCriteriaTitleAddendum() {
             switch (case_status) {
+                case CrmEntities.Tickets.NOT_RESOLVED :
+                    return " - Not resolved";
                 case CrmEntities.Tickets.IN_PROGRESS :
                     return " - In progress";
                 case CrmEntities.Tickets.ON_HOLD :
@@ -581,7 +641,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
             txtNoSales = root.findViewById(R.id.txtNoSales);
             refreshLayout = root.findViewById(R.id.refreshLayout);
             RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
-            refreshLayout.setRefreshHeader(new MaterialHeader(getContext()));
+            refreshLayout.setEnableLoadMore(false);
             refreshLayout.setOnRefreshListener(new OnRefreshListener() {
                 @Override
                 public void onRefresh(RefreshLayout refreshlayout) {
@@ -814,6 +874,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
             listview = rootView.findViewById(R.id.opportunitiesRecyclerview);
             refreshLayout = rootView.findViewById(R.id.refreshLayout);
 
+            refreshLayout.setEnableLoadMore(false);
             super.onCreateView(inflater, container, savedInstanceState);
 
             // Gifts from Santa - open present and do stuff with what we got!
@@ -910,7 +971,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     intent.putExtra(BasicEntityActivity.ENTITYID, selectedOpportunity.opportunityid);
                     intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "opportunity");
                     intent.putExtra(BasicEntityActivity.GSON_STRING, selectedOpportunity.toBasicEntity().toGson());
-                    startActivity(intent);
+                    startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
 
                     // showOpportunityOptions(selectedOpportunity);
                 }
@@ -1026,10 +1087,11 @@ public class Activity_TerritoryData extends AppCompatActivity {
             rootView = inflater.inflate(R.layout.frag_cases, container, false);
             listview = rootView.findViewById(R.id.casesRecyclerview);
             refreshLayout = rootView.findViewById(R.id.refreshLayout);
+            refreshLayout.setEnableLoadMore(false);
             refreshLayout.setOnRefreshListener(new OnRefreshListener() {
                 @Override
                 public void onRefresh(@NonNull RefreshLayout refreshLayout) {
-                    populateList();
+                    getTickets();
                 }
             });
             super.onCreateView(inflater, container, savedInstanceState);
@@ -1055,8 +1117,15 @@ public class Activity_TerritoryData extends AppCompatActivity {
         }
 
         void getTickets() {
-            refreshLayout.autoRefresh();
-            String query = Queries.Tickets.getTickets(territory.territoryid, case_status);
+            refreshLayout.autoRefreshAnimationOnly();
+            String query = null;
+
+            if (case_status == NOT_RESOLVED) {
+                query = Queries.Tickets.getNonResolvedTickets(territory.territoryid);
+            } else {
+                query = Queries.Tickets.getTickets(territory.territoryid, case_status);
+            }
+
             ArrayList<Requests.Argument> args = new ArrayList<>();
             args.add(new Requests.Argument("query", query));
             Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
@@ -1083,10 +1152,23 @@ public class Activity_TerritoryData extends AppCompatActivity {
             objects.clear();
 
             if (tickets != null) {
+
+                int lastStatusCode = -1;
+
                 for (CrmEntities.Tickets.Ticket ticket : tickets.list) {
+
+                    // Logic to create headers denoting newly seen status'
+                    if (ticket.statuscode != lastStatusCode) {
+                        BasicObject object = new BasicObject(ticket.statusFormatted, null, null);
+                        object.isHeader = true;
+                        objects.add(object);
+                        lastStatusCode = ticket.statuscode;
+                    }
+
+                    // Add the ticket as a BasicObject
                     BasicObject object = new BasicObject(ticket.title, ticket.ticketnumber, ticket);
                     object.middleText = ticket.customerFormatted;
-                    object.topRightText = ticket.statecodeFormatted;
+                    object.topRightText = Helpers.DatesAndTimes.getPrettyDateAndTime(ticket.modifiedon);
                     object.bottomRightText = ticket.statusFormatted;
                     objects.add(object);
                 }

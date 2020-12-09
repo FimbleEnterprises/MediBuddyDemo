@@ -73,9 +73,16 @@
                 android:id="@+id/case_status"
                 android:menuCategory="container">
                 <item
-                    android:id="@+id/action_change_case_status_inprogress"
+                    android:id="@+id/action_change_case_status_not_resolved"
                     android:checkable="true"
                     android:checked="true"
+                    android:orderInCategory="96"
+                    android:title="@string/action_case_state_not_resolved"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_change_case_status_inprogress"
+                    android:checkable="true"
+                    android:checked="false"
                     android:orderInCategory="96"
                     android:title="@string/action_case_state_in_progress"
                     app:showAsAction="never" />

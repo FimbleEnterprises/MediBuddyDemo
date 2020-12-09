@@ -1648,6 +1648,19 @@ public abstract class Helpers {
                 Toast.makeText(context, "There are no googleEmail clients installed.", Toast.LENGTH_SHORT).show();
             }
         }
+
+        public static void sendEmail(String body, String subject, Context context) {
+            Intent i = new Intent(Intent.ACTION_SEND);
+            // i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+            i.setType("message/rfc822");
+            i.putExtra(Intent.EXTRA_SUBJECT, subject);
+            i.putExtra(Intent.EXTRA_TEXT, body);
+            try {
+                context.startActivity(Intent.createChooser(i, "Send mail..."));
+            } catch (android.content.ActivityNotFoundException ex) {
+                Toast.makeText(context, "There are no email clients installed.", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     public static class Battery {
