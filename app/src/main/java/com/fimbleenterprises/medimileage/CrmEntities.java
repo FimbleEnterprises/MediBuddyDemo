@@ -1460,12 +1460,23 @@ public class CrmEntities {
             public String probabilityPretty;
             public int probabilityOptionsetValue;
             public String ownername;
+            public String createdBy;
+            public String createdByFormatted;
+            public String modifiedBy;
+            public String modifiedByFormatted;
+            private double modifiedOn;
+            public String modifiedOnFormatted;
+            public String createdOnFormatted;
             public String ownerid;
             private double estimatedCloseDate;
             private double createdon;
             public String stepName;
             public String dealTypePretty;
             public int dealTypeOptionsetValue;
+            public String estDeviceRev;
+            public String estProbeRev;
+            public String estTerritoryRev;
+            public String estTotalRev;
             public String territoryid;
             public String opportunityid;
             public String name;
@@ -1480,8 +1491,39 @@ public class CrmEntities {
                 return this.name;
             }
 
+            public BasicEntity toBasicEntity() {
+                BasicEntity basicEntity = new BasicEntity(this);
+                basicEntity.list.add(new BasicEntity.BasicEntityField("Topic:", this.name));
+                basicEntity.list.add(new BasicEntity.BasicEntityField("Account:", this.accountname));
+                basicEntity.list.add(new BasicEntity.BasicEntityField("Background:", this.currentSituation));
+                basicEntity.list.add(new BasicEntity.BasicEntityField("Status:", this.status));
+                basicEntity.list.add(new BasicEntity.BasicEntityField("Deal status:", this.dealStatus));
+                basicEntity.list.add(new BasicEntity.BasicEntityField("Deal type:", this.dealTypePretty));
+                basicEntity.list.add(new BasicEntity.BasicEntityField("Close probability:", this.probabilityPretty));
+                basicEntity.list.add(new BasicEntity.BasicEntityField("Device revenue:", this.estDeviceRev));
+                basicEntity.list.add(new BasicEntity.BasicEntityField("Probe revenue:", this.estProbeRev));
+                basicEntity.list.add(new BasicEntity.BasicEntityField("Total revenue:", this.estTotalRev));
+                basicEntity.list.add(new BasicEntity.BasicEntityField("Territory revenue:", this.estTerritoryRev));
+                basicEntity.list.add(new BasicEntity.BasicEntityField("Step:", this.stepName));
+                basicEntity.list.add(new BasicEntity.BasicEntityField("Created on:", Helpers.DatesAndTimes.getPrettyDateAndTime(this.getCreatedOn())));
+                basicEntity.list.add(new BasicEntity.BasicEntityField("Created by:", this.createdByFormatted));
+                basicEntity.list.add(new BasicEntity.BasicEntityField("Modified on:", this.modifiedOnFormatted));
+                basicEntity.list.add(new BasicEntity.BasicEntityField("Modified by:", this.modifiedByFormatted));
+
+                return basicEntity;
+            }
+
             public DateTime getCreatedOn() {
-                return new DateTime(createdon);
+                try {
+                    return new DateTime(createdon);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return DateTime.now();
+                }
+            }
+
+            public DateTime getModifiedOn() {
+                return new DateTime(modifiedOn);
             }
 
             public DateTime getEstimatedClose() {
@@ -1564,6 +1606,55 @@ public class CrmEntities {
                     e.printStackTrace();
                 }
                 try {
+                    if (!json.isNull("_createdby_valueFormattedValue")) {
+                        this.createdByFormatted = (json.getString("_createdby_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_modifiedby_valueFormattedValue")) {
+                        this.modifiedByFormatted = (json.getString("_modifiedby_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_modifiedby_value")) {
+                        this.modifiedBy = (json.getString("_modifiedby_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                   if (!json.isNull("modifiedon")) {
+                       this.modifiedOn = (new DateTime(json.getString("modifiedon")).getMillis());
+                   }
+                } catch (JSONException e) {
+                   e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("modifiedonFormattedValue")) {
+                        this.modifiedOnFormatted = (json.getString("modifiedonFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("createdonFormattedValue")) {
+                        this.createdOnFormatted = (json.getString("createdonFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_createdby_value")) {
+                        this.createdBy = (json.getString("_createdby_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
                     if (!json.isNull("_ownerid_valueFormattedValue")) {
                         this.ownername = (json.getString("_ownerid_valueFormattedValue"));
                     }
@@ -1608,6 +1699,34 @@ public class CrmEntities {
                 try {
                     if (!json.isNull("col_dealtype")) {
                         this.dealTypeOptionsetValue = (json.getInt("col_dealtype"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("col_estmrevenuedevicesFormattedValue")) {
+                        this.estDeviceRev = (json.getString("col_estmrevenuedevicesFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("col_estmrevenueprobesFormattedValue")) {
+                        this.estProbeRev = (json.getString("col_estmrevenueprobesFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("new_territoryrevenueFormattedValue")) {
+                        this.estTerritoryRev = (json.getString("new_territoryrevenueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("estimatedvalueFormattedValue")) {
+                        this.estTotalRev = (json.getString("estimatedvalueFormattedValue"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -1706,6 +1825,7 @@ public class CrmEntities {
                 ownerid = in.readString();
                 estimatedCloseDate = in.readDouble();
                 createdon = in.readDouble();
+                createdOnFormatted = in.readString();
                 stepName = in.readString();
                 dealTypePretty = in.readString();
                 dealTypeOptionsetValue = in.readInt();
@@ -1716,6 +1836,16 @@ public class CrmEntities {
                 dealStatus = in.readString();
                 currentSituation = in.readString();
                 status = in.readString();
+                estTotalRev = in.readString();
+                estDeviceRev = in.readString();
+                estProbeRev = in.readString();
+                estTerritoryRev = in.readString();
+                modifiedOn = in.readDouble();
+                modifiedOnFormatted = in.readString();
+                modifiedBy = in.readString();
+                modifiedByFormatted = in.readString();
+                createdByFormatted = in.readString();
+                createdBy = in.readString();
             }
 
             @Override
@@ -1734,6 +1864,7 @@ public class CrmEntities {
                 dest.writeString(ownerid);
                 dest.writeDouble(estimatedCloseDate);
                 dest.writeDouble(createdon);
+                dest.writeString(createdOnFormatted);
                 dest.writeString(stepName);
                 dest.writeString(dealTypePretty);
                 dest.writeInt(dealTypeOptionsetValue);
@@ -1744,6 +1875,16 @@ public class CrmEntities {
                 dest.writeString(dealStatus);
                 dest.writeString(currentSituation);
                 dest.writeString(status);
+                dest.writeString(estTotalRev);
+                dest.writeString(estDeviceRev);
+                dest.writeString(estProbeRev);
+                dest.writeString(estTerritoryRev);
+                dest.writeDouble(modifiedOn);
+                dest.writeString(modifiedOnFormatted);
+                dest.writeString(modifiedBy);
+                dest.writeString(modifiedByFormatted);
+                dest.writeString(createdByFormatted);
+                dest.writeString(createdBy);
             }
 
             @SuppressWarnings("unused")
@@ -2322,7 +2463,7 @@ public class CrmEntities {
                 }
             }
 
-            public BasicEntity toGenericActivity() {
+            public BasicEntity toBasicEntity() {
 
                 BasicEntity entity = new BasicEntity(this);
                 entity.list.add(new BasicEntity.BasicEntityField("Ticket number:", this.ticketnumber));

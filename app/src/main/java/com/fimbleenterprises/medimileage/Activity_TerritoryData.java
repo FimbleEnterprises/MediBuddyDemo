@@ -8,7 +8,6 @@ import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
@@ -32,22 +31,10 @@ import com.anychart.AnyChartView;
 import com.anychart.chart.common.dataentry.DataEntry;
 import com.anychart.chart.common.dataentry.ValueDataEntry;
 import com.anychart.charts.Cartesian;*/
-import com.github.mikephil.charting.charts.HorizontalBarChart;
-import com.github.mikephil.charting.components.XAxis;
-import com.github.mikephil.charting.data.BarData;
-import com.github.mikephil.charting.data.BarDataSet;
-import com.github.mikephil.charting.data.BarEntry;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.formatter.ValueFormatter;
-import com.github.mikephil.charting.highlight.Highlight;
-import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
-import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
-import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.scwang.smart.refresh.footer.ClassicsFooter;
 import com.scwang.smart.refresh.header.MaterialHeader;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
 import com.scwang.smart.refresh.layout.listener.OnLoadMoreListener;
@@ -58,7 +45,6 @@ import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts.OrderP
 
 import org.joda.time.DateTime;
 
-import java.time.DateTimeException;
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
@@ -919,8 +905,11 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     CrmEntities.Opportunities.Opportunity selectedOpportunity =
                             (CrmEntities.Opportunities.Opportunity) objects.get(position).object;
 
-                    Intent intent = new Intent(context, OpportunityActivity.class);
-                    intent.putExtra(OpportunityActivity.OPPORTUNITY_TAG, selectedOpportunity);
+                    Intent intent = new Intent(context, BasicEntityActivity.class);
+                    intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Opportunity Details");
+                    intent.putExtra(BasicEntityActivity.ENTITYID, selectedOpportunity.opportunityid);
+                    intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "opportunity");
+                    intent.putExtra(BasicEntityActivity.GSON_STRING, selectedOpportunity.toBasicEntity().toGson());
                     startActivity(intent);
 
                     // showOpportunityOptions(selectedOpportunity);
@@ -1112,7 +1101,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     BasicObject object = objects.get(position);
                     CrmEntities.Tickets.Ticket ticket = (CrmEntities.Tickets.Ticket) object.object;
                     Intent intent = new Intent(context, BasicEntityActivity.class);
-                    intent.putExtra(BasicEntityActivity.GSON_STRING, ticket.toGenericActivity().toGson());
+                    intent.putExtra(BasicEntityActivity.GSON_STRING, ticket.toBasicEntity().toGson());
                     intent.putExtra(BasicEntityActivity.ENTITYID, ticket.ticketid);
                     intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "incident");
                     intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Ticket " + ticket.ticketnumber);

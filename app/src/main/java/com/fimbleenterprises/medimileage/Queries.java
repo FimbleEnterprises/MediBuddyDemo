@@ -623,12 +623,20 @@ public class Queries {
             factory.addColumn("parentaccountid");
             factory.addColumn("stepname");
             factory.addColumn("createdon");
+            factory.addColumn("createdby");
+            factory.addColumn("modifiedon");
+            factory.addColumn("modifiedby");
             factory.addColumn("msus_probability");
             factory.addColumn("opportunityid");
             factory.addColumn("statuscode");
             factory.addColumn("statecode");
             factory.addColumn("currentsituation");
             factory.addColumn("stepname");
+
+            factory.addColumn("col_estmrevenuedevices");
+            factory.addColumn("col_estmrevenueprobes");
+            factory.addColumn("estimatedvalue");
+            factory.addColumn("new_territoryrevenue");
 
             // Link entities
             LinkEntity linkEntityAccount = new LinkEntity("account", "accountid", "parentaccountid", "ab");
@@ -673,12 +681,20 @@ public class Queries {
             factory.addColumn("parentaccountid");
             factory.addColumn("stepname");
             factory.addColumn("createdon");
+            factory.addColumn("createdby");
+            factory.addColumn("modifiedon");
+            factory.addColumn("modifiedby");
             factory.addColumn("msus_probability");
             factory.addColumn("opportunityid");
             factory.addColumn("statuscode");
             factory.addColumn("statecode");
             factory.addColumn("currentsituation");
             factory.addColumn("stepname");
+
+            factory.addColumn("col_estmrevenuedevices");
+            factory.addColumn("col_estmrevenueprobes");
+            factory.addColumn("estimatedvalue");
+            factory.addColumn("new_territoryrevenue");
 
             // Link entities
             LinkEntity linkEntityAccount = new LinkEntity("account", "accountid", "parentaccountid", "ab");
@@ -723,12 +739,20 @@ public class Queries {
             factory.addColumn("parentaccountid");
             factory.addColumn("stepname");
             factory.addColumn("createdon");
+            factory.addColumn("createdby");
+            factory.addColumn("modifiedon");
+            factory.addColumn("modifiedby");
             factory.addColumn("msus_probability");
             factory.addColumn("opportunityid");
             factory.addColumn("statuscode");
             factory.addColumn("statecode");
             factory.addColumn("currentsituation");
             factory.addColumn("stepname");
+
+            factory.addColumn("col_estmrevenuedevices");
+            factory.addColumn("col_estmrevenueprobes");
+            factory.addColumn("estimatedvalue");
+            factory.addColumn("new_territoryrevenue");
 
             // Link entities
             LinkEntity linkEntityAccount = new LinkEntity("account", "accountid", "parentaccountid", "ab");
@@ -761,7 +785,7 @@ public class Queries {
             return query;
         }
 
-}
+    }
 
     /**
      * Contains queries designed to test basic functionality and CRM communication
