@@ -265,5 +265,6 @@
     <string name="action_case_status_problem_solved">Problem solved</string>
     <string name="action_case_state_not_resolved">Not resolved</string>
     <string name="action_email">Email...</string>
+    <string name="tickets_about_this_list">Please choose a ticket.</string>
 
 </resources>

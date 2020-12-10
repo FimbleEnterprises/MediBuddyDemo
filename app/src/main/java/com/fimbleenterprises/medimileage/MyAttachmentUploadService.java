@@ -228,6 +228,7 @@ public class MyAttachmentUploadService extends Service {
 
                             @Override
                             public void onFail(String error) {
+                                updateNotification("Failed to upload attachment", error, false, false);
                                 stopSelf();
                             }
                         });

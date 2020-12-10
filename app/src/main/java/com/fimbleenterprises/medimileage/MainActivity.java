@@ -265,7 +265,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             startActivity(new Intent(activity, Activity_TerritoryData.class));
             // drawer.closeDrawer(navigationView);
         } else if (item.getItemId() == R.id.nav_myaccounts) {
-            startActivity(new Intent(activity, Activity_AccountInfo.class));
+            startActivity(new Intent(activity, Activity_AccountData.class));
             // drawer.closeDrawer(navigationView);
         } else if (item.getItemId() == R.id.nav_salesquotas) {
             Intent oppIntent = new Intent(activity, Activity_SalesQuotas.class);

@@ -2,15 +2,12 @@ package com.fimbleenterprises.medimileage;
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.app.SearchManager;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -37,7 +34,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -57,7 +53,7 @@ import com.anychart.chart.common.dataentry.DataEntry;
 import com.anychart.chart.common.dataentry.ValueDataEntry;
 import com.anychart.charts.Cartesian;*/
 
-public class Activity_AccountInfo extends AppCompatActivity {
+public class Activity_AccountData extends AppCompatActivity {
 
     private static CrmEntities.Accounts.Account curAccount;
     private static ArrayList<CrmEntities.Accounts.Account> cachedAccounts;
@@ -807,7 +803,7 @@ public class Activity_AccountInfo extends AppCompatActivity {
 
             btnChooseAccount.setVisibility(curAccount == null ? View.VISIBLE : View.GONE);
 
-            ArrayList<CrmEntities.AccountProducts.AccountProduct> productList = new ArrayList<>();
+            final ArrayList<CrmEntities.AccountProducts.AccountProduct> productList = new ArrayList<>();
 
             Log.i(TAG, "populateTripList: Preparing the dividers and trips...");
             for (int i = 0; i < (custInventory.size()); i++) {
@@ -824,6 +820,9 @@ public class Activity_AccountInfo extends AppCompatActivity {
                     @Override
                     public void onItemClick(View view, int position) {
                         Toast.makeText(context, custInventory.get(position).productDescription, Toast.LENGTH_SHORT).show();
+                        ArrayList<Requests.Argument> args = new ArrayList<>();
+                        String query = Queries.CustomerInventory.getCustomerInventoryDetails(productList.get(position).customerinventoryid);
+                        args.add(new Requests.Argument("query", query));
                     }
                 });
                 recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -1205,6 +1204,25 @@ public class Activity_AccountInfo extends AppCompatActivity {
                 adapter.setClickListener(new OrderLineRecyclerAdapter.ItemClickListener() {
                     @Override
                     public void onItemClick(View view, int position) {
+                        final MyProgressDialog progressDialog = new MyProgressDialog(context , "Getting order details...");
+                        progressDialog.show();
+                        ArrayList<Requests.Argument> args = new ArrayList<>();
+                        String query = Queries.OrderLines.getOrderLines(allOrders.get(position).salesorderid);
+                        args.add(new Requests.Argument("query", query));
+                        Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
+                        new Crm().makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+                            @Override
+                            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                                String response = new String(responseBody);
+                                CrmEntities.OrderProducts orderLines = new CrmEntities.OrderProducts(response);
+                                progressDialog.dismiss();
+                            }
+
+                            @Override
+                            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                                progressDialog.dismiss();
+                            }
+                        });
 
                     }
                 });
@@ -1274,6 +1292,394 @@ public class Activity_AccountInfo extends AppCompatActivity {
 
             for (int i = 2; i < allOrders.size() + 2; i++) {
                 CrmEntities.OrderProducts.OrderProduct product = allOrders.get(i - 2);
+                spreadsheet.addCell(SHEET1, 0, i, Integer.toString(product.qty));
+                spreadsheet.addCell(SHEET1, 1, i, product.partNumber);
+                spreadsheet.addCell(SHEET1, 2, i, product.accountnumber);
+                spreadsheet.addCell(SHEET1, 3, i, product.customeridFormatted);
+                spreadsheet.addCell(SHEET1, 4, i, product.salesorderidFormatted);
+                spreadsheet.addCell(SHEET1, 5, i, product.orderdateFormatted);
+                spreadsheet.addCell(SHEET1, 6, i, Double.toString(product.extendedAmt));
+            }
+
+            // Save the file
+            spreadsheet.save();
+
+            return spreadsheet;
+
+        }
+
+    }
+
+    public static class Frag_Contacts extends Fragment {
+        public static final String ARG_SECTION_NUMBER = "section_number";
+        public View root;
+        public RecyclerView recyclerView;
+        RefreshLayout refreshLayout;
+        BasicEntityActivityObjectRecyclerAdapter adapter;
+        ArrayList<BasicObject> objects = new ArrayList<>();
+        Button btnChooseAccount;
+        public static String pageTitle = "Contacts";
+        TextView txtNoSales;
+
+        @Nullable
+        @Override
+        public View onCreateView(@NonNull final LayoutInflater inflater, @Nullable ViewGroup container,
+                                 @Nullable Bundle savedInstanceState) {
+            root = inflater.inflate(R.layout.frag_saleslines, container, false);
+            txtNoSales = root.findViewById(R.id.txtNoSales);
+            refreshLayout = root.findViewById(R.id.refreshLayout);
+            options = new MySettingsHelper(context);
+            RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
+            refreshLayout.setRefreshHeader(new MaterialHeader(getContext()));
+            refreshLayout.setOnRefreshListener(new OnRefreshListener() {
+                @Override
+                public void onRefresh(RefreshLayout refreshlayout) {
+                    getAccountContacts();
+                }
+            });
+            refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
+                @Override
+                public void onLoadMore(RefreshLayout refreshlayout) {
+                    refreshlayout.finishLoadMore(500/*,false*/);
+                }
+            });
+
+            btnChooseAccount = root.findViewById(R.id.btnChooseAct);
+            btnChooseAccount.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intentChangeAccount = new Intent(context, FullscreenActivityChooseAccount.class);
+                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
+                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, curAccount);
+                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
+                    startActivityForResult(intentChangeAccount, FullscreenActivityChooseAccount.REQUESTCODE);
+                }
+            });
+
+            // Check if there is an account stipulated in preferences
+            if (curAccount == null) {
+                Log.w(TAG, "onCreateView: No account stipulated!");
+                // do something!
+            } else {
+                Log.i(TAG, "onCreateView Account is stipulated (" + curAccount.accountnumber + ")");
+            }
+
+            recyclerView = root.findViewById(R.id.orderLinesRecyclerview);
+            super.onCreateView(inflater, container, savedInstanceState);
+
+            // Broadcast received regarding an options menu selection
+            salesMenuItemSelectedReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Log.i(TAG, "onReceive Local receiver received broadcast!");
+                    // Validate intent shit
+                    if (intent != null && intent.getAction().equals(MENU_ACTION)) {
+
+                        if (intent.getIntExtra(EXPORT_PAGE_INDEX, -1) == SectionsPagerAdapter.SALES_LINE_PAGE) {
+                            // Check if this is regarding an inventory export to Excel
+                            if (intent.getStringExtra(EXPORT_INVENTORY) != null) {
+                                // Ensure there is an account stipulated and inventory to export
+                                if (curAccount != null && objects != null &&
+                                        objects.size() > 0) {
+                                    // Export and share
+                                    ExcelSpreadsheet spreadsheet = exportToExcel(
+                                            curAccount.accountnumber
+                                                    + "_sales_export.xls");
+                                    Helpers.Files.shareFile(context, spreadsheet.file);
+                                } else {
+                                    Toast.makeText(context, "No inventory to export!", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        } // is sales line page
+
+                        // If the current account is null then clear the list.  This is to enable
+                        // on back pressed behavior that doesn't automatically finish the activity.
+                        if (curAccount == null) {
+                            objects.clear();
+                            populateList();
+                        }
+
+                        btnChooseAccount.setVisibility(curAccount == null ? View.VISIBLE : View.GONE);
+
+                        getAccountContacts();
+
+                        mViewPager.getAdapter().notifyDataSetChanged();
+                    }
+                }
+            };
+
+            // Get inventory using whatever menu selections are currently set
+            // getAccountInventory();
+
+            return root;
+        }
+
+        @Override
+        public void onStop() {
+            super.onStop();
+
+        }
+
+        @Override
+        public void onDestroyView() {
+            super.onDestroyView();
+            getActivity().unregisterReceiver(salesMenuItemSelectedReceiver);
+            Log.i(TAG, "onPause Unregistered the sales lines receiver");
+        }
+
+        @Override
+        public void onResume() {
+
+            // Register the options menu selected receiver
+            getActivity().registerReceiver(salesMenuItemSelectedReceiver, intentFilterMenuAction);
+
+            // Hide/show the choose account button
+            if (curAccount == null) {
+                btnChooseAccount.setVisibility(View.VISIBLE);
+            } else {
+                btnChooseAccount.setVisibility(View.GONE);
+            }
+
+            Log.i(TAG, "onResume Registered the options menu receiver");
+            super.onResume();
+        }
+
+        @Override
+        public void onPause() {
+
+            super.onPause();
+        }
+
+        protected void getAccountContacts() {
+
+            if (curAccount == null) {
+                return;
+            }
+
+            String query = Queries.Contacts.getContacts(curAccount.accountid);
+
+            txtNoSales.setVisibility(View.GONE);
+
+            if (curAccount == null) {
+                Toast.makeText(context, "Please select an account", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            getPagerTitle();
+
+            refreshLayout.autoRefreshAnimationOnly();
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            Requests.Argument argument = new Requests.Argument("query", query);
+            args.add(argument);
+            Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
+            Crm crm = new Crm();
+            crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    try {
+                        String response = new String(responseBody);
+                        Log.i(TAG, "onSuccess " + response);
+                        // objects = new CrmEntities.OrderProducts(response).list;
+                        populateList();
+                        refreshLayout.finishRefresh();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
+
+                    refreshLayout.finishRefresh();
+                }
+            });
+        }
+
+        String getPagerTitle() {
+            String txtAppend = "";
+
+            pageTitle = "Sales (last 3 months)";
+            mViewPager.getAdapter().notifyDataSetChanged();
+            return pageTitle;
+        }
+
+        protected void populateList() {
+
+            ArrayList<CrmEntities.OrderProducts.OrderProduct> orderList = new ArrayList<>();
+
+            boolean addedTodayHeader = false;
+            boolean addedYesterdayHeader = false;
+            boolean addedThisWeekHeader = false;
+            boolean addedThisMonthHeader = false;
+            boolean addedLastMonthHeader = false;
+            boolean addedOlderHeader = false;
+
+            // Now today's date attributes
+            int todayDayOfYear = Helpers.DatesAndTimes.returnDayOfYear(DateTime.now());
+            int todayWeekOfYear = Helpers.DatesAndTimes.returnWeekOfYear(DateTime.now());
+            int todayMonthOfYear = Helpers.DatesAndTimes.returnMonthOfYear(DateTime.now());
+
+            Log.i(TAG, "populateTripList: Preparing the dividers and trips...");
+            for (int i = 0; i < (objects.size()); i++) {
+                int orderDayOfYear = Helpers.DatesAndTimes.returnDayOfYear(objects.get(i).orderDate);
+                int orderWeekOfYear = Helpers.DatesAndTimes.returnWeekOfYear(objects.get(i).orderDate);
+                int orderMonthOfYear = Helpers.DatesAndTimes.returnMonthOfYear(objects.get(i).orderDate);
+
+                // Trip was today
+                if (orderDayOfYear == todayDayOfYear) {
+                    if (addedTodayHeader == false) {
+                        CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
+                        headerObj.isSeparator = true;
+                        headerObj.setTitle("Today");
+                        orderList.add(headerObj);
+                        addedTodayHeader = true;
+                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Today' - This will not be added again!");
+                    }
+                    // Trip was yesterday
+                } else if (orderDayOfYear == (todayDayOfYear - 1)) {
+                    if (addedYesterdayHeader == false) {
+                        CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
+                        headerObj.isSeparator = true;
+                        headerObj.setTitle("Yesterday");
+                        orderList.add(headerObj);
+                        addedYesterdayHeader = true;
+                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Yesterday' - This will not be added again!");
+                    }
+
+                    // Trip was this week
+                } else if (orderWeekOfYear == todayWeekOfYear) {
+                    if (addedThisWeekHeader == false) {
+                        CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
+                        headerObj.isSeparator = true;
+                        headerObj.setTitle("This week");
+                        orderList.add(headerObj);
+                        addedThisWeekHeader = true;
+                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'This week' - This will not be added again!");
+                    }
+
+                    // Trip was this month
+                } else if (orderMonthOfYear == todayMonthOfYear) {
+                    if (addedThisMonthHeader == false) {
+                        CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
+                        headerObj.isSeparator = true;
+                        headerObj.setTitle("This month");
+                        orderList.add(headerObj);
+                        addedThisMonthHeader = true;
+                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'This month' - This will not be added again!");
+                    }
+
+                    // Trip was older than this month
+                } else if (orderMonthOfYear < todayMonthOfYear) {
+                    if (addedOlderHeader == false) {
+                        CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
+                        headerObj.isSeparator = true;
+                        headerObj.setTitle("Last month and older");
+                        orderList.add(headerObj);
+                        addedOlderHeader = true;
+                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Older' - This will not be added again!");
+                    }
+                }
+
+                CrmEntities.OrderProducts.OrderProduct orderProduct = objects.get(i);
+                orderList.add(orderProduct);
+            }
+
+            Log.i(TAG, "populateTripList Finished preparing the dividers and trips.");
+
+            if (!getActivity().isFinishing()) {
+                adapter = new OrderLineRecyclerAdapter(getContext(), orderList);
+                adapter.setClickListener(new OrderLineRecyclerAdapter.ItemClickListener() {
+                    @Override
+                    public void onItemClick(View view, int position) {
+                        final MyProgressDialog progressDialog = new MyProgressDialog(context , "Getting order details...");
+                        progressDialog.show();
+                        ArrayList<Requests.Argument> args = new ArrayList<>();
+                        String query = Queries.OrderLines.getOrderLines(objects.get(position).salesorderid);
+                        args.add(new Requests.Argument("query", query));
+                        Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
+                        new Crm().makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+                            @Override
+                            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                                String response = new String(responseBody);
+                                CrmEntities.OrderProducts orderLines = new CrmEntities.OrderProducts(response);
+                                progressDialog.dismiss();
+                            }
+
+                            @Override
+                            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                                progressDialog.dismiss();
+                            }
+                        });
+
+                    }
+                });
+                recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+                recyclerView.setAdapter(adapter);
+
+                refreshLayout.finishRefresh();
+            } else {
+                Log.w(TAG, "populateList: CAN'T POPULATE AS THE ACTIVITY IS FINISHING!!!");
+            }
+
+            txtNoSales.setVisibility( (objects == null || objects.size() == 0) ? View.VISIBLE : View.GONE);
+        }
+
+        ExcelSpreadsheet exportToExcel(String filename) {
+
+            ExcelSpreadsheet spreadsheet = null;
+
+            final int SHEET1 = 0;
+
+            // Create a new spreadsheet
+            try {
+                spreadsheet = new ExcelSpreadsheet(filename);
+            } catch (Exception e) {
+                // Toast.makeText(this, "Failed to create spreadsheet!\n" + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
+                return null;
+            }
+
+            // Add the sheets that we will populate
+            try {
+
+                // All raw trips last 2 months
+                spreadsheet.createSheet("Sales Lines", SHEET1);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            // Format header and content values
+            WritableFont headerFont = new WritableFont(WritableFont.TAHOMA, 10, WritableFont.BOLD);
+            try {
+                headerFont.setColour(Colour.BLACK);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            WritableCellFormat headerFormat = new WritableCellFormat(headerFont);
+
+            WritableFont contentFont = new WritableFont(WritableFont.TAHOMA, 10, WritableFont.NO_BOLD);
+            try {
+                contentFont.setColour(Colour.BLACK);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            WritableCellFormat contentFormat = new WritableCellFormat(contentFont);
+
+            spreadsheet.addCell(SHEET1, 0, 0, curAccount.accountName, headerFormat);
+
+            // Header row
+            spreadsheet.addCell(SHEET1, 0, 1, "Qty", headerFormat);
+            spreadsheet.addCell(SHEET1, 1, 1, "Product", headerFormat);
+            spreadsheet.addCell(SHEET1, 2, 1, "Account number", headerFormat);
+            spreadsheet.addCell(SHEET1, 3, 1, "Account", headerFormat);
+            spreadsheet.addCell(SHEET1, 4, 1, "Sales order", headerFormat);
+            spreadsheet.addCell(SHEET1, 5, 1, "Order date", headerFormat);
+            spreadsheet.addCell(SHEET1, 6, 1, "Revenue", headerFormat);
+
+            for (int i = 2; i < objects.size() + 2; i++) {
+                CrmEntities.OrderProducts.OrderProduct product = objects.get(i - 2);
                 spreadsheet.addCell(SHEET1, 0, i, Integer.toString(product.qty));
                 spreadsheet.addCell(SHEET1, 1, i, product.partNumber);
                 spreadsheet.addCell(SHEET1, 2, i, product.accountnumber);

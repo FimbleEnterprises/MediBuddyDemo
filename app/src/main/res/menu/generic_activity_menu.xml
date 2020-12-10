@@ -6,10 +6,4 @@
         android:orderInCategory="3"
         android:title="@string/action_email"
         app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_export_to_excel"
-        android:orderInCategory="100"
-        android:title="@string/action_export_to_excel"
-        app:showAsAction="never" />
 </menu>

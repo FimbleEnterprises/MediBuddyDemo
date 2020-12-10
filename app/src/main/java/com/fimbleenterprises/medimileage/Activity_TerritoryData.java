@@ -42,6 +42,7 @@ import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
 import static com.fimbleenterprises.medimileage.BasicEntityActivity.ENTITYID;
 import static com.fimbleenterprises.medimileage.BasicEntityActivity.ENTITY_LOGICAL_NAME;
+import static com.fimbleenterprises.medimileage.BasicEntityActivity.REQUEST_BASIC;
 import static com.fimbleenterprises.medimileage.BasicEntityActivity.SEND_EMAIL;
 import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts;
 import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts.OrderProduct;
@@ -610,6 +611,10 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
             curPageIndex = position;
 
+            if (territory == null) {
+                territory = MediUser.getMe().getTerritory();
+            }
+
             switch (position) {
                 case 0:
                     return "Sales Lines (" + territory.territoryName + ")";
@@ -894,7 +899,6 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 }
             };
 
-
             if (curTerritory == null) {
                 curTerritory = MediUser.getMe().getTerritory();
             }
@@ -972,8 +976,6 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "opportunity");
                     intent.putExtra(BasicEntityActivity.GSON_STRING, selectedOpportunity.toBasicEntity().toGson());
                     startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
-
-                    // showOpportunityOptions(selectedOpportunity);
                 }
             });
         }
@@ -1187,8 +1189,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     intent.putExtra(BasicEntityActivity.ENTITYID, ticket.ticketid);
                     intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "incident");
                     intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Ticket " + ticket.ticketnumber);
-                    startActivity(intent);
-                    // Toast.makeText(context, "Coming soon!", Toast.LENGTH_SHORT).show();
+                    startActivityForResult(intent, REQUEST_BASIC);
                 }
             });
 

@@ -822,9 +822,6 @@ public class Queries {
             // Link entities
             LinkEntity linkEntityAccount = new LinkEntity("account", "accountid", "parentaccountid", "ab");
             linkEntityAccount.addColumn(new EntityColumn("territoryid"));
-            Filter.FilterCondition linkentityAccountCondition = new Filter.FilterCondition(
-                    "accountid", Filter.Operator.EQUALS, opportunityid);
-            linkEntityAccount.addFilter(new Filter(AND, linkentityAccountCondition));
             factory.addLinkEntity(linkEntityAccount);
 
             // Filter conditions
@@ -832,8 +829,13 @@ public class Queries {
                     .FilterCondition("statecode", Filter.Operator.EQUALS,
                     Integer.toString(0));
 
+            Filter.FilterCondition condition2 = new Filter
+                    .FilterCondition("opportunityid", Filter.Operator.EQUALS,
+                    opportunityid);
+
             ArrayList<Filter.FilterCondition> conditions = new ArrayList<>();
             conditions.add(condition1);
+            conditions.add(condition2);
 
             // Set filter
             Filter filter = new Filter(AND, conditions);
@@ -848,6 +850,77 @@ public class Queries {
             String query = factory.construct();
 
             return query;
+        }
+
+    }
+
+    public static class CustomerInventory {
+
+        public static String getCustomerInventoryDetails(String customerinventoryid) {
+            QueryFactory query = new QueryFactory("col_customerinventory");
+            query.addColumn("col_name");
+            query.addColumn("statuscode");
+            query.addColumn("col_serialnumber");
+            query.addColumn("col_ownershipcapital");
+            query.addColumn("modifiedon");
+            query.addColumn("col_revision");
+            query.addColumn("overriddencreatedon");
+            query.addColumn("col_quantity");
+            query.addColumn("col_productid");
+            query.addColumn("col_item");
+            query.addColumn("col_itemgroup");
+            query.addColumn("col_batchnumber");
+            query.addColumn("col_accountid");
+            query.addColumn("col_referencenumber");
+            query.addColumn("col_customerinventoryid");
+            query.addColumn("msus_statusadditionaldetails");
+            query.addColumn("msus_serialnotemodifieddate");
+            query.addColumn("msus_serial_note");
+            query.addColumn("msus_revision");
+            query.addColumn("mw_notes");
+            query.addColumn("msus_licensing_config");
+            query.addColumn("msus_c177performed");
+
+            SortClause clause1 = new SortClause("col_itemgroup", false, SortClause.ClausePosition.ONE);
+            query.addSortClause(clause1);
+
+            Filter filter = new Filter(AND);
+            Filter.FilterCondition condition = new Filter.FilterCondition("col_customerinventoryid",
+                    Filter.Operator.EQUALS, customerinventoryid);
+            filter.addCondition(condition);
+            query.setFilter(filter);
+
+            return query.construct();
+
+        }
+    }
+
+    public static class Contacts {
+
+        public static String getContacts(String accountid) {
+            // Instantiate a new constructor for the case entity and add the columns we want to see
+            QueryFactory query = new QueryFactory("col_customerinventory");
+            query.addColumn("fullname");
+            query.addColumn("parentcustomerid");
+            query.addColumn("telephone1");
+            query.addColumn("emailaddress1");
+            query.addColumn("msus_associated_npi_number");
+            query.addColumn("jobtitle");
+            query.addColumn("msus_department");
+            query.addColumn("contactid");
+            query.addColumn("mobilephone");
+
+            // Create a filter
+            Filter filter = new Filter(AND);
+
+            // Set filter
+            Filter.FilterCondition condition1 = new Filter.FilterCondition("parentcustomerid", Filter.Operator.CONTAINS, accountid );
+            filter.addCondition(condition1);
+            query.setFilter(filter);
+
+            // Spit out the encoded query
+            String rslt = query.construct();
+            return rslt;
         }
 
     }
@@ -1032,6 +1105,81 @@ public class Queries {
             // Add new filters to the link entities that have filters
             linkEntitySalesOrder.addFilter(new Filter(AND, salesOrderConditions));
             linkEntityAccount.addFilter(new Filter(AND, customerConditions));
+
+            // Create and add a sort clause
+            SortClause sortClause = new SortClause("salesorderid",
+                    true, SortClause.ClausePosition.ONE);
+            factory.addSortClause(sortClause);
+
+            // Add the constructed link entities
+            factory.addLinkEntity(linkEntityAccount);
+            factory.addLinkEntity(linkEntityProduct);
+            factory.addLinkEntity(linkEntitySalesOrder);
+            factory.addLinkEntity(linkEntitySystemUser);
+
+            // Build teh query
+            String query = factory.construct();
+
+            return query;
+        }
+
+        public static String getOrderLines(String salesorderid) {
+
+            /************** TESTING *************/
+            // repid = "DAA46FDF-5B7C-E711-80D1-005056A32EEA";
+            /************************************/
+
+
+            // Main entity columns
+            QueryFactory factory = new QueryFactory("salesorderdetail");
+            factory.addColumn("productid");
+            factory.addColumn("msus_price_per_unit");
+            factory.addColumn("new_customer");
+            factory.addColumn("quantity");
+            factory.addColumn("extendedamount");
+            factory.addColumn("salesrepid");
+            factory.addColumn("salesorderid");
+            factory.addColumn("salesorderdetailid");
+
+            // Create link entities
+            LinkEntity linkEntitySalesOrder = new LinkEntity(
+                    "salesorder",
+                    "salesorderid",
+                    "salesorderid",
+                    "a_6ec0e72e4c104394bc627456c6412838"
+            );
+            LinkEntity linkEntitySystemUser = new LinkEntity(
+                    "systemuser",
+                    "systemuserid",
+                    "salesrepid",
+                    "a_a1cf96c07c114d478335b8c445651a12"
+            );
+            LinkEntity linkEntityAccount = new LinkEntity(
+                    "account",
+                    "accountid",
+                    "new_customer",
+                    "a_db24f99da8fee71180df005056a36b9b"
+            );
+            LinkEntity linkEntityProduct = new LinkEntity(
+                    "product",
+                    "productid",
+                    "productid",
+                    "a_070ef9d142cd40d98bebd513e03c7cd1"
+            );
+
+            // Add columns to link entities
+            linkEntitySalesOrder.addColumn(new EntityColumn("submitdate"));
+            linkEntitySystemUser.addColumn(new EntityColumn("employeeid"));
+            linkEntityAccount.addColumn(new EntityColumn("accountnumber"));
+            linkEntityAccount.addColumn(new EntityColumn("territoryid"));
+            linkEntityProduct.addColumn(new EntityColumn("msus_is_capital"));
+            linkEntityProduct.addColumn(new EntityColumn("productnumber"));
+            linkEntityProduct.addColumn(new EntityColumn("col_itemgroup"));
+            linkEntityProduct.addColumn(new EntityColumn("col_producfamily"));
+
+            Filter.FilterCondition condition = new Filter.FilterCondition(
+                    "salesorderid", Filter.Operator.EQUALS, salesorderid);
+            factory.setFilter(new Filter(AND, condition));
 
             // Create and add a sort clause
             SortClause sortClause = new SortClause("salesorderid",

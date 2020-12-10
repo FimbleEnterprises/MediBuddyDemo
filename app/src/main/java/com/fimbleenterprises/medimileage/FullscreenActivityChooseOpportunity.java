@@ -261,6 +261,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
                     annotation.notetext = "I added this note from MileBuddy!";
                     annotation.isDocument = true;
                     annotation.mimetype = mimetype;
+                    // annotation.objectEntityName = "opportunity";
                     annotation.filename = file.getName();
                     // If we encode the file here it will be too large to be an extra (parcelled)
                     // and will fail with a TransactionTooLarge exception.  We need to pass a reference

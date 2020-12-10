@@ -754,8 +754,8 @@ public class CrmEntities {
                     e.printStackTrace();
                 }
                 try {
-                    if (!json.isNull("_salesorderid")) {
-                        this.salesorderid = (json.getString("_salesorderid"));
+                    if (!json.isNull("_salesorderid_value")) {
+                        this.salesorderid = (json.getString("_salesorderid_value"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();

@@ -163,7 +163,6 @@ public class BasicEntityActivity extends AppCompatActivity {
         Intent intent = new Intent(MENU_SELECTION);
 
         switch (item.getItemId()) {
-
             case R.id.action_send_email :
                 intent.putExtra(SEND_EMAIL, SEND_EMAIL);
                 intent.putExtra(ENTITYID, entityid);
@@ -172,16 +171,6 @@ public class BasicEntityActivity extends AppCompatActivity {
                 Log.i(TAG, "onOptionsItemSelected " + SEND_EMAIL + " result was set");
                 finish();
                 break;
-
-            case R.id.action_export_to_excel :
-                intent.putExtra(EXPORT_TO_EXCEL, EXPORT_TO_EXCEL);
-                intent.putExtra(ENTITYID, entityid);
-                intent.putExtra(ENTITY_LOGICAL_NAME, entityLogicalName);
-                setResult(RESULT_OK, intent);
-                Log.i(TAG, "onOptionsItemSelected " + EXPORT_TO_EXCEL + " result was set");
-                finish();
-                break;
-
         }
 
         return super.onOptionsItemSelected(item);
@@ -304,12 +293,19 @@ public class BasicEntityActivity extends AppCompatActivity {
     void loadRecordFromUrl() {
         // https://crmauth.medistim.com/main.aspx?etc=3&id=%7bbbc26479-adfd-ea11-810b-005056a36b9b%7d&pagetype=entityrecord
         try {
+            // Parsing url begins
             String url = getIntent().getData().toString();
-            int pos1 = url.indexOf("etc=") + 4;
-            int pos2 = url.indexOf("&id=%7b");
-            int pos4 = url.indexOf("&pagetype=");
-            int entityTypeCode = Integer.parseInt(url.substring(pos1, pos2)); // e.g. 3
-            final String guid = url.substring(pos2 + 4, pos4).replace("%7b","").replace("%7d","");
+            int etcStartPos = url.indexOf("etc=") + 4;
+            int idStartPos = url.indexOf("&id=%7b");
+            int GUID_LENGTH = 36;
+            String ss1 = url.substring(etcStartPos); // 3&id=%7bbbc26479-adfd-ea11-810b-005056a36b9b%7d&pagetype=entityrecord
+            int nextArgStartPos = ss1.indexOf("&"); // Find the next & indicating the start of the next arg and end of the current
+
+            // We should now have the ugly business of parsing the URL over and be left with a type code and guid.
+            final int entityTypeCode = Integer.parseInt(ss1.substring(0, nextArgStartPos)); // Should be typecode
+            final String guid = url.substring(idStartPos + 7, idStartPos + 7 + GUID_LENGTH);
+
+            Log.i(TAG, "loadRecordFromUrl ETC: " + entityTypeCode + ", GUID: " + guid);
 
             // ***********************************************************************************
             //                                      CASE
@@ -384,13 +380,19 @@ public class BasicEntityActivity extends AppCompatActivity {
                         finish();
                     }
                 });
-                dialog.show();
+                if (!this.isFinishing()) {
+                    try {
+                        dialog.show();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
                 Log.i(TAG, "onCreate Case record link was parsed!");
             }
 
             Log.i(TAG, "onCreate GUID: " + guid);
             Log.i(TAG, "onCreate Type: " + entityTypeCode);
-            Toast.makeText(context, "Typecode: " + entityTypeCode + "\nGuid: " + guid, Toast.LENGTH_SHORT).show();
+            // Toast.makeText(context, "Typecode: " + entityTypeCode + "\nGuid: " + guid, Toast.LENGTH_SHORT).show();
 
         } catch (Exception e) {
             Toast.makeText(context, e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
@@ -816,4 +818,73 @@ public class BasicEntityActivity extends AppCompatActivity {
         txtNoteYourNote.setVisibility(clickedNote.createdByValue.equals(MediUser.getMe().systemuserid) ? View.GONE : View.VISIBLE);
 
     }
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
