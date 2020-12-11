@@ -14,7 +14,9 @@ import android.widget.TextView;
 import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts.OrderProduct;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 
@@ -47,7 +49,15 @@ public class OrderLineRecyclerAdapter extends RecyclerView.Adapter<OrderLineRecy
         return new ViewHolder(view);
     }
 
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position, @NonNull List<Object> payloads) {
+        super.onBindViewHolder(holder, position, payloads);
+    }
 
+    @Override
+    public long getItemId(int position) {
+        return super.getItemId(position);
+    }
 
     // binds the data to the TextView in each row
     @Override

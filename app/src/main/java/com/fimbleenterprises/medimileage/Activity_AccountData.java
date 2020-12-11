@@ -7,7 +7,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -17,17 +19,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.scwang.smart.refresh.header.MaterialHeader;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
 import com.scwang.smart.refresh.layout.listener.OnLoadMoreListener;
 import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
 import org.joda.time.DateTime;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
@@ -71,11 +74,10 @@ public class Activity_AccountData extends AppCompatActivity {
 
     public static final int PRODUCTFAMILY_MENU_ROOT = 2;
     public static final int PRODUCTSTATUS_MENU_ROOT = 3;
+    public static final int CALL_PHONE_REQ = 123;
 
-    // Receivers for date range changes at the activity level
-    public static IntentFilter intentFilterMenuAction;
-    public static BroadcastReceiver inventoryMenuItemSelectedReceiver;
-    public static BroadcastReceiver salesMenuItemSelectedReceiver;
+    // public static BroadcastReceiver inventoryMenuItemSelectedReceiver;
+    // public static BroadcastReceiver salesMenuItemSelectedReceiver;
 
     // vars for the date ranges
     public static int monthNum;
@@ -99,6 +101,8 @@ public class Activity_AccountData extends AppCompatActivity {
     public int curPageIndex = 0;
 
     public static boolean menuOpen = false;
+    // Receivers for date range changes at the activity level
+    public static IntentFilter intentFilterMenuAction = new IntentFilter(MENU_ACTION);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,7 +110,6 @@ public class Activity_AccountData extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         context = this;
         activity = this;
-        intentFilterMenuAction = new IntentFilter(MENU_ACTION);
 
         // Log a metric
         // MileBuddyMetrics.updateMetric(this, MileBuddyMetrics.MetricName.LAST_ACCESSED_TERRITORY_DATA, DateTime.now());
@@ -214,14 +217,11 @@ public class Activity_AccountData extends AppCompatActivity {
         if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
             Log.i(TAG, "onKeyDown back pressed!");
 
-            /*if (!searchView.isIconified()) {
-                searchView.onActionViewCollapsed();
-                return true;
-            } else if (curAccount != null) {
+            if (curAccount != null) {
                 curAccount = null;
-                sendMenuItemSelectedBroadcast();
+                sendBroadcast(new Intent(MENU_ACTION));
                 return true;
-            }*/
+            }
 
         }
 
@@ -421,6 +421,7 @@ public class Activity_AccountData extends AppCompatActivity {
 
         public static final int INVENTORY_PAGE = 0;
         public static final int SALES_LINE_PAGE = 1;
+        public static final int CONTACTS_PAGE = 2;
 
         public SectionsPagerAdapter(androidx.fragment.app.FragmentManager fm) {
             super(fm);
@@ -449,12 +450,20 @@ public class Activity_AccountData extends AppCompatActivity {
                 return fragment;
             }
 
+            if (position == CONTACTS_PAGE) {
+                Fragment fragment = new Frag_Contacts();
+                Bundle args = new Bundle();
+                args.putInt(Frag_Contacts.ARG_SECTION_NUMBER, position + 1);
+                fragment.setArguments(args);
+                return fragment;
+            }
+
             return null;
         }
 
         @Override
         public int getCount() {
-            return 2;
+            return 3;
         }
 
         @Override
@@ -469,7 +478,7 @@ public class Activity_AccountData extends AppCompatActivity {
                     case 1:
                         return Frag_SalesLines.pageTitle;
                     case 2:
-                        return "YTD Goals by Region";
+                        return Frag_Contacts.pageTitle;
                     case 3:
                         return "Opportunities";
                     case 4:
@@ -497,6 +506,8 @@ public class Activity_AccountData extends AppCompatActivity {
         ProductStatus productStatus = ProductStatus.IN_STOCK;
         public static String pageTitle = "Inventory";
         TextView txtNoInventory;
+        BroadcastReceiver parentActivityMenuReceiver;
+        CrmEntities.Accounts.Account lastAccount;
 
 
         enum ProductType {
@@ -516,11 +527,11 @@ public class Activity_AccountData extends AppCompatActivity {
             refreshLayout = root.findViewById(R.id.refreshLayout);
             options = new MySettingsHelper(context);
             RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
-            refreshLayout.setRefreshHeader(new MaterialHeader(getContext()));
+            refreshLayout.setEnableLoadMore(false);
             refreshLayout.setOnRefreshListener(new OnRefreshListener() {
                 @Override
                 public void onRefresh(RefreshLayout refreshlayout) {
-                    getAccountInventory();
+                    getAccountInventory(true);
                 }
             });
             refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
@@ -554,7 +565,7 @@ public class Activity_AccountData extends AppCompatActivity {
             super.onCreateView(inflater, container, savedInstanceState);
 
             // Broadcast received regarding an options menu selection
-            inventoryMenuItemSelectedReceiver = new BroadcastReceiver() {
+            parentActivityMenuReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     Log.i(TAG, "onReceive Local receiver received broadcast!");
@@ -631,14 +642,14 @@ public class Activity_AccountData extends AppCompatActivity {
 
                         btnChooseAccount.setVisibility(curAccount == null ? View.VISIBLE : View.GONE);
 
-                        getAccountInventory();
+                        getAccountInventory(true);
                         mViewPager.getAdapter().notifyDataSetChanged();
                     }
                 }
             };
 
             // Get inventory using whatever menu selections are currently set
-            getAccountInventory();
+            getAccountInventory((lastAccount != curAccount));
 
             return root;
         }
@@ -646,21 +657,22 @@ public class Activity_AccountData extends AppCompatActivity {
         @Override
         public void onStop() {
             super.onStop();
-
         }
 
         @Override
         public void onDestroyView() {
             super.onDestroyView();
-            getActivity().unregisterReceiver(inventoryMenuItemSelectedReceiver);
-            Log.i(TAG, "onPause Unregistered the sales lines receiver");
+
+            getActivity().unregisterReceiver(parentActivityMenuReceiver);
+            Log.i(TAG, "Unregistered the account products receiver");
         }
 
         @Override
         public void onResume() {
 
             // Register the options menu selected receiver
-            getActivity().registerReceiver(inventoryMenuItemSelectedReceiver, intentFilterMenuAction);
+            getActivity().registerReceiver(parentActivityMenuReceiver, intentFilterMenuAction);
+            Log.i(TAG, "onResume Registered the account products receiver");
 
             // Hide/show the choose account button
             if (curAccount == null) {
@@ -669,18 +681,23 @@ public class Activity_AccountData extends AppCompatActivity {
                 btnChooseAccount.setVisibility(View.GONE);
             }
 
-            Log.i(TAG, "onResume Registered the options menu receiver");
             super.onResume();
         }
 
         @Override
         public void onPause() {
-
             super.onPause();
         }
 
-        protected void getAccountInventory() {
+        protected void getAccountInventory(boolean forceRefresh) {
             String query = "";
+
+            if (custInventory != null && custInventory.size() > 0 && forceRefresh != true) {
+                populateList();
+                return;
+            }
+
+            lastAccount = curAccount;
 
             txtNoInventory.setVisibility(View.GONE);
 
@@ -930,23 +947,25 @@ public class Activity_AccountData extends AppCompatActivity {
         OrderLineRecyclerAdapter adapter;
         ArrayList<CrmEntities.OrderProducts.OrderProduct> allOrders = new ArrayList<>();
         Button btnChooseAccount;
+        BroadcastReceiver parentActivityMenuReceiver;
         public static String pageTitle = "Sales";
         TextView txtNoSales;
+        CrmEntities.Accounts.Account lastAccount;
 
         @Nullable
         @Override
         public View onCreateView(@NonNull final LayoutInflater inflater, @Nullable ViewGroup container,
                                  @Nullable Bundle savedInstanceState) {
             root = inflater.inflate(R.layout.frag_saleslines, container, false);
-            txtNoSales = root.findViewById(R.id.txtNoSales);
+            txtNoSales = root.findViewById(R.id.txtNoContacts);
             refreshLayout = root.findViewById(R.id.refreshLayout);
             options = new MySettingsHelper(context);
             RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
-            refreshLayout.setRefreshHeader(new MaterialHeader(getContext()));
+            refreshLayout.setEnableLoadMore(false);
             refreshLayout.setOnRefreshListener(new OnRefreshListener() {
                 @Override
                 public void onRefresh(RefreshLayout refreshlayout) {
-                    getAccountSales();
+                    getAccountSales(true);
                 }
             });
             refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
@@ -980,7 +999,7 @@ public class Activity_AccountData extends AppCompatActivity {
             super.onCreateView(inflater, container, savedInstanceState);
 
             // Broadcast received regarding an options menu selection
-            salesMenuItemSelectedReceiver = new BroadcastReceiver() {
+            parentActivityMenuReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     Log.i(TAG, "onReceive Local receiver received broadcast!");
@@ -1013,7 +1032,7 @@ public class Activity_AccountData extends AppCompatActivity {
 
                         btnChooseAccount.setVisibility(curAccount == null ? View.VISIBLE : View.GONE);
 
-                        getAccountSales();
+                        getAccountSales(true);
 
                         mViewPager.getAdapter().notifyDataSetChanged();
                     }
@@ -1023,27 +1042,29 @@ public class Activity_AccountData extends AppCompatActivity {
             // Get inventory using whatever menu selections are currently set
             // getAccountInventory();
 
+            getAccountSales(false);
+
             return root;
         }
 
         @Override
         public void onStop() {
             super.onStop();
-
         }
 
         @Override
         public void onDestroyView() {
             super.onDestroyView();
-            getActivity().unregisterReceiver(salesMenuItemSelectedReceiver);
-            Log.i(TAG, "onPause Unregistered the sales lines receiver");
+
+            getActivity().unregisterReceiver(parentActivityMenuReceiver);
+            Log.i(TAG, "Unregistered the account contacts receiver");
         }
 
         @Override
         public void onResume() {
 
             // Register the options menu selected receiver
-            getActivity().registerReceiver(salesMenuItemSelectedReceiver, intentFilterMenuAction);
+            getActivity().registerReceiver(parentActivityMenuReceiver, intentFilterMenuAction);
 
             // Hide/show the choose account button
             if (curAccount == null) {
@@ -1052,21 +1073,27 @@ public class Activity_AccountData extends AppCompatActivity {
                 btnChooseAccount.setVisibility(View.GONE);
             }
 
-            Log.i(TAG, "onResume Registered the options menu receiver");
+            Log.i(TAG, "onResume Registered the account sales receiver");
             super.onResume();
         }
 
         @Override
         public void onPause() {
-
             super.onPause();
         }
 
-        protected void getAccountSales() {
+        protected void getAccountSales(boolean forceRefresh) {
 
             if (curAccount == null) {
                 return;
             }
+
+            if (allOrders != null && allOrders.size() > 0 && forceRefresh != true) {
+                populateList();
+                return;
+            }
+
+            lastAccount = curAccount;
 
             String query = Queries.OrderLines.getOrderLinesByAccount(curAccount.accountid, Operators.DateOperator.LAST_X_MONTHS, 3);
 
@@ -1118,7 +1145,7 @@ public class Activity_AccountData extends AppCompatActivity {
 
         protected void populateList() {
 
-            ArrayList<CrmEntities.OrderProducts.OrderProduct> orderList = new ArrayList<>();
+            final ArrayList<CrmEntities.OrderProducts.OrderProduct> orderList = new ArrayList<>();
 
             boolean addedTodayHeader = false;
             boolean addedYesterdayHeader = false;
@@ -1207,7 +1234,7 @@ public class Activity_AccountData extends AppCompatActivity {
                         final MyProgressDialog progressDialog = new MyProgressDialog(context , "Getting order details...");
                         progressDialog.show();
                         ArrayList<Requests.Argument> args = new ArrayList<>();
-                        String query = Queries.OrderLines.getOrderLines(allOrders.get(position).salesorderid);
+                        String query = Queries.OrderLines.getOrderLines(orderList.get(position).salesorderid);
                         args.add(new Requests.Argument("query", query));
                         Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
                         new Crm().makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
@@ -1315,26 +1342,30 @@ public class Activity_AccountData extends AppCompatActivity {
         public View root;
         public RecyclerView recyclerView;
         RefreshLayout refreshLayout;
-        BasicEntityActivityObjectRecyclerAdapter adapter;
+        BasicObjectRecyclerAdapter adapter;
         ArrayList<BasicObject> objects = new ArrayList<>();
         Button btnChooseAccount;
         public static String pageTitle = "Contacts";
-        TextView txtNoSales;
+        TextView txtNoContacts;
+        BroadcastReceiver parentActivityMenuReceiver;
+        CrmEntities.Accounts.Account lastAccount;
+        String attemptedPhonenumber;
+
 
         @Nullable
         @Override
         public View onCreateView(@NonNull final LayoutInflater inflater, @Nullable ViewGroup container,
                                  @Nullable Bundle savedInstanceState) {
-            root = inflater.inflate(R.layout.frag_saleslines, container, false);
-            txtNoSales = root.findViewById(R.id.txtNoSales);
+            root = inflater.inflate(R.layout.frag_contacts, container, false);
+            txtNoContacts = root.findViewById(R.id.txtNoContacts);
             refreshLayout = root.findViewById(R.id.refreshLayout);
+            refreshLayout.setEnableLoadMore(false);
             options = new MySettingsHelper(context);
             RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
-            refreshLayout.setRefreshHeader(new MaterialHeader(getContext()));
             refreshLayout.setOnRefreshListener(new OnRefreshListener() {
                 @Override
                 public void onRefresh(RefreshLayout refreshlayout) {
-                    getAccountContacts();
+                    getAccountContacts(true);
                 }
             });
             refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
@@ -1368,24 +1399,20 @@ public class Activity_AccountData extends AppCompatActivity {
             super.onCreateView(inflater, container, savedInstanceState);
 
             // Broadcast received regarding an options menu selection
-            salesMenuItemSelectedReceiver = new BroadcastReceiver() {
+            parentActivityMenuReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     Log.i(TAG, "onReceive Local receiver received broadcast!");
                     // Validate intent shit
                     if (intent != null && intent.getAction().equals(MENU_ACTION)) {
 
-                        if (intent.getIntExtra(EXPORT_PAGE_INDEX, -1) == SectionsPagerAdapter.SALES_LINE_PAGE) {
+                        if (intent.getIntExtra(EXPORT_PAGE_INDEX, -1) == SectionsPagerAdapter.CONTACTS_PAGE) {
                             // Check if this is regarding an inventory export to Excel
                             if (intent.getStringExtra(EXPORT_INVENTORY) != null) {
                                 // Ensure there is an account stipulated and inventory to export
                                 if (curAccount != null && objects != null &&
                                         objects.size() > 0) {
-                                    // Export and share
-                                    ExcelSpreadsheet spreadsheet = exportToExcel(
-                                            curAccount.accountnumber
-                                                    + "_sales_export.xls");
-                                    Helpers.Files.shareFile(context, spreadsheet.file);
+
                                 } else {
                                     Toast.makeText(context, "No inventory to export!", Toast.LENGTH_SHORT).show();
                                 }
@@ -1401,15 +1428,14 @@ public class Activity_AccountData extends AppCompatActivity {
 
                         btnChooseAccount.setVisibility(curAccount == null ? View.VISIBLE : View.GONE);
 
-                        getAccountContacts();
+                        getAccountContacts(true);
 
                         mViewPager.getAdapter().notifyDataSetChanged();
                     }
                 }
             };
 
-            // Get inventory using whatever menu selections are currently set
-            // getAccountInventory();
+            getAccountContacts(false);
 
             return root;
         }
@@ -1417,21 +1443,21 @@ public class Activity_AccountData extends AppCompatActivity {
         @Override
         public void onStop() {
             super.onStop();
-
         }
 
         @Override
         public void onDestroyView() {
             super.onDestroyView();
-            getActivity().unregisterReceiver(salesMenuItemSelectedReceiver);
-            Log.i(TAG, "onPause Unregistered the sales lines receiver");
+
+            getActivity().unregisterReceiver(parentActivityMenuReceiver);
+            Log.i(TAG, "Unregistered the account contacts receiver");
         }
 
         @Override
         public void onResume() {
 
             // Register the options menu selected receiver
-            getActivity().registerReceiver(salesMenuItemSelectedReceiver, intentFilterMenuAction);
+            getActivity().registerReceiver(parentActivityMenuReceiver, intentFilterMenuAction);
 
             // Hide/show the choose account button
             if (curAccount == null) {
@@ -1440,17 +1466,33 @@ public class Activity_AccountData extends AppCompatActivity {
                 btnChooseAccount.setVisibility(View.GONE);
             }
 
-            Log.i(TAG, "onResume Registered the options menu receiver");
+            Log.i(TAG, "onResume Registered the account contacts receiver");
             super.onResume();
         }
 
         @Override
         public void onPause() {
-
             super.onPause();
         }
 
-        protected void getAccountContacts() {
+        @Override
+        public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+            try {
+                if (requestCode == CALL_PHONE_REQ && Helpers.Permissions.isGranted(Helpers.Permissions.PermissionType.CALL_PHONE)) {
+                    Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + attemptedPhonenumber));
+                    startActivity(intent);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            Log.i(TAG, "onRequestPermissionsResult ");
+
+        }
+
+        protected void getAccountContacts(boolean forceRefresh) {
 
             if (curAccount == null) {
                 return;
@@ -1458,7 +1500,7 @@ public class Activity_AccountData extends AppCompatActivity {
 
             String query = Queries.Contacts.getContacts(curAccount.accountid);
 
-            txtNoSales.setVisibility(View.GONE);
+            txtNoContacts.setVisibility(View.GONE);
 
             if (curAccount == null) {
                 Toast.makeText(context, "Please select an account", Toast.LENGTH_SHORT).show();
@@ -1466,6 +1508,13 @@ public class Activity_AccountData extends AppCompatActivity {
             }
 
             getPagerTitle();
+
+            if (objects != null && objects.size() > 0 && forceRefresh != true) {
+                populateList();
+                return;
+            }
+
+            lastAccount = curAccount;
 
             refreshLayout.autoRefreshAnimationOnly();
             ArrayList<Requests.Argument> args = new ArrayList<>();
@@ -1479,7 +1528,12 @@ public class Activity_AccountData extends AppCompatActivity {
                     try {
                         String response = new String(responseBody);
                         Log.i(TAG, "onSuccess " + response);
-                        // objects = new CrmEntities.OrderProducts(response).list;
+                        CrmEntities.Contacts contacts = new CrmEntities.Contacts(response);
+                        objects.clear();
+                        for (CrmEntities.Contacts.Contact contact : contacts.list) {
+                            BasicObject object = new BasicObject(contact.fullname, contact.jobtitle, contact);
+                            objects.add(object);
+                        }
                         populateList();
                         refreshLayout.finishRefresh();
                     } catch (Exception e) {
@@ -1496,204 +1550,172 @@ public class Activity_AccountData extends AppCompatActivity {
             });
         }
 
-        String getPagerTitle() {
-            String txtAppend = "";
-
-            pageTitle = "Sales (last 3 months)";
-            mViewPager.getAdapter().notifyDataSetChanged();
-            return pageTitle;
-        }
-
         protected void populateList() {
 
-            ArrayList<CrmEntities.OrderProducts.OrderProduct> orderList = new ArrayList<>();
-
-            boolean addedTodayHeader = false;
-            boolean addedYesterdayHeader = false;
-            boolean addedThisWeekHeader = false;
-            boolean addedThisMonthHeader = false;
-            boolean addedLastMonthHeader = false;
-            boolean addedOlderHeader = false;
-
-            // Now today's date attributes
-            int todayDayOfYear = Helpers.DatesAndTimes.returnDayOfYear(DateTime.now());
-            int todayWeekOfYear = Helpers.DatesAndTimes.returnWeekOfYear(DateTime.now());
-            int todayMonthOfYear = Helpers.DatesAndTimes.returnMonthOfYear(DateTime.now());
-
-            Log.i(TAG, "populateTripList: Preparing the dividers and trips...");
             for (int i = 0; i < (objects.size()); i++) {
-                int orderDayOfYear = Helpers.DatesAndTimes.returnDayOfYear(objects.get(i).orderDate);
-                int orderWeekOfYear = Helpers.DatesAndTimes.returnWeekOfYear(objects.get(i).orderDate);
-                int orderMonthOfYear = Helpers.DatesAndTimes.returnMonthOfYear(objects.get(i).orderDate);
-
-                // Trip was today
-                if (orderDayOfYear == todayDayOfYear) {
-                    if (addedTodayHeader == false) {
-                        CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
-                        headerObj.isSeparator = true;
-                        headerObj.setTitle("Today");
-                        orderList.add(headerObj);
-                        addedTodayHeader = true;
-                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Today' - This will not be added again!");
-                    }
-                    // Trip was yesterday
-                } else if (orderDayOfYear == (todayDayOfYear - 1)) {
-                    if (addedYesterdayHeader == false) {
-                        CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
-                        headerObj.isSeparator = true;
-                        headerObj.setTitle("Yesterday");
-                        orderList.add(headerObj);
-                        addedYesterdayHeader = true;
-                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Yesterday' - This will not be added again!");
-                    }
-
-                    // Trip was this week
-                } else if (orderWeekOfYear == todayWeekOfYear) {
-                    if (addedThisWeekHeader == false) {
-                        CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
-                        headerObj.isSeparator = true;
-                        headerObj.setTitle("This week");
-                        orderList.add(headerObj);
-                        addedThisWeekHeader = true;
-                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'This week' - This will not be added again!");
-                    }
-
-                    // Trip was this month
-                } else if (orderMonthOfYear == todayMonthOfYear) {
-                    if (addedThisMonthHeader == false) {
-                        CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
-                        headerObj.isSeparator = true;
-                        headerObj.setTitle("This month");
-                        orderList.add(headerObj);
-                        addedThisMonthHeader = true;
-                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'This month' - This will not be added again!");
-                    }
-
-                    // Trip was older than this month
-                } else if (orderMonthOfYear < todayMonthOfYear) {
-                    if (addedOlderHeader == false) {
-                        CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
-                        headerObj.isSeparator = true;
-                        headerObj.setTitle("Last month and older");
-                        orderList.add(headerObj);
-                        addedOlderHeader = true;
-                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Older' - This will not be added again!");
-                    }
-                }
-
-                CrmEntities.OrderProducts.OrderProduct orderProduct = objects.get(i);
-                orderList.add(orderProduct);
+                adapter = new BasicObjectRecyclerAdapter(context, objects);
             }
 
             Log.i(TAG, "populateTripList Finished preparing the dividers and trips.");
 
             if (!getActivity().isFinishing()) {
-                adapter = new OrderLineRecyclerAdapter(getContext(), orderList);
-                adapter.setClickListener(new OrderLineRecyclerAdapter.ItemClickListener() {
-                    @Override
-                    public void onItemClick(View view, int position) {
-                        final MyProgressDialog progressDialog = new MyProgressDialog(context , "Getting order details...");
-                        progressDialog.show();
-                        ArrayList<Requests.Argument> args = new ArrayList<>();
-                        String query = Queries.OrderLines.getOrderLines(objects.get(position).salesorderid);
-                        args.add(new Requests.Argument("query", query));
-                        Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
-                        new Crm().makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
-                            @Override
-                            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                                String response = new String(responseBody);
-                                CrmEntities.OrderProducts orderLines = new CrmEntities.OrderProducts(response);
-                                progressDialog.dismiss();
-                            }
-
-                            @Override
-                            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                                progressDialog.dismiss();
-                            }
-                        });
-
-                    }
-                });
                 recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
                 recyclerView.setAdapter(adapter);
+                adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
+                    @Override
+                    public void onItemClick(View view, int position) {
+                        try {
+                            BasicObject clickedObject = objects.get(position);
+                            CrmEntities.Contacts.Contact clickedContact = (CrmEntities.Contacts.Contact)
+                                clickedObject.object;
+                            Log.i(TAG, "onItemClick Clicked item at position " + position
+                                    + "(" + clickedObject.title + ")");
 
+                            showContactOptions(clickedContact);
+                        } catch (Exception e) { e.printStackTrace(); }
+                    }
+                });
                 refreshLayout.finishRefresh();
             } else {
                 Log.w(TAG, "populateList: CAN'T POPULATE AS THE ACTIVITY IS FINISHING!!!");
             }
-
-            txtNoSales.setVisibility( (objects == null || objects.size() == 0) ? View.VISIBLE : View.GONE);
+            txtNoContacts.setVisibility( (objects == null || objects.size() == 0) ? View.VISIBLE : View.GONE);
         }
 
-        ExcelSpreadsheet exportToExcel(String filename) {
+        void showContactOptions(final CrmEntities.Contacts.Contact clickedContact) {
+            // custom dialog
+            final Dialog dialog = new Dialog(getContext());
+            dialog.setContentView(R.layout.dialog_contact_options);
+            dialog.setTitle("Options");
+            Button btnViewContact = dialog.findViewById(R.id.view_contact);
+            Button btnAddToContacts = dialog.findViewById(R.id.btn_add_to_contacts);
+            Button btnCallBusiness1 = dialog.findViewById(R.id.btnCallBusinessPhone);
+            Button btnCallAddress1 = dialog.findViewById(R.id.btnCallAddress1);
+            Button btnEmail = dialog.findViewById(R.id.btnEmailContact);
+            TableRow address1Row = dialog.findViewById(R.id.tableRow_address1Phone);
+            TableRow businessRow = dialog.findViewById(R.id.tableRow_businessPhone);
+            TableRow emailRow = dialog.findViewById(R.id.tableRow_email_addy);
 
-            ExcelSpreadsheet spreadsheet = null;
+            businessRow.setVisibility(clickedContact.businessPhone == null ? View.GONE : View.VISIBLE);
+            address1Row.setVisibility(clickedContact.address1Phone == null ? View.GONE : View.VISIBLE);
+            emailRow.setVisibility(clickedContact.email == null ? View.GONE : View.VISIBLE);
 
-            final int SHEET1 = 0;
+            btnCallAddress1.setText(clickedContact.address1Phone != null ? "Call " + clickedContact.address1Phone
+                    : "");
 
-            // Create a new spreadsheet
-            try {
-                spreadsheet = new ExcelSpreadsheet(filename);
-            } catch (Exception e) {
-                // Toast.makeText(this, "Failed to create spreadsheet!\n" + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-                e.printStackTrace();
-                return null;
+            btnCallBusiness1.setText(clickedContact.businessPhone != null ? "Call " + clickedContact.businessPhone
+                    : "");
+
+            btnViewContact.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(context, BasicEntityActivity.class);
+                    intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, clickedContact.fullname);
+                    intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "contact");
+                    intent.putExtra(BasicEntityActivity.ENTITYID, clickedContact.contactid);
+                    intent.putExtra(BasicEntityActivity.GSON_STRING, clickedContact.toBasicEntity().toGson());
+                    intent.putExtra(BasicEntityActivity.LOAD_NOTES, false);
+                    getActivity().startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
+                }
+            });
+
+            btnAddToContacts.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    try {
+                        insertContact(clickedContact);
+                    } catch (Exception e) {
+                        Toast.makeText(context, "Failed to add contact\n" + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            btnCallAddress1.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    try {
+                        attemptedPhonenumber = clickedContact.address1Phone;
+
+                        if (Helpers.Permissions.isGranted(Helpers.Permissions.PermissionType.CALL_PHONE)) {
+                            Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + clickedContact.address1Phone));
+                            startActivity(intent);
+                        } else {
+                            Helpers.Permissions.RequestContainer container = new Helpers.Permissions.RequestContainer();
+                            container.add(Helpers.Permissions.PermissionType.CALL_PHONE);
+                            requestPermissions(container.toArray(), CALL_PHONE_REQ);
+                        }
+                    } catch (Exception e) {
+                        Toast.makeText(context, "Failed to call\n" + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            btnCallBusiness1.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    try {
+                        attemptedPhonenumber = clickedContact.businessPhone;
+
+                        if (Helpers.Permissions.isGranted(Helpers.Permissions.PermissionType.CALL_PHONE)) {
+                            Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + clickedContact.businessPhone));
+                            startActivity(intent);
+                        } else {
+                            Helpers.Permissions.RequestContainer container = new Helpers.Permissions.RequestContainer();
+                            container.add(Helpers.Permissions.PermissionType.CALL_PHONE);
+                            requestPermissions(container.toArray(), CALL_PHONE_REQ);
+                        }
+                    } catch (Exception e) {
+                        Toast.makeText(context, "Failed to call\n" + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            btnEmail.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+
+                }
+            });
+
+            /*if (options.isExplicitMode()) {
+                btn_ViewTrip.setText(getString(R.string.tripOptions_view_explicit));
+                btnSubmit.setText(getString(R.string.tripOptions_submit_explicit));
+                btnRecall.setText(getString(R.string.tripOptions_recall_explicit));
+                btnEditTrip.setText(getString(R.string.tripOptions_edit_explicit));
+                btnDeleteTrip.setText(getString(R.string.tripOptions_delete_explicit));
+            } else {
+                btn_ViewTrip.setText(getString(R.string.tripOptions_view));
+                btnSubmit.setText(getString(R.string.tripOptions_submit));
+                btnRecall.setText(getString(R.string.tripOptions_recall));
+                btnEditTrip.setText(getString(R.string.tripOptions_edit));
+                btnDeleteTrip.setText(getString(R.string.tripOptions_delete));
+            }*/
+
+            dialog.show();
+        }
+
+        public void insertContact(CrmEntities.Contacts.Contact contact) {
+            Intent intent = new Intent(Intent.ACTION_INSERT);
+            intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
+            intent.putExtra(ContactsContract.Intents.Insert.NAME, contact.fullname);
+            intent.putExtra(ContactsContract.Intents.Insert.EMAIL, contact.email);
+            intent.putExtra(ContactsContract.Intents.Insert.PHONE, contact.businessPhone);
+            intent.putExtra(ContactsContract.Intents.Insert.SECONDARY_PHONE, contact.address1Phone);
+            intent.putExtra(ContactsContract.Intents.Insert.COMPANY, contact.accountFormatted);
+            intent.putExtra(ContactsContract.Intents.Insert.NOTES, "Added from MileBuddy");
+            intent.putExtra(ContactsContract.Intents.Insert.JOB_TITLE, contact.jobtitle);
+            if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
+                startActivity(intent);
             }
+        }
 
-            // Add the sheets that we will populate
-            try {
-
-                // All raw trips last 2 months
-                spreadsheet.createSheet("Sales Lines", SHEET1);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            // Format header and content values
-            WritableFont headerFont = new WritableFont(WritableFont.TAHOMA, 10, WritableFont.BOLD);
-            try {
-                headerFont.setColour(Colour.BLACK);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            WritableCellFormat headerFormat = new WritableCellFormat(headerFont);
-
-            WritableFont contentFont = new WritableFont(WritableFont.TAHOMA, 10, WritableFont.NO_BOLD);
-            try {
-                contentFont.setColour(Colour.BLACK);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            WritableCellFormat contentFormat = new WritableCellFormat(contentFont);
-
-            spreadsheet.addCell(SHEET1, 0, 0, curAccount.accountName, headerFormat);
-
-            // Header row
-            spreadsheet.addCell(SHEET1, 0, 1, "Qty", headerFormat);
-            spreadsheet.addCell(SHEET1, 1, 1, "Product", headerFormat);
-            spreadsheet.addCell(SHEET1, 2, 1, "Account number", headerFormat);
-            spreadsheet.addCell(SHEET1, 3, 1, "Account", headerFormat);
-            spreadsheet.addCell(SHEET1, 4, 1, "Sales order", headerFormat);
-            spreadsheet.addCell(SHEET1, 5, 1, "Order date", headerFormat);
-            spreadsheet.addCell(SHEET1, 6, 1, "Revenue", headerFormat);
-
-            for (int i = 2; i < objects.size() + 2; i++) {
-                CrmEntities.OrderProducts.OrderProduct product = objects.get(i - 2);
-                spreadsheet.addCell(SHEET1, 0, i, Integer.toString(product.qty));
-                spreadsheet.addCell(SHEET1, 1, i, product.partNumber);
-                spreadsheet.addCell(SHEET1, 2, i, product.accountnumber);
-                spreadsheet.addCell(SHEET1, 3, i, product.customeridFormatted);
-                spreadsheet.addCell(SHEET1, 4, i, product.salesorderidFormatted);
-                spreadsheet.addCell(SHEET1, 5, i, product.orderdateFormatted);
-                spreadsheet.addCell(SHEET1, 6, i, Double.toString(product.extendedAmt));
-            }
-
-            // Save the file
-            spreadsheet.save();
-
-            return spreadsheet;
-
+        String getPagerTitle() {
+            pageTitle = "Contacts";
+            mViewPager.getAdapter().notifyDataSetChanged();
+            return pageTitle;
         }
 
     }

@@ -2167,6 +2167,122 @@ public class CrmEntities {
 
     }
 
+    public static class Contacts {
+        public ArrayList<Contact> list = new ArrayList<>();
+
+        public Contacts(String crmResponse) {
+            try {
+                JSONObject rootObject = new JSONObject(crmResponse);
+                JSONArray rootArray = rootObject.getJSONArray("value");
+                for (int i = 0; i < rootArray.length(); i++) {
+                    list.add(new Contact(rootArray.getJSONObject(i)));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public static class Contact {
+
+            public String etag;
+            public String fullname;
+            public String accountid;
+            public String accountFormatted;
+            public String businessPhone;
+            public String address1Phone;
+            public String jobtitle;
+            public String contactid;
+            public String npiid;
+            public String npiFormatted;
+            public String email;
+
+            public Contact(JSONObject json) {
+                try {
+                    if (!json.isNull("etag")) {
+                        this.etag = (json.getString("etag"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("fullname")) {
+                        this.fullname = (json.getString("fullname"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_parentcustomerid_valueFormattedValue")) {
+                        this.accountFormatted = (json.getString("_parentcustomerid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("address1_telephone1")) {
+                        this.address1Phone = (json.getString("address1_telephone1"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("telephone1")) {
+                        this.businessPhone = (json.getString("telephone1"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_parentcustomerid_value")) {
+                        this.accountid = (json.getString("_parentcustomerid_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("jobtitle")) {
+                        this.jobtitle = (json.getString("jobtitle"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("contactid")) {
+                        this.contactid = (json.getString("contactid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_associated_npi_number_valueFormattedValue")) {
+                        this.npiFormatted = (json.getString("_msus_associated_npi_number_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_associated_npi_number_value")) {
+                        this.npiid = (json.getString("_msus_associated_npi_number_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            public BasicEntity toBasicEntity() {
+                BasicEntity entity = new BasicEntity(this);
+                entity.list.add(new BasicEntity.BasicEntityField("Name:", this.fullname));
+                entity.list.add(new BasicEntity.BasicEntityField("Email:", this.email));
+                entity.list.add(new BasicEntity.BasicEntityField("Phone:", this.businessPhone));
+                entity.list.add(new BasicEntity.BasicEntityField("Account:", this.accountFormatted));
+                entity.list.add(new BasicEntity.BasicEntityField("Title:", this.jobtitle));
+                entity.list.add(new BasicEntity.BasicEntityField("NPI:", this.npiFormatted));
+                return entity;
+            }
+
+        }
+    }
+
     public static class Tickets {
 
         ArrayList<Ticket> list = new ArrayList<>();

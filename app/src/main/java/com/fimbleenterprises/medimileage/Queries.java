@@ -899,10 +899,11 @@ public class Queries {
 
         public static String getContacts(String accountid) {
             // Instantiate a new constructor for the case entity and add the columns we want to see
-            QueryFactory query = new QueryFactory("col_customerinventory");
+            QueryFactory query = new QueryFactory("contact");
             query.addColumn("fullname");
             query.addColumn("parentcustomerid");
             query.addColumn("telephone1");
+            query.addColumn("address1_telephone1");
             query.addColumn("emailaddress1");
             query.addColumn("msus_associated_npi_number");
             query.addColumn("jobtitle");
@@ -914,7 +915,7 @@ public class Queries {
             Filter filter = new Filter(AND);
 
             // Set filter
-            Filter.FilterCondition condition1 = new Filter.FilterCondition("parentcustomerid", Filter.Operator.CONTAINS, accountid );
+            Filter.FilterCondition condition1 = new Filter.FilterCondition("parentcustomerid", Filter.Operator.EQUALS, accountid );
             filter.addCondition(condition1);
             query.setFilter(filter);
 

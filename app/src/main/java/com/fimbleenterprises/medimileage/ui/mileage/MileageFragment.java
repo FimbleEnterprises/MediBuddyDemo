@@ -473,6 +473,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
         RefreshLayout refreshLayout = (RefreshLayout) root.findViewById(R.id.refreshLayout);
         refreshLayout.setRefreshHeader(new MaterialHeader(getContext()));
+        refreshLayout.setEnableLoadMore(true);
         refreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
             public void onRefresh(RefreshLayout refreshlayout) {

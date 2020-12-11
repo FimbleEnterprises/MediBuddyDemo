@@ -26,6 +26,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -55,6 +56,7 @@ public class BasicEntityActivity extends AppCompatActivity {
     public static final String LIST_POSITION = "LIST_POSITION";
     public static final String ACTIVITY_TITLE = "ACTIVITY_TITLE";
     public static final int REQUEST_BASIC = 6288;
+    public static final String LOAD_NOTES = "LOAD_NOTES";
     private static final String TAG = "BasicEntityActivity";
     private static final int FILE_REQUEST_CODE = 88;
 
@@ -73,7 +75,7 @@ public class BasicEntityActivity extends AppCompatActivity {
     TextView txtNotesLoading;
     ProgressBar pbNotesLoading;
     ImageButton btnAddNote;
-
+    TableLayout tblNotes;
     BasicEntity basicEntity;
 
     public static IntentFilter getIntentFilter() {
@@ -87,6 +89,7 @@ public class BasicEntityActivity extends AppCompatActivity {
         setContentView(R.layout.basic_entity_activity);
 
         // Find and get handles on all of our important activity bits
+        tblNotes = findViewById(R.id.tableLayout_notes);
         refreshLayout = findViewById(R.id.refreshLayout);
         notesListView = findViewById(R.id.notesRecyclerView);
         txtNotesLoading = findViewById(R.id.textViewopportunityNotesLoading);
@@ -117,8 +120,15 @@ public class BasicEntityActivity extends AppCompatActivity {
         entityLogicalName = getIntent().getStringExtra(ENTITY_LOGICAL_NAME);
         setTitle(getIntent().getStringExtra(ACTIVITY_TITLE));
 
+        // Hide the notes table by default
+        tblNotes.setVisibility(View.GONE);
+
         if (gson != null) {
-            getNotes();
+            // See if notes should be loaded (default is yes)
+            if (getIntent() != null && getIntent().getBooleanExtra(LOAD_NOTES, true) == true) {
+                getNotes();
+                tblNotes.setVisibility(View.VISIBLE);
+            }
             populateForm(gson);
         } else {
             Toast.makeText(context, "Failed to load!", Toast.LENGTH_SHORT).show();
@@ -218,6 +228,7 @@ public class BasicEntityActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        // Check if the file picker was busy and has a chosen file for us to attach to a new note!
         if (requestCode == FILE_REQUEST_CODE
                 && resultCode == RESULT_OK
                 && data != null) {
