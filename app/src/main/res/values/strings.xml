@@ -268,5 +268,6 @@
     <string name="tickets_about_this_list">Please choose a ticket.</string>
     <string name="send_email">Send email</string>
     <string name="call_contact">Call</string>
+    <string name="title_activity_receive_contact">FullscreenActivity</string>
 
 </resources>

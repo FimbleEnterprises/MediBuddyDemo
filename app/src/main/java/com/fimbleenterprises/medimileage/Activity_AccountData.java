@@ -190,7 +190,7 @@ public class Activity_AccountData extends AppCompatActivity {
                 Intent intentChangeAccount = new Intent(context, FullscreenActivityChooseAccount.class);
                 intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
                 intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, curAccount);
-                intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
+                // intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
                 startActivityForResult(intentChangeAccount, FullscreenActivityChooseAccount.REQUESTCODE);
                 // Default to all items as the checked menu item
                 optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).setChecked(true);
@@ -298,6 +298,8 @@ public class Activity_AccountData extends AppCompatActivity {
                 menu.findItem(R.id.action_expired).setVisible(true);
                 menu.findItem(R.id.action_lost).setVisible(true);
                 menu.findItem(R.id.action_any).setVisible(true);
+                // Excel
+                menu.findItem(R.id.action_export_to_excel).setVisible(true);
                 break;
             case 1 : // Account sales lines
                 // Main items
@@ -313,7 +315,27 @@ public class Activity_AccountData extends AppCompatActivity {
                 menu.findItem(R.id.action_expired).setVisible(false);
                 menu.findItem(R.id.action_lost).setVisible(false);
                 menu.findItem(R.id.action_any).setVisible(false);
+                // Excel
+                menu.findItem(R.id.action_export_to_excel).setVisible(true);
                 break;
+            case 2 : // Contact lines
+                // Main items
+                menu.findItem(R.id.action_producttype).setVisible(false);
+                menu.findItem(R.id.action_productstatus).setVisible(false);
+                // Sub items
+                menu.findItem(R.id.action_probes).setVisible(false);
+                menu.findItem(R.id.action_flowmeters).setVisible(false);
+                menu.findItem(R.id.action_cables).setVisible(false);
+                menu.findItem(R.id.action_licensing).setVisible(false);
+                menu.findItem(R.id.action_instock).setVisible(false);
+                menu.findItem(R.id.action_returned).setVisible(false);
+                menu.findItem(R.id.action_expired).setVisible(false);
+                menu.findItem(R.id.action_lost).setVisible(false);
+                menu.findItem(R.id.action_any).setVisible(false);
+                // Excel
+                menu.findItem(R.id.action_export_to_excel).setVisible(false);
+                break;
+            // Sub items
         }
 
         return super.onPreparePanel(featureId, view, menu);
@@ -1412,9 +1434,8 @@ public class Activity_AccountData extends AppCompatActivity {
                                 // Ensure there is an account stipulated and inventory to export
                                 if (curAccount != null && objects != null &&
                                         objects.size() > 0) {
-
                                 } else {
-                                    Toast.makeText(context, "No inventory to export!", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(context, "No sales to export!", Toast.LENGTH_SHORT).show();
                                 }
                             }
                         } // is sales line page
@@ -1554,6 +1575,11 @@ public class Activity_AccountData extends AppCompatActivity {
 
             for (int i = 0; i < (objects.size()); i++) {
                 adapter = new BasicObjectRecyclerAdapter(context, objects);
+            }
+
+            // Check if adapter is null and leave if so.  If user hasn't selected an account this will be the case
+            if (adapter == null) {
+                return;
             }
 
             Log.i(TAG, "populateTripList Finished preparing the dividers and trips.");

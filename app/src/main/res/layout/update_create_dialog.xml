@@ -53,80 +53,9 @@
 			android:paddingBottom="2dp">
 
 			<TableRow
-				android:id="@+id/tableRow1"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content">
-
-				<FrameLayout
-					android:layout_width="0dp"
-					android:layout_height="wrap_content"
-					android:layout_weight="1">
-
-					<Button
-						android:id="@+id/btn_call"
-						style="@style/ButtonTextWhiteShadow"
-						android:layout_width="match_parent"
-						android:layout_height="wrap_content"
-						android:layout_below="@+id/unsubmit_trip"
-						android:layout_margin="2dp"
-						android:background="@drawable/btn_glass_gray_black_border"
-						android:drawableTop="@drawable/upload_icon2_38x38"
-						android:drawablePadding="1dp"
-						android:fontFamily="casual"
-						android:paddingTop="5dp"
-						android:text="Submit"
-						android:textColor="#000000" />
-
-				</FrameLayout>
-
-				<FrameLayout
-					android:layout_width="0dp"
-					android:layout_height="wrap_content"
-					android:layout_weight="1">
-
-					<Button
-						android:id="@+id/btnDelete"
-						style="@style/ButtonTextWhiteShadow"
-						android:layout_width="match_parent"
-						android:layout_height="wrap_content"
-						android:layout_below="@+id/submit_trip"
-						android:layout_margin="2dp"
-						android:background="@drawable/btn_glass_gray_black_border"
-						android:drawableTop="@drawable/trash_icon_black_48x48"
-						android:drawablePadding="0dp"
-						android:fontFamily="casual"
-						android:text="Delete"
-						android:textColor="#000000" />
-
-				</FrameLayout>
-			</TableRow>
-
-			<TableRow
 				android:id="@+id/tableRow2"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content">
-
-				<FrameLayout
-					android:layout_width="0dp"
-					android:layout_height="match_parent"
-					android:layout_weight="1">
-
-					<Button
-						android:id="@+id/btn_add_to_contacts"
-						style="@style/ButtonTextWhiteShadow"
-						android:layout_width="match_parent"
-						android:layout_height="match_parent"
-						android:layout_below="@+id/view_trip"
-						android:layout_margin="2dp"
-						android:background="@drawable/btn_glass_gray_black_border"
-						android:drawableTop="@drawable/unsubmit_icon_38x38"
-						android:drawablePadding="2dp"
-						android:fontFamily="casual"
-						android:paddingTop="4dp"
-						android:text="Recall"
-						android:textColor="#000000" />
-
-				</FrameLayout>
 
 				<FrameLayout
 					android:layout_width="0dp"
@@ -141,9 +70,8 @@
 						android:layout_below="@+id/view_trip"
 						android:layout_margin="2dp"
 						android:background="@drawable/btn_glass_gray_black_border"
-						android:drawableTop="@drawable/keyboard_icon_black_48x48"
 						android:fontFamily="casual"
-						android:text="Edit..."
+						android:text="Create new"
 						android:textColor="#000000" />
 
 				</FrameLayout>
@@ -167,11 +95,10 @@
 						android:layout_below="@+id/TextView_TripOptionsMainText"
 						android:layout_margin="2dp"
 						android:background="@drawable/btn_glass_gray_black_border"
-						android:drawableTop="@drawable/folded_map_icon_48x48"
 						android:drawablePadding="0dp"
 						android:fontFamily="casual"
 						android:includeFontPadding="true"
-						android:text="View"
+						android:text="Update Existing..."
 						android:textColor="#000000" />
 
 				</FrameLayout>

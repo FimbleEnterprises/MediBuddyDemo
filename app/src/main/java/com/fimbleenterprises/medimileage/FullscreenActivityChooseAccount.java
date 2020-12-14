@@ -18,6 +18,7 @@ import org.joda.time.DateTime;
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ActionMode;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -93,6 +94,26 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
             }
         });
         mySwipeHandler.addView(listView);
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        Log.i(TAG, "onActivityResult ");
+
+        if (data != null && resultCode == RESULT_OK) {
+            Territory newTerritory = data.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
+            if (currentTerritory == null || newTerritory == null) {
+                return;
+            }
+            if (!newTerritory.territoryid.equals(currentTerritory.territoryid)) {
+                Log.i(TAG, "onActivityResult New territory chosen!");
+                currentTerritory = newTerritory;
+                getAccounts();
+            }
+        }
 
     }
 
