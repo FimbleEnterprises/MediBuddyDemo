@@ -3,9 +3,7 @@ package com.fimbleenterprises.medimileage;
 import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
-import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
@@ -392,8 +390,8 @@ public class MediUser implements Parcelable {
     }
 
     public static void updateCrmWithMyMileBuddyVersion(Context context, final MyInterfaces.CrmRequestListener callback) {
-        Containers.EntityContainer container = new Containers.EntityContainer();
-        container.entityFields.add(new Containers.EntityField("msus_milebuddy_version",
+        EntityContainers.EntityContainer container = new EntityContainers.EntityContainer();
+        container.entityFields.add(new EntityContainers.EntityField("msus_milebuddy_version",
                 Float.toString(Helpers.Application.getAppVersion(context))));
         Requests.Request request = new Requests.Request(Requests.Request.Function.UPDATE);
         request.arguments.add(new Requests.Argument("entityid", MediUser.getMe().systemuserid));

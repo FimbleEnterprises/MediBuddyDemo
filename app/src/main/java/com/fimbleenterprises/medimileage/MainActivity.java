@@ -589,17 +589,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         CrmEntities.Opportunities.retrieveAndSaveOpportunities(new MyInterfaces.YesNoResult() {
             @Override
             public void onYes(@Nullable Object object) {
-                Log.i(TAG, "onYes " + object.toString());
-                if (options.getDebugMode()) {
-                    Toast.makeText(activity, object.toString() + " were saved locally", Toast.LENGTH_SHORT).show();
+                try {
+                    Log.i(TAG, "onYes " + object.toString());
+                    if (options.getDebugMode()) {
+                        Toast.makeText(activity, object.toString() + " were saved locally", Toast.LENGTH_SHORT).show();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
 
             @Override
             public void onNo(@Nullable Object object) {
-                Log.w(TAG, "onNo: " + object.toString());
-                if (options.getDebugMode()) {
-                    Toast.makeText(activity, "Failed to retrieve and save opportunities", Toast.LENGTH_SHORT).show();
+                try {
+                    Log.w(TAG, "onNo: " + object.toString());
+                    if (options.getDebugMode()) {
+                        Toast.makeText(activity, "Failed to retrieve and save opportunities", Toast.LENGTH_SHORT).show();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         });

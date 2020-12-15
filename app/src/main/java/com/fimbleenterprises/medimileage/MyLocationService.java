@@ -806,10 +806,10 @@ public class MyLocationService extends Service implements LocationListener {
                 return;
             }
 
-            Containers.EntityContainer container = new Containers.EntityContainer();
-            container.entityFields.add(new Containers.EntityField("msus_last_loc_timestamp", LocalDateTime.now().toString()));
-            container.entityFields.add(new Containers.EntityField("msus_last_lon", Double.toString(latLng.longitude)));
-            container.entityFields.add(new Containers.EntityField("msus_last_lat", Double.toString(latLng.latitude)));
+            EntityContainers.EntityContainer container = new EntityContainers.EntityContainer();
+            container.entityFields.add(new EntityContainers.EntityField("msus_last_loc_timestamp", LocalDateTime.now().toString()));
+            container.entityFields.add(new EntityContainers.EntityField("msus_last_lon", Double.toString(latLng.longitude)));
+            container.entityFields.add(new EntityContainers.EntityField("msus_last_lat", Double.toString(latLng.latitude)));
 
             Requests.Request request = new Requests.Request(Requests.Request.Function.UPDATE);
             request.function = Requests.Request.Function.UPDATE.name();

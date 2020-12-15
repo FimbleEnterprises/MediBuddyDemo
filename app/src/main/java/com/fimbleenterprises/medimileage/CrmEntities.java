@@ -11,8 +11,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.fimbleenterprises.medimileage.Containers.EntityContainer;
-import com.fimbleenterprises.medimileage.Containers.EntityField;
+import com.fimbleenterprises.medimileage.EntityContainers.EntityContainer;
+import com.fimbleenterprises.medimileage.EntityContainers.EntityField;
 import com.fimbleenterprises.medimileage.Requests.Request.Function;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
@@ -311,8 +311,8 @@ public class CrmEntities {
 
                     // The annotation entity is slightly different so instead of a basic EntityContainer
                     // we create an AnnotationCreationContainer for the creation request
-                    Containers.AnnotationCreationContainer annotationContainer =
-                            new Containers.AnnotationCreationContainer();
+                    EntityContainers.AnnotationCreationContainer annotationContainer =
+                            new EntityContainers.AnnotationCreationContainer();
                     annotationContainer.notetext = this.notetext;
                     annotationContainer.subject = this.subject;
                     annotationContainer.objectidtypecode = objectEntityName;
@@ -425,8 +425,8 @@ public class CrmEntities {
 
                     // The annotation entity is slightly different so instead of a basic EntityContainer
                     // we create an AnnotationCreationContainer for the creation request
-                    Containers.AnnotationCreationContainer annotationContainer =
-                            new Containers.AnnotationCreationContainer();
+                    EntityContainers.AnnotationCreationContainer annotationContainer =
+                            new EntityContainers.AnnotationCreationContainer();
                     annotationContainer.notetext = this.notetext;
                     annotationContainer.subject = this.subject;
                     annotationContainer.objectidtypecode = "opportunity";
@@ -3430,12 +3430,12 @@ public class CrmEntities {
             return gson.toJson(this);
         }
 
-        public Containers toContainers() {
-            Containers containers = new Containers();
+        public EntityContainers toContainers() {
+            EntityContainers entityContainers = new EntityContainers();
             for (TripAssociation association : this.list) {
-                containers.entityContainers.add(association.toContainer());
+                entityContainers.entityContainers.add(association.toContainer());
             }
-            return containers;
+            return entityContainers;
         }
 
         @Override

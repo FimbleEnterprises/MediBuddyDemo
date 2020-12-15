@@ -20,9 +20,9 @@ import ezvcard.VCard;
 /**
  * A container for a contact obtained from the user's address book
  */
-class MyVcardParser {
+class MyVcard {
 
-    private static final String TAG = "MyVcardParser";
+    private static final String TAG = "MyVcard";
     Context context;
     String contactid;
     String firstName;
@@ -37,17 +37,57 @@ class MyVcardParser {
 
     private String vcardString;
 
-    public String toVcardString() {
-        return this.vcardString;
+    public static ArrayList<MyVcard> parseVcards(String vcardString) {
+        ArrayList<MyVcard> parsedVcards = new ArrayList<>();
+
+        String[] varray = vcardString.split("BEGIN:VCARD");
+        ArrayList<String> preCreatedStrings = new ArrayList<>();
+
+        for (int i = 0; i < varray.length; i++) {
+            if (varray[i].length() > 0) {
+                String preCreate = "BEGIN:VCARD\r\n" + varray[i];
+                preCreatedStrings.add(preCreate);
+            }
+        }
+
+        for (String s : preCreatedStrings) {
+            parsedVcards.add(new MyVcard(s));
+        }
+
+        return parsedVcards;
     }
 
-    public MyVcardParser() { }
+    public static String intentToVcardsString(Context context, Intent intent) {
+        Uri contactData = intent.getParcelableExtra("android.intent.extra.STREAM");
+        ContentResolver cr = context.getContentResolver();
+        InputStream stream;
+        try {
+            stream = cr.openInputStream(contactData);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
 
-    public MyVcardParser(String data) {
+        StringBuffer fileContent = new StringBuffer("");
+        int ch;
+        try {
+            while ((ch = stream.read()) != -1)
+                fileContent.append((char) ch);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+        String data = new String(fileContent);
+        return data;
+    }
+
+    public MyVcard() { }
+
+    private MyVcard(String data) {
 
         this.vcardString = data;
-
         VCard vcard = Ezvcard.parse(data).first();
+
         try {
             this.firstName = vcard.getStructuredName().getGiven();
         } catch (Exception e) {
@@ -106,35 +146,14 @@ class MyVcardParser {
      * @param context A valid context that can call "getContactResolver()"
      * @param intent An intent from the user sharing a contact from their addressbook
      */
-    public MyVcardParser(Context context, Intent intent) {
+    private MyVcard(Context context, Intent intent) {
         if (intent != null) {
 
             Log.i(TAG, "MyVcard : Constructing from intent...");
 
-            Uri contactData = intent.getParcelableExtra("android.intent.extra.STREAM");
-            ContentResolver cr = context.getContentResolver();
-            InputStream stream;
-            try {
-                stream = cr.openInputStream(contactData);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                return;
-            }
+            this.vcardString = intentToVcardsString(context, intent);
 
-            StringBuffer fileContent = new StringBuffer("");
-            int ch;
-            try {
-                while ((ch = stream.read()) != -1)
-                    fileContent.append((char) ch);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
-            }
-            String data = new String(fileContent);
-            this.vcardString = data;
-            Log.i("TAG", "data: " + data);
-
-            VCard vcard = Ezvcard.parse(data).first();
+            VCard vcard = Ezvcard.parse(vcardString).first();
             try {
                 this.firstName = vcard.getStructuredName().getGiven();
             } catch (Exception e) {
@@ -190,53 +209,53 @@ class MyVcardParser {
         }
     }
 
-    private Containers.EntityContainer toContainer(String accountid) {
+    public EntityContainers.EntityContainer toContainer(String accountid) {
 
         this.context = context;
 
-        Containers.EntityContainer container = new Containers.EntityContainer();
+        EntityContainers.EntityContainer container = new EntityContainers.EntityContainer();
 
         if (this.fullname != null) {
-            container.entityFields.add(new Containers.EntityField("fullname", this.fullname));
+            container.entityFields.add(new EntityContainers.EntityField("fullname", this.fullname));
         }
 
         if (this.firstName != null) {
-            container.entityFields.add(new Containers.EntityField("firstname", this.firstName));
+            container.entityFields.add(new EntityContainers.EntityField("firstname", this.firstName));
         }
 
         if (this.lastName != null) {
-            container.entityFields.add(new Containers.EntityField("lastname", this.lastName));
+            container.entityFields.add(new EntityContainers.EntityField("lastname", this.lastName));
         }
 
         if (this.phone1 != null) {
-            container.entityFields.add(new Containers.EntityField("telephone1", this.phone1));
+            container.entityFields.add(new EntityContainers.EntityField("telephone1", this.phone1));
         }
 
         if (this.phone2 != null) {
-            container.entityFields.add(new Containers.EntityField("mobilephone", this.phone2));
+            container.entityFields.add(new EntityContainers.EntityField("mobilephone", this.phone2));
         }
 
         if (this.address1 != null) {
-            container.entityFields.add(new Containers.EntityField("address1_composite", this.address1));
+            container.entityFields.add(new EntityContainers.EntityField("address1_composite", this.address1));
         }
 
         if (this.address2 != null) {
-            container.entityFields.add(new Containers.EntityField("address2_composite", this.address2));
+            container.entityFields.add(new EntityContainers.EntityField("address2_composite", this.address2));
         }
 
         if (this.title != null) {
-            container.entityFields.add(new Containers.EntityField("jobtitle", this.title));
+            container.entityFields.add(new EntityContainers.EntityField("jobtitle", this.title));
         }
 
         if (this.email != null) {
-            container.entityFields.add(new Containers.EntityField("emailaddress1", this.email));
+            container.entityFields.add(new EntityContainers.EntityField("emailaddress1", this.email));
         }
 
         if (this.email != null) {
-            container.entityFields.add(new Containers.EntityField("emailaddress1", this.email));
+            container.entityFields.add(new EntityContainers.EntityField("emailaddress1", this.email));
         }
 
-        container.entityFields.add(new Containers.EntityField("parentcustomerid", accountid));
+        container.entityFields.add(new EntityContainers.EntityField("parentcustomerid", accountid));
 
         return container;
     }

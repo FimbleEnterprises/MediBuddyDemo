@@ -8,7 +8,7 @@ import java.util.ArrayList;
 /**
  * This class is used for representing entity fields in an entity.
  */
-public class Containers {
+public class EntityContainers {
 
     public ArrayList<EntityContainer> entityContainers = new ArrayList<EntityContainer>();
 
@@ -54,9 +54,9 @@ public class Containers {
         return gson.toJson(this);
     }
 
-    public static Containers fromJson(String json) {
+    public static EntityContainers fromJson(String json) {
         Gson gson = new Gson();
-        return gson.fromJson(json, Containers.class);
+        return gson.fromJson(json, EntityContainers.class);
     }
 
     /**

@@ -3,7 +3,6 @@ package com.fimbleenterprises.medimileage;
 import android.content.Context;
 import android.util.Log;
 
-import com.google.gson.Gson;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.joda.time.DateTime;
@@ -54,8 +53,8 @@ public class MileBuddyMetrics {
         Requests.Request request = new Requests.Request(Requests.Request.Function.UPDATE);
 
         try {
-            Containers.EntityContainer container = new Containers.EntityContainer();
-            container.entityFields.add(new Containers.EntityField(getMetricName(metricName), dateAndTime.toLocalDateTime().toString()));
+            EntityContainers.EntityContainer container = new EntityContainers.EntityContainer();
+            container.entityFields.add(new EntityContainers.EntityField(getMetricName(metricName), dateAndTime.toLocalDateTime().toString()));
 
             request.arguments.add(new Requests.Argument("entityid", MediUser.getMe().systemuserid));
             request.arguments.add(new Requests.Argument("entity", "systemuser"));

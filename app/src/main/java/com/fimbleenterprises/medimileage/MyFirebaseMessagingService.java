@@ -1,9 +1,6 @@
 package com.fimbleenterprises.medimileage;
 
-import android.app.Service;
 import android.content.Context;
-import android.content.Intent;
-import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -16,7 +13,6 @@ import com.google.firebase.messaging.RemoteMessage;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import cz.msebera.android.httpclient.Header;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
@@ -106,8 +102,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     private void updateCrmWithToken() {
 
         try {
-            Containers.EntityContainer container = new Containers.EntityContainer();
-            container.entityFields.add(new Containers.EntityField("msus_fcm_token", options.getFcmToken()));
+            EntityContainers.EntityContainer container = new EntityContainers.EntityContainer();
+            container.entityFields.add(new EntityContainers.EntityField("msus_fcm_token", options.getFcmToken()));
 
             Requests.Request request = new Requests.Request(Requests.Request.Function.UPDATE);
             request.arguments.add(new Requests.Argument("guid", MediUser.getMe().systemuserid));

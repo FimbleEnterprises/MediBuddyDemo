@@ -14,11 +14,16 @@ import android.os.PowerManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.loopj.android.http.AsyncHttpResponseHandler;
+
+import java.util.ArrayList;
+
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
+import cz.msebera.android.httpclient.Header;
 
-public class MyContactUpdateCreateService extends Service {
+public class MyContactUploadService extends Service {
 
     public static final String IS_TEXT_ONLY = "IS_TEXT_ONLY";
     Context context;
@@ -32,7 +37,6 @@ public class MyContactUpdateCreateService extends Service {
     public static final String VCARD_STRING = "VCARD_STRING";
     public static final String ACCOUNTID = "ACCOUNTID";
     public static int START_ID = 21;
-    CrmEntities.Accounts.Account selectedAccount;
 
     Notification notification;
     public static boolean isRunning = false;
@@ -77,23 +81,18 @@ public class MyContactUpdateCreateService extends Service {
                 notification = getNotification("Creating contact...",
                         "Your contact is being uploaded to CRM in the background.", false, true);
 
-                if (intent.getParcelableExtra(VCARD_STRING) != null) {
-                    MyVcardParser myVcardParser = new MyVcardParser(intent.getStringExtra(VCARD_STRING));
-                    myVcardParser.uploadToCrm(intent.getStringExtra(ACCOUNTID), new MyInterfaces.EntityUpdateListener() {
-                        @Override
-                        public void onSuccess() {
-                            Toast.makeText(context, "Successfully created contact", Toast.LENGTH_SHORT).show();
-                            releaseWakelock();
-                            stopSelf();
-                        }
-
-                        @Override
-                        public void onFailure(String msg) {
-                            releaseWakelock();
-                            Toast.makeText(context, "Failed to create contact!", Toast.LENGTH_SHORT).show();
-                            stopSelf();
-                        }
-                    });
+                if (intent.getStringExtra(VCARD_STRING) != null) {
+                    try {
+                        String vcardString = intent.getStringExtra(VCARD_STRING);
+                        ArrayList<MyVcard> vcards = MyVcard.parseVcards(vcardString);
+                        Notification notification = getNotification("Uploading contacts", "Contacts are being saved to CRM", false, false);
+                        NotificationManager mNotificationManager=(NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+                        mNotificationManager.notify(START_ID, notification);
+                        createManyContacts(intent.getStringExtra(ACCOUNTID), vcards);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        stopSelf();
+                    }
                 }
 
                 Toast.makeText(context, "Creating contact in CRM...", Toast.LENGTH_SHORT).show();
@@ -128,7 +127,7 @@ public class MyContactUpdateCreateService extends Service {
                     .bigText(text);
         } else {
             style = new NotificationCompat.BigTextStyle()
-                    .bigText("Your file is being uploaded and will be attached when finished.  Stand by!");
+                    .bigText(text);
         }
 
         return new NotificationCompat.Builder(this, CONTACT_NOTIFICATION_CHANNEL)
@@ -153,6 +152,45 @@ public class MyContactUpdateCreateService extends Service {
 
         NotificationManager mNotificationManager=(NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationManager.notify(START_ID,notification);
+    }
+
+    void createManyContacts(String accountid, ArrayList<MyVcard> vCards) {
+        EntityContainers containers = new EntityContainers();
+        for (MyVcard vcard : vCards) {
+            EntityContainers.EntityContainer container = vcard.toContainer(accountid);
+            containers.entityContainers.add(container);
+        }
+
+        Requests.Request request = new Requests.Request(Requests.Request.Function.CREATE_MANY);
+
+        ArrayList<Requests.Argument> args = new ArrayList<>();
+        Requests.Argument argument1 = new Requests.Argument("entityName", "contact");
+        Requests.Argument argument2 = new Requests.Argument("asUserid", MediUser.getMe().systemuserid);
+        Requests.Argument argument3 = new Requests.Argument("containers", containers.toJson());;
+        args.add(argument1);
+        args.add(argument2);
+        args.add(argument3);
+        request.arguments = args;
+
+        new Crm().makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                Toast.makeText(context, "Uploaded!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Successfully uploaded contacts!", Toast.LENGTH_SHORT).show();
+                updateNotification("Contacts were uploaded", "Your contacts were uploaded!", false, false);
+                releaseWakelock();
+                stopSelf();
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                updateNotification("Upload failed!", error.getLocalizedMessage(), false, false);
+                Toast.makeText(context, error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                releaseWakelock();
+                stopSelf();
+            }
+        });
+
     }
 
     @Override

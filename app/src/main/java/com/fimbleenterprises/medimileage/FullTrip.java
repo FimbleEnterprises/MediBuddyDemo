@@ -9,7 +9,6 @@ import android.util.Log;
 import com.fimbleenterprises.medimileage.Requests.Request;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
-import com.google.rpc.Help;
 
 import org.joda.time.DateTime;
 import org.json.JSONArray;
@@ -19,7 +18,7 @@ import org.json.JSONObject;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 
-import static com.fimbleenterprises.medimileage.Containers.*;
+import static com.fimbleenterprises.medimileage.EntityContainers.*;
 
 public class FullTrip implements Parcelable {
     private static final String TAG = "FullTrip";

@@ -218,6 +218,9 @@
             android:name=".MyAttachmentUploadService"
             android:enabled="true" />
         <service
+            android:name=".MyContactUploadService"
+            android:enabled="true" />
+        <service
             android:name=".MyFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
