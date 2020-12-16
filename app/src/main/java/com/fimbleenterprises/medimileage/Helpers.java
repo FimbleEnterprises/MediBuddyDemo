@@ -1574,7 +1574,7 @@ public abstract class Helpers {
             i.putExtra(Intent.EXTRA_EMAIL, recipients);
             i.putExtra(Intent.EXTRA_BCC, recipients);
             i.putExtra(Intent.EXTRA_SUBJECT, subject);
-            i.putExtra(Intent.EXTRA_TEXT, body);
+            i.putExtra(Intent.EXTRA_HTML_TEXT, body);
             try {
                 context.startActivity(Intent.createChooser(i, "Send mail..."));
             } catch (android.content.ActivityNotFoundException ex) {
@@ -1598,7 +1598,7 @@ public abstract class Helpers {
             i.putExtra(Intent.EXTRA_EMAIL, recipients);
             i.putExtra(Intent.EXTRA_BCC, recipients);
             i.putExtra(Intent.EXTRA_SUBJECT, subject);
-            i.putExtra(Intent.EXTRA_TEXT, body);
+            i.putExtra(Intent.EXTRA_HTML_TEXT, body);
             i.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://" + attachment));
             try {
                 context.startActivity(Intent.createChooser(i, "Send mail..."));
@@ -1626,7 +1626,7 @@ public abstract class Helpers {
                 i.putExtra(Intent.EXTRA_BCC, recipients);
             }
             i.putExtra(Intent.EXTRA_SUBJECT, subject);
-            i.putExtra(Intent.EXTRA_TEXT, body);
+            i.putExtra(Intent.EXTRA_HTML_TEXT, body);
             i.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://" + attachment));
             try {
                 context.startActivity(Intent.createChooser(i, "Send mail..."));
@@ -1641,7 +1641,7 @@ public abstract class Helpers {
             i.putExtra(Intent.EXTRA_EMAIL, recipients);
             i.putExtra(Intent.EXTRA_BCC, bccRecipients);
             i.putExtra(Intent.EXTRA_SUBJECT, subject);
-            i.putExtra(Intent.EXTRA_TEXT, body);
+            i.putExtra(Intent.EXTRA_HTML_TEXT, body);
             try {
                 context.startActivity(Intent.createChooser(i, "Send mail..."));
             } catch (android.content.ActivityNotFoundException ex) {
@@ -1654,7 +1654,7 @@ public abstract class Helpers {
             // i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
             i.setType("message/rfc822");
             i.putExtra(Intent.EXTRA_SUBJECT, subject);
-            i.putExtra(Intent.EXTRA_TEXT, body);
+            i.putExtra(Intent.EXTRA_HTML_TEXT, body);
             try {
                 context.startActivity(Intent.createChooser(i, "Send mail..."));
             } catch (android.content.ActivityNotFoundException ex) {
