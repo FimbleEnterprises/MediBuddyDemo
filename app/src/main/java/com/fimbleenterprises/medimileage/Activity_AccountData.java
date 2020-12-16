@@ -30,7 +30,6 @@ import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
 import org.joda.time.DateTime;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
@@ -72,6 +71,9 @@ public class Activity_AccountData extends AppCompatActivity {
     public static androidx.fragment.app.FragmentManager fragMgr;
     public static MySettingsHelper options;
 
+    public static final String GO_TO_ACCOUNT = "GO_TO_ACCOUNT";
+    public static final String GO_TO_ACCOUNT_OBJECT = "GO_TO_ACCOUNT_OBJECT";
+
     public static final int PRODUCTFAMILY_MENU_ROOT = 2;
     public static final int PRODUCTSTATUS_MENU_ROOT = 3;
     public static final int CALL_PHONE_REQ = 123;
@@ -96,6 +98,7 @@ public class Activity_AccountData extends AppCompatActivity {
     public static final String MENU_ACTION = "MENU_ACTION";
     public static final String EXPORT_INVENTORY = "EXPORT_INVENTORY";
     public static final String EXPORT_PAGE_INDEX = "EXPORT_PAGE_INDEX";
+    public static boolean territoryPageOrigin = false;
 
     public static Menu optionsMenu;
     public int curPageIndex = 0;
@@ -113,6 +116,15 @@ public class Activity_AccountData extends AppCompatActivity {
 
         // Log a metric
         // MileBuddyMetrics.updateMetric(this, MileBuddyMetrics.MetricName.LAST_ACCESSED_TERRITORY_DATA, DateTime.now());
+
+        if (getIntent() != null && getIntent().getAction() != null) {
+            if (getIntent().getAction().equals(GO_TO_ACCOUNT)) {
+                if (getIntent().getParcelableExtra(GO_TO_ACCOUNT_OBJECT) != null) {
+                    curAccount = getIntent().getParcelableExtra(GO_TO_ACCOUNT_OBJECT);
+                    territoryPageOrigin = true;
+                }
+            }
+        }
 
         territory = new Territory();
         territory.territoryid = MediUser.getMe().territoryid;
@@ -161,6 +173,9 @@ public class Activity_AccountData extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
+
+
+
     }
 
     @Override
@@ -216,6 +231,11 @@ public class Activity_AccountData extends AppCompatActivity {
 
         if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
             Log.i(TAG, "onKeyDown back pressed!");
+
+            if (territoryPageOrigin) {
+                finish();
+                return true;
+            }
 
             if (curAccount != null) {
                 curAccount = null;
@@ -334,8 +354,9 @@ public class Activity_AccountData extends AppCompatActivity {
                 menu.findItem(R.id.action_any).setVisible(false);
                 // Excel
                 menu.findItem(R.id.action_export_to_excel).setVisible(false);
+            case 3 : // Opportunity lines
+            case 4 : // Ticket lines
                 break;
-            // Sub items
         }
 
         return super.onPreparePanel(featureId, view, menu);
@@ -444,6 +465,8 @@ public class Activity_AccountData extends AppCompatActivity {
         public static final int INVENTORY_PAGE = 0;
         public static final int SALES_LINE_PAGE = 1;
         public static final int CONTACTS_PAGE = 2;
+        public static final int OPPORTUNITIES_PAGE = 3;
+        public static final int TICKETS_PAGE = 4;
 
         public SectionsPagerAdapter(androidx.fragment.app.FragmentManager fm) {
             super(fm);
@@ -480,12 +503,28 @@ public class Activity_AccountData extends AppCompatActivity {
                 return fragment;
             }
 
+            if (position == OPPORTUNITIES_PAGE) {
+                Fragment fragment = new Frag_Opportunities();
+                Bundle args = new Bundle();
+                args.putInt(Frag_Tickets.ARG_SECTION_NUMBER, position + 1);
+                fragment.setArguments(args);
+                return fragment;
+            }
+
+            if (position == TICKETS_PAGE) {
+                Fragment fragment = new Frag_Tickets();
+                Bundle args = new Bundle();
+                args.putInt(Frag_Tickets.ARG_SECTION_NUMBER, position + 1);
+                fragment.setArguments(args);
+                return fragment;
+            }
+
             return null;
         }
 
         @Override
         public int getCount() {
-            return 3;
+            return 5;
         }
 
         @Override
@@ -502,9 +541,9 @@ public class Activity_AccountData extends AppCompatActivity {
                     case 2:
                         return Frag_Contacts.pageTitle;
                     case 3:
-                        return "Opportunities";
+                        return Frag_Opportunities.pageTitle;
                     case 4:
-                        return "Cases";
+                        return Frag_Tickets.pageTitle;
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -575,12 +614,9 @@ public class Activity_AccountData extends AppCompatActivity {
                 }
             });
 
-            // Check if there is an account stipulated in preferences
-            if (curAccount == null) {
-                Log.w(TAG, "onCreateView: No account stipulated!");
-                // do something!
-            } else {
-                Log.i(TAG, "onCreateView Account is stipulated (" + curAccount.accountnumber + ")");
+            if (lastAccount != curAccount) {
+                getAccountInventory(true);
+                lastAccount = curAccount;
             }
 
             recyclerView = root.findViewById(R.id.orderLinesRecyclerview);
@@ -605,7 +641,7 @@ public class Activity_AccountData extends AppCompatActivity {
                                         custInventory.size() > 0) {
                                     // Export and share
                                     ExcelSpreadsheet spreadsheet = exportToExcel(
-                                            curAccount.accountnumber
+                                            curAccount.accountName
                                                     + "_inventory_export.xls");
                                     Helpers.Files.shareFile(context, spreadsheet.file);
                                 } else {
@@ -1009,12 +1045,9 @@ public class Activity_AccountData extends AppCompatActivity {
                 }
             });
 
-            // Check if there is an account stipulated in preferences
-            if (curAccount == null) {
-                Log.w(TAG, "onCreateView: No account stipulated!");
-                // do something!
-            } else {
-                Log.i(TAG, "onCreateView Account is stipulated (" + curAccount.accountnumber + ")");
+            if (lastAccount != curAccount) {
+                getAccountSales(true);
+                lastAccount = curAccount;
             }
 
             recyclerView = root.findViewById(R.id.orderLinesRecyclerview);
@@ -1036,7 +1069,7 @@ public class Activity_AccountData extends AppCompatActivity {
                                         allOrders.size() > 0) {
                                     // Export and share
                                     ExcelSpreadsheet spreadsheet = exportToExcel(
-                                            curAccount.accountnumber
+                                            curAccount.accountName
                                                     + "_sales_export.xls");
                                     Helpers.Files.shareFile(context, spreadsheet.file);
                                 } else {
@@ -1409,12 +1442,9 @@ public class Activity_AccountData extends AppCompatActivity {
                 }
             });
 
-            // Check if there is an account stipulated in preferences
-            if (curAccount == null) {
-                Log.w(TAG, "onCreateView: No account stipulated!");
-                // do something!
-            } else {
-                Log.i(TAG, "onCreateView Account is stipulated (" + curAccount.accountnumber + ")");
+            if (lastAccount != curAccount) {
+                getAccountContacts(true);
+                lastAccount = curAccount;
             }
 
             recyclerView = root.findViewById(R.id.orderLinesRecyclerview);
@@ -1523,19 +1553,12 @@ public class Activity_AccountData extends AppCompatActivity {
 
             txtNoContacts.setVisibility(View.GONE);
 
-            if (curAccount == null) {
-                Toast.makeText(context, "Please select an account", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
             getPagerTitle();
 
             if (objects != null && objects.size() > 0 && forceRefresh != true) {
                 populateList();
                 return;
             }
-
-            lastAccount = curAccount;
 
             refreshLayout.autoRefreshAnimationOnly();
             ArrayList<Requests.Argument> args = new ArrayList<>();
@@ -1593,7 +1616,7 @@ public class Activity_AccountData extends AppCompatActivity {
                         try {
                             BasicObject clickedObject = objects.get(position);
                             CrmEntities.Contacts.Contact clickedContact = (CrmEntities.Contacts.Contact)
-                                clickedObject.object;
+                                    clickedObject.object;
                             Log.i(TAG, "onItemClick Clicked item at position " + position
                                     + "(" + clickedObject.title + ")");
 
@@ -1740,6 +1763,517 @@ public class Activity_AccountData extends AppCompatActivity {
 
         String getPagerTitle() {
             pageTitle = "Contacts";
+            mViewPager.getAdapter().notifyDataSetChanged();
+            return pageTitle;
+        }
+
+    }
+
+    public static class Frag_Opportunities extends Fragment {
+        public static final String ARG_SECTION_NUMBER = "section_number";
+        public View root;
+        public RecyclerView recyclerView;
+        RefreshLayout refreshLayout;
+        BasicObjectRecyclerAdapter adapter;
+        ArrayList<BasicObject> objects = new ArrayList<>();
+        Button btnChooseAccount;
+        public static String pageTitle = "Opportunities";
+        BroadcastReceiver parentActivityMenuReceiver;
+        CrmEntities.Accounts.Account lastAccount;
+
+
+        @Nullable
+        @Override
+        public View onCreateView(@NonNull final LayoutInflater inflater, @Nullable ViewGroup container,
+                                 @Nullable Bundle savedInstanceState) {
+            root = inflater.inflate(R.layout.frag_opportunities, container, false);
+            refreshLayout = root.findViewById(R.id.refreshLayout);
+            refreshLayout.setEnableLoadMore(false);
+            options = new MySettingsHelper(context);
+            RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
+            refreshLayout.setOnRefreshListener(new OnRefreshListener() {
+                @Override
+                public void onRefresh(RefreshLayout refreshlayout) {
+                    getAccountOpportunities(true);
+                }
+            });
+            refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
+                @Override
+                public void onLoadMore(RefreshLayout refreshlayout) {
+                    refreshlayout.finishLoadMore(500/*,false*/);
+                }
+            });
+
+            btnChooseAccount = root.findViewById(R.id.btnChooseAct);
+            btnChooseAccount.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intentChangeAccount = new Intent(context, FullscreenActivityChooseAccount.class);
+                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
+                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, curAccount);
+                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
+                    startActivityForResult(intentChangeAccount, FullscreenActivityChooseAccount.REQUESTCODE);
+                }
+            });
+
+            if (lastAccount != curAccount) {
+                getAccountOpportunities(true);
+                lastAccount = curAccount;
+            }
+
+            recyclerView = root.findViewById(R.id.opportunitiesRecyclerview);
+            super.onCreateView(inflater, container, savedInstanceState);
+
+            // Broadcast received regarding an options menu selection
+            parentActivityMenuReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Log.i(TAG, "onReceive Local receiver received broadcast!");
+                    // Validate intent shit
+                    if (intent != null && intent.getAction().equals(MENU_ACTION)) {
+
+                        if (intent.getIntExtra(EXPORT_PAGE_INDEX, -1) == SectionsPagerAdapter.CONTACTS_PAGE) {
+                            // Check if this is regarding an inventory export to Excel
+                            if (intent.getStringExtra(EXPORT_INVENTORY) != null) {
+                                // Ensure there is an account stipulated and inventory to export
+                                if (curAccount != null && objects != null &&
+                                        objects.size() > 0) {
+                                } else {
+                                    Toast.makeText(context, "No sales to export!", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        } // is sales line page
+
+                        // If the current account is null then clear the list.  This is to enable
+                        // on back pressed behavior that doesn't automatically finish the activity.
+                        if (curAccount == null) {
+                            objects.clear();
+                            populateList();
+                        }
+
+                        btnChooseAccount.setVisibility(curAccount == null ? View.VISIBLE : View.GONE);
+
+                        getAccountOpportunities(true);
+
+                        mViewPager.getAdapter().notifyDataSetChanged();
+                    }
+                }
+            };
+
+            getAccountOpportunities(false);
+
+            return root;
+        }
+
+        @Override
+        public void onStop() {
+            super.onStop();
+        }
+
+        @Override
+        public void onDestroyView() {
+            super.onDestroyView();
+
+            getActivity().unregisterReceiver(parentActivityMenuReceiver);
+            Log.i(TAG, "Unregistered the account contacts receiver");
+        }
+
+        @Override
+        public void onResume() {
+
+            // Register the options menu selected receiver
+            getActivity().registerReceiver(parentActivityMenuReceiver, intentFilterMenuAction);
+
+            // Hide/show the choose account button
+            if (curAccount == null) {
+                btnChooseAccount.setVisibility(View.VISIBLE);
+            } else {
+                btnChooseAccount.setVisibility(View.GONE);
+            }
+
+            Log.i(TAG, "onResume Registered the account contacts receiver");
+            super.onResume();
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+        }
+
+        @Override
+        public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+            try {
+                if (requestCode == CALL_PHONE_REQ && Helpers.Permissions.isGranted(Helpers.Permissions.PermissionType.CALL_PHONE)) {
+
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            Log.i(TAG, "onRequestPermissionsResult ");
+
+        }
+
+        protected void getAccountOpportunities(boolean forceRefresh) {
+
+            if (curAccount == null) {
+                return;
+            }
+
+            String query = Queries.Opportunities.getOpportunitiesByAccount(curAccount.accountid);
+
+            if (curAccount == null) {
+                Toast.makeText(context, "Please select an account", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            getPagerTitle();
+
+            if (objects != null && objects.size() > 0 && forceRefresh != true) {
+                populateList();
+                return;
+            }
+
+            refreshLayout.autoRefreshAnimationOnly();
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            Requests.Argument argument = new Requests.Argument("query", query);
+            args.add(argument);
+            Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
+            Crm crm = new Crm();
+            crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    try {
+                        String response = new String(responseBody);
+                        Log.i(TAG, "onSuccess " + response);
+                        CrmEntities.Opportunities opportunities = new CrmEntities.Opportunities(response);
+                        objects.clear();
+                        for (CrmEntities.Opportunities.Opportunity opportunity : opportunities.list) {
+                            BasicObject object = new BasicObject(opportunity.accountname, opportunity.dealStatus, opportunity);
+                            objects.add(object);
+                        }
+                        populateList();
+                        refreshLayout.finishRefresh();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
+
+                    refreshLayout.finishRefresh();
+                }
+            });
+        }
+
+        protected void populateList() {
+
+            for (int i = 0; i < (objects.size()); i++) {
+                adapter = new BasicObjectRecyclerAdapter(context, objects);
+            }
+
+            // Check if adapter is null and leave if so.  If user hasn't selected an account this will be the case
+            if (adapter == null) {
+                return;
+            }
+
+            if (!getActivity().isFinishing()) {
+                recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+                recyclerView.setAdapter(adapter);
+                adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
+                    @Override
+                    public void onItemClick(View view, int position) {
+                        CrmEntities.Opportunities.Opportunity selectedOpportunity =
+                                (CrmEntities.Opportunities.Opportunity) objects.get(position).object;
+                        Intent intent = new Intent(context, BasicEntityActivity.class);
+                        intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Opportunity Details");
+                        intent.putExtra(BasicEntityActivity.ENTITYID, selectedOpportunity.opportunityid);
+                        intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "opportunity");
+                        intent.putExtra(BasicEntityActivity.GSON_STRING, selectedOpportunity.toBasicEntity().toGson());
+                        startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
+                    }
+                });
+                refreshLayout.finishRefresh();
+            } else {
+                Log.w(TAG, "populateList: CAN'T POPULATE AS THE ACTIVITY IS FINISHING!!!");
+            }
+        }
+
+        void showOpportunityOptions(final CrmEntities.Opportunities.Opportunity clickedContact) {
+
+        }
+
+        public void insertContact(CrmEntities.Contacts.Contact contact) {
+            Intent intent = new Intent(Intent.ACTION_INSERT);
+            intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
+            intent.putExtra(ContactsContract.Intents.Insert.NAME, contact.fullname);
+            intent.putExtra(ContactsContract.Intents.Insert.EMAIL, contact.email);
+            intent.putExtra(ContactsContract.Intents.Insert.PHONE, contact.businessPhone);
+            intent.putExtra(ContactsContract.Intents.Insert.SECONDARY_PHONE, contact.address1Phone);
+            intent.putExtra(ContactsContract.Intents.Insert.COMPANY, contact.accountFormatted);
+            intent.putExtra(ContactsContract.Intents.Insert.NOTES, "Added from MileBuddy");
+            intent.putExtra(ContactsContract.Intents.Insert.JOB_TITLE, contact.jobtitle);
+            if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
+                startActivity(intent);
+            }
+        }
+
+        String getPagerTitle() {
+            pageTitle = "Opportunities";
+            mViewPager.getAdapter().notifyDataSetChanged();
+            return pageTitle;
+        }
+
+    }
+
+    public static class Frag_Tickets extends Fragment {
+        public static final String ARG_SECTION_NUMBER = "section_number";
+        public View root;
+        public RecyclerView recyclerView;
+        RefreshLayout refreshLayout;
+        BasicObjectRecyclerAdapter adapter;
+        ArrayList<BasicObject> objects = new ArrayList<>();
+        Button btnChooseAccount;
+        public static String pageTitle = "Tickets";
+        BroadcastReceiver parentActivityMenuReceiver;
+        CrmEntities.Accounts.Account lastAccount;
+        TextView txtNoTickets;
+
+        @Nullable
+        @Override
+        public View onCreateView(@NonNull final LayoutInflater inflater, @Nullable ViewGroup container,
+                                 @Nullable Bundle savedInstanceState) {
+            root = inflater.inflate(R.layout.frag_cases, container, false);
+            refreshLayout = root.findViewById(R.id.refreshLayout);
+            refreshLayout.setEnableLoadMore(false);
+            options = new MySettingsHelper(context);
+            RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
+            refreshLayout.setOnRefreshListener(new OnRefreshListener() {
+                @Override
+                public void onRefresh(RefreshLayout refreshlayout) {
+                    getAccountTickets(true);
+                }
+            });
+            refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
+                @Override
+                public void onLoadMore(RefreshLayout refreshlayout) {
+                    refreshlayout.finishLoadMore(500/*,false*/);
+                }
+            });
+
+            btnChooseAccount = root.findViewById(R.id.btnChooseAct);
+            btnChooseAccount.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intentChangeAccount = new Intent(context, FullscreenActivityChooseAccount.class);
+                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
+                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, curAccount);
+                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
+                    startActivityForResult(intentChangeAccount, FullscreenActivityChooseAccount.REQUESTCODE);
+                }
+            });
+
+            if (lastAccount != curAccount) {
+                getAccountTickets(true);
+                lastAccount = curAccount;
+            }
+
+            recyclerView = root.findViewById(R.id.casesRecyclerview);
+            super.onCreateView(inflater, container, savedInstanceState);
+
+            // Broadcast received regarding an options menu selection
+            parentActivityMenuReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Log.i(TAG, "onReceive Local receiver received broadcast!");
+                    // Validate intent shit
+                    if (intent != null && intent.getAction().equals(MENU_ACTION)) {
+
+                        if (intent.getIntExtra(EXPORT_PAGE_INDEX, -1) == SectionsPagerAdapter.CONTACTS_PAGE) {
+                            // Check if this is regarding an inventory export to Excel
+                            if (intent.getStringExtra(EXPORT_INVENTORY) != null) {
+                                // Ensure there is an account stipulated and inventory to export
+                                if (curAccount != null && objects != null &&
+                                        objects.size() > 0) {
+                                } else {
+                                    Toast.makeText(context, "No sales to export!", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        } // is sales line page
+
+                        // If the current account is null then clear the list.  This is to enable
+                        // on back pressed behavior that doesn't automatically finish the activity.
+                        if (curAccount == null) {
+                            objects.clear();
+                            populateList();
+                        }
+
+                        btnChooseAccount.setVisibility(curAccount == null ? View.VISIBLE : View.GONE);
+
+                        getAccountTickets(true);
+
+                        mViewPager.getAdapter().notifyDataSetChanged();
+                    }
+                }
+            };
+
+            getAccountTickets(false);
+
+            txtNoTickets = root.findViewById(R.id.txtNoTickets);
+
+            return root;
+        }
+
+        @Override
+        public void onStop() {
+            super.onStop();
+        }
+
+        @Override
+        public void onDestroyView() {
+            super.onDestroyView();
+
+            getActivity().unregisterReceiver(parentActivityMenuReceiver);
+            Log.i(TAG, "Unregistered the account contacts receiver");
+        }
+
+        @Override
+        public void onResume() {
+
+            // Register the options menu selected receiver
+            getActivity().registerReceiver(parentActivityMenuReceiver, intentFilterMenuAction);
+
+            // Hide/show the choose account button
+            if (curAccount == null) {
+                btnChooseAccount.setVisibility(View.VISIBLE);
+            } else {
+                btnChooseAccount.setVisibility(View.GONE);
+            }
+
+            Log.i(TAG, "onResume Registered the account contacts receiver");
+            super.onResume();
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+        }
+
+        @Override
+        public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+            try {
+                if (requestCode == CALL_PHONE_REQ && Helpers.Permissions.isGranted(Helpers.Permissions.PermissionType.CALL_PHONE)) {
+
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            Log.i(TAG, "onRequestPermissionsResult ");
+
+        }
+
+        protected void getAccountTickets(boolean forceRefresh) {
+
+            if (curAccount == null) {
+                return;
+            }
+
+            String query = Queries.Tickets.getAccountTickets(curAccount.accountid);
+
+            if (curAccount == null) {
+                Toast.makeText(context, "Please select an account", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            getPagerTitle();
+
+            if (objects != null && objects.size() > 0 && forceRefresh != true) {
+                populateList();
+                return;
+            }
+
+            refreshLayout.autoRefreshAnimationOnly();
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            Requests.Argument argument = new Requests.Argument("query", query);
+            args.add(argument);
+            Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
+            Crm crm = new Crm();
+            crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    try {
+                        String response = new String(responseBody);
+                        Log.i(TAG, "onSuccess " + response);
+                        CrmEntities.Tickets tickets = new CrmEntities.Tickets(response);
+                        objects.clear();
+                        for (CrmEntities.Tickets.Ticket ticket : tickets.list) {
+                            BasicObject object = new BasicObject(ticket.ticketnumber, ticket.title, ticket);
+                            object.middleText = ticket.description;
+                            object.topRightText = ticket.statusFormatted;
+                            object.bottomRightText = Helpers.DatesAndTimes.getPrettyDateAndTime(ticket.modifiedon);
+                            objects.add(object);
+                        }
+                        populateList();
+                        refreshLayout.finishRefresh();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
+
+                    refreshLayout.finishRefresh();
+                }
+            });
+        }
+
+        protected void populateList() {
+
+            for (int i = 0; i < (objects.size()); i++) {
+                adapter = new BasicObjectRecyclerAdapter(context, objects);
+            }
+
+            // Check if adapter is null and leave if so.  If user hasn't selected an account this will be the case
+            if (adapter == null) {
+                return;
+            }
+
+            if (!getActivity().isFinishing()) {
+                recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+                recyclerView.setAdapter(adapter);
+                adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
+                    @Override
+                    public void onItemClick(View view, int position) {
+                        CrmEntities.Tickets.Ticket selectedTicket =
+                                (CrmEntities.Tickets.Ticket) objects.get(position).object;
+                        Intent intent = new Intent(context, BasicEntityActivity.class);
+                        intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Ticket Details");
+                        intent.putExtra(BasicEntityActivity.ENTITYID, selectedTicket.ticketid);
+                        intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "incident");
+                        intent.putExtra(BasicEntityActivity.GSON_STRING, selectedTicket.toBasicEntity().toGson());
+                        startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
+                    }
+                });
+                refreshLayout.finishRefresh();
+            } else {
+                Log.w(TAG, "populateList: CAN'T POPULATE AS THE ACTIVITY IS FINISHING!!!");
+            }
+
+            txtNoTickets.setVisibility(objects.size() > 0 ? View.GONE : View.VISIBLE);
+
+        }
+
+        String getPagerTitle() {
+            pageTitle = "Tickets";
             mViewPager.getAdapter().notifyDataSetChanged();
             return pageTitle;
         }

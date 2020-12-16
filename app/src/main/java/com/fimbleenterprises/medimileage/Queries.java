@@ -250,6 +250,54 @@ public class Queries {
             return query.construct();
         }
 
+        public static String getAccountTickets(String accountid) {
+            QueryFactory query = new QueryFactory("incident");
+            query.addColumn("ticketnumber");
+            query.addColumn("title");
+            query.addColumn("createdon");
+            query.addColumn("customerid");
+            query.addColumn("ownerid");
+            query.addColumn("caseorigincode");
+            query.addColumn("statuscode");
+            query.addColumn("new_accountnumber");
+            query.addColumn("incidentid");
+            query.addColumn("subjectid");
+            query.addColumn("statecode");
+            query.addColumn("stageid");
+            query.addColumn("processid");
+            query.addColumn("prioritycode");
+            query.addColumn("modifiedon");
+            query.addColumn("modifiedby");
+            query.addColumn("description");
+            query.addColumn("createdby");
+            query.addColumn("casetypecode");
+            query.addColumn("incidentstagecode");
+
+            LinkEntity linkEntity = new LinkEntity("account", "accountid",
+                    "customerid", "a_4b5945b8a4a64613afc1ae1d5e6828c7");
+            linkEntity.addColumn(new EntityColumn("territoryid"));
+            linkEntity.addColumn(new EntityColumn("msus_salesrep"));
+            Filter filter = new Filter(AND);
+            linkEntity.addFilter(filter);
+            query.addLinkEntity(linkEntity);
+
+            LinkEntity linkEntity_contact = new LinkEntity("contact", "contactid", "new_mw_contact", "a_b49161e62067e71180d6005056a36b9b");
+            linkEntity_contact.addColumn(new EntityColumn("fullname"));
+            linkEntity_contact.addColumn(new EntityColumn("emailaddress1"));
+            linkEntity_contact.addColumn(new EntityColumn("telephone1"));
+            query.addLinkEntity(linkEntity_contact);
+
+            SortClause sortClause = new SortClause("createdon", true, SortClause.ClausePosition.ONE);
+            query.addSortClause(sortClause);
+            Filter.FilterCondition condition2 = new Filter.FilterCondition("customerid",
+                    Filter.Operator.EQUALS, accountid);
+
+            Filter filter1 = new Filter(AND,condition2);
+            query.setFilter(filter1);
+
+            return query.construct();
+        }
+
         public static String getNonResolvedTickets(String territoryid) {
             QueryFactory query = new QueryFactory("incident");
             query.addColumn("ticketnumber");

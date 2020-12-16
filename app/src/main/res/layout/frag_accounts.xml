@@ -6,13 +6,12 @@
     android:layout_height="match_parent"
     tools:context=".Activity_TerritoryData">
 
-    <ProgressBar
-        android:id="@+id/pbLoading"
-        style="?android:attr/progressBarStyle"
+    <TextView
+        android:id="@+id/txtNoAccounts"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:visibility="gone" />
+        android:text="No cases found" />
 
     <Button
         android:id="@+id/btnChooseAct"
@@ -23,6 +22,14 @@
         android:padding="10dp"
         android:text="Choose account..."
         android:visibility="invisible" />
+
+    <ProgressBar
+        android:id="@+id/pbLoading"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone" />
 
     <com.scwang.smart.refresh.layout.SmartRefreshLayout
         android:id="@+id/refreshLayout"
@@ -35,7 +42,7 @@
         </com.scwang.smart.refresh.header.ClassicsHeader>
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/opportunitiesRecyclerview"
+            android:id="@+id/casesRecyclerview"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 

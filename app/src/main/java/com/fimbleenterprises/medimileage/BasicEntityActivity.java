@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import cz.msebera.android.httpclient.Header;
 
 import android.app.Dialog;
@@ -59,7 +58,7 @@ public class BasicEntityActivity extends AppCompatActivity {
     public static final String LOAD_NOTES = "LOAD_NOTES";
     private static final String TAG = "BasicEntityActivity";
     private static final int FILE_REQUEST_CODE = 88;
-
+    
     Context context;
     String entityid;
     String entityLogicalName;
@@ -115,7 +114,6 @@ public class BasicEntityActivity extends AppCompatActivity {
 
         // Get the gson string from the intent which should absolutely be there
         String gson = getIntent().getStringExtra(GSON_STRING);
-
         entityid = getIntent().getStringExtra(ENTITYID);
         entityLogicalName = getIntent().getStringExtra(ENTITY_LOGICAL_NAME);
         setTitle(getIntent().getStringExtra(ACTIVITY_TITLE));
@@ -296,6 +294,29 @@ public class BasicEntityActivity extends AppCompatActivity {
         NonScrollRecyclerView recyclerView = findViewById(R.id.rvBasicObjects);
         BasicEntityActivityObjectRecyclerAdapter adapter =
                 new BasicEntityActivityObjectRecyclerAdapter(this, this.basicEntity.list);
+        adapter.setClickListener(new BasicEntityActivityObjectRecyclerAdapter.ItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                BasicEntity.BasicEntityField field = basicEntity.list.get(position);
+                if (field.isAccountField) {
+                    Intent intent = new Intent(context, Activity_AccountData.class);
+                    intent.setAction(Activity_AccountData.GO_TO_ACCOUNT);
+                    intent.putExtra(Activity_AccountData.GO_TO_ACCOUNT_OBJECT, field.account);
+                    startActivity(intent);
+                }
+            }
+        });
+        adapter.setButtonClickListener(new BasicEntityActivityObjectRecyclerAdapter.ItemButtonClickListener() {
+            @Override
+            public void onItemButtonClick(View view, int position) {
+                if (basicEntity.list.get(position).account != null) {
+                    Intent intent = new Intent(context, Activity_AccountData.class);
+                    intent.setAction(Activity_AccountData.GO_TO_ACCOUNT);
+                    intent.putExtra(Activity_AccountData.GO_TO_ACCOUNT_OBJECT, basicEntity.list.get(position).account);
+                    startActivity(intent);
+                }
+            }
+        });
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setNestedScrollingEnabled(false); // Disables scrolling
         recyclerView.setAdapter(adapter);

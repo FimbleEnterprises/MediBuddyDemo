@@ -1494,7 +1494,13 @@ public class CrmEntities {
             public BasicEntity toBasicEntity() {
                 BasicEntity basicEntity = new BasicEntity(this);
                 basicEntity.list.add(new BasicEntity.BasicEntityField("Topic:", this.name));
-                basicEntity.list.add(new BasicEntity.BasicEntityField("Account:", this.accountname));
+                BasicEntity.BasicEntityField accountField = new BasicEntity.BasicEntityField("Account:", this.accountname);
+                accountField.isAccountField = true;
+                Accounts.Account account = new Accounts.Account();
+                account.accountid = this.accountid;
+                account.accountName = this.accountname;
+                accountField.account = account;
+                basicEntity.list.add(accountField);
                 basicEntity.list.add(new BasicEntity.BasicEntityField("Background:", this.currentSituation));
                 basicEntity.list.add(new BasicEntity.BasicEntityField("Status:", this.status));
                 basicEntity.list.add(new BasicEntity.BasicEntityField("Deal status:", this.dealStatus));
@@ -2585,7 +2591,10 @@ public class CrmEntities {
                 BasicEntity entity = new BasicEntity(this);
                 entity.list.add(new BasicEntity.BasicEntityField("Ticket number:", this.ticketnumber));
                 entity.list.add(new BasicEntity.BasicEntityField("Title:", this.title));
-                entity.list.add(new BasicEntity.BasicEntityField("Customer:", this.customerFormatted));
+                BasicEntity.BasicEntityField accountField = new BasicEntity.BasicEntityField("Customer:", this.customerFormatted);
+                accountField.isAccountField = true;
+                accountField.account = new Accounts.Account(this.customerid, this.customerFormatted);
+                entity.list.add(accountField);
                 entity.list.add(new BasicEntity.BasicEntityField("Status:", this.statusFormatted));
                 entity.list.add(new BasicEntity.BasicEntityField("Description:", this.description));
                 entity.list.add(new BasicEntity.BasicEntityField("Subject:", this.subjectFormatted));
@@ -2711,6 +2720,13 @@ public class CrmEntities {
 
             public String getAgreementTypeFormatted() {
                 return (agreementTypeFormatted == null) ? "" : agreementTypeFormatted;
+            }
+
+            public Account() { }
+
+            public Account(String accountid, String accountName) {
+                this.accountName = accountName;
+                this.accountid = accountid;
             }
 
             public Account(JSONObject json) {
@@ -2878,7 +2894,6 @@ public class CrmEntities {
                 }
             };
         }
-
 
         protected Accounts(Parcel in) {
             if (in.readByte() == 0x01) {

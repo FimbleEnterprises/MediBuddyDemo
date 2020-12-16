@@ -195,12 +195,12 @@ public class Activity_TerritoryData extends AppCompatActivity {
                         if (entityLogicalName.equals("opportunity")) {
                             recordurl = Crm.getRecordUrl(entityid, Integer.toString(Crm.ETC_OPPORTUNITY));
                             subject = "Opportunity";
-                            emailSuffix = "\n\nCRM Link: " + recordurl;
+                            emailSuffix = "\n\nCRM Link:\n" + recordurl;
                             Log.i(TAG, "onActivityResult:: " + recordurl);
 
                         } else if (entityLogicalName.equals("incident")) {
                             recordurl = Crm.getRecordUrl(entityid, Integer.toString(Crm.ETC_INCIDENT));
-                            emailSuffix = "\n\nCRM Link: " + recordurl;
+                            emailSuffix = "\n\nCRM Link:\n" + recordurl;
                             subject = "Ticket";
                             Log.i(TAG, "onActivityResult:: " + recordurl);
                         }
@@ -558,6 +558,14 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 return fragment;
             }
 
+            if (position == 3) {
+                Fragment fragment = new Frag_Accounts();
+                Bundle args = new Bundle();
+                args.putInt(Frag_Accounts.ARG_SECTION_NUMBER, position + 1);
+                fragment.setArguments(args);
+                return fragment;
+            }
+
             /*if (position == 3) {
                 Fragment fragment = new Frag_Goals_MTD();
                 Bundle args = new Bundle();
@@ -578,7 +586,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return 3;
+            return 4;
         }
         
         public String getCaseCriteriaTitleAddendum() {
@@ -621,6 +629,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     return "Opportunities (" + territory.territoryName + ")";
                 case 2:
                     return "Cases (" + territory.territoryName + ")" + getCaseCriteriaTitleAddendum();
+                case 3:
+                    return "Accounts (" + territory.territoryName + ")";
             }
             return null;
         }
@@ -1224,304 +1234,128 @@ public class Activity_TerritoryData extends AppCompatActivity {
         }
     }
 
-/*
-public static class Frag_Goals_MTD extends Fragment {
-        private View rootView;
+    public static class Frag_Accounts extends Fragment {
         public static final String ARG_SECTION_NUMBER = "section_number";
-        // ProgressBar pbLoading;
-        *//*Cartesian bar;
-        AnyChartView anyChartView;*//*
-        RefreshLayout mtdRefreshLayout;
-        HorizontalBarChart chartMtd;
-        TextView txtChartTitle;
-        CrmEntities.Goals goals;
-        BroadcastReceiver goalsReceiverMtd;
+        public View rootView;
+        public RecyclerView listview;
+        RefreshLayout refreshLayout;
+        BroadcastReceiver accountsReceiver;
+        CrmEntities.Accounts accounts;
+        ArrayList<BasicObject> objects = new ArrayList<>();
+        BasicObjectRecyclerAdapter adapter;
+        TextView txtNoAccounts;
 
         @Nullable
         @Override
-        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                                 @Nullable Bundle savedInstanceState) {
-            rootView = inflater.inflate(R.layout.frag_sales_mtd, container, false);
+        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            rootView = inflater.inflate(R.layout.frag_accounts, container, false);
+            listview = rootView.findViewById(R.id.casesRecyclerview);
+            refreshLayout = rootView.findViewById(R.id.refreshLayout);
+            refreshLayout.setEnableLoadMore(false);
+            refreshLayout.setOnRefreshListener(new OnRefreshListener() {
+                @Override
+                public void onRefresh(@NonNull RefreshLayout refreshLayout) {
+                    getAccounts();
+                }
+            });
+            super.onCreateView(inflater, container, savedInstanceState);
 
-            txtChartTitle = rootView.findViewById(R.id.txtChartTitle);
-            chartMtd = rootView.findViewById(R.id.chartMtd);
-
-            goalsReceiverMtd = new BroadcastReceiver() {
+            accountsReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    Log.i(TAG, "onReceive Received month and year broadcast! (goals MTD frag)");
-                    monthNum = intent.getIntExtra(MONTH, DateTime.now().getMonthOfYear());
-                    yearNum = intent.getIntExtra(YEAR, DateTime.now().getYear());
-                    getMtdGoalsByRegion();
+                    Log.i(TAG, "onReceive Received month and year broadcast! (cases frag)");
+                    mViewPager.getAdapter().notifyDataSetChanged();
+                    getAccounts();
                 }
             };
 
-            mtdRefreshLayout = (RefreshLayout) rootView.findViewById(R.id.mtdRefreshLayout);
-            mtdRefreshLayout.setRefreshHeader(new MaterialHeader(getContext()));
-            mtdRefreshLayout.setRefreshFooter(new ClassicsFooter(getContext()));
-            mtdRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
-                @Override
-                public void onRefresh(RefreshLayout refreshlayout) {
-                    getMtdGoalsByRegion();
-                }
-            });
-            mtdRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
-                @Override
-                public void onLoadMore(RefreshLayout refreshlayout) {
-                    refreshlayout.finishLoadMore(1*//*,false*//*);
-                }
-            });
-
-            if (monthNum == 0) {
-                monthNum = DateTime.now().getMonthOfYear();
-            }
-
-            if (yearNum == 0) {
-                yearNum = DateTime.now().getYear();
-            }
-
-            if (goals == null || goals.list.size() == 0) {
-                getMtdGoalsByRegion();
-            }else {
-                populateChartMtd();
-            }
-            return rootView;
-        }
-
-        @Override
-        public void onResume() {
-            getActivity().registerReceiver(goalsReceiverMtd, intentFilterMonthYear);
-            Log.i(TAG, "onResume Registered the goals receiver");
-            super.onResume();
-        }
-
-        @Override
-        public void onPause() {
-            super.onPause();
-        }
-
-        @Override
-        public void onDestroyView() {
-            super.onDestroyView();
-            getActivity().unregisterReceiver(goalsReceiverMtd);
-            Log.i(TAG, "onPause Unregistered the goals receiver");
-        }
-
-        void getMtdGoalsByRegion() {
-            // pbLoading.setVisibility(View.VISIBLE);
-            // anyChartView.setVisibility(View.GONE);
-            mtdRefreshLayout.autoRefreshAnimationOnly();
-
-            String query = Queries.Goals.getMtdGoalsByRegion(getRegionid(), monthNum, yearNum);
-            ArrayList<Requests.Argument> args = new ArrayList<>();
-            Requests.Argument argument = new Requests.Argument("query", query);
-            args.add(argument);
-            Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
-            Crm crm = new Crm();
-            crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                    String response = new String(responseBody);
-                    goals = new CrmEntities.Goals(response);
-                    Log.i(TAG, "onSuccess " + response);
-                    populateChartMtd();
-                    mtdRefreshLayout.finishRefresh();
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                    Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
-                    // pbLoading.setVisibility(View.GONE);
-                    mtdRefreshLayout.finishRefresh();
-                }
-            });
-        }
-
-        void populateChartMtd() {
-
-            String title = "MTD Goals " + getRegionName() + " (month: " + monthNum + ", year: " + yearNum + ")";
-            
-            txtChartTitle.setText(title);
-
-            // Start building the containers to hold the goal data
-            ArrayList<IBarDataSet> sets = new ArrayList<>();
-            ArrayList<BarEntry> entries = new ArrayList<>();
-
-            // Create and populate a container to hold the bar entries, labels and colors
-            final ArrayList<String> xAxisLabel = new ArrayList<>();
-            for(int i = 0; i < goals.size(); i++) {
-                CrmEntities.Goal goal = goals.list.get(i);
-                BarEntry entry = new BarEntry(i, goal.pct);
-                entries.add(entry);
-                xAxisLabel.add(goal.ownername + " (" + goal.territoryname + ")");
-            }
-
-            // Build a BarDataSet container and fill it with our data containers
-            BarDataSet ds = new BarDataSet(entries, title);
-            ds.setColors(ColorTemplate.MATERIAL_COLORS);
-            sets.add(ds);
-            BarData d = new BarData(sets);
-
-            // Apply the chart data to the chart
-            chartMtd.setData(d);
-
-            // Hide the legend
-            chartMtd.getLegend().setEnabled(false);
-
-            // Aesthetics
-            chartMtd.setDrawValueAboveBar(true);
-            chartMtd.animateXY(2000, 2000);
-
-            // Show each label for each entry
-            ValueFormatter xAxisFormatter = new ValueFormatter() {
-                @Override
-                public String getBarLabel(BarEntry barEntry) {
-                    return super.getBarLabel(barEntry);
-                }
-            };
-
-            // Format the entries and labels
-            XAxis xAxis = chartMtd.getXAxis();
-            xAxis.setPosition(XAxis.XAxisPosition.TOP_INSIDE); // Where to put the labels
-            xAxis.setDrawGridLines(false);
-            xAxis.setGranularity(1f); // intervals
-            xAxis.setLabelCount(xAxisLabel.size());
-            xAxis.setValueFormatter(xAxisFormatter);
-            xAxis.setGranularity(1f); // minimum axis-step (interval) is 1
-            ValueFormatter formatter = new ValueFormatter() {
-                @Override
-                public String getFormattedValue(float value) {
-                    return xAxisLabel.get((int) value);
-                }
-            };
-            xAxis.setValueFormatter(formatter);
-
-            // Refresh the chart
-            chartMtd.invalidate();
-
-            // Make an onclick listener for chart values
-            chartMtd.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
-                @Override
-                public void onValueSelected(Entry e, Highlight h) {
-                    Log.i(TAG, "onValueSelected " + e.getData());
-
-                    // Get the goal represented by the selected entry
-                    CrmEntities.Goal selectedGoal = goals.list.get((int) e.getX());
-
-                    // Show the goal summary for the selected entry
-                    chartPopupDialog = new Dialog(context);
-                    final Context c = context;
-                    chartPopupDialog.setContentView(R.layout.generic_app_dialog);
-                    chartPopupDialog.setTitle(selectedGoal.ownername);
-                    chartPopupDialog.setCancelable(true);
-                    final TextView txtMainText = chartPopupDialog.findViewById(R.id.txtMainText);
-                    Button btnOkay = chartPopupDialog.findViewById(R.id.btnOkay);
-                    btnOkay.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            chartPopupDialog.dismiss();
-                        }
-                    });
-                    txtMainText.setText(
-                            selectedGoal.ownername + "\n" +
-                            "Month: " + selectedGoal.period + ", Year: " + selectedGoal.year + "\n" +
-                            "\n" +
-                            "Target: " + selectedGoal.getPrettyTarget() + "\n" +
-                            "Actual: " + selectedGoal.getPrettyActual() + "\n" +
-                            "Percent: " + selectedGoal.getPrettyPct() + "\n"
-                    );
-                    chartPopupDialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
-                        @Override
-                        public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-                            if (keyCode == KeyEvent.KEYCODE_BACK) {
-                                dialog.dismiss();
-                                return true;
-                            } else {
-                                return false;
-                            }
-                        }
-                    });
-                    chartPopupDialog.show();
-
-                }
-
-                @Override
-                public void onNothingSelected() {
-
-                }
-            }); // end onChartClickListener
-
-        }
-
-    }
-
-    public static class Frag_Goals_YTD extends Fragment {
-        private View rootView;
-        public static final String ARG_SECTION_NUMBER = "section_number";
-        // ProgressBar pbLoading;
-        *//*Cartesian bar;
-        AnyChartView anyChartView;*//*
-        RefreshLayout ytdRefreshLayout;
-        TextView txtChartTitle;
-        HorizontalBarChart chartYtd;
-        CrmEntities.Goals goals;
-        BroadcastReceiver goalsReceiverYtd;
-
-        @Nullable
-        @Override
-        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                                 @Nullable Bundle savedInstanceState) {
-            rootView = inflater.inflate(R.layout.frag_sales_ytd, container, false);
-            txtChartTitle = rootView.findViewById(R.id.txtChartTitle);
-            chartYtd = (HorizontalBarChart) rootView.findViewById(R.id.chartYtd);
-            goalsReceiverYtd = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    Log.i(TAG, "onReceive Received month and year broadcast! (goals YTD frag)");
-                    yearNum = intent.getIntExtra(YEAR, DateTime.now().getYear());
-                    getYtdGoalsByRegion();
-                }
-            };
-
-            txtChartTitle = rootView.findViewById(R.id.txtChartTitle);
-
-            ytdRefreshLayout = (RefreshLayout) rootView.findViewById(R.id.ytdRefreshLayout);
-            ytdRefreshLayout.setRefreshHeader(new MaterialHeader(getContext()));
-            ytdRefreshLayout.setRefreshFooter(new ClassicsFooter(getContext()));
-            ytdRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
-                @Override
-                public void onRefresh(RefreshLayout refreshlayout) {
-                    getYtdGoalsByRegion();
-                }
-            });
-            ytdRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
-                @Override
-                public void onLoadMore(RefreshLayout refreshlayout) {
-                    refreshlayout.finishLoadMore(1*//*,false*//*);
-                }
-            });
-
-            if (monthNum == 0) {
-                monthNum = DateTime.now().getMonthOfYear();
-            }
-
-            if (yearNum == 0) {
-                yearNum = DateTime.now().getYear();
-            }
-
-            if (goals == null || goals.list.size() == 0) {
-                getYtdGoalsByRegion();
+            if (objects == null || objects.size() == 0) {
+                getAccounts();
             } else {
-                populateChartYtd();
+                populateList();
             }
+
+            txtNoAccounts = rootView.findViewById(R.id.txtNoAccounts);
+
             return rootView;
+        }
+
+        void getAccounts() {
+            refreshLayout.autoRefreshAnimationOnly();
+
+            String query = Queries.Accounts.getAccountsByTerritory(territory.territoryid);
+
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            args.add(new Requests.Argument("query", query));
+            Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
+
+            Crm crm = new Crm();
+            crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    String response = new String(responseBody);
+                    Log.i(TAG, "onSuccess " + response);
+                    accounts = new CrmEntities.Accounts(response);
+                    populateList();
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    refreshLayout.finishRefresh();
+                }
+            });
+        }
+
+        void populateList() {
+
+            objects.clear();
+
+            if (accounts != null) {
+
+                int lastStatusCode = -1;
+
+                for (CrmEntities.Accounts.Account account : accounts.list) {
+
+                    // Add the ticket as a BasicObject
+                    BasicObject object = new BasicObject(account.accountnumber, account.customerTypeFormatted, account);
+                    object.middleText = account.accountName;
+                    objects.add(object);
+                }
+            }
+
+            adapter = new BasicObjectRecyclerAdapter(context, objects);
+            listview.setLayoutManager(new LinearLayoutManager(context));
+            listview.setAdapter(adapter);
+            adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
+                @Override
+                public void onItemClick(View view, int position) {
+                    BasicObject object = objects.get(position);
+                    CrmEntities.Accounts.Account account = (CrmEntities.Accounts.Account) object.object;
+
+                    Intent intent = new Intent(context, Activity_AccountData.class);
+                    intent.setAction(Activity_AccountData.GO_TO_ACCOUNT);
+                    intent.putExtra(Activity_AccountData.GO_TO_ACCOUNT_OBJECT, account);
+                    startActivity(intent);
+                }
+            });
+
+            txtNoAccounts.setVisibility(objects.size() == 0 ? View.VISIBLE : View.GONE);
+
+            try {
+                refreshLayout.finishRefresh();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
         }
 
         @Override
         public void onResume() {
-            getActivity().registerReceiver(goalsReceiverYtd, intentFilterMonthYear);
-            Log.i(TAG, "onResume Registered the goals receiver");
             super.onResume();
+            IntentFilter filter = new IntentFilter(MENU_SELECTION);
+            filter.addAction(MENU_SELECTION);
+            getActivity().registerReceiver(accountsReceiver, filter);
+            Log.i(TAG, "onResume Registered the cases receiver");
         }
 
         @Override
@@ -1532,157 +1366,11 @@ public static class Frag_Goals_MTD extends Fragment {
         @Override
         public void onDestroyView() {
             super.onDestroyView();
-            getActivity().unregisterReceiver(goalsReceiverYtd);
-            Log.i(TAG, "onPause Unregistered the goals receiver");
+            getActivity().unregisterReceiver(accountsReceiver);
+            Log.i(TAG, "onPause Unregistered the cases receiver");
         }
-
-        void getYtdGoalsByRegion() {
-            // pbLoading.setVisibility(View.VISIBLE);
-            // anyChartView.setVisibility(View.GONE);
-            ytdRefreshLayout.autoRefreshAnimationOnly();
-
-            String query = Queries.Goals.getYtdGoalsByRegion(getRegionid(),  yearNum);
-            ArrayList<Requests.Argument> args = new ArrayList<>();
-            Requests.Argument argument = new Requests.Argument("query", query);
-            args.add(argument);
-            Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
-            Crm crm = new Crm();
-            crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                    String response = new String(responseBody);
-                    goals = new CrmEntities.Goals(response);
-                    Log.i(TAG, "onSuccess " + response);
-                    populateChartYtd();
-                    ytdRefreshLayout.finishRefresh();
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                    Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
-                    // pbLoading.setVisibility(View.GONE);
-                    ytdRefreshLayout.finishRefresh();
-                }
-            });
-        }
-
-        void populateChartYtd() {
-
-            String title = "YTD Goals " + getRegionName() + " (year: " + yearNum + ")";
-
-            txtChartTitle.setText(title);
-
-            // Start building the containers to hold the goal data
-            ArrayList<IBarDataSet> sets = new ArrayList<>();
-            ArrayList<BarEntry> entries = new ArrayList<>();
-
-            // Create a container to hold the bar entry labels and populate them
-            final ArrayList<String> xAxisLabel = new ArrayList<>();
-            for(int i = 0; i < goals.size(); i++) {
-                CrmEntities.Goal goal = goals.list.get(i);
-                BarEntry entry = new BarEntry(i, goal.pct);
-                entries.add(entry);
-                xAxisLabel.add(goal.ownername + " (" + goal.territoryname + ")");
-            }
-
-            // Create and populate a container to hold the bar entries, labels and colors
-            BarDataSet ds = new BarDataSet(entries, title);
-            ds.setColors(ColorTemplate.MATERIAL_COLORS);
-            sets.add(ds);
-            BarData d = new BarData(sets);
-
-            // Apply the chart data to the chart
-            chartYtd.setData(d);
-
-            // Hide the legend
-            chartYtd.getLegend().setEnabled(false);
-
-            // Aesthetics
-            chartYtd.setDrawValueAboveBar(true);
-            chartYtd.animateXY(2000, 2000);
-
-            // Show each label for each entry
-            ValueFormatter xAxisFormatter = new ValueFormatter() {
-                @Override
-                public String getBarLabel(BarEntry barEntry) {
-                    return super.getBarLabel(barEntry);
-                }
-            };
-
-            // Format the entries and labels
-            XAxis xAxis = chartYtd.getXAxis();
-            xAxis.setPosition(XAxis.XAxisPosition.TOP_INSIDE); // Where to put the labels
-            xAxis.setDrawGridLines(false);
-            xAxis.setGranularity(1f); // intervals
-            xAxis.setLabelCount(xAxisLabel.size());
-            xAxis.setValueFormatter(xAxisFormatter);
-            xAxis.setGranularity(1f); // minimum axis-step (interval) is 1
-            ValueFormatter formatter = new ValueFormatter() {
-                @Override
-                public String getFormattedValue(float value) {
-                    return xAxisLabel.get((int) value);
-                }
-            };
-            xAxis.setValueFormatter(formatter);
-
-            // Refresh the chart
-            chartYtd.invalidate();
-
-            // Make an onclick listener for chart values
-            chartYtd.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
-                @Override
-                public void onValueSelected(Entry e, Highlight h) {
-                    Log.i(TAG, "onValueSelected " + e.getData());
-
-                    // Get the goal represented by the selected entry
-                    CrmEntities.Goal selectedGoal = goals.list.get((int) e.getX());
-
-                    // Show the goal summary for the selected entry
-                    chartPopupDialog = new Dialog(context);
-                    final Context c = context;
-                    chartPopupDialog.setContentView(R.layout.generic_app_dialog);
-                    chartPopupDialog.setTitle(selectedGoal.ownername);
-                    chartPopupDialog.setCancelable(true);
-                    final TextView txtMainText = chartPopupDialog.findViewById(R.id.txtMainText);
-                    Button btnOkay = chartPopupDialog.findViewById(R.id.btnOkay);
-                    btnOkay.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            chartPopupDialog.dismiss();
-                        }
-                    });
-                    txtMainText.setText(
-                            selectedGoal.ownername + "\n" +
-                            "Month: " + selectedGoal.period + ", Year: " + selectedGoal.year + "\n" +
-                            "\n" +
-                            "Target: " + selectedGoal.getPrettyTarget() + "\n" +
-                            "Actual: " + selectedGoal.getPrettyActual() + "\n" +
-                            "Percent: " + selectedGoal.getPrettyPct() + "\n"
-                    );
-                    chartPopupDialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
-                        @Override
-                        public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-                            if (keyCode == KeyEvent.KEYCODE_BACK) {
-                                dialog.dismiss();
-                                return true;
-                            } else {
-                                return false;
-                            }
-                        }
-                    });
-                    chartPopupDialog.show();
-
-                }
-
-                @Override
-                public void onNothingSelected() {
-
-                }
-            }); // end onChartClickListener
-
-        }
-
     }
-    */
+
+
     // endregion
 }

@@ -4,7 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/layout"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:background="@drawable/basic_field_row_background"
+    android:clickable="false"
+    android:focusable="false">
 
     <TextView
         android:id="@+id/txtLabel"
@@ -21,9 +24,25 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/txtLabel"
-        android:enabled="false"
+        android:editable="false"
+        android:enabled="true"
         android:fadeScrollbars="true"
         android:text="Some value"
-        android:textColor="@drawable/my_edit_eext_style" />
+        android:textColor="@drawable/my_edit_eext_style"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/btnValue"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txtLabel"
+        android:enabled="true"
+        android:fadeScrollbars="true"
+        android:text="Some value"
+        android:textSize="18sp"
+        android:textAlignment="viewStart"
+        android:textColor="@color/colorPrimaryAlt"
+        android:visibility="visible" />
 
 </RelativeLayout>

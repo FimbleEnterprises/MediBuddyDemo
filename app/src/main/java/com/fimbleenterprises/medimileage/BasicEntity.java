@@ -37,6 +37,8 @@ public class BasicEntity {
         boolean showLabel = false;
         boolean isBold = false;
         boolean isEditable = false;
+        boolean isAccountField = false;
+        CrmEntities.Accounts.Account account;
 
         public BasicEntityField(String value) {
             this.value = value;
