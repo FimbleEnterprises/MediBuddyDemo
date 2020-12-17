@@ -69,11 +69,8 @@ public class SearchResultsActivity extends AppCompatActivity {
                 setTitle("Search (" + sectionsPagerAdapter.getPageTitle(pageIndex) + ")");
             }
         };
-        mPagerStrip = (PagerTitleStrip) findViewById(R.id.pager_title_strip_search_results);
+        mPagerStrip = findViewById(R.id.pager_title_strip_search_results);
         mViewPager.setAdapter(sectionsPagerAdapter);
-        mViewPager.setOffscreenPageLimit(0);
-        mViewPager.setCurrentItem(0);
-        mViewPager.setPageCount(1);
         mViewPager.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
@@ -81,14 +78,30 @@ public class SearchResultsActivity extends AppCompatActivity {
             }
         });
 
-        handleIntent(getIntent());
-
         fragMgr = getSupportFragmentManager();
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
+
+    }
+
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        handleIntent(getIntent());
+        new DelayedWorker(1500, new DelayedWorker.DelayedJob() {
+            @Override
+            public void doWork() {
+                handleIntent(getIntent());
+            }
+
+            @Override
+            public void onComplete(Object object) {
+                handleIntent(getIntent());
+            }
+        });
 
     }
 
@@ -111,10 +124,22 @@ public class SearchResultsActivity extends AppCompatActivity {
             Intent newIntent = new Intent(SEARCH_INITIATED);
             newIntent.putExtra(SEARCH_QUERY, query);
             sendBroadcast(newIntent);
+
+            if (Helpers.Numbers.isNumeric(query)) {
+                mViewPager.setCurrentItem(SectionsPagerAdapter.CUSTOMER_INVENTORY, true);
+            } else {
+                mViewPager.setCurrentItem(SectionsPagerAdapter.ACCOUNTS, true);
+            }
+
         }
     }
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
+
+        public static final int CUSTOMER_INVENTORY = 0;
+        public static final int ACCOUNTS = 1;
+        public static final int TICKETS = 2;
+        public static final int OPPORTUNITIES = 3;
 
         public SectionsPagerAdapter(androidx.fragment.app.FragmentManager fm) {
             super(fm);
@@ -126,7 +151,7 @@ public class SearchResultsActivity extends AppCompatActivity {
 
             Log.d("getItem", "Creating Fragment in pager at index: " + position);
 
-            if (position == 0) {
+            if (position == CUSTOMER_INVENTORY) {
                 Fragment fragment = new Frag_SearchCustomerInventory();
                 Bundle args = new Bundle();
                 args.putInt(Frag_SearchCustomerInventory.ARG_SECTION_NUMBER, position + 1);
@@ -134,7 +159,7 @@ public class SearchResultsActivity extends AppCompatActivity {
                 return fragment;
             }
 
-            if (position == 1) {
+            if (position == ACCOUNTS) {
                 Fragment fragment = new Frag_SearchAccounts();
                 Bundle args = new Bundle();
                 args.putInt(Frag_SearchCustomerInventory.ARG_SECTION_NUMBER, position + 1);
@@ -142,7 +167,7 @@ public class SearchResultsActivity extends AppCompatActivity {
                 return fragment;
             }
 
-            if (position == 2) {
+            if (position == TICKETS) {
                 Fragment fragment = new Frag_SearchTickets();
                 Bundle args = new Bundle();
                 args.putInt(Frag_SearchCustomerInventory.ARG_SECTION_NUMBER, position + 1);
@@ -150,7 +175,7 @@ public class SearchResultsActivity extends AppCompatActivity {
                 return fragment;
             }
 
-            if (position == 3) {
+            if (position == OPPORTUNITIES) {
                 Fragment fragment = new Frag_SearchOpportunities();
                 Bundle args = new Bundle();
                 args.putInt(Frag_SearchCustomerInventory.ARG_SECTION_NUMBER, position + 1);
@@ -171,13 +196,13 @@ public class SearchResultsActivity extends AppCompatActivity {
             curPageIndex = position;
 
             switch (position) {
-                case 0:
+                case CUSTOMER_INVENTORY:
                     return "Customer Inventory";
-                case 1:
+                case ACCOUNTS:
                     return "Accounts";
-                case 2:
+                case TICKETS:
                     return "Tickets";
-                case 3:
+                case OPPORTUNITIES:
                     return "Opportunities";
             }
             return null;
