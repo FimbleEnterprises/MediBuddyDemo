@@ -93,7 +93,7 @@
                     android:orderInCategory="96"
                     android:title="@string/action_case_status_on_hold"
                     app:showAsAction="never" />
-                    app:showAsAction="never" />
+                app:showAsAction="never" />
                 <item
                     android:id="@+id/action_change_case_status_to_be_inspected"
                     android:checkable="true"
@@ -101,7 +101,7 @@
                     android:orderInCategory="96"
                     android:title="@string/action_case_status_to_be_inspected"
                     app:showAsAction="never" />
-                    app:showAsAction="never" />
+                app:showAsAction="never" />
                 <item
                     android:id="@+id/action_change_case_status_waiting_for_product"
                     android:checkable="true"
@@ -109,7 +109,7 @@
                     android:orderInCategory="96"
                     android:title="@string/action_case_status_waiting_for_product"
                     app:showAsAction="never" />
-                    app:showAsAction="never" />
+                app:showAsAction="never" />
                 <item
                     android:id="@+id/action_change_case_status_waiting_on_customer"
                     android:checkable="true"
@@ -117,7 +117,7 @@
                     android:orderInCategory="96"
                     android:title="@string/action_case_status_waiting_on_customer"
                     app:showAsAction="never" />
-                    app:showAsAction="never" />
+                app:showAsAction="never" />
                 <item
                     android:id="@+id/action_change_case_status_to_be_billed"
                     android:checkable="true"
@@ -131,6 +131,67 @@
                     android:checked="false"
                     android:orderInCategory="96"
                     android:title="@string/action_case_status_problem_solved"
+                    app:showAsAction="never" />
+            </group>
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/action_account_type"
+        android:orderInCategory="98"
+        android:title="@string/change_account_type">
+        <menu>
+            <group
+                android:id="@+id/account_type"
+                android:menuCategory="container">
+                <item
+                    android:id="@+id/action_account_type_any"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:orderInCategory="96"
+                    android:title="@string/action_account_type_any"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_account_type_customer"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:orderInCategory="96"
+                    android:title="@string/action_account_type_customer"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_account_type_potential_customer"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:orderInCategory="96"
+                    android:title="@string/action_account_type_potential_customer"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_account_type_distributor"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:orderInCategory="96"
+                    android:title="@string/action_account_type_distributor"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_account_type_former_customer"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:orderInCategory="96"
+                    android:title="@string/action_account_type_former_customer"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_account_type_eval_in_progress"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:orderInCategory="96"
+                    android:title="@string/action_account_type_eval_in_progress"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_account_type_other"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:orderInCategory="96"
+                    android:title="@string/action_account_type_other"
                     app:showAsAction="never" />
             </group>
         </menu>

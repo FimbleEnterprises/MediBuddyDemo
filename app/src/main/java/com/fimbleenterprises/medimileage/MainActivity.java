@@ -3,13 +3,16 @@ package com.fimbleenterprises.medimileage;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.SearchManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.InputType;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.util.Log;
@@ -37,6 +40,7 @@ import java.util.Objects;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.navigation.NavController;
@@ -66,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     ArrayList<MileageUser> users = new ArrayList<>();
     NavigationView navigationView;
     MyFirebaseMessagingService fcmService;
+    SearchView searchView;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -320,6 +325,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 return true;
             }
 
+            if (searchView != null && !searchView.isIconified()) {
+                searchView.setIconified(true);
+                return true;
+            }
+
             int backstackcount = Objects.requireNonNull(fragmentManager.getPrimaryNavigationFragment()).getChildFragmentManager().getBackStackEntryCount();
 
             try {
@@ -362,6 +372,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main, menu);
+
+        // Associate searchable configuration with the SearchView
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        searchView = (SearchView) menu.findItem(R.id.search).getActionView();
+        searchView.setSearchableInfo( searchManager.getSearchableInfo(new
+                ComponentName(this, SearchResultsActivity.class)));
+
+        if (searchView != null) {
+            searchView.setInputType(InputType.TYPE_CLASS_TEXT);
+        }
 
         return super.onCreateOptionsMenu(menu);
     }

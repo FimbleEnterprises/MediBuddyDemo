@@ -40,7 +40,8 @@
         <activity
             android:name=".BasicEntityActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/AppThemeBasicActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -56,7 +57,7 @@
             android:name=".SearchResultsActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_search_results"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppThemeSearch">
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>

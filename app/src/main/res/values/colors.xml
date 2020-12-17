@@ -4,6 +4,9 @@
     <color name="colorPrimaryDark">#FF7B00</color>
     <color name="colorPrimaryAlt">#0026FF</color>
     <color name="colorPrimaryDarkAlt">#0026FF</color>
+    <color name="colorMaroon">#FF0000</color>
+    <color name="colorBlue">#0000FF</color>
+    <color name="colorGreen">#267F00</color>
 
     <!--    <color name="colorPrimary">#6686A0</color>
     <color name="colorPrimaryDark">#364959</color>-->

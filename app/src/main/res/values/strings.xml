@@ -244,7 +244,7 @@
     <string name="status_menu_title">Product status</string>
     <string name="action_lost">Lost</string>
     <string name="search_title">Search</string>
-    <string name="search_hint">Serial number</string>
+    <string name="search_hint">s/n, act, act num, etc.</string>
     <string name="title_activity_search_results">Search results</string>
     <string name="menu_account_info_explicit">My Fucking Accounts</string>
     <string name="menu_salesquotas">Sales Quotas</string>
@@ -269,5 +269,13 @@
     <string name="send_email">Send email</string>
     <string name="call_contact">Call</string>
     <string name="title_activity_receive_contact">Add Contact</string>
+    <string name="action_account_type_any">Any</string>
+    <string name="action_account_type_customer">Customer</string>
+    <string name="action_account_type_potential_customer">Potential customer</string>
+    <string name="action_account_type_distributor">Distributor</string>
+    <string name="action_account_type_former_customer">Former customer</string>
+    <string name="action_account_type_eval_in_progress">Eval in progress</string>
+    <string name="action_account_type_other">Other</string>
+    <string name="change_account_type">Account type</string>
 
 </resources>

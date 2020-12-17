@@ -2616,6 +2616,15 @@ public class CrmEntities {
         private static final String TAG = "Accounts";
         public ArrayList<Account> list = new ArrayList<>();
 
+        public static final int POTENTIAL_CUSTOMER = 1;
+        public static final int CUSTOMER = 1;
+        public static final int FORMER_CUSTOMER = 745820002;
+        public static final int DISTRIBUTOR = 1;
+        public static final int EVALUATION_IN_PROGRESS = 745820000;
+        public static final int OTHER = 12;
+        public static final int COMPETITOR = 4;
+        public static final int ANY = -1;
+
         public String toGson() {
             Gson gson = new Gson();
             return gson.toJson(this);
@@ -2700,6 +2709,43 @@ public class CrmEntities {
                 e.printStackTrace();
             }
         }
+
+        protected Accounts(Parcel in) {
+            if (in.readByte() == 0x01) {
+                list = new ArrayList<Account>();
+                in.readList(list, Account.class.getClassLoader());
+            } else {
+                list = null;
+            }
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            if (list == null) {
+                dest.writeByte((byte) (0x00));
+            } else {
+                dest.writeByte((byte) (0x01));
+                dest.writeList(list);
+            }
+        }
+
+        @SuppressWarnings("unused")
+        public static final Parcelable.Creator<Accounts> CREATOR = new Parcelable.Creator<Accounts>() {
+            @Override
+            public Accounts createFromParcel(Parcel in) {
+                return new Accounts(in);
+            }
+
+            @Override
+            public Accounts[] newArray(int size) {
+                return new Accounts[size];
+            }
+        };
 
         public static class Account implements Parcelable {
 
@@ -2894,43 +2940,6 @@ public class CrmEntities {
                 }
             };
         }
-
-        protected Accounts(Parcel in) {
-            if (in.readByte() == 0x01) {
-                list = new ArrayList<Account>();
-                in.readList(list, Account.class.getClassLoader());
-            } else {
-                list = null;
-            }
-        }
-
-        @Override
-        public int describeContents() {
-            return 0;
-        }
-
-        @Override
-        public void writeToParcel(Parcel dest, int flags) {
-            if (list == null) {
-                dest.writeByte((byte) (0x00));
-            } else {
-                dest.writeByte((byte) (0x01));
-                dest.writeList(list);
-            }
-        }
-
-        @SuppressWarnings("unused")
-        public static final Parcelable.Creator<Accounts> CREATOR = new Parcelable.Creator<Accounts>() {
-            @Override
-            public Accounts createFromParcel(Parcel in) {
-                return new Accounts(in);
-            }
-
-            @Override
-            public Accounts[] newArray(int size) {
-                return new Accounts[size];
-            }
-        };
     }
 
     public static class CreateManyResponses {

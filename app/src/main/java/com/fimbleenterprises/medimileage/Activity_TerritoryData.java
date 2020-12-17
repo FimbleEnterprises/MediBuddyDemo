@@ -43,6 +43,7 @@ import static com.fimbleenterprises.medimileage.BasicEntityActivity.ENTITYID;
 import static com.fimbleenterprises.medimileage.BasicEntityActivity.ENTITY_LOGICAL_NAME;
 import static com.fimbleenterprises.medimileage.BasicEntityActivity.REQUEST_BASIC;
 import static com.fimbleenterprises.medimileage.BasicEntityActivity.SEND_EMAIL;
+import static com.fimbleenterprises.medimileage.CrmEntities.Accounts.POTENTIAL_CUSTOMER;
 import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts;
 import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts.OrderProduct;
 import static com.fimbleenterprises.medimileage.CrmEntities.Tickets.NOT_RESOLVED;
@@ -93,6 +94,9 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
     // vars for case status
     public static int case_status = NOT_RESOLVED;
+
+    // vars for customer type
+    public static final int customer_type = CrmEntities.Accounts.ANY;
 
     // flag for region
     public static boolean isEastRegion = true;
@@ -283,7 +287,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 ComponentName(this, SearchResultsActivity.class)));
 
         if (searchView != null) {
-            searchView.setInputType(InputType.TYPE_CLASS_NUMBER);
+            searchView.setInputType(InputType.TYPE_CLASS_TEXT);
         }
 
         super.onCreateOptionsMenu(menu);
@@ -297,7 +301,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         menu.findItem(R.id.action_west_region).setChecked(!isEastRegion);
 
         switch (mViewPager.currentPosition) {
-            case 0 : // Sales lines
+            case SectionsPagerAdapter.SALES_PAGE: // Sales lines
                 menu.findItem(R.id.action_west_region).setVisible(false);
                 menu.findItem(R.id.action_east_region).setVisible(false);
                 menu.findItem(R.id.action_this_year).setVisible(false);
@@ -309,8 +313,10 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 menu.findItem(R.id.action_choose_territory).setVisible(true);
 
                 menu.findItem(R.id.action_case_status).setVisible(false);
+
+                menu.findItem(R.id.action_account_type).setVisible(false);
                 break;
-            case 1 : // Opportunities
+            case SectionsPagerAdapter.OPPORTUNITIES_PAGE: // Opportunities
                 menu.findItem(R.id.action_west_region).setVisible(false);
                 menu.findItem(R.id.action_east_region).setVisible(false);
                 menu.findItem(R.id.action_this_year).setVisible(false);
@@ -322,8 +328,10 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 menu.findItem(R.id.action_choose_territory).setVisible(true);
 
                 menu.findItem(R.id.action_case_status).setVisible(false);
+
+                menu.findItem(R.id.action_account_type).setVisible(false);
                 break;
-            case 2 : // Cases
+            case SectionsPagerAdapter.CASES_PAGE: // Cases
                 menu.findItem(R.id.action_west_region).setVisible(false);
                 menu.findItem(R.id.action_east_region).setVisible(false);
                 menu.findItem(R.id.action_this_year).setVisible(false);
@@ -334,7 +342,24 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 menu.findItem(R.id.action_choose_month).setVisible(false);
                 menu.findItem(R.id.action_choose_territory).setVisible(true);
 
+                menu.findItem(R.id.action_account_type).setVisible(false);
+
                 menu.findItem(R.id.action_case_status).setVisible(true);
+                break;
+            case SectionsPagerAdapter.ACCOUNTS_PAGE: // Accounts
+                menu.findItem(R.id.action_west_region).setVisible(false);
+                menu.findItem(R.id.action_east_region).setVisible(false);
+                menu.findItem(R.id.action_this_year).setVisible(false);
+                menu.findItem(R.id.action_last_year).setVisible(false);
+
+                menu.findItem(R.id.action_this_month).setVisible(false);
+                menu.findItem(R.id.action_last_month).setVisible(false);
+                menu.findItem(R.id.action_choose_month).setVisible(false);
+                menu.findItem(R.id.action_choose_territory).setVisible(true);
+
+                menu.findItem(R.id.action_case_status).setVisible(false);
+
+                menu.findItem(R.id.action_account_type).setVisible(false);
 
                 // Set case status values
                 switch (case_status) {
@@ -401,7 +426,74 @@ public class Activity_TerritoryData extends AppCompatActivity {
                         menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
                         menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(true);
                         break;
-                }
+                }/*
+
+                // Set account type values
+                switch (customer_type) {
+                    case POTENTIAL_CUSTOMER :
+                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(true);
+                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
+                        break;
+                    case CrmEntities.Tickets.IN_PROGRESS :
+                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(true);
+                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
+                        break;
+                    case CrmEntities.Tickets.ON_HOLD :
+                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(true);
+                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
+                        break;
+                    case CrmEntities.Tickets.TO_BE_INSPECTED :
+                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(true);
+                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
+                        break;
+                    case CrmEntities.Tickets.WAITING_FOR_PRODUCT :
+                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(true);
+                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
+                        break;
+                    case CrmEntities.Tickets.WAITING_ON_CUSTOMER :
+                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(true);
+                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
+                        break;
+                    case CrmEntities.Tickets.TO_BE_BILLED :
+                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(true);
+                        break;
+                }*/
 
                 break;
         }
@@ -427,64 +519,64 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 break;
             case R.id.action_east_region :
                 isEastRegion = true;
-                sendBroadcastUsingExistingValues();
+                sendMenuSelectionBroadcast();
                 break;
             case R.id.action_west_region :
                 isEastRegion = false;
-                sendBroadcastUsingExistingValues();
+                sendMenuSelectionBroadcast();
                 break;
             case R.id.action_this_month :
                 monthNum = now.getMonthOfYear();
                 yearNum = now.getYear();
-                sendBroadcastUsingExistingValues();
+                sendMenuSelectionBroadcast();
                 break;
             case R.id.action_last_month :
                 monthNum = aMonthAgo.getMonthOfYear();
                 yearNum = aMonthAgo.getYear();
-                sendBroadcastUsingExistingValues();
+                sendMenuSelectionBroadcast();
                 break;
             case R.id.action_choose_month :
                 showMonthYearPicker();
                 break;
             case R.id.action_this_year :
                 yearNum = now.getYear();
-                sendBroadcastUsingExistingValues();
+                sendMenuSelectionBroadcast();
                 break;
             case R.id.action_last_year :
                 yearNum = aMonthAgo.getYear();
-                sendBroadcastUsingExistingValues();
+                sendMenuSelectionBroadcast();
                 break;
             case R.id.action_change_case_status_not_resolved:
                 case_status = NOT_RESOLVED;
-                sendBroadcastUsingExistingValues();
+                sendMenuSelectionBroadcast();
                 break;
             case R.id.action_change_case_status_inprogress:
                 case_status = CrmEntities.Tickets.IN_PROGRESS;
-                sendBroadcastUsingExistingValues();
+                sendMenuSelectionBroadcast();
                 break;
             case R.id.action_change_case_status_on_hold:
                 case_status = CrmEntities.Tickets.ON_HOLD;
-                sendBroadcastUsingExistingValues();
+                sendMenuSelectionBroadcast();
                 break;
             case R.id.action_change_case_status_to_be_inspected:
                 case_status = CrmEntities.Tickets.TO_BE_INSPECTED;
-                sendBroadcastUsingExistingValues();
+                sendMenuSelectionBroadcast();
                 break;
             case R.id.action_change_case_status_waiting_for_product:
                 case_status = CrmEntities.Tickets.WAITING_FOR_PRODUCT;
-                sendBroadcastUsingExistingValues();
+                sendMenuSelectionBroadcast();
                 break;
             case R.id.action_change_case_status_waiting_on_customer:
                 case_status = CrmEntities.Tickets.WAITING_ON_CUSTOMER;
-                sendBroadcastUsingExistingValues();
+                sendMenuSelectionBroadcast();
                 break;
             case R.id.action_change_case_status_to_be_billed:
                 case_status = CrmEntities.Tickets.TO_BE_BILLED;
-                sendBroadcastUsingExistingValues();
+                sendMenuSelectionBroadcast();
                 break;
             case R.id.action_change_case_status_problem_solved:
                 case_status = CrmEntities.Tickets.PROBLEM_SOLVED;
-                sendBroadcastUsingExistingValues();
+                sendMenuSelectionBroadcast();
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -496,7 +588,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         }
     }
 
-    public static void sendBroadcastUsingExistingValues() {
+    public static void sendMenuSelectionBroadcast() {
         Intent menuActionIntent = new Intent(MENU_SELECTION);
         menuActionIntent.putExtra(MONTH, monthNum);
         menuActionIntent.putExtra(YEAR, yearNum);
@@ -523,6 +615,11 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
+        public static final int SALES_PAGE = 0;
+        public static final int OPPORTUNITIES_PAGE = 1;
+        public static final int CASES_PAGE = 2;
+        public static final int ACCOUNTS_PAGE = 3;
+
         public SectionsPagerAdapter(androidx.fragment.app.FragmentManager fm) {
             super(fm);
             sectionsPagerAdapter = this;
@@ -534,7 +631,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
             Log.d("getItem", "Creating Fragment in pager at index: " + position);
             Log.w(TAG, "getItem: PAGER POSITION: " + position);
 
-            if (position == 0) {
+            if (position == SALES_PAGE) {
                 Fragment fragment = new Frag_SalesLines();
                 Bundle args = new Bundle();
                 args.putInt(Frag_SalesLines.ARG_SECTION_NUMBER, position + 1);
@@ -542,7 +639,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 return fragment;
             }
 
-            if (position == 1) {
+            if (position == OPPORTUNITIES_PAGE) {
                 Fragment fragment = new Frag_Opportunities();
                 Bundle args = new Bundle();
                 args.putInt(Frag_Opportunities.ARG_SECTION_NUMBER, position + 1);
@@ -550,7 +647,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 return fragment;
             }
 
-            if (position == 2) {
+            if (position == CASES_PAGE) {
                 Fragment fragment = new Frag_Cases();
                 Bundle args = new Bundle();
                 args.putInt(Frag_Opportunities.ARG_SECTION_NUMBER, position + 1);
@@ -558,7 +655,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 return fragment;
             }
 
-            if (position == 3) {
+            if (position == ACCOUNTS_PAGE) {
                 Fragment fragment = new Frag_Accounts();
                 Bundle args = new Bundle();
                 args.putInt(Frag_Accounts.ARG_SECTION_NUMBER, position + 1);
@@ -566,21 +663,6 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 return fragment;
             }
 
-            /*if (position == 3) {
-                Fragment fragment = new Frag_Goals_MTD();
-                Bundle args = new Bundle();
-                args.putInt(Frag_Goals_MTD.ARG_SECTION_NUMBER, position + 1);
-                fragment.setArguments(args);
-                return fragment;
-            }
-
-            if (position == 4) {
-                Fragment fragment = new Frag_Goals_YTD();
-                Bundle args = new Bundle();
-                args.putInt(Frag_Goals_YTD.ARG_SECTION_NUMBER, position + 1);
-                fragment.setArguments(args);
-                return fragment;
-            }*/
             return null;
         }
 
@@ -623,13 +705,13 @@ public class Activity_TerritoryData extends AppCompatActivity {
             }
 
             switch (position) {
-                case 0:
+                case SALES_PAGE:
                     return "Sales Lines (" + territory.territoryName + ")";
-                case 1:
+                case OPPORTUNITIES_PAGE:
                     return "Opportunities (" + territory.territoryName + ")";
-                case 2:
+                case CASES_PAGE:
                     return "Cases (" + territory.territoryName + ")" + getCaseCriteriaTitleAddendum();
-                case 3:
+                case ACCOUNTS_PAGE:
                     return "Accounts (" + territory.territoryName + ")";
             }
             return null;

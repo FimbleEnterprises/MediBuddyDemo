@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import static com.fimbleenterprises.medimileage.Queries.Operators.getDateOperator;
 import static com.fimbleenterprises.medimileage.QueryFactory.*;
 import static com.fimbleenterprises.medimileage.QueryFactory.Filter.FilterType.AND;
+import static com.fimbleenterprises.medimileage.QueryFactory.Filter.FilterType.OR;
 
 public class Queries {
 
@@ -656,6 +657,38 @@ public class Queries {
             // Filter creation to make use of our conditions
             Filter filter = new Filter(AND);
             filter.addCondition(new Filter.FilterCondition("territoryid","eq", territoryid));
+            query.setFilter(filter);
+
+            // Link entity creation to join to the account entity and apply our territory condition
+            LinkEntity le1 = new LinkEntity("businessunit", "businessunitid", "owningbusinessunit", "a_6ad8133d2f1e4c43a3da460bacb3d6a5");
+            le1.addColumn(new EntityColumn("new_managername"));
+            le1.addColumn(new EntityColumn("name"));
+
+            SortClause sortClause = new SortClause("name", false, SortClause.ClausePosition.ONE);
+            query.addSortClause(sortClause);
+
+            // Spit out the encoded query
+            String rslt = query.construct();
+            return rslt;
+        }
+
+        public static String getAccountsByTerritory(String territoryid, int relationshipType) {
+
+            // Instantiate a new constructor for the case entity and add the columns we want to see
+            QueryFactory query = new QueryFactory("account");
+            query.addColumn("name");
+            query.addColumn("customertypecode");
+            query.addColumn("accountid");
+            query.addColumn("territoryid");
+            query.addColumn("msus_salesrep");
+            query.addColumn("msus_salesregionid");
+            query.addColumn("col_agreementtype");
+            query.addColumn("accountnumber");
+
+            // Filter creation to make use of our conditions
+            Filter filter = new Filter(AND);
+            filter.addCondition(new Filter.FilterCondition("territoryid","eq", territoryid));
+            filter.addCondition(new Filter.FilterCondition("customertypecode","eq", Integer.toString(relationshipType)));
             query.setFilter(filter);
 
             // Link entity creation to join to the account entity and apply our territory condition
@@ -2089,6 +2122,146 @@ public class Queries {
             // Spit out the encoded query
             String rslt = query.construct();
             return rslt;
+        }
+
+        public static String searchAccounts(String searchQuery) {
+            // Instantiate a new constructor for the case entity and add the columns we want to see
+            QueryFactory query = new QueryFactory("account");
+            query.addColumn("name");
+            query.addColumn("customertypecode");
+            query.addColumn("accountid");
+            query.addColumn("territoryid");
+            query.addColumn("msus_salesrep");
+            query.addColumn("msus_salesregionid");
+            query.addColumn("col_agreementtype");
+            query.addColumn("accountnumber");
+
+            // Filter creation to make use of our conditions
+            Filter filter = new Filter(OR);
+            filter.addCondition(new Filter.FilterCondition("name", Filter.Operator.CONTAINS, searchQuery));
+            filter.addCondition(new Filter.FilterCondition("accountnumber", Filter.Operator.CONTAINS, searchQuery));
+            query.setFilter(filter);
+
+            // Link entity creation to join to the account entity and apply our territory condition
+            LinkEntity le1 = new LinkEntity("businessunit", "businessunitid", "owningbusinessunit", "a_6ad8133d2f1e4c43a3da460bacb3d6a5");
+            le1.addColumn(new EntityColumn("new_managername"));
+            le1.addColumn(new EntityColumn("name"));
+
+            SortClause sortClause = new SortClause("name", false, SortClause.ClausePosition.ONE);
+            query.addSortClause(sortClause);
+
+            // Spit out the encoded query
+            String rslt = query.construct();
+            return rslt;
+        }
+
+        public static String searchTickets(String searchQuery) {
+            QueryFactory query = new QueryFactory("incident");
+            query.addColumn("ticketnumber");
+            query.addColumn("title");
+            query.addColumn("createdon");
+            query.addColumn("customerid");
+            query.addColumn("ownerid");
+            query.addColumn("caseorigincode");
+            query.addColumn("statuscode");
+            query.addColumn("new_accountnumber");
+            query.addColumn("incidentid");
+            query.addColumn("subjectid");
+            query.addColumn("statecode");
+            query.addColumn("stageid");
+            query.addColumn("processid");
+            query.addColumn("prioritycode");
+            query.addColumn("modifiedon");
+            query.addColumn("modifiedby");
+            query.addColumn("description");
+            query.addColumn("createdby");
+            query.addColumn("casetypecode");
+            query.addColumn("incidentstagecode");
+
+            LinkEntity linkEntity = new LinkEntity("account", "accountid",
+                    "customerid", "a_4b5945b8a4a64613afc1ae1d5e6828c7");
+            linkEntity.addColumn(new EntityColumn("territoryid"));
+            linkEntity.addColumn(new EntityColumn("msus_salesrep"));
+            query.addLinkEntity(linkEntity);
+
+            // Link entity creation to join the contact info
+            LinkEntity linkEntity_contact = new LinkEntity("contact", "contactid", "new_mw_contact", "a_b49161e62067e71180d6005056a36b9b");
+            linkEntity_contact.addColumn(new EntityColumn("fullname"));
+            linkEntity_contact.addColumn(new EntityColumn("emailaddress1"));
+            linkEntity_contact.addColumn(new EntityColumn("telephone1"));
+            query.addLinkEntity(linkEntity_contact);
+
+            SortClause sortClause = new SortClause("createdon", true, SortClause.ClausePosition.ONE);
+            query.addSortClause(sortClause);
+
+            Filter.FilterCondition condition1 = new Filter.FilterCondition("title",
+                    Filter.Operator.CONTAINS, searchQuery);
+            Filter.FilterCondition condition2 = new Filter.FilterCondition("description",
+                    Filter.Operator.CONTAINS, searchQuery);
+            Filter.FilterCondition condition3 = new Filter.FilterCondition("ticketnumber",
+                    Filter.Operator.CONTAINS, searchQuery);
+
+            Filter filter1 = new Filter(OR);
+            filter1.addCondition(condition1);
+            filter1.addCondition(condition2);
+            filter1.addCondition(condition3);
+            query.setFilter(filter1);
+
+            return query.construct();
+
+        }
+
+        public static String searchOpportunities(String searchQuery) {
+
+            // Query columns
+            QueryFactory factory = new QueryFactory("opportunity");
+            factory.addColumn("name");
+            factory.addColumn("estimatedvalue");
+            factory.addColumn("estimatedclosedate");
+            factory.addColumn("col_dealtype");
+            factory.addColumn("ownerid");
+            factory.addColumn("parentaccountid");
+            factory.addColumn("stepname");
+            factory.addColumn("createdon");
+            factory.addColumn("createdby");
+            factory.addColumn("modifiedon");
+            factory.addColumn("modifiedby");
+            factory.addColumn("msus_probability");
+            factory.addColumn("opportunityid");
+            factory.addColumn("statuscode");
+            factory.addColumn("statecode");
+            factory.addColumn("currentsituation");
+            factory.addColumn("stepname");
+
+            factory.addColumn("col_estmrevenuedevices");
+            factory.addColumn("col_estmrevenueprobes");
+            factory.addColumn("estimatedvalue");
+            factory.addColumn("new_territoryrevenue");
+
+            // Link entities
+            LinkEntity linkEntityAccount = new LinkEntity("account", "accountid", "parentaccountid", "ab");
+            linkEntityAccount.addColumn(new EntityColumn("territoryid"));
+
+            // Filter conditions
+            Filter.FilterCondition condition1 = new Filter
+                    .FilterCondition("name", Filter.Operator.CONTAINS, searchQuery);
+
+            ArrayList<Filter.FilterCondition> conditions = new ArrayList<>();
+            conditions.add(condition1);
+
+            // Set filter
+            Filter filter = new Filter(OR, conditions);
+            factory.setFilter(filter);
+
+            // Sort clause
+            SortClause sortClause = new SortClause("createdon",
+                    true, SortClause.ClausePosition.ONE);
+            factory.addSortClause(sortClause);
+
+            // Build query
+            String query = factory.construct();
+
+            return query;
         }
     }
 

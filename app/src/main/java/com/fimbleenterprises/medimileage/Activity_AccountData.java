@@ -304,7 +304,7 @@ public class Activity_AccountData extends AppCompatActivity {
     public boolean onPreparePanel(int featureId, @Nullable View view, @NonNull Menu menu) {
 
         switch (mViewPager.currentPosition) {
-            case 0 : // Account inventory
+            case SectionsPagerAdapter.INVENTORY_PAGE : // Account inventory
                 // Main items
                 menu.findItem(R.id.action_producttype).setVisible(true);
                 menu.findItem(R.id.action_productstatus).setVisible(true);
@@ -321,7 +321,7 @@ public class Activity_AccountData extends AppCompatActivity {
                 // Excel
                 menu.findItem(R.id.action_export_to_excel).setVisible(true);
                 break;
-            case 1 : // Account sales lines
+            case SectionsPagerAdapter.SALES_LINE_PAGE : // Account sales lines
                 // Main items
                 menu.findItem(R.id.action_producttype).setVisible(false);
                 menu.findItem(R.id.action_productstatus).setVisible(false);
@@ -338,7 +338,7 @@ public class Activity_AccountData extends AppCompatActivity {
                 // Excel
                 menu.findItem(R.id.action_export_to_excel).setVisible(true);
                 break;
-            case 2 : // Contact lines
+            case SectionsPagerAdapter.CONTACTS_PAGE : // Contact lines
                 // Main items
                 menu.findItem(R.id.action_producttype).setVisible(false);
                 menu.findItem(R.id.action_productstatus).setVisible(false);
@@ -354,8 +354,39 @@ public class Activity_AccountData extends AppCompatActivity {
                 menu.findItem(R.id.action_any).setVisible(false);
                 // Excel
                 menu.findItem(R.id.action_export_to_excel).setVisible(false);
-            case 3 : // Opportunity lines
-            case 4 : // Ticket lines
+            case SectionsPagerAdapter.OPPORTUNITIES_PAGE: // Opportunity lines
+                // Main items
+                menu.findItem(R.id.action_producttype).setVisible(false);
+                menu.findItem(R.id.action_productstatus).setVisible(false);
+                // Sub items
+                menu.findItem(R.id.action_probes).setVisible(false);
+                menu.findItem(R.id.action_flowmeters).setVisible(false);
+                menu.findItem(R.id.action_cables).setVisible(false);
+                menu.findItem(R.id.action_licensing).setVisible(false);
+                menu.findItem(R.id.action_instock).setVisible(false);
+                menu.findItem(R.id.action_returned).setVisible(false);
+                menu.findItem(R.id.action_expired).setVisible(false);
+                menu.findItem(R.id.action_lost).setVisible(false);
+                menu.findItem(R.id.action_any).setVisible(false);
+                // Excel
+                menu.findItem(R.id.action_export_to_excel).setVisible(false);
+                break;
+            case SectionsPagerAdapter.TICKETS_PAGE: // Ticket lines
+                // Main items
+                menu.findItem(R.id.action_producttype).setVisible(false);
+                menu.findItem(R.id.action_productstatus).setVisible(false);
+                // Sub items
+                menu.findItem(R.id.action_probes).setVisible(false);
+                menu.findItem(R.id.action_flowmeters).setVisible(false);
+                menu.findItem(R.id.action_cables).setVisible(false);
+                menu.findItem(R.id.action_licensing).setVisible(false);
+                menu.findItem(R.id.action_instock).setVisible(false);
+                menu.findItem(R.id.action_returned).setVisible(false);
+                menu.findItem(R.id.action_expired).setVisible(false);
+                menu.findItem(R.id.action_lost).setVisible(false);
+                menu.findItem(R.id.action_any).setVisible(false);
+                // Excel
+                menu.findItem(R.id.action_export_to_excel).setVisible(false);
                 break;
         }
 
@@ -462,9 +493,9 @@ public class Activity_AccountData extends AppCompatActivity {
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-        public static final int INVENTORY_PAGE = 0;
+        public static final int INVENTORY_PAGE = 2;
         public static final int SALES_LINE_PAGE = 1;
-        public static final int CONTACTS_PAGE = 2;
+        public static final int CONTACTS_PAGE = 0;
         public static final int OPPORTUNITIES_PAGE = 3;
         public static final int TICKETS_PAGE = 4;
 
@@ -534,15 +565,15 @@ public class Activity_AccountData extends AppCompatActivity {
 
             try {
                 switch (position) {
-                    case 0:
+                    case INVENTORY_PAGE:
                         return Frag_AccountInventory.pageTitle;
-                    case 1:
+                    case SALES_LINE_PAGE:
                         return Frag_SalesLines.pageTitle;
-                    case 2:
+                    case CONTACTS_PAGE:
                         return Frag_Contacts.pageTitle;
-                    case 3:
+                    case OPPORTUNITIES_PAGE:
                         return Frag_Opportunities.pageTitle;
-                    case 4:
+                    case TICKETS_PAGE:
                         return Frag_Tickets.pageTitle;
                 }
             } catch (Exception e) {
