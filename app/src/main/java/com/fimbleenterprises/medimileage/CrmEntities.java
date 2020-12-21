@@ -23,6 +23,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 
@@ -1493,28 +1496,28 @@ public class CrmEntities {
 
             public BasicEntity toBasicEntity() {
                 BasicEntity basicEntity = new BasicEntity(this);
-                basicEntity.list.add(new BasicEntity.BasicEntityField("Topic:", this.name));
-                BasicEntity.BasicEntityField accountField = new BasicEntity.BasicEntityField("Account:", this.accountname);
+                basicEntity.list.add(new BasicEntity.EntityBasicField("Topic:", this.name));
+                BasicEntity.EntityBasicField accountField = new BasicEntity.EntityBasicField("Account:", this.accountname);
                 accountField.isAccountField = true;
                 Accounts.Account account = new Accounts.Account();
                 account.accountid = this.accountid;
                 account.accountName = this.accountname;
                 accountField.account = account;
                 basicEntity.list.add(accountField);
-                basicEntity.list.add(new BasicEntity.BasicEntityField("Background:", this.currentSituation));
-                basicEntity.list.add(new BasicEntity.BasicEntityField("Status:", this.status));
-                basicEntity.list.add(new BasicEntity.BasicEntityField("Deal status:", this.dealStatus));
-                basicEntity.list.add(new BasicEntity.BasicEntityField("Deal type:", this.dealTypePretty));
-                basicEntity.list.add(new BasicEntity.BasicEntityField("Close probability:", this.probabilityPretty));
-                basicEntity.list.add(new BasicEntity.BasicEntityField("Device revenue:", this.estDeviceRev));
-                basicEntity.list.add(new BasicEntity.BasicEntityField("Probe revenue:", this.estProbeRev));
-                basicEntity.list.add(new BasicEntity.BasicEntityField("Total revenue:", this.estTotalRev));
-                basicEntity.list.add(new BasicEntity.BasicEntityField("Territory revenue:", this.estTerritoryRev));
-                basicEntity.list.add(new BasicEntity.BasicEntityField("Step:", this.stepName));
-                basicEntity.list.add(new BasicEntity.BasicEntityField("Created on:", Helpers.DatesAndTimes.getPrettyDateAndTime(this.getCreatedOn())));
-                basicEntity.list.add(new BasicEntity.BasicEntityField("Created by:", this.createdByFormatted));
-                basicEntity.list.add(new BasicEntity.BasicEntityField("Modified on:", this.modifiedOnFormatted));
-                basicEntity.list.add(new BasicEntity.BasicEntityField("Modified by:", this.modifiedByFormatted));
+                basicEntity.list.add(new BasicEntity.EntityBasicField("Background:", this.currentSituation));
+                basicEntity.list.add(new BasicEntity.EntityBasicField("Status:", this.status));
+                basicEntity.list.add(new BasicEntity.EntityBasicField("Deal status:", this.dealStatus));
+                basicEntity.list.add(new BasicEntity.EntityBasicField("Deal type:", this.dealTypePretty));
+                basicEntity.list.add(new BasicEntity.EntityBasicField("Close probability:", this.probabilityPretty));
+                basicEntity.list.add(new BasicEntity.EntityBasicField("Device revenue:", this.estDeviceRev));
+                basicEntity.list.add(new BasicEntity.EntityBasicField("Probe revenue:", this.estProbeRev));
+                basicEntity.list.add(new BasicEntity.EntityBasicField("Total revenue:", this.estTotalRev));
+                basicEntity.list.add(new BasicEntity.EntityBasicField("Territory revenue:", this.estTerritoryRev));
+                basicEntity.list.add(new BasicEntity.EntityBasicField("Step:", this.stepName));
+                basicEntity.list.add(new BasicEntity.EntityBasicField("Created on:", Helpers.DatesAndTimes.getPrettyDateAndTime(this.getCreatedOn())));
+                basicEntity.list.add(new BasicEntity.EntityBasicField("Created by:", this.createdByFormatted));
+                basicEntity.list.add(new BasicEntity.EntityBasicField("Modified on:", this.modifiedOnFormatted));
+                basicEntity.list.add(new BasicEntity.EntityBasicField("Modified by:", this.modifiedByFormatted));
 
                 return basicEntity;
             }
@@ -2186,6 +2189,7 @@ public class CrmEntities {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+
         }
 
         public static class Contact {
@@ -2194,7 +2198,8 @@ public class CrmEntities {
             public String fullname;
             public String accountid;
             public String accountFormatted;
-            public String businessPhone;
+            public String mobile;
+            public String telephone1;
             public String address1Phone;
             public String jobtitle;
             public String contactid;
@@ -2206,6 +2211,13 @@ public class CrmEntities {
                 try {
                     if (!json.isNull("etag")) {
                         this.etag = (json.getString("etag"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("telephone1")) {
+                        this.telephone1 = (json.getString("telephone1"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -2225,6 +2237,13 @@ public class CrmEntities {
                     e.printStackTrace();
                 }
                 try {
+                    if (!json.isNull("emailaddress1")) {
+                        this.email = (json.getString("emailaddress1"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
                     if (!json.isNull("address1_telephone1")) {
                         this.address1Phone = (json.getString("address1_telephone1"));
                     }
@@ -2232,8 +2251,8 @@ public class CrmEntities {
                     e.printStackTrace();
                 }
                 try {
-                    if (!json.isNull("telephone1")) {
-                        this.businessPhone = (json.getString("telephone1"));
+                    if (!json.isNull("mobilephone")) {
+                        this.mobile = (json.getString("mobilephone"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -2277,13 +2296,79 @@ public class CrmEntities {
 
             public BasicEntity toBasicEntity() {
                 BasicEntity entity = new BasicEntity(this);
-                entity.list.add(new BasicEntity.BasicEntityField("Name:", this.fullname));
-                entity.list.add(new BasicEntity.BasicEntityField("Email:", this.email));
-                entity.list.add(new BasicEntity.BasicEntityField("Phone:", this.businessPhone));
-                entity.list.add(new BasicEntity.BasicEntityField("Account:", this.accountFormatted));
-                entity.list.add(new BasicEntity.BasicEntityField("Title:", this.jobtitle));
-                entity.list.add(new BasicEntity.BasicEntityField("NPI:", this.npiFormatted));
+                entity.list.add(new BasicEntity.EntityBasicField("Name:", this.fullname));
+                entity.list.add(new BasicEntity.EntityBasicField("Email:", this.email));
+                entity.list.add(new BasicEntity.EntityBasicField("Phone:", this.mobile));
+                entity.list.add(new BasicEntity.EntityBasicField("Account:", this.accountFormatted));
+                entity.list.add(new BasicEntity.EntityBasicField("Title:", this.jobtitle));
+                entity.list.add(new BasicEntity.EntityBasicField("NPI:", this.npiFormatted));
                 return entity;
+            }
+
+            private String toVcardString() {
+                String preamble = "" +
+                        "BEGIN:VCARD\n" +
+                        "VERSION:2.1\n";
+
+                StringBuilder vBody = new StringBuilder(preamble);
+
+                if (this.fullname != null) {
+                    vBody.append("N:" + this.fullname + " ;;;\n");
+                }
+                if (this.fullname != null) {
+                    vBody.append("FN:" + this.fullname + "\n");
+                }
+                if (this.address1Phone != null) {
+                    vBody.append("TEL;CELL:" + this.address1Phone + "\n");
+                }
+                if (this.mobile != null) {
+                    vBody.append("TEL;WORK:" + this.mobile + "\n");
+                }
+                if (this.email != null) {
+                    vBody.append("EMAIL;HOME:" + this.email + "\n");
+                }
+                vBody.append("ORG:MileBuddy Export\n");
+                if (this.accountFormatted != null) {
+                    vBody.append("ORG:" + this.accountFormatted + "\n");
+                }
+                if (this.jobtitle != null) {
+                    vBody.append("TITLE:" + this.jobtitle + "\n");
+                }
+                if (this.npiFormatted != null) {
+                    vBody.append("NOTE:NPI: " + this.npiFormatted + "\n");
+                }
+
+                String closingText = "END:VCARD";
+
+                vBody.append(closingText);
+
+                return vBody.toString();
+            }
+
+            /**
+             * Tries to convert this object to a vcard (version 2.1)
+             * @return A file (fullname.vcf) or null if unsuccessful.
+             */
+            public File toVcard() {
+
+                String vBody = this.toVcardString();
+
+                try {
+                    PrintWriter out = new PrintWriter(Helpers.Files.getAppTempDirectory() + this.fullname + ".vcf");
+                    out.println(vBody);
+                    File vcard = new File(Helpers.Files.getAppTempDirectory() + this.fullname + ".vcf");
+                    out.close();
+                    return vcard;
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+
+            }
+
+            @Override
+            public String toString() {
+                return this.fullname + " " + this.accountFormatted;
             }
 
         }
@@ -2322,6 +2407,11 @@ public class CrmEntities {
         }
 
         public static class Ticket {
+
+             /**************************************************************************************
+             *                                  Case type values
+             **************************************************************************************/
+            // public static final int COMPLAINT
 
             public String etag;
             public String statecodeFormatted;
@@ -2586,27 +2676,72 @@ public class CrmEntities {
                 }
             }
 
+            private void buildCaseTypes() {
+
+            }
+
             public BasicEntity toBasicEntity() {
 
                 BasicEntity entity = new BasicEntity(this);
-                entity.list.add(new BasicEntity.BasicEntityField("Ticket number:", this.ticketnumber));
-                entity.list.add(new BasicEntity.BasicEntityField("Title:", this.title));
-                BasicEntity.BasicEntityField accountField = new BasicEntity.BasicEntityField("Customer:", this.customerFormatted);
+                entity.list.add(new BasicEntity.EntityBasicField("Ticket number:", this.ticketnumber));
+                entity.list.add(new BasicEntity.EntityBasicField("Title:", this.title));
+                BasicEntity.EntityBasicField accountField = new BasicEntity.EntityBasicField("Customer:", this.customerFormatted);
                 accountField.isAccountField = true;
                 accountField.account = new Accounts.Account(this.customerid, this.customerFormatted);
                 entity.list.add(accountField);
-                entity.list.add(new BasicEntity.BasicEntityField("Status:", this.statusFormatted));
-                entity.list.add(new BasicEntity.BasicEntityField("Description:", this.description));
-                entity.list.add(new BasicEntity.BasicEntityField("Subject:", this.subjectFormatted));
-                entity.list.add(new BasicEntity.BasicEntityField("Type:", this.caseTypeFormatted));
-                entity.list.add(new BasicEntity.BasicEntityField("Territory:", this.territoryFormatted));
-                entity.list.add(new BasicEntity.BasicEntityField("Rep:", this.repFormatted));
-                entity.list.add(new BasicEntity.BasicEntityField("Origin:", this.caseOriginFormatted));
-                entity.list.add(new BasicEntity.BasicEntityField("Created on:", Helpers.DatesAndTimes.getPrettyDateAndTime(this.createdon)));
-                entity.list.add(new BasicEntity.BasicEntityField("Created by:", this.createdByFormatted));
-                entity.list.add(new BasicEntity.BasicEntityField("Modified by:", this.modifiedByFormatted));
-                entity.list.add(new BasicEntity.BasicEntityField("Modified on:", Helpers.DatesAndTimes.getPrettyDateAndTime(this.modifiedon)));
-                entity.list.add(new BasicEntity.BasicEntityField("Case type:", this.caseTypeFormatted));
+                entity.list.add(new BasicEntity.EntityBasicField("Status:", this.statusFormatted));
+                entity.list.add(new BasicEntity.EntityBasicField("Description:", this.description));
+                entity.list.add(new BasicEntity.EntityBasicField("Territory:", this.territoryFormatted));
+                entity.list.add(new BasicEntity.EntityBasicField("Rep:", this.repFormatted));
+                entity.list.add(new BasicEntity.EntityBasicField("Created on:", Helpers.DatesAndTimes.getPrettyDateAndTime(this.createdon)));
+                entity.list.add(new BasicEntity.EntityBasicField("Created by:", this.createdByFormatted));
+                entity.list.add(new BasicEntity.EntityBasicField("Modified by:", this.modifiedByFormatted));
+                entity.list.add(new BasicEntity.EntityBasicField("Modified on:", Helpers.DatesAndTimes.getPrettyDateAndTime(this.modifiedon)));
+
+                ArrayList<BasicEntity.EntityBasicField.OptionSetValue> caseTypes = new ArrayList<>();
+                caseTypes.add(new BasicEntity.EntityBasicField.OptionSetValue("Complaint", "100000004"));
+                caseTypes.add(new BasicEntity.EntityBasicField.OptionSetValue("Service Request", "100000005"));
+                caseTypes.add(new BasicEntity.EntityBasicField.OptionSetValue("NONCON", "100000006"));
+                caseTypes.add(new BasicEntity.EntityBasicField.OptionSetValue("CAPA", "100000007"));
+                caseTypes.add(new BasicEntity.EntityBasicField.OptionSetValue("Question", "1"));
+                caseTypes.add(new BasicEntity.EntityBasicField.OptionSetValue("Problem", "2"));
+                caseTypes.add(new BasicEntity.EntityBasicField.OptionSetValue("Request", "3"));
+                caseTypes.add(new BasicEntity.EntityBasicField.OptionSetValue("Evaluation", "100000000"));
+                caseTypes.add(new BasicEntity.EntityBasicField.OptionSetValue("Sales", "100000001"));
+                BasicEntity.EntityBasicField caseType = new BasicEntity.EntityBasicField("Case type: ", caseTypeFormatted);
+                caseType.optionSetValues = caseTypes;
+                caseType.isOptionSet = true;
+                entity.list.add(caseType);
+
+                ArrayList<BasicEntity.EntityBasicField.OptionSetValue> caseOrigins = new ArrayList<>();
+                caseOrigins.add(new BasicEntity.EntityBasicField.OptionSetValue("Saleslogix", "100000004"));
+                caseOrigins.add(new BasicEntity.EntityBasicField.OptionSetValue("Phone", "100000005"));
+                caseOrigins.add(new BasicEntity.EntityBasicField.OptionSetValue("Email", "100000006"));
+                caseOrigins.add(new BasicEntity.EntityBasicField.OptionSetValue("Web", "100000007"));
+                caseOrigins.add(new BasicEntity.EntityBasicField.OptionSetValue("Facebook", "1"));
+                caseOrigins.add(new BasicEntity.EntityBasicField.OptionSetValue("Twitter", "2"));
+                BasicEntity.EntityBasicField caseOrigin = new BasicEntity.EntityBasicField("Case origin: ", caseOriginFormatted);
+                caseOrigin.optionSetValues = caseOrigins;
+                caseOrigin.isOptionSet = true;
+                entity.list.add(caseOrigin);
+
+
+                ArrayList<BasicEntity.EntityBasicField.OptionSetValue> subjects = new ArrayList<>();
+                subjects.add(new BasicEntity.EntityBasicField.OptionSetValue("Credit hold", "D8BAD965-5B66-E711-80D6-005056A36B9B"));
+                subjects.add(new BasicEntity.EntityBasicField.OptionSetValue("Customer service", "6E0E1407-5B66-E711-80D6-005056A36B9B"));
+                subjects.add(new BasicEntity.EntityBasicField.OptionSetValue("Evaluation", "CA14106D-6766-E711-80D6-005056A36B9B"));
+                subjects.add(new BasicEntity.EntityBasicField.OptionSetValue("<Enter a subject>", "E1ABC067-429A-E711-80D8-005056A36B9B"));
+                subjects.add(new BasicEntity.EntityBasicField.OptionSetValue("Information", "42ADD710-E698-E911-80F4-005056A36B9B"));
+                subjects.add(new BasicEntity.EntityBasicField.OptionSetValue("Non-Conformance", "085CBAEA-E885-E811-80E4-005056A36B9B"));
+                subjects.add(new BasicEntity.EntityBasicField.OptionSetValue("Product complaint (cable)", "4BD83C47-5B66-E711-80D6-005056A36B9B"));
+                subjects.add(new BasicEntity.EntityBasicField.OptionSetValue("Product complaint (flowmeter)", "FD242450-5B66-E711-80D6-005056A36B9B"));
+                subjects.add(new BasicEntity.EntityBasicField.OptionSetValue("Product complaint (probe)", "44663885-CE62-476D-9268-C95A618B3CD9"));
+                subjects.add(new BasicEntity.EntityBasicField.OptionSetValue("System Customization", "0D137FFB-6666-E711-80D6-005056A36B9B"));
+                BasicEntity.EntityBasicField subject = new BasicEntity.EntityBasicField("Subject: ", subjectFormatted);
+                subject.isOptionSet = true;
+                subject.optionSetValues = subjects;
+                entity.list.add(subject);
+
                 return entity;
             }
         }

@@ -1,16 +1,21 @@
 package com.fimbleenterprises.medimileage;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TableRow;
 import android.widget.Toast;
 
 /*import com.anychart.APIlib;
@@ -40,10 +45,7 @@ import cz.msebera.android.httpclient.Header;
 public class SearchResultsActivity extends AppCompatActivity {
 
     public Context context;
-    public RecyclerView recyclerView;
-    RefreshLayout refreshLayout;
-    AccountInventoryRecyclerAdapter adapter;
-    AccountProducts accountProducts ;
+    public static final int CALL_PHONE_REQ = 123;
     public static final String SEARCH_INITIATED = "SEARCH_INITIATED";
     public static final String SEARCH_QUERY = "SEARCH_QUERY";
     public static IntentFilter searchFilter = new IntentFilter(SEARCH_INITIATED);
@@ -60,6 +62,7 @@ public class SearchResultsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         context = this;
         setContentView(R.layout.activity_search_results);
+        this.context = this;
 
         sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         mViewPager = (MyViewPager) findViewById(R.id.main_pager_yo_search_results);
@@ -140,6 +143,7 @@ public class SearchResultsActivity extends AppCompatActivity {
         public static final int ACCOUNTS = 1;
         public static final int TICKETS = 2;
         public static final int OPPORTUNITIES = 3;
+        public static final int CONTACTS = 4;
 
         public SectionsPagerAdapter(androidx.fragment.app.FragmentManager fm) {
             super(fm);
@@ -182,12 +186,20 @@ public class SearchResultsActivity extends AppCompatActivity {
                 fragment.setArguments(args);
                 return fragment;
             }
+
+            if (position == CONTACTS) {
+                Fragment fragment = new Frag_SearchContacts();
+                Bundle args = new Bundle();
+                args.putInt(Frag_SearchContacts.ARG_SECTION_NUMBER, position + 1);
+                fragment.setArguments(args);
+                return fragment;
+            }
             return null;
         }
 
         @Override
         public int getCount() {
-            return 4;
+            return 5;
         }
 
         @Override
@@ -204,12 +216,15 @@ public class SearchResultsActivity extends AppCompatActivity {
                     return "Tickets";
                 case OPPORTUNITIES:
                     return "Opportunities";
+                case CONTACTS:
+                    return "Contacts";
             }
             return null;
         }
     }
 
     //region ********************************** FRAGS *****************************************
+
     public static class Frag_SearchCustomerInventory extends Fragment {
         private static final String TAG = "Frag_CustomerInventory";
         public static final String ARG_SECTION_NUMBER = "section_number";
@@ -219,12 +234,14 @@ public class SearchResultsActivity extends AppCompatActivity {
         BroadcastReceiver searchReceiver;
         AccountProducts accountProducts;
         BasicObjectRecyclerAdapter adapter;
+        Context context;
 
         @Nullable
         @Override
         public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                                  @Nullable Bundle savedInstanceState) {
             root = inflater.inflate(R.layout.frag_search_custinventory, container, false);
+            this.context = getContext();
             refreshLayout = root.findViewById(R.id.refreshLayout);
             RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
             refreshLayout.setEnableLoadMore(false);
@@ -298,7 +315,9 @@ public class SearchResultsActivity extends AppCompatActivity {
                     public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                         String response = new String(responseBody);
                         accountProducts = new AccountProducts(response);
-                        populateList();
+                        if (getActivity() != null && !getActivity().isFinishing()) {
+                            populateList();
+                        }
                         Log.i(TAG, "onSuccess ");
                     }
 
@@ -315,14 +334,21 @@ public class SearchResultsActivity extends AppCompatActivity {
         }
 
         protected void populateList() {
+
+            // Was getting crashes when closing the activity and the populate method was called.
+            if (context == null) {
+                return;
+            }
+
             ArrayList<BasicObject> objects = new ArrayList<>();
             for (AccountProducts.AccountProduct product : accountProducts.list) {
-                BasicObject object = new BasicObject(product.partNumber, product.accountname, product);
+                BasicObject object = new BasicObject(product.partNumber + " s/n "
+                        + product.serialnumber, product.accountname, product);
                 object.middleText = product.statusFormatted;
                 objects.add(object);
             }
 
-            adapter = new BasicObjectRecyclerAdapter(getContext(), objects);
+            adapter = new BasicObjectRecyclerAdapter(context, objects);
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
             recyclerView.setAdapter(adapter);
 
@@ -413,7 +439,9 @@ public class SearchResultsActivity extends AppCompatActivity {
                     public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                         String response = new String(responseBody);
                         accounts = new CrmEntities.Accounts(response);
-                        populateList();
+                        if (getActivity() != null && !getActivity().isFinishing()) {
+                            populateList();
+                        }
                         Log.i(TAG, "onSuccess ");
                     }
 
@@ -536,7 +564,9 @@ public class SearchResultsActivity extends AppCompatActivity {
                     public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                         String response = new String(responseBody);
                         tickets = new CrmEntities.Tickets(response);
-                        populateList();
+                        if (getActivity() != null && !getActivity().isFinishing()) {
+                            populateList();
+                        }
                         Log.i(TAG, "onSuccess ");
                     }
 
@@ -666,7 +696,9 @@ public class SearchResultsActivity extends AppCompatActivity {
                     public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                         String response = new String(responseBody);
                         opportunities = new CrmEntities.Opportunities(response);
-                        populateList();
+                        if (getActivity() != null && !getActivity().isFinishing()) {
+                            populateList();
+                        }
                         Log.i(TAG, "onSuccess ");
                     }
 
@@ -713,6 +745,157 @@ public class SearchResultsActivity extends AppCompatActivity {
             refreshLayout.finishRefresh();
         }
     }
+
+    public static class Frag_SearchContacts extends Fragment {
+        private static final String TAG = "Frag_CustomerInventory";
+        public static final String ARG_SECTION_NUMBER = "section_number";
+        public View root;
+        public RecyclerView recyclerView;
+        RefreshLayout refreshLayout;
+        BroadcastReceiver searchReceiver;
+        CrmEntities.Contacts contacts;
+        BasicObjectRecyclerAdapter adapter;
+        String attemptedPhonenumber;
+
+        @Nullable
+        @Override
+        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                                 @Nullable Bundle savedInstanceState) {
+            root = inflater.inflate(R.layout.frag_search_results_generic, container, false);
+            refreshLayout = root.findViewById(R.id.refreshLayout);
+            RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
+            refreshLayout.setEnableLoadMore(false);
+            refreshLayout.setOnRefreshListener(new OnRefreshListener() {
+                @Override
+                public void onRefresh(RefreshLayout refreshlayout) {
+                    doSearch();
+                }
+            });
+
+            recyclerView = root.findViewById(R.id.recyclerview);
+            super.onCreateView(inflater, container, savedInstanceState);
+
+
+            searchReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    if (intent.getAction().equals(SEARCH_INITIATED)) {
+                        doSearch();
+                    }
+                }
+            };
+
+            doSearch();
+
+            return root;
+        }
+
+        @Override
+        public void onStop() {
+            super.onStop();
+
+        }
+
+        @Override
+        public void onDestroyView() {
+            super.onDestroyView();
+        }
+
+        @Override
+        public void onResume() {
+            getActivity().registerReceiver(searchReceiver, searchFilter);
+            super.onResume();
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+            getActivity().unregisterReceiver(searchReceiver);
+        }
+
+        @Override
+        public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+            try {
+                if (requestCode == CALL_PHONE_REQ && Helpers.Permissions.isGranted(Helpers.Permissions.PermissionType.CALL_PHONE)) {
+                    Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + attemptedPhonenumber));
+                    startActivity(intent);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            Log.i(TAG, "onRequestPermissionsResult ");
+
+        }
+
+        void doSearch() {
+
+            refreshLayout.autoRefreshAnimationOnly();
+
+            try {
+                String query = Queries.Search.searchContacts(SearchResultsActivity.query);
+                Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
+                ArrayList<Requests.Argument> args = new ArrayList<>();
+                args.add(new Requests.Argument("query", query));
+                request.arguments = args;
+
+                Crm crm = new Crm();
+                crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                        String response = new String(responseBody);
+                        contacts = new CrmEntities.Contacts(response);
+                        if (getActivity() != null && !getActivity().isFinishing()) {
+                            populateList();
+                        }
+                        Log.i(TAG, "onSuccess ");
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                        Toast.makeText(getContext(), error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                        refreshLayout.finishRefresh();
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        protected void populateList() {
+            final ArrayList<BasicObject> objects = new ArrayList<>();
+            for (CrmEntities.Contacts.Contact contact : contacts.list) {
+                BasicObject object = new BasicObject(contact.fullname, contact.accountFormatted, contact);
+                object.middleText = contact.jobtitle;
+                objects.add(object);
+            }
+
+            if (getContext() == null) {
+                return;
+            }
+
+            adapter = new BasicObjectRecyclerAdapter(getContext(), objects);
+            recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+            recyclerView.setAdapter(adapter);
+            adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
+                @Override
+                public void onItemClick(View view, int position) {
+                    CrmEntities.Contacts.Contact selectedContact =
+                            (CrmEntities.Contacts.Contact) objects.get(position).object;
+
+                    ContactActions contactActions = new ContactActions(getActivity(), selectedContact);
+                    contactActions.showContactOptions();
+
+                }
+            });
+            refreshLayout.finishRefresh();
+        }
+    }
+
+    // endregion
 
 }
 

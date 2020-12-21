@@ -49,7 +49,7 @@ public class Queries {
 
     public static class Operators {
         public enum DateOperator {
-            TODAY, YESTERDAY, THIS_WEEK, THIS_MONTH, THIS_YEAR, LAST_WEEK, LAST_MONTH, LAST_YEAR, LAST_7_DAYS, LAST_14_DAYS, LAST_X_MONTHS
+            TODAY, YESTERDAY, THIS_WEEK, THIS_MONTH, THIS_YEAR, LAST_WEEK, LAST_MONTH, LAST_YEAR, LAST_7_DAYS, LAST_14_DAYS, LAST_X_MONTHS, LAST_X_YEARS
         }
 
         public static String getDateOperator(DateOperator operator) {
@@ -70,6 +70,8 @@ public class Queries {
                     return Filter.Operator.LAST_YEAR;
                 case LAST_X_MONTHS:
                     return Filter.Operator.LAST_X_MONTHS;
+                case LAST_X_YEARS:
+                    return Filter.Operator.LAST_X_YEARS;
                 default:
                     return Filter.Operator.TODAY;
             }
@@ -984,6 +986,7 @@ public class Queries {
             query.addColumn("fullname");
             query.addColumn("parentcustomerid");
             query.addColumn("telephone1");
+            query.addColumn("mobilephone");
             query.addColumn("address1_telephone1");
             query.addColumn("emailaddress1");
             query.addColumn("msus_associated_npi_number");
@@ -1715,6 +1718,52 @@ public class Queries {
             return query;
         }
 
+        public static String getOrderLinesForAggregatedTotals(String customerid, int lastXyears) {
+
+            /************** TESTING *************/
+            // repid = "DAA46FDF-5B7C-E711-80D1-005056A32EEA";
+            /************************************/
+
+
+            // Main entity columns
+            QueryFactory factory = new QueryFactory("salesorderdetail");
+            factory.addColumn("productid");
+            factory.addColumn("quantity");
+            factory.addColumn("extendedamount");
+            factory.addColumn("salesorderid");
+            factory.addColumn("salesorderdetailid");
+
+            // Create link entities
+            LinkEntity le1 = new LinkEntity(
+                    "salesorder",
+                    "salesorderid",
+                    "salesorderid",
+                    "a_6ec0e72e4c104394bc627456c6412838"
+            );
+            Filter.FilterCondition filterCondition = new Filter.FilterCondition("submitdate",
+                    getDateOperator(Operators.DateOperator.LAST_X_YEARS), Integer.toString(lastXyears));
+            le1.addFilter(new Filter(AND, filterCondition));
+            factory.addLinkEntity(le1);
+
+            LinkEntity le2 = new LinkEntity(
+                    "product",
+                    "productid",
+                    "productid",
+                    "a_070ef9d142cd40d98bebd513e03c7cd1"
+            );
+            le2.addColumn(new EntityColumn("col_itemgroup"));
+            le2.addColumn(new EntityColumn("msus_is_capital"));
+            factory.addLinkEntity(le2);
+
+            filterCondition = new Filter.FilterCondition("new_customer", Filter.Operator.EQUALS, customerid);
+            Filter filter = new Filter(AND, filterCondition);
+            factory.setFilter(filter);
+
+            String query = factory.construct();
+
+            return query;
+        }
+
     }
 
     public static class Orders {
@@ -2245,9 +2294,12 @@ public class Queries {
             // Filter conditions
             Filter.FilterCondition condition1 = new Filter
                     .FilterCondition("name", Filter.Operator.CONTAINS, searchQuery);
+            Filter.FilterCondition condition2 = new Filter
+                    .FilterCondition("parentaccountidname", Filter.Operator.CONTAINS, searchQuery);
 
             ArrayList<Filter.FilterCondition> conditions = new ArrayList<>();
             conditions.add(condition1);
+            conditions.add(condition2);
 
             // Set filter
             Filter filter = new Filter(OR, conditions);
@@ -2262,6 +2314,34 @@ public class Queries {
             String query = factory.construct();
 
             return query;
+        }
+
+        public static String searchContacts(String searchQuery) {
+            // Instantiate a new constructor for the case entity and add the columns we want to see
+            QueryFactory query = new QueryFactory("contact");
+            query.addColumn("fullname");
+            query.addColumn("parentcustomerid");
+            query.addColumn("mobilephone");
+            query.addColumn("telephone1");
+            query.addColumn("address1_telephone1");
+            query.addColumn("emailaddress1");
+            query.addColumn("msus_associated_npi_number");
+            query.addColumn("jobtitle");
+            query.addColumn("msus_department");
+            query.addColumn("contactid");
+            query.addColumn("mobilephone");
+
+            // Create a filter
+            Filter filter = new Filter(AND);
+
+            // Set filter
+            Filter.FilterCondition condition1 = new Filter.FilterCondition("fullname", Filter.Operator.CONTAINS, searchQuery );
+            filter.addCondition(condition1);
+            query.setFilter(filter);
+
+            // Spit out the encoded query
+            String rslt = query.construct();
+            return rslt;
         }
     }
 

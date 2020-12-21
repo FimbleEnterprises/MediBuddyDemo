@@ -19,7 +19,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -1651,7 +1650,8 @@ public class Activity_AccountData extends AppCompatActivity {
                             Log.i(TAG, "onItemClick Clicked item at position " + position
                                     + "(" + clickedObject.title + ")");
 
-                            showContactOptions(clickedContact);
+                            ContactActions contactActions = new ContactActions(getActivity(), clickedContact);
+                            contactActions.showContactOptions();
                         } catch (Exception e) { e.printStackTrace(); }
                     }
                 });
@@ -1660,136 +1660,6 @@ public class Activity_AccountData extends AppCompatActivity {
                 Log.w(TAG, "populateList: CAN'T POPULATE AS THE ACTIVITY IS FINISHING!!!");
             }
             txtNoContacts.setVisibility( (objects == null || objects.size() == 0) ? View.VISIBLE : View.GONE);
-        }
-
-        void showContactOptions(final CrmEntities.Contacts.Contact clickedContact) {
-            // custom dialog
-            final Dialog dialog = new Dialog(getContext());
-            dialog.setContentView(R.layout.dialog_contact_options);
-            dialog.setTitle("Options");
-            Button btnViewContact = dialog.findViewById(R.id.view_contact);
-            Button btnAddToContacts = dialog.findViewById(R.id.btn_add_to_contacts);
-            Button btnCallBusiness1 = dialog.findViewById(R.id.btnCallBusinessPhone);
-            Button btnCallAddress1 = dialog.findViewById(R.id.btnCallAddress1);
-            Button btnEmail = dialog.findViewById(R.id.btnEmailContact);
-            TableRow address1Row = dialog.findViewById(R.id.tableRow_address1Phone);
-            TableRow businessRow = dialog.findViewById(R.id.tableRow_businessPhone);
-            TableRow emailRow = dialog.findViewById(R.id.tableRow_email_addy);
-
-            businessRow.setVisibility(clickedContact.businessPhone == null ? View.GONE : View.VISIBLE);
-            address1Row.setVisibility(clickedContact.address1Phone == null ? View.GONE : View.VISIBLE);
-            emailRow.setVisibility(clickedContact.email == null ? View.GONE : View.VISIBLE);
-
-            btnCallAddress1.setText(clickedContact.address1Phone != null ? "Call " + clickedContact.address1Phone
-                    : "");
-
-            btnCallBusiness1.setText(clickedContact.businessPhone != null ? "Call " + clickedContact.businessPhone
-                    : "");
-
-            btnViewContact.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent = new Intent(context, BasicEntityActivity.class);
-                    intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, clickedContact.fullname);
-                    intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "contact");
-                    intent.putExtra(BasicEntityActivity.ENTITYID, clickedContact.contactid);
-                    intent.putExtra(BasicEntityActivity.GSON_STRING, clickedContact.toBasicEntity().toGson());
-                    intent.putExtra(BasicEntityActivity.LOAD_NOTES, false);
-                    getActivity().startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
-                }
-            });
-
-            btnAddToContacts.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    try {
-                        insertContact(clickedContact);
-                    } catch (Exception e) {
-                        Toast.makeText(context, "Failed to add contact\n" + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-                        e.printStackTrace();
-                    }
-                }
-            });
-
-            btnCallAddress1.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    try {
-                        attemptedPhonenumber = clickedContact.address1Phone;
-
-                        if (Helpers.Permissions.isGranted(Helpers.Permissions.PermissionType.CALL_PHONE)) {
-                            Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + clickedContact.address1Phone));
-                            startActivity(intent);
-                        } else {
-                            Helpers.Permissions.RequestContainer container = new Helpers.Permissions.RequestContainer();
-                            container.add(Helpers.Permissions.PermissionType.CALL_PHONE);
-                            requestPermissions(container.toArray(), CALL_PHONE_REQ);
-                        }
-                    } catch (Exception e) {
-                        Toast.makeText(context, "Failed to call\n" + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-                        e.printStackTrace();
-                    }
-                }
-            });
-
-            btnCallBusiness1.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    try {
-                        attemptedPhonenumber = clickedContact.businessPhone;
-
-                        if (Helpers.Permissions.isGranted(Helpers.Permissions.PermissionType.CALL_PHONE)) {
-                            Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + clickedContact.businessPhone));
-                            startActivity(intent);
-                        } else {
-                            Helpers.Permissions.RequestContainer container = new Helpers.Permissions.RequestContainer();
-                            container.add(Helpers.Permissions.PermissionType.CALL_PHONE);
-                            requestPermissions(container.toArray(), CALL_PHONE_REQ);
-                        }
-                    } catch (Exception e) {
-                        Toast.makeText(context, "Failed to call\n" + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-                        e.printStackTrace();
-                    }
-                }
-            });
-
-            btnEmail.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-
-                }
-            });
-
-            /*if (options.isExplicitMode()) {
-                btn_ViewTrip.setText(getString(R.string.tripOptions_view_explicit));
-                btnSubmit.setText(getString(R.string.tripOptions_submit_explicit));
-                btnRecall.setText(getString(R.string.tripOptions_recall_explicit));
-                btnEditTrip.setText(getString(R.string.tripOptions_edit_explicit));
-                btnDeleteTrip.setText(getString(R.string.tripOptions_delete_explicit));
-            } else {
-                btn_ViewTrip.setText(getString(R.string.tripOptions_view));
-                btnSubmit.setText(getString(R.string.tripOptions_submit));
-                btnRecall.setText(getString(R.string.tripOptions_recall));
-                btnEditTrip.setText(getString(R.string.tripOptions_edit));
-                btnDeleteTrip.setText(getString(R.string.tripOptions_delete));
-            }*/
-
-            dialog.show();
-        }
-
-        public void insertContact(CrmEntities.Contacts.Contact contact) {
-            Intent intent = new Intent(Intent.ACTION_INSERT);
-            intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
-            intent.putExtra(ContactsContract.Intents.Insert.NAME, contact.fullname);
-            intent.putExtra(ContactsContract.Intents.Insert.EMAIL, contact.email);
-            intent.putExtra(ContactsContract.Intents.Insert.PHONE, contact.businessPhone);
-            intent.putExtra(ContactsContract.Intents.Insert.SECONDARY_PHONE, contact.address1Phone);
-            intent.putExtra(ContactsContract.Intents.Insert.COMPANY, contact.accountFormatted);
-            intent.putExtra(ContactsContract.Intents.Insert.NOTES, "Added from MileBuddy");
-            intent.putExtra(ContactsContract.Intents.Insert.JOB_TITLE, contact.jobtitle);
-            if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
-                startActivity(intent);
-            }
         }
 
         String getPagerTitle() {
@@ -2043,7 +1913,7 @@ public class Activity_AccountData extends AppCompatActivity {
             intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
             intent.putExtra(ContactsContract.Intents.Insert.NAME, contact.fullname);
             intent.putExtra(ContactsContract.Intents.Insert.EMAIL, contact.email);
-            intent.putExtra(ContactsContract.Intents.Insert.PHONE, contact.businessPhone);
+            intent.putExtra(ContactsContract.Intents.Insert.PHONE, contact.mobile);
             intent.putExtra(ContactsContract.Intents.Insert.SECONDARY_PHONE, contact.address1Phone);
             intent.putExtra(ContactsContract.Intents.Insert.COMPANY, contact.accountFormatted);
             intent.putExtra(ContactsContract.Intents.Insert.NOTES, "Added from MileBuddy");

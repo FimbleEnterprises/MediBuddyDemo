@@ -7,7 +7,7 @@ import java.util.ArrayList;
 public class BasicEntity {
 
     public Object object;
-    public ArrayList<BasicEntityField> list = new ArrayList<>();
+    public ArrayList<EntityBasicField> list = new ArrayList<>();
 
     public BasicEntity() {
 
@@ -30,7 +30,7 @@ public class BasicEntity {
         return gson.toJson(this);
     }
 
-    public static class BasicEntityField {
+    public static class EntityBasicField {
 
         String label;
         String value;
@@ -38,16 +38,38 @@ public class BasicEntity {
         boolean isBold = false;
         boolean isEditable = false;
         boolean isAccountField = false;
+        boolean isOptionSet = false;
+        ArrayList<OptionSetValue> optionSetValues = new ArrayList<>();
         CrmEntities.Accounts.Account account;
 
-        public BasicEntityField(String value) {
-            this.value = value;
+
+        public EntityBasicField(String label) {
+            this.label = label;
         }
 
-        public BasicEntityField(String label, String value) {
+        public EntityBasicField(String label, String value) {
             this.label = label;
             this.value = value;
             this.showLabel = true;
+        }
+
+        public String[] toOptionsetValueArray() {
+            String[] vals = new String[this.optionSetValues.size()];
+            return this.optionSetValues.toArray(vals);
+        }
+
+        /**
+         * One of the values in an optionset
+         */
+        public static class OptionSetValue {
+            String name;
+            Object value;
+
+            public OptionSetValue(String name, Object value) {
+                this.name = name;
+                this.value = value;
+            }
+
         }
 
     }

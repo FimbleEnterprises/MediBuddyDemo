@@ -56,9 +56,10 @@ public class BasicEntityActivity extends AppCompatActivity {
     public static final String ACTIVITY_TITLE = "ACTIVITY_TITLE";
     public static final int REQUEST_BASIC = 6288;
     public static final String LOAD_NOTES = "LOAD_NOTES";
+    public static final String HIDE_MENU = "HIDE_MENU";
     private static final String TAG = "BasicEntityActivity";
     private static final int FILE_REQUEST_CODE = 88;
-    
+
     Context context;
     String entityid;
     String entityLogicalName;
@@ -76,6 +77,8 @@ public class BasicEntityActivity extends AppCompatActivity {
     ImageButton btnAddNote;
     TableLayout tblNotes;
     BasicEntity basicEntity;
+    boolean hideMenu = false;
+    boolean isEditable = false;
 
     public static IntentFilter getIntentFilter() {
         return new IntentFilter(CLICK_ACTION);
@@ -117,6 +120,7 @@ public class BasicEntityActivity extends AppCompatActivity {
         entityid = getIntent().getStringExtra(ENTITYID);
         entityLogicalName = getIntent().getStringExtra(ENTITY_LOGICAL_NAME);
         setTitle(getIntent().getStringExtra(ACTIVITY_TITLE));
+        hideMenu = getIntent().getBooleanExtra(HIDE_MENU, false);
 
         // Hide the notes table by default
         tblNotes.setVisibility(View.GONE);
@@ -160,6 +164,9 @@ public class BasicEntityActivity extends AppCompatActivity {
             }
             //the method we have create in activity
             applyFontToMenuItem(mi, typeface);
+
+            mi.setEnabled(!hideMenu);
+
         }
 
         return super.onPrepareOptionsMenu(menu);
@@ -178,6 +185,13 @@ public class BasicEntityActivity extends AppCompatActivity {
                 setResult(RESULT_OK, intent);
                 Log.i(TAG, "onOptionsItemSelected " + SEND_EMAIL + " result was set");
                 finish();
+                break;
+            case R.id.action_edit :
+                isEditable = true;
+                populateForm(basicEntity.toGson());
+                break;
+            case R.id.action_update :
+                Toast.makeText(context, "Updating...", Toast.LENGTH_SHORT).show();
                 break;
         }
 
@@ -297,7 +311,16 @@ public class BasicEntityActivity extends AppCompatActivity {
         adapter.setClickListener(new BasicEntityActivityObjectRecyclerAdapter.ItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                BasicEntity.BasicEntityField field = basicEntity.list.get(position);
+                BasicEntity.EntityBasicField field = basicEntity.list.get(position);
+
+                if (isEditable) {
+                    for (BasicEntity.EntityBasicField f : basicEntity.list) {
+                        if (!f.isAccountField) {
+                            f.isEditable = true;
+                        }
+                    }
+                }
+
                 if (field.isAccountField) {
                     Intent intent = new Intent(context, Activity_AccountData.class);
                     intent.setAction(Activity_AccountData.GO_TO_ACCOUNT);

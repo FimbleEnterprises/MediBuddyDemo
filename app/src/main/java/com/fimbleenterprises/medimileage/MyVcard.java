@@ -8,9 +8,11 @@ import android.util.Log;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import cz.msebera.android.httpclient.Header;
@@ -55,6 +57,62 @@ class MyVcard {
         }
 
         return parsedVcards;
+    }
+
+    /**
+     * Tries to convert this object to a vcard (version 2.1)
+     * @return A file (fullname.vcf) or null if unsuccessful.
+     */
+    public File toVcard() {
+        String preamble = "" +
+                "BEGIN:VCARD\n" +
+                "VERSION:2.1\n";
+
+        StringBuilder vBody = new StringBuilder(preamble);
+
+        if (this.fullname != null) {
+            vBody.append("N:" + this.fullname + " ;;;\n");
+        }
+        if (this.fullname != null) {
+            vBody.append("FN:" + this.fullname + "\n");
+        }
+        if (this.phone1 != null) {
+            vBody.append("TEL;CELL:" + this.phone1 + "\n");
+        }
+        if (this.phone2 != null) {
+            vBody.append("TEL;WORK:" + this.phone2 + "\n");
+        }
+        if (this.email != null) {
+            vBody.append("EMAIL;HOME:" + this.email + "\n");
+        }
+        if (this.address1 != null) {
+            vBody.append("ADR;HOME:;;" + this.address1 + "\n");
+        }
+        if (this.address2 != null) {
+            vBody.append("ADR;WORK:;;" + this.address2 + "\n");
+        }
+        vBody.append("ORG:MileBuddy Export\n");
+        if (this.title != null) {
+            vBody.append("TITLE:" + this.title + "\n");
+        }
+        if (this.address2 != null) {
+            vBody.append("ADR;WORK:;;" + this.address2 + "\n");
+        }
+
+        String closingText = "END:VCARD";
+
+        vBody.append(closingText);
+
+        try {
+            PrintWriter out = new PrintWriter(Helpers.Files.getAppTempDirectory() + this.fullname + ".vcf");
+            out.println(vBody);
+            File vcard = new File(Helpers.Files.getAppTempDirectory() + this.fullname + ".vcf");
+            return vcard;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+
     }
 
     public static String intentToVcardsString(Context context, Intent intent) {

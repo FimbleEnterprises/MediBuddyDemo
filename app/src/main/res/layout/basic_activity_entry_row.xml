@@ -43,6 +43,20 @@
         android:textSize="18sp"
         android:textAlignment="viewStart"
         android:textColor="@color/colorPrimaryAlt"
+        android:visibility="gone" />
+
+    <Spinner
+        android:id="@+id/spinnerValue"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txtLabel"
+        android:enabled="true"
+        android:fadeScrollbars="true"
+        android:text="Some value"
+        android:textSize="18sp"
+        android:textAlignment="viewStart"
+        android:textColor="@color/colorPrimaryAlt"
         android:visibility="visible" />
 
 </RelativeLayout>

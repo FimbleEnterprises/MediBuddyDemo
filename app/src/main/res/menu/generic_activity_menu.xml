@@ -2,6 +2,16 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/action_edit"
+        android:orderInCategory="3"
+        android:title="@string/action_edit"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_update"
+        android:orderInCategory="3"
+        android:title="@string/action_save"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_send_email"
         android:orderInCategory="3"
         android:title="@string/action_email"

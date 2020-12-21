@@ -277,5 +277,7 @@
     <string name="action_account_type_eval_in_progress">Eval in progress</string>
     <string name="action_account_type_other">Other</string>
     <string name="change_account_type">Account type</string>
+    <string name="action_save">Save</string>
+    <string name="action_edit">Edit</string>
 
 </resources>

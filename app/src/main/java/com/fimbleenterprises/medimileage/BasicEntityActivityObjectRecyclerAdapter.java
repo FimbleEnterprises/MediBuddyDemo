@@ -1,15 +1,20 @@
 package com.fimbleenterprises.medimileage;
 
 import android.content.Context;
+import android.database.DataSetObserver;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -19,10 +24,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapter<BasicEntityActivityObjectRecyclerAdapter.ViewHolder> {
     private static final String TAG="BasicObjectRecyclerAdapter";
-    public ArrayList<BasicEntity.BasicEntityField> mData;
+    public ArrayList<BasicEntity.EntityBasicField> mData;
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
     private ItemButtonClickListener mButtonClickListener;
+    private ItemSelectedListener mSpinnerChangeListener;
     MySettingsHelper options;
     Context context;
     public int selectedIndex = -1;
@@ -31,7 +37,7 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
 
 
     // data is passed into the constructor
-    public BasicEntityActivityObjectRecyclerAdapter(Context context, ArrayList<BasicEntity.BasicEntityField> data) {
+    public BasicEntityActivityObjectRecyclerAdapter(Context context, ArrayList<BasicEntity.EntityBasicField> data) {
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
         this.context = context;
@@ -49,11 +55,10 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
     // binds the data to the TextView in each row
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
-        final BasicEntity.BasicEntityField field = mData.get(position);
+        final BasicEntity.EntityBasicField field = mData.get(position);
         holder.txtMainText.setText(field.value);
         holder.btnMainText.setText(field.value);
         holder.txtLabel.setText(field.label);
-
 
         // Hide the middle text field if it is null
         holder.txtMainText.setVisibility(field.value == null ? View.GONE : View.VISIBLE);
@@ -65,14 +70,22 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
             holder.txtMainText.setTypeface(holder.txtMainText.getTypeface(), Typeface.BOLD);
         }
 
-        // holder.layout.setClickable(field.isClickable);
+        holder.txtMainText.setEnabled(field.isEditable);
 
         if (field.isAccountField) {
             holder.txtMainText.setVisibility(View.GONE);
+            holder.spinnerMainText.setVisibility(View.GONE);
             holder.btnMainText.setVisibility(View.VISIBLE);
             holder.btnMainText.setPaintFlags(holder.btnMainText.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+        } else if (field.isOptionSet) {
+            holder.txtMainText.setVisibility(View.GONE);
+            holder.btnMainText.setVisibility(View.GONE);
+            holder.spinnerMainText.setVisibility(View.VISIBLE);
+            ArrayAdapter arrayAdapter = new ArrayAdapter(context, android.R.layout.simple_spinner_item, field.toOptionsetValueArray());
+            holder.spinnerMainText.setAdapter(arrayAdapter);
         } else {
             holder.txtMainText.setVisibility(View.VISIBLE);
+            holder.spinnerMainText.setVisibility(View.GONE);
             holder.btnMainText.setVisibility(View.GONE);
         }
 
@@ -87,11 +100,12 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
     }
 
     // stores and recycles views as they are scrolled off screen
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener, Spinner.OnItemSelectedListener {
         TextView txtLabel;
         EditText txtMainText;
         ImageView imgLabelIcon;
         Button btnMainText;
+        Spinner spinnerMainText;
         RelativeLayout layout;
 
         ViewHolder(View itemView) {
@@ -105,6 +119,19 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
                     mButtonClickListener.onItemButtonClick(view, getAdapterPosition());
                 }
             });
+            spinnerMainText = itemView.findViewById(R.id.spinnerValue);
+            spinnerMainText.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                    // if (mSpinnerChangeListener != null) mSpinnerChangeListener.onItemSelected(view, getAdapterPosition(), mData.get(getAdapterPosition()).optionSetValues);
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                }
+            });
+
             txtLabel = itemView.findViewById(R.id.txtLabel);
 
             itemView.setOnClickListener(this);
@@ -120,13 +147,25 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
 
         @Override
         public boolean onLongClick(View view) {
-            BasicEntity.BasicEntityField clickedTrip = mData.get(getAdapterPosition());
+            BasicEntity.EntityBasicField clickedTrip = mData.get(getAdapterPosition());
             return true;
+        }
+
+
+        @Override
+        public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+            /*BasicEntity.EntityOptionSetField optionSetField = (BasicEntity.EntityOptionSetField) mData.get(getAdapterPosition());
+            if (mSpinnerChangeListener != null) mSpinnerChangeListener.onItemSelected(view, getAdapterPosition(), optionSetField);*/
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> adapterView) {
+
         }
     }
 
     // convenience method for getting data at click position
-    public BasicEntity.BasicEntityField getItem(int pos) {
+    public BasicEntity.EntityBasicField getItem(int pos) {
         return mData.get(pos);
     }
 
@@ -148,6 +187,10 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
     // parent activity will implement this method to respond to click events
     public interface ItemButtonClickListener {
         void onItemButtonClick(View view, int position);
+    }
+
+    public interface ItemSelectedListener {
+        // void onItemSelected(View view, int position, BasicEntity.EntityOptionSetField object);
     }
 }
 

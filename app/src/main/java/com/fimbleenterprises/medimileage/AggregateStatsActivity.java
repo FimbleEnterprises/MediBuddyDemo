@@ -3,16 +3,21 @@ package com.fimbleenterprises.medimileage;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.core.content.ContextCompat;
 import cz.msebera.android.httpclient.Header;
 
 import android.annotation.SuppressLint;
+import android.app.SearchManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Menu;
@@ -84,6 +89,7 @@ public class AggregateStatsActivity extends AppCompatActivity {
     TextView txtCpyWideTripsLastLastMonth;
     TextView txtCpyWideMilesLastLastMonth;
     TextView txtCpyWideReimbursementLastLastMonth;
+    SearchView searchView;
 
 /*    TextView txtDriver1ThisMonth;
     TextView txtDriver2ThisMonth;
@@ -196,6 +202,16 @@ public class AggregateStatsActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.mileage_stats_all_users_menu, menu);
+
+        // Associate searchable configuration with the SearchView
+        /*SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        searchView = (SearchView) menu.findItem(R.id.search).getActionView();
+        searchView.setSearchableInfo( searchManager.getSearchableInfo(new
+                ComponentName(this, SearchResultsActivity.class)));
+
+        if (searchView != null) {
+            searchView.setInputType(InputType.TYPE_CLASS_TEXT);
+        }*/
 
         return super.onCreateOptionsMenu(menu);
     }

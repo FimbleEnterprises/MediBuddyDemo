@@ -9,6 +9,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -23,6 +24,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.graphics.fonts.Font;
 import android.location.Location;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -36,6 +38,7 @@ import android.os.Handler;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
+import android.telephony.SmsManager;
 import android.text.Layout;
 import android.text.SpannableString;
 import android.text.StaticLayout;
@@ -99,6 +102,8 @@ import androidx.core.app.NotificationCompat;
 
 import static android.content.Context.MODE_PRIVATE;
 import static android.content.Context.NOTIFICATION_SERVICE;
+import static com.fimbleenterprises.medimileage.ContactActions.DELIVERY_ACTION;
+import static com.fimbleenterprises.medimileage.ContactActions.SENT_ACTION;
 
 public abstract class Helpers {
 
@@ -1429,6 +1434,63 @@ public abstract class Helpers {
         }
     }
 
+    public static class Sms {
+
+        interface SmsListener {
+            void onSent();
+            void onDelivered();
+        }
+
+        public static final String SENT_ACTION = "SENT_ACTION";
+        public static final String DELIVERY_ACTION = "DELIVERY_ACTION";
+
+        public static void sendSms(Activity activity, String number, String msgBody) {
+            activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.fromParts("sms", number, msgBody)));
+        }
+
+        public static void sendSms(Activity activity, String number) {
+            activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.fromParts("sms", number, null)));
+        }
+
+        /**
+         * Shoots a text message with sent and delivered updates
+         * @param activity A valid activity that can register a receiver
+         * @param number The SMS target device
+         * @param msg The fucking message to send
+         * @param listener A listener for the sent and delivered updates.
+         */
+        public static void sendSmsWithListener(final Activity activity, String number, String msg, final SmsListener listener) {
+
+            // set pendingIntent for sent & delivered
+            PendingIntent sentIntent = PendingIntent.getBroadcast(activity, 100, new
+                    Intent(SENT_ACTION), 0);
+            PendingIntent deliveryIntent = PendingIntent.getBroadcast(activity, 200, new
+                    Intent(DELIVERY_ACTION), 0);
+
+            activity.registerReceiver(new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Log.d("SMS ", "sent");
+                    listener.onSent();
+                    activity.unregisterReceiver(this);
+                }
+            }, new IntentFilter(SENT_ACTION));
+
+            activity.registerReceiver(new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Log.d("SMS ", "delivered");
+                    listener.onDelivered();
+                    activity.unregisterReceiver(this);
+                }
+            }, new IntentFilter(DELIVERY_ACTION));
+
+            SmsManager smsManager = SmsManager.getDefault();
+            smsManager.sendTextMessage(number, null, msg, sentIntent,deliveryIntent);
+        }
+
+    }
+
     public static class Numbers {
 
         /**
@@ -1532,14 +1594,13 @@ public abstract class Helpers {
         }
     }
 
-    public static class Notify {
-
+    public static class Sounds {
 
         /**
          * Returns a media player object that plays the system's notification sound.  Can be told to play immediately as well as whether or not to loop
          **/
-        public static MediaPlayer playSound(Context context, boolean playImmediately,
-                                            boolean setLooping) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException {
+        public static MediaPlayer playNotification(Context context, boolean playImmediately,
+                                                   boolean setLooping) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException {
             Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
             MediaPlayer mMediaPlayer = new MediaPlayer();
             mMediaPlayer.setDataSource(context, soundUri);
@@ -1574,6 +1635,7 @@ public abstract class Helpers {
             i.putExtra(Intent.EXTRA_EMAIL, recipients);
             i.putExtra(Intent.EXTRA_BCC, recipients);
             i.putExtra(Intent.EXTRA_SUBJECT, subject);
+            i.putExtra(Intent.EXTRA_TEXT, body);
             i.putExtra(Intent.EXTRA_HTML_TEXT, body);
             try {
                 context.startActivity(Intent.createChooser(i, "Send mail..."));
@@ -1599,6 +1661,7 @@ public abstract class Helpers {
             i.putExtra(Intent.EXTRA_BCC, recipients);
             i.putExtra(Intent.EXTRA_SUBJECT, subject);
             i.putExtra(Intent.EXTRA_HTML_TEXT, body);
+            i.putExtra(Intent.EXTRA_TEXT, body);
             i.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://" + attachment));
             try {
                 context.startActivity(Intent.createChooser(i, "Send mail..."));
@@ -1627,6 +1690,7 @@ public abstract class Helpers {
             }
             i.putExtra(Intent.EXTRA_SUBJECT, subject);
             i.putExtra(Intent.EXTRA_HTML_TEXT, body);
+            i.putExtra(Intent.EXTRA_TEXT, body);
             i.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://" + attachment));
             try {
                 context.startActivity(Intent.createChooser(i, "Send mail..."));
@@ -1641,6 +1705,7 @@ public abstract class Helpers {
             i.putExtra(Intent.EXTRA_EMAIL, recipients);
             i.putExtra(Intent.EXTRA_BCC, bccRecipients);
             i.putExtra(Intent.EXTRA_SUBJECT, subject);
+            i.putExtra(Intent.EXTRA_TEXT, body);
             i.putExtra(Intent.EXTRA_HTML_TEXT, body);
             try {
                 context.startActivity(Intent.createChooser(i, "Send mail..."));
@@ -1654,6 +1719,7 @@ public abstract class Helpers {
             // i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
             i.setType("message/rfc822");
             i.putExtra(Intent.EXTRA_SUBJECT, subject);
+            i.putExtra(Intent.EXTRA_TEXT, body);
             i.putExtra(Intent.EXTRA_HTML_TEXT, body);
             try {
                 context.startActivity(Intent.createChooser(i, "Send mail..."));
@@ -2541,11 +2607,6 @@ public abstract class Helpers {
         }
     }
 
-    public static class Fonts {
-
-
-    }
-
     public static class Strings {
 
         public static SpannableString makeUnderlined(String txt) {
@@ -2599,20 +2660,6 @@ public abstract class Helpers {
             interface MySwipeListener {
                 void onSwipeLeft();
                 void onSwipeRight();
-            }
-
-            public void addView(View view) {
-                this.views.add(view);
-
-                for (View v : this.views) {
-                    v.setOnTouchListener(new View.OnTouchListener() {
-                        @Override
-                        public boolean onTouch(View view, MotionEvent motionEvent) {
-                            gestureDetector.onTouchEvent(motionEvent);
-                            return false;
-                        }
-                    });
-                }
             }
 
             public MySwipeHandler(ArrayList<View> views,  MySwipeListener listener) {
@@ -2684,6 +2731,20 @@ public abstract class Helpers {
                         return true;
                     }
                 });
+            }
+
+            public void addView(View view) {
+                this.views.add(view);
+
+                for (View v : this.views) {
+                    v.setOnTouchListener(new View.OnTouchListener() {
+                        @Override
+                        public boolean onTouch(View view, MotionEvent motionEvent) {
+                            gestureDetector.onTouchEvent(motionEvent);
+                            return false;
+                        }
+                    });
+                }
             }
 
             private void onLeftSwipe() {
