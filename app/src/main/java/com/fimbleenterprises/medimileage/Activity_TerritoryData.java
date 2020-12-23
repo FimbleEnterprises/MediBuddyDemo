@@ -1278,6 +1278,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     Intent intent = new Intent(context, BasicEntityActivity.class);
                     intent.putExtra(BasicEntityActivity.GSON_STRING, ticket.toBasicEntity().toGson());
                     intent.putExtra(BasicEntityActivity.ENTITYID, ticket.ticketid);
+                    intent.putExtra(BasicEntityActivity.CURRENT_TERRITORY, territory);
                     intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "incident");
                     intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Ticket " + ticket.ticketnumber);
                     startActivityForResult(intent, REQUEST_BASIC);

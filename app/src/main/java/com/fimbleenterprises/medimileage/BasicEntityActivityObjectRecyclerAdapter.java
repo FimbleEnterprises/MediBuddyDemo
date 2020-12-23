@@ -2,8 +2,10 @@ package com.fimbleenterprises.medimileage;
 
 import android.content.Context;
 import android.database.DataSetObserver;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,7 +35,7 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
     Context context;
     public int selectedIndex = -1;
     Typeface face;
-
+    String editColor = "#33267F00";
 
 
     // data is passed into the constructor
@@ -70,8 +72,6 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
             holder.txtMainText.setTypeface(holder.txtMainText.getTypeface(), Typeface.BOLD);
         }
 
-        holder.txtMainText.setEnabled(field.isEditable);
-
         if (field.isAccountField) {
             holder.txtMainText.setVisibility(View.GONE);
             holder.spinnerMainText.setVisibility(View.GONE);
@@ -89,7 +89,23 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
             holder.btnMainText.setVisibility(View.GONE);
         }
 
-        holder.txtMainText.setEnabled(field.isEditable);
+        if (field.isEditable) {
+            if (!field.isReadOnly) {
+                holder.spinnerMainText.setEnabled(true);
+                holder.txtMainText.setEnabled(true);
+                holder.spinnerMainText.setBackgroundColor(Color.parseColor(editColor));
+                holder.txtMainText.setBackgroundColor(Color.parseColor(editColor));
+            }
+        }
+
+        // Manage datetime fields
+        if (field.isDateField) {
+            // do something
+        } else if (field.isDateTimeField) {
+            // do something
+        } else {
+            // do something else
+        }
 
     }
 
@@ -123,12 +139,12 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
             spinnerMainText.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                    // if (mSpinnerChangeListener != null) mSpinnerChangeListener.onItemSelected(view, getAdapterPosition(), mData.get(getAdapterPosition()).optionSetValues);
+                    Log.i(TAG, "onItemSelected ");
                 }
 
                 @Override
                 public void onNothingSelected(AdapterView<?> adapterView) {
-
+                    Log.i(TAG, "onNothingSelected ");
                 }
             });
 

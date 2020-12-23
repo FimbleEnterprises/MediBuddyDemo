@@ -24,9 +24,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/txtLabel"
-        android:editable="false"
-        android:enabled="true"
+        android:editable="true"
+        android:enabled="false"
         android:fadeScrollbars="true"
+        android:inputType="text"
         android:text="Some value"
         android:textColor="@drawable/my_edit_eext_style"
         android:visibility="gone" />
@@ -51,12 +52,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/txtLabel"
-        android:enabled="true"
+        android:enabled="false"
         android:fadeScrollbars="true"
+        android:focusable="auto"
         android:text="Some value"
-        android:textSize="18sp"
         android:textAlignment="viewStart"
         android:textColor="@color/colorPrimaryAlt"
+        android:textSize="18sp"
         android:visibility="visible" />
 
 </RelativeLayout>

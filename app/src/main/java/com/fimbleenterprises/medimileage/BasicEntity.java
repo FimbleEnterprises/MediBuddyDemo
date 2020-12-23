@@ -25,6 +25,15 @@ public class BasicEntity {
         this.object = fromGson.object;
     }
 
+    public void setAccount(CrmEntities.Accounts.Account account) {
+        for (EntityBasicField field : this.list) {
+            if (field.isAccountField) {
+                field.account = account;
+                field.value = account.accountName;
+            }
+        }
+    }
+
     public String toGson() {
         Gson gson = new Gson();
         return gson.toJson(this);
@@ -39,6 +48,10 @@ public class BasicEntity {
         boolean isEditable = false;
         boolean isAccountField = false;
         boolean isOptionSet = false;
+        boolean isReadOnly = false;
+        boolean isDateField = false;
+        boolean isDateTimeField = false;
+        String crmFieldName;
         ArrayList<OptionSetValue> optionSetValues = new ArrayList<>();
         CrmEntities.Accounts.Account account;
 
@@ -53,9 +66,28 @@ public class BasicEntity {
             this.showLabel = true;
         }
 
+        public EntityContainers.EntityField toEntityField() {
+
+            if (this.isOptionSet) {
+                for (OptionSetValue value : this.optionSetValues) {
+                    if (value.name.equals(this.value)) {
+                        return new EntityContainers.EntityField(this.crmFieldName, value.value.toString());
+                    }
+                }
+                return null;
+            } else if (this.isAccountField) {
+                return new EntityContainers.EntityField(this.crmFieldName, this.account.accountid);
+            } else {
+                return new EntityContainers.EntityField(this.crmFieldName, this.value);
+            }
+        }
+
         public String[] toOptionsetValueArray() {
             String[] vals = new String[this.optionSetValues.size()];
-            return this.optionSetValues.toArray(vals);
+            for(int i = 0; i < this.optionSetValues.size(); i++) {
+                vals[i] = this.optionSetValues.get(i).name.toString();
+            }
+            return vals;
         }
 
         /**
@@ -64,6 +96,7 @@ public class BasicEntity {
         public static class OptionSetValue {
             String name;
             Object value;
+            boolean isSelected = false;
 
             public OptionSetValue(String name, Object value) {
                 this.name = name;
