@@ -9,7 +9,6 @@ import cz.msebera.android.httpclient.Header;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.Spannable;
@@ -65,6 +64,7 @@ public class BasicEntityActivity extends AppCompatActivity {
     String entityid;
     String entityLogicalName;
     String activityTitle;
+    BasicEntityActivityObjectRecyclerAdapter adapter;
     NonScrollRecyclerView notesListView;
     CrmEntities.Annotations.Annotation newImageBaseAnnotation;
     Dialog dialogNoteOptions;
@@ -79,7 +79,7 @@ public class BasicEntityActivity extends AppCompatActivity {
     TableLayout tblNotes;
     BasicEntity basicEntity;
     boolean hideMenu = false;
-    boolean isEditable = false;
+    boolean isEditMode = false;
     ArrayList<CrmEntities.Accounts.Account> cachedAccounts;
     Territory currentTerritory;
 
@@ -197,11 +197,10 @@ public class BasicEntityActivity extends AppCompatActivity {
                 finish();
                 break;
             case R.id.action_edit :
-                isEditable = true;
+                isEditMode = true;
                 populateForm(basicEntity.toGson(), true);
                 break;
             case R.id.action_update :
-                Toast.makeText(context, "Updating...", Toast.LENGTH_SHORT).show();
                 updateEntity();
                 break;
         }
@@ -316,7 +315,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                     CrmEntities.Accounts.Account account = data.getParcelableExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT);
                     cachedAccounts = data.getParcelableArrayListExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS);
                     this.basicEntity.setAccount(account);
-                    populateForm(this.basicEntity.toGson(), isEditable);
+                    populateForm(this.basicEntity.toGson(), isEditMode);
                     Log.i(TAG, "onActivityResult Chosen account: " + account.accountName);
                 } else if (data.hasExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS)) {
                     cachedAccounts = data.getParcelableArrayListExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS);
@@ -327,8 +326,12 @@ public class BasicEntityActivity extends AppCompatActivity {
 
     void updateEntity() {
 
+        final MyProgressDialog progressDialog = new MyProgressDialog(context, "Updating...");
+        progressDialog.show();
+
         EntityContainers.EntityContainer container = new EntityContainers.EntityContainer();
 
+        // Build the request
         for (BasicEntity.EntityBasicField field : this.basicEntity.list) {
             if (!field.isReadOnly) {
                 container.entityFields.add(field.toEntityField());
@@ -348,30 +351,38 @@ public class BasicEntityActivity extends AppCompatActivity {
         crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                isEditable = false;
+                isEditMode = false;
                 populateForm(basicEntity.toGson(), true);
                 Toast.makeText(context, "Updated!", Toast.LENGTH_SHORT).show();
+                populateForm(basicEntity.toGson(), false);
+                progressDialog.dismiss();
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
                 Toast.makeText(context, "Failed\n" + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                progressDialog.dismiss();
             }
         });
     }
 
-    void populateForm(String gson, boolean makeEditable) {
+    void populateForm(final String gson, boolean makeEditable) {
         this.basicEntity = new BasicEntity(gson);
 
         NonScrollRecyclerView recyclerView = findViewById(R.id.rvBasicObjects);
-        BasicEntityActivityObjectRecyclerAdapter adapter =
-                new BasicEntityActivityObjectRecyclerAdapter(this, this.basicEntity.list);
+        adapter = new BasicEntityActivityObjectRecyclerAdapter(this, this.basicEntity.list, new BasicEntityActivityObjectRecyclerAdapter.OnFieldsUpdatedListener() {
+            @Override
+            public void onUpdated(ArrayList<BasicEntity.EntityBasicField> fields) {
+                basicEntity.list = fields;
+                Log.i(TAG, "onUpdated ");
+            }
+        });
         adapter.setClickListener(new BasicEntityActivityObjectRecyclerAdapter.ItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
                 BasicEntity.EntityBasicField field = basicEntity.list.get(position);
 
-                if (isEditable) {
+                if (isEditMode) {
                     for (BasicEntity.EntityBasicField f : basicEntity.list) {
                         if (!f.isAccountField) {
                             f.isEditable = true;
@@ -380,7 +391,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                 }
 
                 if (field.isAccountField) {
-                    if (isEditable) {
+                    if (isEditMode) {
                         Log.i(TAG, "onItemClick ACCOUNT FIELD WHILE EDITING!");
                     } else {
                         Intent intent = new Intent(context, Activity_AccountData.class);
@@ -396,7 +407,7 @@ public class BasicEntityActivity extends AppCompatActivity {
             public void onItemButtonClick(View view, int position) {
                 BasicEntity.EntityBasicField field = basicEntity.list.get(position);
                 if (basicEntity.list.get(position).account != null) {
-                    if (isEditable) {
+                    if (isEditMode) {
                         Log.i(TAG, "onItemClick ACCOUNT FIELD WHILE EDITING!");
                         Intent intent = new Intent(context, FullscreenActivityChooseAccount.class);
                         intent.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, field.account);

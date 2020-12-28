@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 
 import java.util.ArrayList;
 
+import androidx.annotation.Nullable;
+
 public class BasicEntity {
 
     public Object object;
@@ -51,8 +53,11 @@ public class BasicEntity {
         boolean isReadOnly = false;
         boolean isDateField = false;
         boolean isDateTimeField = false;
+        boolean isEntityStatus = false;
         String crmFieldName;
+        boolean isEntityid = false;
         ArrayList<OptionSetValue> optionSetValues = new ArrayList<>();
+        ArrayList<StatusReason> statusReasons = new ArrayList<>();
         CrmEntities.Accounts.Account account;
 
 
@@ -91,6 +96,46 @@ public class BasicEntity {
         }
 
         /**
+         * Using the object's current value property, all available optionset values are evaluated
+         * and if a match is found, that optionset object is returned.
+         * @return The OptionSet value that equals the object's "value" field.
+         */
+        public @Nullable OptionSetValue tryGetValueFromName() {
+            try {
+                for (OptionSetValue value : this.optionSetValues) {
+                    if (value.name.equals(this.value)) {
+                        return value;
+                    }
+                }
+                return null;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        /**
+         * Using the object's current value property, all available optionset values are evaluated
+         * and if a match is found, that optionset object is returned.
+         * @return The OptionSet value that equals the object's "value" field.
+         */
+        public int tryGetValueIndexFromName() {
+            try {
+
+                for (int i = 0; i < this.optionSetValues.size(); i++) {
+                    OptionSetValue value = this.optionSetValues.get(i);
+                    if (value.name.equals(this.value)) {
+                        return i;
+                    }
+                }
+                return 0;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return 0;
+            }
+        }
+
+        /**
          * One of the values in an optionset
          */
         public static class OptionSetValue {
@@ -101,6 +146,19 @@ public class BasicEntity {
             public OptionSetValue(String name, Object value) {
                 this.name = name;
                 this.value = value;
+            }
+
+        }
+
+        public static class StatusReason {
+            public String requiredState;
+            public String statusReasonValue;
+            public String statusReasonText;
+
+            public StatusReason(String statusReasonText, String statusReasonValue, String requiredState) {
+                this.requiredState = requiredState;
+                this.statusReasonValue = statusReasonValue;
+                this.statusReasonText = statusReasonText;
             }
 
         }

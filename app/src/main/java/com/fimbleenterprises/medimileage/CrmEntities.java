@@ -2683,6 +2683,11 @@ public class CrmEntities {
             public BasicEntity toBasicEntity() {
 
                 BasicEntity entity = new BasicEntity(this);
+
+                BasicEntity.EntityBasicField statecode = new BasicEntity.EntityBasicField("statecode", "0");
+                statecode.crmFieldName = "statecode";
+                entity.list.add(statecode);
+
                 BasicEntity.EntityBasicField ticketNumber = new BasicEntity.EntityBasicField("Ticket number:", this.ticketnumber);
                 ticketNumber.crmFieldName = "ticketnumber";
                 ticketNumber.isReadOnly = true;
@@ -2742,34 +2747,38 @@ public class CrmEntities {
                 caseType.crmFieldName = "casetypecode";
                 caseType.optionSetValues = caseTypes;
                 caseType.isOptionSet = true;
+                caseType.isReadOnly = false;
                 entity.list.add(caseType);
 
-                ArrayList<BasicEntity.EntityBasicField.OptionSetValue> statusValues = new ArrayList<>();
-                statusValues.add(new BasicEntity.EntityBasicField.OptionSetValue("In Progress", "1"));
-                statusValues.add(new BasicEntity.EntityBasicField.OptionSetValue("On Hold", "2"));
-                statusValues.add(new BasicEntity.EntityBasicField.OptionSetValue("To be inspected", "100000002"));
-                statusValues.add(new BasicEntity.EntityBasicField.OptionSetValue("Waiting on rep", "3"));
-                statusValues.add(new BasicEntity.EntityBasicField.OptionSetValue("Waiting for product", "4"));
-                statusValues.add(new BasicEntity.EntityBasicField.OptionSetValue("Waiting on customer", "100000001"));
-                statusValues.add(new BasicEntity.EntityBasicField.OptionSetValue("To be billed", "100000003"));
-                statusValues.add(new BasicEntity.EntityBasicField.OptionSetValue("Problem solved", "5"));
+                ArrayList<BasicEntity.EntityBasicField.StatusReason> statusValues = new ArrayList<>();
+                statusValues.add(new BasicEntity.EntityBasicField.StatusReason("In Progress", "1", "0"));
+                statusValues.add(new BasicEntity.EntityBasicField.StatusReason("On Hold", "2", "0"));
+                statusValues.add(new BasicEntity.EntityBasicField.StatusReason("To be inspected", "100000002", "0"));
+                statusValues.add(new BasicEntity.EntityBasicField.StatusReason("Waiting on rep", "3", "0"));
+                statusValues.add(new BasicEntity.EntityBasicField.StatusReason("Waiting for product", "4", "0"));
+                statusValues.add(new BasicEntity.EntityBasicField.StatusReason("Waiting on customer", "100000001", "0"));
+                statusValues.add(new BasicEntity.EntityBasicField.StatusReason("To be billed", "100000003", "0"));
+                statusValues.add(new BasicEntity.EntityBasicField.StatusReason("Problem solved", "5", "0"));
                 BasicEntity.EntityBasicField statusValue = new BasicEntity.EntityBasicField("Status: ", statusFormatted);
                 statusValue.optionSetValues = statusValues;
                 statusValue.crmFieldName = "statuscode";
                 statusValue.isOptionSet = true;
+                statusValue.isReadOnly = false;
+                statusValue.isEntityStatus = true;
                 entity.list.add(statusValue);
 
                 ArrayList<BasicEntity.EntityBasicField.OptionSetValue> caseOrigins = new ArrayList<>();
-                caseOrigins.add(new BasicEntity.EntityBasicField.OptionSetValue("Saleslogix", "100000004"));
-                caseOrigins.add(new BasicEntity.EntityBasicField.OptionSetValue("Phone", "100000005"));
-                caseOrigins.add(new BasicEntity.EntityBasicField.OptionSetValue("Email", "100000006"));
-                caseOrigins.add(new BasicEntity.EntityBasicField.OptionSetValue("Web", "100000007"));
-                caseOrigins.add(new BasicEntity.EntityBasicField.OptionSetValue("Facebook", "1"));
-                caseOrigins.add(new BasicEntity.EntityBasicField.OptionSetValue("Twitter", "2"));
+                caseOrigins.add(new BasicEntity.EntityBasicField.OptionSetValue("Saleslogix", "100000000"));
+                caseOrigins.add(new BasicEntity.EntityBasicField.OptionSetValue("Phone", "1"));
+                caseOrigins.add(new BasicEntity.EntityBasicField.OptionSetValue("Email", "2"));
+                caseOrigins.add(new BasicEntity.EntityBasicField.OptionSetValue("Web", "3"));
+                caseOrigins.add(new BasicEntity.EntityBasicField.OptionSetValue("Facebook", "2483"));
+                caseOrigins.add(new BasicEntity.EntityBasicField.OptionSetValue("Twitter", "3986"));
                 BasicEntity.EntityBasicField caseOrigin = new BasicEntity.EntityBasicField("Case origin: ", caseOriginFormatted);
                 caseOrigin.optionSetValues = caseOrigins;
                 caseOrigin.crmFieldName = "caseorigincode";
                 caseOrigin.isOptionSet = true;
+                caseOrigin.isReadOnly = false;
                 entity.list.add(caseOrigin);
 
                 ArrayList<BasicEntity.EntityBasicField.OptionSetValue> subjects = new ArrayList<>();
@@ -2787,6 +2796,7 @@ public class CrmEntities {
                 subject.isOptionSet = true;
                 subject.crmFieldName = "subjectid";
                 subject.optionSetValues = subjects;
+                subject.isReadOnly = false;
                 entity.list.add(subject);
 
                 return entity;

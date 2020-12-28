@@ -1,11 +1,13 @@
 package com.fimbleenterprises.medimileage;
 
 import android.content.Context;
-import android.database.DataSetObserver;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,11 +18,11 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import androidx.appcompat.widget.AppCompatTextView;
 import androidx.recyclerview.widget.RecyclerView;
 
 
@@ -30,21 +32,27 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
     private ItemButtonClickListener mButtonClickListener;
-    private ItemSelectedListener mSpinnerChangeListener;
+    private TextWatcher mTextWather;
     MySettingsHelper options;
     Context context;
     public int selectedIndex = -1;
     Typeface face;
     String editColor = "#33267F00";
+    OnFieldsUpdatedListener onFieldsUpdatedListener;
 
+
+    public interface OnFieldsUpdatedListener {
+        void onUpdated(ArrayList<BasicEntity.EntityBasicField> fields);
+    }
 
     // data is passed into the constructor
-    public BasicEntityActivityObjectRecyclerAdapter(Context context, ArrayList<BasicEntity.EntityBasicField> data) {
+    public BasicEntityActivityObjectRecyclerAdapter(Context context, ArrayList<BasicEntity.EntityBasicField> data, OnFieldsUpdatedListener listener) {
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
         this.context = context;
         this.options = new MySettingsHelper(context);
         face = context.getResources().getFont(R.font.casual);
+        this.onFieldsUpdatedListener = listener;
     }
 
     // inflates the row layout from xml when needed
@@ -83,6 +91,10 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
             holder.spinnerMainText.setVisibility(View.VISIBLE);
             ArrayAdapter arrayAdapter = new ArrayAdapter(context, android.R.layout.simple_spinner_item, field.toOptionsetValueArray());
             holder.spinnerMainText.setAdapter(arrayAdapter);
+
+            // Try to find and select the proper item based on the object's value.
+            holder.spinnerMainText.setSelection(field.tryGetValueIndexFromName());
+
         } else {
             holder.txtMainText.setVisibility(View.VISIBLE);
             holder.spinnerMainText.setVisibility(View.GONE);
@@ -96,7 +108,11 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
                 holder.spinnerMainText.setBackgroundColor(Color.parseColor(editColor));
                 holder.txtMainText.setBackgroundColor(Color.parseColor(editColor));
             }
+        } else {
+            holder.spinnerMainText.setEnabled(false);
         }
+
+
 
         // Manage datetime fields
         if (field.isDateField) {
@@ -139,12 +155,67 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
             spinnerMainText.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                    Log.i(TAG, "onItemSelected ");
+
+                    try {
+                        String selectedValue = ((AppCompatTextView) view).getText().toString();
+                        BasicEntity.EntityBasicField field = mData.get(getAdapterPosition());
+
+                        if (!selectedValue.equals(field.value)) {
+                            field.value = selectedValue;
+                            onFieldsUpdatedListener.onUpdated(mData);
+                            Log.i(TAG, "onItemSelected ");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 @Override
                 public void onNothingSelected(AdapterView<?> adapterView) {
                     Log.i(TAG, "onNothingSelected ");
+                }
+            });
+
+            txtMainText.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                    Log.i(TAG, "beforeTextChanged " + txtMainText.getText().toString());
+                }
+
+                @Override
+                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                    Log.i(TAG, "onTextChanged " + txtMainText.getText().toString());
+                }
+
+                @Override
+                public void afterTextChanged(Editable editable) {
+                    try {
+                        Log.i(TAG, "afterTextChanged " + txtMainText.getText().toString());
+                        BasicEntity.EntityBasicField field = mData.get(getAdapterPosition());
+                        if (!field.value.equals(txtMainText.getText().toString())) {
+                            Log.i(TAG, "afterTextChanged Text actually changed!");
+                            field.value = txtMainText.getText().toString();
+                            onFieldsUpdatedListener.onUpdated(mData);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            txtMainText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                @Override
+                public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
+                    try {
+                        Log.i(TAG, "onEditorAction ");
+                        BasicEntity.EntityBasicField field = mData.get(getAdapterPosition());
+                        field.value = txtMainText.getText().toString();
+                        onFieldsUpdatedListener.onUpdated(mData);
+                        return false;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return false;
+                    }
                 }
             });
 
@@ -164,19 +235,20 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
         @Override
         public boolean onLongClick(View view) {
             BasicEntity.EntityBasicField clickedTrip = mData.get(getAdapterPosition());
+            Log.i(TAG, "onLongClick ");
             return true;
         }
 
 
         @Override
         public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-            /*BasicEntity.EntityOptionSetField optionSetField = (BasicEntity.EntityOptionSetField) mData.get(getAdapterPosition());
-            if (mSpinnerChangeListener != null) mSpinnerChangeListener.onItemSelected(view, getAdapterPosition(), optionSetField);*/
+            BasicEntity.EntityBasicField clickedTrip = mData.get(getAdapterPosition());
+            Log.i(TAG, "onItemSelected ");
         }
 
         @Override
         public void onNothingSelected(AdapterView<?> adapterView) {
-
+            BasicEntity.EntityBasicField clickedTrip = mData.get(getAdapterPosition());
         }
     }
 
