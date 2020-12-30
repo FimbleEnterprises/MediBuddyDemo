@@ -17,11 +17,78 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <!-- ENTITY STATUS LABEL AND SPINNER -->
+        <TableLayout
+            android:id="@+id/tableLayout_status_table"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:paddingBottom="2dp"
+            android:paddingTop="2dp">
+
+            <TableRow
+                android:id="@+id/tableRow_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/textView_status_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:gravity="left"
+                        android:text="Status:"
+                        android:textAlignment="viewStart"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="#454545"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </FrameLayout>
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/tableRow_status_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <Spinner
+                        android:id="@+id/spinnerStatus"
+                        style="?android:attr/borderlessButtonStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:enabled="false"
+                        android:fadeScrollbars="true"
+                        android:focusable="auto"
+                        android:text="Some value"
+                        android:textAlignment="viewStart"
+                        android:textColor="@color/colorPrimaryAlt"
+                        android:textSize="18sp"
+                        android:visibility="visible" />
+                </FrameLayout>
+            </TableRow>
+
+
+        </TableLayout>
+
+        <!-- ENTITY FIELDS -->
         <com.fimbleenterprises.medimileage.NonScrollRecyclerView
             android:id="@+id/rvBasicObjects"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tableLayout_status_table" />
 
+        <!-- NOTES HEADER AND ADD NOTE BUTTON -->
         <TableLayout
             android:id="@+id/tableLayout_notes"
             android:layout_width="fill_parent"
@@ -111,6 +178,7 @@
 
         </TableLayout>
 
+        <!-- NOTES -->
         <com.fimbleenterprises.medimileage.NonScrollRecyclerView
             android:id="@+id/notesRecyclerView"
             android:layout_width="match_parent"

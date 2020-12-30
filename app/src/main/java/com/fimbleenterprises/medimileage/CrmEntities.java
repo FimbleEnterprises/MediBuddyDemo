@@ -1496,28 +1496,28 @@ public class CrmEntities {
 
             public BasicEntity toBasicEntity() {
                 BasicEntity basicEntity = new BasicEntity(this);
-                basicEntity.list.add(new BasicEntity.EntityBasicField("Topic:", this.name));
+                basicEntity.fields.add(new BasicEntity.EntityBasicField("Topic:", this.name));
                 BasicEntity.EntityBasicField accountField = new BasicEntity.EntityBasicField("Account:", this.accountname);
                 accountField.isAccountField = true;
                 Accounts.Account account = new Accounts.Account();
                 account.accountid = this.accountid;
                 account.accountName = this.accountname;
                 accountField.account = account;
-                basicEntity.list.add(accountField);
-                basicEntity.list.add(new BasicEntity.EntityBasicField("Background:", this.currentSituation));
-                basicEntity.list.add(new BasicEntity.EntityBasicField("Status:", this.status));
-                basicEntity.list.add(new BasicEntity.EntityBasicField("Deal status:", this.dealStatus));
-                basicEntity.list.add(new BasicEntity.EntityBasicField("Deal type:", this.dealTypePretty));
-                basicEntity.list.add(new BasicEntity.EntityBasicField("Close probability:", this.probabilityPretty));
-                basicEntity.list.add(new BasicEntity.EntityBasicField("Device revenue:", this.estDeviceRev));
-                basicEntity.list.add(new BasicEntity.EntityBasicField("Probe revenue:", this.estProbeRev));
-                basicEntity.list.add(new BasicEntity.EntityBasicField("Total revenue:", this.estTotalRev));
-                basicEntity.list.add(new BasicEntity.EntityBasicField("Territory revenue:", this.estTerritoryRev));
-                basicEntity.list.add(new BasicEntity.EntityBasicField("Step:", this.stepName));
-                basicEntity.list.add(new BasicEntity.EntityBasicField("Created on:", Helpers.DatesAndTimes.getPrettyDateAndTime(this.getCreatedOn())));
-                basicEntity.list.add(new BasicEntity.EntityBasicField("Created by:", this.createdByFormatted));
-                basicEntity.list.add(new BasicEntity.EntityBasicField("Modified on:", this.modifiedOnFormatted));
-                basicEntity.list.add(new BasicEntity.EntityBasicField("Modified by:", this.modifiedByFormatted));
+                basicEntity.fields.add(accountField);
+                basicEntity.fields.add(new BasicEntity.EntityBasicField("Background:", this.currentSituation));
+                basicEntity.fields.add(new BasicEntity.EntityBasicField("Status:", this.status));
+                basicEntity.fields.add(new BasicEntity.EntityBasicField("Deal status:", this.dealStatus));
+                basicEntity.fields.add(new BasicEntity.EntityBasicField("Deal type:", this.dealTypePretty));
+                basicEntity.fields.add(new BasicEntity.EntityBasicField("Close probability:", this.probabilityPretty));
+                basicEntity.fields.add(new BasicEntity.EntityBasicField("Device revenue:", this.estDeviceRev));
+                basicEntity.fields.add(new BasicEntity.EntityBasicField("Probe revenue:", this.estProbeRev));
+                basicEntity.fields.add(new BasicEntity.EntityBasicField("Total revenue:", this.estTotalRev));
+                basicEntity.fields.add(new BasicEntity.EntityBasicField("Territory revenue:", this.estTerritoryRev));
+                basicEntity.fields.add(new BasicEntity.EntityBasicField("Step:", this.stepName));
+                basicEntity.fields.add(new BasicEntity.EntityBasicField("Created on:", Helpers.DatesAndTimes.getPrettyDateAndTime(this.getCreatedOn())));
+                basicEntity.fields.add(new BasicEntity.EntityBasicField("Created by:", this.createdByFormatted));
+                basicEntity.fields.add(new BasicEntity.EntityBasicField("Modified on:", this.modifiedOnFormatted));
+                basicEntity.fields.add(new BasicEntity.EntityBasicField("Modified by:", this.modifiedByFormatted));
 
                 return basicEntity;
             }
@@ -2296,12 +2296,12 @@ public class CrmEntities {
 
             public BasicEntity toBasicEntity() {
                 BasicEntity entity = new BasicEntity(this);
-                entity.list.add(new BasicEntity.EntityBasicField("Name:", this.fullname));
-                entity.list.add(new BasicEntity.EntityBasicField("Email:", this.email));
-                entity.list.add(new BasicEntity.EntityBasicField("Phone:", this.mobile));
-                entity.list.add(new BasicEntity.EntityBasicField("Account:", this.accountFormatted));
-                entity.list.add(new BasicEntity.EntityBasicField("Title:", this.jobtitle));
-                entity.list.add(new BasicEntity.EntityBasicField("NPI:", this.npiFormatted));
+                entity.fields.add(new BasicEntity.EntityBasicField("Name:", this.fullname));
+                entity.fields.add(new BasicEntity.EntityBasicField("Email:", this.email));
+                entity.fields.add(new BasicEntity.EntityBasicField("Phone:", this.mobile));
+                entity.fields.add(new BasicEntity.EntityBasicField("Account:", this.accountFormatted));
+                entity.fields.add(new BasicEntity.EntityBasicField("Title:", this.jobtitle));
+                entity.fields.add(new BasicEntity.EntityBasicField("NPI:", this.npiFormatted));
                 return entity;
             }
 
@@ -2684,54 +2684,50 @@ public class CrmEntities {
 
                 BasicEntity entity = new BasicEntity(this);
 
-                BasicEntity.EntityBasicField statecode = new BasicEntity.EntityBasicField("statecode", "0");
-                statecode.crmFieldName = "statecode";
-                entity.list.add(statecode);
-
                 BasicEntity.EntityBasicField ticketNumber = new BasicEntity.EntityBasicField("Ticket number:", this.ticketnumber);
                 ticketNumber.crmFieldName = "ticketnumber";
                 ticketNumber.isReadOnly = true;
-                entity.list.add(ticketNumber);
+                entity.fields.add(ticketNumber);
 
                 BasicEntity.EntityBasicField titleField = new BasicEntity.EntityBasicField("Title:", this.title);
                 titleField.crmFieldName = "title";
-                entity.list.add(titleField);
+                entity.fields.add(titleField);
 
                 BasicEntity.EntityBasicField descriptionField = new BasicEntity.EntityBasicField("Description:", this.description);
                 descriptionField.crmFieldName = "description";
-                entity.list.add(descriptionField);
+                entity.fields.add(descriptionField);
 
                 BasicEntity.EntityBasicField accountField = new BasicEntity.EntityBasicField("Customer:", this.customerFormatted);
                 accountField.isAccountField = true;
                 accountField.crmFieldName = "customerid";
                 accountField.account = new Accounts.Account(this.customerid, this.customerFormatted);
-                entity.list.add(accountField);
+                entity.fields.add(accountField);
 
                 BasicEntity.EntityBasicField territory = new BasicEntity.EntityBasicField("Territory:", this.territoryFormatted);
                 territory.isReadOnly = true;
-                entity.list.add(territory);
+                entity.fields.add(territory);
 
                 BasicEntity.EntityBasicField rep = new BasicEntity.EntityBasicField("Rep:", this.repFormatted);
                 rep.isReadOnly = true;
-                entity.list.add(rep);
+                entity.fields.add(rep);
 
                 BasicEntity.EntityBasicField createdOn = new BasicEntity.EntityBasicField("Created on:", Helpers.DatesAndTimes.getPrettyDateAndTime(this.createdon));
                 createdOn.isReadOnly = true;
                 createdOn.isDateTimeField = true;
-                entity.list.add(createdOn);
+                entity.fields.add(createdOn);
 
                 BasicEntity.EntityBasicField createdBy = new BasicEntity.EntityBasicField("Created by:", this.createdByFormatted);
                 createdBy.isReadOnly = true;
-                entity.list.add(createdBy);
+                entity.fields.add(createdBy);
 
                 BasicEntity.EntityBasicField modifiedOn = new BasicEntity.EntityBasicField("Modified on:", Helpers.DatesAndTimes.getPrettyDateAndTime(this.modifiedon));
                 modifiedOn.isDateTimeField = true;
                 modifiedOn.isReadOnly = true;
-                entity.list.add(modifiedOn);
+                entity.fields.add(modifiedOn);
 
                 BasicEntity.EntityBasicField modifiedBy = new BasicEntity.EntityBasicField("Modified by:", this.modifiedByFormatted);
                 modifiedBy.isReadOnly = true;
-                entity.list.add(modifiedBy);
+                entity.fields.add(modifiedBy);
 
                 ArrayList<BasicEntity.EntityBasicField.OptionSetValue> caseTypes = new ArrayList<>();
                 caseTypes.add(new BasicEntity.EntityBasicField.OptionSetValue("Complaint", "100000004"));
@@ -2748,22 +2744,20 @@ public class CrmEntities {
                 caseType.optionSetValues = caseTypes;
                 caseType.isOptionSet = true;
                 caseType.isReadOnly = false;
-                entity.list.add(caseType);
+                entity.fields.add(caseType);
 
-                ArrayList<BasicEntity.EntityBasicField.StatusReason> statusValues = new ArrayList<>();
-                statusValues.add(new BasicEntity.EntityBasicField.StatusReason("In Progress", "1", "0"));
-                statusValues.add(new BasicEntity.EntityBasicField.StatusReason("On Hold", "2", "0"));
-                statusValues.add(new BasicEntity.EntityBasicField.StatusReason("To be inspected", "100000002", "0"));
-                statusValues.add(new BasicEntity.EntityBasicField.StatusReason("Waiting on rep", "3", "0"));
-                statusValues.add(new BasicEntity.EntityBasicField.StatusReason("Waiting for product", "4", "0"));
-                statusValues.add(new BasicEntity.EntityBasicField.StatusReason("Waiting on customer", "100000001", "0"));
-                statusValues.add(new BasicEntity.EntityBasicField.StatusReason("To be billed", "100000003", "0"));
-                statusValues.add(new BasicEntity.EntityBasicField.StatusReason("Problem solved", "5", "0"));
-                BasicEntity.EntityBasicField statusReason = new BasicEntity.EntityBasicField("Status", statusFormatted);
-                statusReason.statusReasons = statusValues;
-                statusReason.isEntityStatus = true;
-                statusReason.isReadOnly = false;
-                entity.list.add(statusReason);
+                ArrayList<BasicEntity.EntityStatusReason> statusValues = new ArrayList<>();
+                statusValues.add(new BasicEntity.EntityStatusReason("In Progress", "1", "0"));
+                statusValues.add(new BasicEntity.EntityStatusReason("On Hold", "2", "0"));
+                statusValues.add(new BasicEntity.EntityStatusReason("To be inspected", "100000002", "0"));
+                statusValues.add(new BasicEntity.EntityStatusReason("Waiting on rep", "3", "0"));
+                statusValues.add(new BasicEntity.EntityStatusReason("Waiting for product", "4", "0"));
+                statusValues.add(new BasicEntity.EntityStatusReason("Waiting on customer", "100000001", "0"));
+                statusValues.add(new BasicEntity.EntityStatusReason("To be billed", "100000003", "0"));
+                statusValues.add(new BasicEntity.EntityStatusReason("Problem solved", "5", "0"));
+                entity.availableEntityStatusReasons = statusValues;
+                entity.entityStatusReason = new BasicEntity.EntityStatusReason(this.statusFormatted,
+                        Integer.toString(this.statuscode), Integer.toString(this.statecode));
 
                 ArrayList<BasicEntity.EntityBasicField.OptionSetValue> caseOrigins = new ArrayList<>();
                 caseOrigins.add(new BasicEntity.EntityBasicField.OptionSetValue("Saleslogix", "100000000"));
@@ -2777,7 +2771,7 @@ public class CrmEntities {
                 caseOrigin.crmFieldName = "caseorigincode";
                 caseOrigin.isOptionSet = true;
                 caseOrigin.isReadOnly = false;
-                entity.list.add(caseOrigin);
+                entity.fields.add(caseOrigin);
 
                 ArrayList<BasicEntity.EntityBasicField.OptionSetValue> subjects = new ArrayList<>();
                 subjects.add(new BasicEntity.EntityBasicField.OptionSetValue("Credit hold", "D8BAD965-5B66-E711-80D6-005056A36B9B"));
@@ -2795,7 +2789,7 @@ public class CrmEntities {
                 subject.crmFieldName = "subjectid";
                 subject.optionSetValues = subjects;
                 subject.isReadOnly = false;
-                entity.list.add(subject);
+                entity.fields.add(subject);
 
                 return entity;
             }

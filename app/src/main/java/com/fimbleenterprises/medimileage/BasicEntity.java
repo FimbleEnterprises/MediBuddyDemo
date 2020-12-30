@@ -8,27 +8,34 @@ import androidx.annotation.Nullable;
 
 public class BasicEntity {
 
-    public Object object;
-    public ArrayList<EntityBasicField> list = new ArrayList<>();
+    public Object baseEntity;
+    public EntityStatusReason entityStatusReason;
+    public ArrayList<EntityStatusReason> availableEntityStatusReasons = new ArrayList<>();
+    public ArrayList<EntityBasicField> fields = new ArrayList<>();
 
     public BasicEntity() {
 
     }
 
-    public BasicEntity(Object object) {
-        this.object = object;
+    public BasicEntity(Object baseEntity) {
+        this.baseEntity = baseEntity;
     }
 
     public BasicEntity(String gsonString) {
         Gson gson = new Gson();
-        BasicEntity fromGson = new BasicEntity();
-        fromGson = gson.fromJson(gsonString, this.getClass());
-        this.list = fromGson.list;
-        this.object = fromGson.object;
+        BasicEntity fromGson = gson.fromJson(gsonString, this.getClass());
+        this.fields = fromGson.fields;
+        this.availableEntityStatusReasons = fromGson.availableEntityStatusReasons;
+        this.entityStatusReason = fromGson.entityStatusReason;
+        this.baseEntity = fromGson.baseEntity;
+    }
+
+    public boolean hasStatusValue() {
+        return this.entityStatusReason != null;
     }
 
     public void setAccount(CrmEntities.Accounts.Account account) {
-        for (EntityBasicField field : this.list) {
+        for (EntityBasicField field : this.fields) {
             if (field.isAccountField) {
                 field.account = account;
                 field.value = account.accountName;
@@ -39,6 +46,57 @@ public class BasicEntity {
     public String toGson() {
         Gson gson = new Gson();
         return gson.toJson(this);
+    }
+
+    public String[] toStatusReasonsArray() {
+        String[] vals = new String[this.availableEntityStatusReasons.size()];
+        for(int i = 0; i < this.availableEntityStatusReasons.size(); i++) {
+            vals[i] = this.availableEntityStatusReasons.get(i).statusReasonText.toString();
+        }
+        return vals;
+    }
+
+    public int getStatusReasonIndex() {
+        for (int i = 0; i < this.availableEntityStatusReasons.size(); i++) {
+            EntityStatusReason reason = this.availableEntityStatusReasons.get(i);
+            if (reason.statusReasonText.equals(this.entityStatusReason.statusReasonText)) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    public EntityStatusReason getStatusReasonFromAvailable() {
+        for (int i = 0; i < this.availableEntityStatusReasons.size(); i++) {
+            EntityStatusReason reason = this.availableEntityStatusReasons.get(i);
+            if (reason.statusReasonText.equals(this.entityStatusReason.statusReasonText)) {
+                return reason;
+            }
+        }
+        return null;
+    }
+
+    public static class EntityStatusReason {
+        public String requiredState;
+        public String statusReasonValue;
+        public String statusReasonText;
+
+        public EntityStatusReason(String statusReasonText, String statusReasonValue, String requiredState) {
+            this.requiredState = requiredState;
+            this.statusReasonValue = statusReasonValue;
+            this.statusReasonText = statusReasonText;
+        }
+
+        @Override
+        public String toString() {
+            try {
+                return this.statusReasonText;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "";
+            }
+        }
+
     }
 
     public static class EntityBasicField {
@@ -53,12 +111,10 @@ public class BasicEntity {
         boolean isReadOnly = false;
         boolean isDateField = false;
         boolean isDateTimeField = false;
-        boolean isEntityStatus = false;
         String crmFieldName;
         boolean isEntityid = false;
         ArrayList<OptionSetValue> optionSetValues = new ArrayList<>();
-        ArrayList<StatusReason> statusReasons = new ArrayList<>();
-        CrmEntities.Accounts.Account account;
+        ArrayList<EntityStatusReason> entityStatusReasons = new ArrayList<>();        CrmEntities.Accounts.Account account;
 
 
         public EntityBasicField(String label) {
@@ -95,14 +151,6 @@ public class BasicEntity {
             return vals;
         }
 
-        public String[] toStatusReasonsArray() {
-            String[] vals = new String[this.statusReasons.size()];
-            for(int i = 0; i < this.statusReasons.size(); i++) {
-                vals[i] = this.statusReasons.get(i).statusReasonText.toString();
-            }
-            return vals;
-        }
-
         /**
          * Using the object's current value property, all available optionset values are evaluated
          * and if a match is found, that optionset object is returned.
@@ -124,20 +172,33 @@ public class BasicEntity {
 
         /**
          * Using the object's current value property, all available optionset values are evaluated
+         * and if a match is found, that optionset object is returned.
+         * @return The OptionSet value that equals the object's "value" field.
+         */
+        public @Nullable
+        EntityStatusReason tryGetStatusFromName() {
+            try {
+                for (EntityStatusReason value : this.entityStatusReasons) {
+                    if (value.statusReasonText.equals(this.value)) {
+                        return value;
+                    }
+                }
+                return null;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        /**
+         * Using the object's current value property, all available optionset values are evaluated
          * and if a match is found, that optionset object is returned.  If the object is a status reason
          * then the status reasons will be parsed instead.
          * @return The OptionSet value that equals the object's "value" field.
          */
         public int tryGetValueIndexFromName() {
             try {
-                if (isEntityStatus) {
-                    for (int i = 0; i < this.statusReasons.size(); i++) {
-                        StatusReason value = this.statusReasons.get(i);
-                        if (value.statusReasonText.equals(this.value)) {
-                            return i;
-                        }
-                    }
-                } else if (isOptionSet) {
+                if (isOptionSet) {
                     for (int i = 0; i < this.optionSetValues.size(); i++) {
                         OptionSetValue value = this.optionSetValues.get(i);
                         if (value.name.equals(this.value)) {
@@ -168,19 +229,15 @@ public class BasicEntity {
             }
         }
 
-        public static class StatusReason {
-            public String requiredState;
-            public String statusReasonValue;
-            public String statusReasonText;
-
-            public StatusReason(String statusReasonText, String statusReasonValue, String requiredState) {
-                this.requiredState = requiredState;
-                this.statusReasonValue = statusReasonValue;
-                this.statusReasonText = statusReasonText;
+        @Override
+        public String toString() {
+            try {
+                return this.label + " | isReadOnly:" + this.isReadOnly + " | value: " + this.value;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "";
             }
-
         }
-
 
     }
 }

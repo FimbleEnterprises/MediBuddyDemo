@@ -37,9 +37,14 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
     Context context;
     public int selectedIndex = -1;
     Typeface face;
-    String editColor = "#33267F00";
+    public static String editColor = "#33267F00";
     OnFieldsUpdatedListener onFieldsUpdatedListener;
+    OnStatusChangedListener onStatusChangedListener;
+    BasicEntity.EntityStatusReason currentStatus;
 
+    public interface OnStatusChangedListener {
+        void onStatusChanged(BasicEntity.EntityStatusReason oldStatus, BasicEntity.EntityStatusReason newStatus);
+    }
 
     public interface OnFieldsUpdatedListener {
         void onUpdated(ArrayList<BasicEntity.EntityBasicField> fields);
@@ -94,15 +99,6 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
 
             // Try to find and select the proper item based on the object's value.
             holder.spinnerMainText.setSelection(field.tryGetValueIndexFromName());
-        } else if (field.isEntityStatus) {
-            holder.txtMainText.setVisibility(View.GONE);
-            holder.btnMainText.setVisibility(View.GONE);
-            holder.spinnerMainText.setVisibility(View.VISIBLE);
-            ArrayAdapter arrayAdapter = new ArrayAdapter(context, android.R.layout.simple_spinner_item, field.toStatusReasonsArray());
-            holder.spinnerMainText.setAdapter(arrayAdapter);
-
-            // Try to find and select the proper item based on the object's value.
-            holder.spinnerMainText.setSelection(field.tryGetValueIndexFromName());
         } else {
             holder.txtMainText.setVisibility(View.VISIBLE);
             holder.spinnerMainText.setVisibility(View.GONE);
@@ -137,6 +133,10 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
     @Override
     public int getItemCount() {
         return mData.size();
+    }
+
+    public void setOnStatusChangedListener(OnStatusChangedListener statusChangedListener) {
+        this.onStatusChangedListener = statusChangedListener;
     }
 
     // stores and recycles views as they are scrolled off screen
@@ -246,7 +246,6 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
             Log.i(TAG, "onLongClick ");
             return true;
         }
-
 
         @Override
         public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {

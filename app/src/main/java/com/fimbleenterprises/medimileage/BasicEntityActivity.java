@@ -9,21 +9,26 @@ import cz.msebera.android.httpclient.Header;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -78,16 +83,20 @@ public class BasicEntityActivity extends AppCompatActivity {
     ImageButton btnAddNote;
     TableLayout tblNotes;
     BasicEntity basicEntity;
+    MySettingsHelper options;
     boolean hideMenu = false;
     boolean isEditMode = false;
     ArrayList<CrmEntities.Accounts.Account> cachedAccounts;
+    Spinner spinnerStatus;
     Territory currentTerritory;
+    boolean statusChangePending = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = this;
         setContentView(R.layout.basic_entity_activity);
+        options = new MySettingsHelper(context);
 
         try {
             if (currentTerritory == null) {
@@ -147,6 +156,20 @@ public class BasicEntityActivity extends AppCompatActivity {
             finish();
         }
 
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (this.isEditMode) {
+                this.isEditMode = false;
+                populateForm(basicEntity.toGson(), false);
+                return true;
+            }
+        }
+
+        return super.onKeyDown(keyCode, event);
     }
 
     @Override
@@ -324,6 +347,133 @@ public class BasicEntityActivity extends AppCompatActivity {
         }
     }
 
+    void populateForm(final String gson, boolean makeEditable) {
+        this.basicEntity = new BasicEntity(gson);
+
+        // Check if a status was associated and show that status if so
+        View statusTable = findViewById(R.id.tableLayout_status_table);
+
+        statusTable.setVisibility(this.basicEntity.hasStatusValue() ? View.VISIBLE : View.GONE);
+
+        spinnerStatus = findViewById(R.id.spinnerStatus);
+        spinnerStatus.setEnabled(isEditMode);
+        spinnerStatus.setBackgroundColor(isEditMode ? Color.parseColor(
+                BasicEntityActivityObjectRecyclerAdapter.editColor) : Color.parseColor("#00000000"));
+
+        if (this.basicEntity.hasStatusValue()) {
+            ArrayAdapter arrayAdapter = new ArrayAdapter(context, android.R.layout.simple_spinner_item, this.basicEntity.toStatusReasonsArray());
+            spinnerStatus.setAdapter(arrayAdapter);
+            spinnerStatus.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                    BasicEntity.EntityStatusReason selectedReason = basicEntity.availableEntityStatusReasons.get(i);
+                    if (!selectedReason.statusReasonText.equals(basicEntity.entityStatusReason.statusReasonText)) {
+                        Log.i(TAG, "onItemSelected ");
+                        statusChangePending = true;
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+                    Log.i(TAG, "onNothingSelected ");
+                }
+            });
+            spinnerStatus.setSelection(this.basicEntity.getStatusReasonIndex());
+        }
+
+        NonScrollRecyclerView recyclerView = findViewById(R.id.rvBasicObjects);
+        adapter = new BasicEntityActivityObjectRecyclerAdapter(this, this.basicEntity.fields,
+                new BasicEntityActivityObjectRecyclerAdapter.OnFieldsUpdatedListener() {
+                    /*******************************************************************************
+                    * THIS IS WHERE THE MAIN ENTITY OBJECT IS UPDATED WHEN USER CHANGES VALUES
+                    *******************************************************************************/
+                    @Override
+                    public void onUpdated(ArrayList<BasicEntity.EntityBasicField> fields) {
+                        basicEntity.fields = fields;
+                        Log.i(TAG, "onUpdated ");
+                    }
+                });
+
+        /*******************************************************************************
+        * This is the listview's row instead of the view it may contain.  There should be identical logic
+        * for any interactive view inside this row.
+        *******************************************************************************/
+        adapter.setClickListener(new BasicEntityActivityObjectRecyclerAdapter.ItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                BasicEntity.EntityBasicField field = basicEntity.fields.get(position);
+
+                if (isEditMode) {
+                    for (BasicEntity.EntityBasicField f : basicEntity.fields) {
+                        if (!f.isAccountField) {
+                            f.isEditable = true;
+                        }
+                    }
+                }
+
+                if (field.isAccountField) {
+                    if (isEditMode) {
+                        Log.i(TAG, "onItemClick ACCOUNT FIELD WHILE EDITING!");
+                    } else {
+                        Intent intent = new Intent(context, Activity_AccountData.class);
+                        intent.setAction(Activity_AccountData.GO_TO_ACCOUNT);
+                        intent.putExtra(Activity_AccountData.GO_TO_ACCOUNT_OBJECT, field.account);
+                        startActivity(intent);
+                    }
+                }
+            }
+        });
+
+        /*******************************************************************************
+         * This is a button inside the row, probably for an account entity value
+         *******************************************************************************/
+        adapter.setButtonClickListener(new BasicEntityActivityObjectRecyclerAdapter.ItemButtonClickListener() {
+            @Override
+            public void onItemButtonClick(View view, int position) {
+                BasicEntity.EntityBasicField field = basicEntity.fields.get(position);
+                if (basicEntity.fields.get(position).account != null) {
+                    if (isEditMode) {
+                        Log.i(TAG, "onItemClick ACCOUNT FIELD WHILE EDITING!");
+                        Intent intent = new Intent(context, FullscreenActivityChooseAccount.class);
+                        intent.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, field.account);
+                        intent.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
+                        intent.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, currentTerritory);
+                        startActivityForResult(intent, FullscreenActivityChooseAccount.REQUESTCODE);
+                    } else {
+                        Intent intent = new Intent(context, Activity_AccountData.class);
+                        intent.setAction(Activity_AccountData.GO_TO_ACCOUNT);
+                        intent.putExtra(Activity_AccountData.GO_TO_ACCOUNT_OBJECT, field.account);
+                        startActivity(intent);
+                    }
+                }
+            }
+        });
+
+        for (BasicEntity.EntityBasicField field : this.basicEntity.fields) {
+            field.isEditable = makeEditable;
+        }
+
+        /*******************************************************************************
+         * This should be fired only if the spinner marked as the entity status is actually changed.
+         *******************************************************************************/
+        adapter.setOnStatusChangedListener(new BasicEntityActivityObjectRecyclerAdapter.OnStatusChangedListener() {
+            @Override
+            public void onStatusChanged(BasicEntity.EntityStatusReason oldStatus, BasicEntity.EntityStatusReason newStatus) {
+                try {
+                    Log.i(TAG, "onStatusChanged old status: " + oldStatus.statusReasonText + " | new status: " + newStatus.statusReasonText);
+                    statusChangePending = true;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        recyclerView.setAdapter(null);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setNestedScrollingEnabled(false); // Disables scrolling
+        recyclerView.setAdapter(adapter);
+    }
+
     void updateEntity() {
 
         final MyProgressDialog progressDialog = new MyProgressDialog(context, "Updating...");
@@ -332,8 +482,8 @@ public class BasicEntityActivity extends AppCompatActivity {
         EntityContainers.EntityContainer container = new EntityContainers.EntityContainer();
 
         // Build the request
-        for (BasicEntity.EntityBasicField field : this.basicEntity.list) {
-            if (!field.isReadOnly && !field.isEntityStatus) {
+        for (BasicEntity.EntityBasicField field : this.basicEntity.fields) {
+            if (!field.isReadOnly) {
                 container.entityFields.add(field.toEntityField());
             }
         }
@@ -356,6 +506,11 @@ public class BasicEntityActivity extends AppCompatActivity {
                 Toast.makeText(context, "Updated!", Toast.LENGTH_SHORT).show();
                 populateForm(basicEntity.toGson(), false);
                 progressDialog.dismiss();
+
+                if (statusChangePending) {
+                    updateEntityStatus();
+                }
+
             }
 
             @Override
@@ -366,72 +521,47 @@ public class BasicEntityActivity extends AppCompatActivity {
         });
     }
 
-    void populateForm(final String gson, boolean makeEditable) {
-        this.basicEntity = new BasicEntity(gson);
+    void updateEntityStatus() {
 
-        NonScrollRecyclerView recyclerView = findViewById(R.id.rvBasicObjects);
-        adapter = new BasicEntityActivityObjectRecyclerAdapter(this, this.basicEntity.list, new BasicEntityActivityObjectRecyclerAdapter.OnFieldsUpdatedListener() {
+        /*
+        entityName = (string)value.Arguments[0].value;
+        entityid = (string)value.Arguments[1].value;
+        int newstate = (int)value.Arguments[2].value;
+        int newstatus = (int)value.Arguments[3].value;
+        asUserid = (string)value.Arguments[4].value;
+        */
+
+        final MyProgressDialog progressDialog = new MyProgressDialog(context, "Updating...");
+        progressDialog.show();
+
+        Log.i(TAG, "updateEntity ");
+
+        // id, name, cont, user
+        Requests.Request request = new Requests.Request(Requests.Request.Function.SET_STATE);
+        request.arguments.add(new Requests.Argument("name", entityLogicalName));
+        request.arguments.add(new Requests.Argument("entityid", entityid));
+        request.arguments.add(new Requests.Argument("newstate", basicEntity.entityStatusReason.requiredState));
+        request.arguments.add(new Requests.Argument("newstatus", basicEntity.entityStatusReason.statusReasonValue));
+        request.arguments.add(new Requests.Argument("asuserid", MediUser.getMe().systemuserid));
+
+        Crm crm = new Crm();
+        crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
             @Override
-            public void onUpdated(ArrayList<BasicEntity.EntityBasicField> fields) {
-                basicEntity.list = fields;
-                Log.i(TAG, "onUpdated ");
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                Log.i(TAG, "onSuccess ");
+                Toast.makeText(BasicEntityActivity.this, "Status was updated", Toast.LENGTH_SHORT).show();
+                progressDialog.dismiss();
+                statusChangePending = false;
             }
-        });
-        adapter.setClickListener(new BasicEntityActivityObjectRecyclerAdapter.ItemClickListener() {
-            @Override
-            public void onItemClick(View view, int position) {
-                BasicEntity.EntityBasicField field = basicEntity.list.get(position);
 
-                if (isEditMode) {
-                    for (BasicEntity.EntityBasicField f : basicEntity.list) {
-                        if (!f.isAccountField) {
-                            f.isEditable = true;
-                        }
-                    }
-                }
-
-                if (field.isAccountField) {
-                    if (isEditMode) {
-                        Log.i(TAG, "onItemClick ACCOUNT FIELD WHILE EDITING!");
-                    } else {
-                        Intent intent = new Intent(context, Activity_AccountData.class);
-                        intent.setAction(Activity_AccountData.GO_TO_ACCOUNT);
-                        intent.putExtra(Activity_AccountData.GO_TO_ACCOUNT_OBJECT, field.account);
-                        startActivity(intent);
-                    }
-                }
-            }
-        });
-        adapter.setButtonClickListener(new BasicEntityActivityObjectRecyclerAdapter.ItemButtonClickListener() {
             @Override
-            public void onItemButtonClick(View view, int position) {
-                BasicEntity.EntityBasicField field = basicEntity.list.get(position);
-                if (basicEntity.list.get(position).account != null) {
-                    if (isEditMode) {
-                        Log.i(TAG, "onItemClick ACCOUNT FIELD WHILE EDITING!");
-                        Intent intent = new Intent(context, FullscreenActivityChooseAccount.class);
-                        intent.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, field.account);
-                        intent.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
-                        intent.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, currentTerritory);
-                        startActivityForResult(intent, FullscreenActivityChooseAccount.REQUESTCODE);
-                    } else {
-                        Intent intent = new Intent(context, Activity_AccountData.class);
-                        intent.setAction(Activity_AccountData.GO_TO_ACCOUNT);
-                        intent.putExtra(Activity_AccountData.GO_TO_ACCOUNT_OBJECT, field.account);
-                        startActivity(intent);
-                    }
-                }
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                Log.i(TAG, "onFailure ");
+                Toast.makeText(BasicEntityActivity.this, "Failed\n" + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                progressDialog.dismiss();
             }
         });
 
-        for (BasicEntity.EntityBasicField field : this.basicEntity.list) {
-            field.isEditable = makeEditable;
-        }
-
-        recyclerView.setAdapter(null);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setNestedScrollingEnabled(false); // Disables scrolling
-        recyclerView.setAdapter(adapter);
     }
 
     void loadRecordFromUrl() {
