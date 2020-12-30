@@ -333,7 +333,7 @@ public class BasicEntityActivity extends AppCompatActivity {
 
         // Build the request
         for (BasicEntity.EntityBasicField field : this.basicEntity.list) {
-            if (!field.isReadOnly) {
+            if (!field.isReadOnly && !field.isEntityStatus) {
                 container.entityFields.add(field.toEntityField());
             }
         }

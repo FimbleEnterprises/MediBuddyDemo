@@ -95,6 +95,14 @@ public class BasicEntity {
             return vals;
         }
 
+        public String[] toStatusReasonsArray() {
+            String[] vals = new String[this.statusReasons.size()];
+            for(int i = 0; i < this.statusReasons.size(); i++) {
+                vals[i] = this.statusReasons.get(i).statusReasonText.toString();
+            }
+            return vals;
+        }
+
         /**
          * Using the object's current value property, all available optionset values are evaluated
          * and if a match is found, that optionset object is returned.
@@ -116,17 +124,28 @@ public class BasicEntity {
 
         /**
          * Using the object's current value property, all available optionset values are evaluated
-         * and if a match is found, that optionset object is returned.
+         * and if a match is found, that optionset object is returned.  If the object is a status reason
+         * then the status reasons will be parsed instead.
          * @return The OptionSet value that equals the object's "value" field.
          */
         public int tryGetValueIndexFromName() {
             try {
-
-                for (int i = 0; i < this.optionSetValues.size(); i++) {
-                    OptionSetValue value = this.optionSetValues.get(i);
-                    if (value.name.equals(this.value)) {
-                        return i;
+                if (isEntityStatus) {
+                    for (int i = 0; i < this.statusReasons.size(); i++) {
+                        StatusReason value = this.statusReasons.get(i);
+                        if (value.statusReasonText.equals(this.value)) {
+                            return i;
+                        }
                     }
+                } else if (isOptionSet) {
+                    for (int i = 0; i < this.optionSetValues.size(); i++) {
+                        OptionSetValue value = this.optionSetValues.get(i);
+                        if (value.name.equals(this.value)) {
+                            return i;
+                        }
+                    }
+                } else {
+                    return 0;
                 }
                 return 0;
             } catch (Exception e) {
@@ -147,7 +166,6 @@ public class BasicEntity {
                 this.name = name;
                 this.value = value;
             }
-
         }
 
         public static class StatusReason {
@@ -163,6 +181,6 @@ public class BasicEntity {
 
         }
 
-    }
 
+    }
 }

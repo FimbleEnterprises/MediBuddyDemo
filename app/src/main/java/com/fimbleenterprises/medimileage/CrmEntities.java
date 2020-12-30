@@ -2759,13 +2759,11 @@ public class CrmEntities {
                 statusValues.add(new BasicEntity.EntityBasicField.StatusReason("Waiting on customer", "100000001", "0"));
                 statusValues.add(new BasicEntity.EntityBasicField.StatusReason("To be billed", "100000003", "0"));
                 statusValues.add(new BasicEntity.EntityBasicField.StatusReason("Problem solved", "5", "0"));
-                BasicEntity.EntityBasicField statusValue = new BasicEntity.EntityBasicField("Status: ", statusFormatted);
-                statusValue.optionSetValues = statusValues;
-                statusValue.crmFieldName = "statuscode";
-                statusValue.isOptionSet = true;
-                statusValue.isReadOnly = false;
-                statusValue.isEntityStatus = true;
-                entity.list.add(statusValue);
+                BasicEntity.EntityBasicField statusReason = new BasicEntity.EntityBasicField("Status", statusFormatted);
+                statusReason.statusReasons = statusValues;
+                statusReason.isEntityStatus = true;
+                statusReason.isReadOnly = false;
+                entity.list.add(statusReason);
 
                 ArrayList<BasicEntity.EntityBasicField.OptionSetValue> caseOrigins = new ArrayList<>();
                 caseOrigins.add(new BasicEntity.EntityBasicField.OptionSetValue("Saleslogix", "100000000"));
