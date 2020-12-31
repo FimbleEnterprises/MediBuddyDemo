@@ -90,6 +90,7 @@ public class BasicEntityActivity extends AppCompatActivity {
     Spinner spinnerStatus;
     Territory currentTerritory;
     boolean statusChangePending = false;
+    boolean updatePending = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -224,7 +225,11 @@ public class BasicEntityActivity extends AppCompatActivity {
                 populateForm(basicEntity.toGson(), true);
                 break;
             case R.id.action_update :
-                updateEntity();
+                if (updatePending) {
+                    updateEntity();
+                } else if (statusChangePending) {
+                    updateEntityStatus();
+                }
                 break;
         }
 
@@ -347,6 +352,10 @@ public class BasicEntityActivity extends AppCompatActivity {
         }
     }
 
+    void populateForm() {
+        populateForm(basicEntity.toGson(), false);
+    }
+
     void populateForm(final String gson, boolean makeEditable) {
         this.basicEntity = new BasicEntity(gson);
 
@@ -370,6 +379,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                     if (!selectedReason.statusReasonText.equals(basicEntity.entityStatusReason.statusReasonText)) {
                         Log.i(TAG, "onItemSelected ");
                         statusChangePending = true;
+                        basicEntity.entityStatusReason = selectedReason;
                     }
                 }
 
@@ -390,6 +400,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                     @Override
                     public void onUpdated(ArrayList<BasicEntity.EntityBasicField> fields) {
                         basicEntity.fields = fields;
+                        updatePending = true;
                         Log.i(TAG, "onUpdated ");
                     }
                 });
@@ -461,6 +472,7 @@ public class BasicEntityActivity extends AppCompatActivity {
             public void onStatusChanged(BasicEntity.EntityStatusReason oldStatus, BasicEntity.EntityStatusReason newStatus) {
                 try {
                     Log.i(TAG, "onStatusChanged old status: " + oldStatus.statusReasonText + " | new status: " + newStatus.statusReasonText);
+                    basicEntity.entityStatusReason = newStatus;
                     statusChangePending = true;
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -504,13 +516,15 @@ public class BasicEntityActivity extends AppCompatActivity {
                 isEditMode = false;
                 populateForm(basicEntity.toGson(), true);
                 Toast.makeText(context, "Updated!", Toast.LENGTH_SHORT).show();
-                populateForm(basicEntity.toGson(), false);
                 progressDialog.dismiss();
+                updatePending = false;
+                populateForm();
 
+                // Update entity status if necessary
                 if (statusChangePending) {
                     updateEntityStatus();
                 }
-
+                isEditMode = false;
             }
 
             @Override
@@ -552,6 +566,8 @@ public class BasicEntityActivity extends AppCompatActivity {
                 Toast.makeText(BasicEntityActivity.this, "Status was updated", Toast.LENGTH_SHORT).show();
                 progressDialog.dismiss();
                 statusChangePending = false;
+                isEditMode = false;
+                populateForm();
             }
 
             @Override

@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -72,6 +73,8 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         final BasicEntity.EntityBasicField field = mData.get(position);
         holder.txtMainText.setText(field.value);
+        holder.txtMainText.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+
         holder.btnMainText.setText(field.value);
         holder.txtLabel.setText(field.label);
 
@@ -159,6 +162,7 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
                     mButtonClickListener.onItemButtonClick(view, getAdapterPosition());
                 }
             });
+
             spinnerMainText = itemView.findViewById(R.id.spinnerValue);
             spinnerMainText.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
