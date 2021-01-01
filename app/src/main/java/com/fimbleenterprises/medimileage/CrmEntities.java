@@ -2445,9 +2445,7 @@ public class CrmEntities {
             public String repFormatted;
             public String repid;
 
-            public Ticket() {
-
-            }
+            public Ticket() { }
                         
             public Ticket(JSONObject json) {
                 try {
@@ -2674,10 +2672,6 @@ public class CrmEntities {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-            }
-
-            private void buildCaseTypes() {
-
             }
 
             public BasicEntity toBasicEntity() {

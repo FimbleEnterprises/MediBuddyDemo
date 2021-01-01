@@ -73,7 +73,10 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         final BasicEntity.EntityBasicField field = mData.get(position);
         holder.txtMainText.setText(field.value);
-        holder.txtMainText.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+
+        if (field.value.contains("\n")) {
+            holder.txtMainText.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        }
 
         holder.btnMainText.setText(field.value);
         holder.txtLabel.setText(field.label);
