@@ -984,6 +984,8 @@ public class Queries {
             // Instantiate a new constructor for the case entity and add the columns we want to see
             QueryFactory query = new QueryFactory("contact");
             query.addColumn("fullname");
+            query.addColumn("firstname");
+            query.addColumn("lastname");
             query.addColumn("parentcustomerid");
             query.addColumn("telephone1");
             query.addColumn("mobilephone");

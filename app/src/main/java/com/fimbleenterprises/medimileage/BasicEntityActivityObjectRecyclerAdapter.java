@@ -74,7 +74,7 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
         final BasicEntity.EntityBasicField field = mData.get(position);
         holder.txtMainText.setText(field.value);
 
-        if (field.value.contains("\n")) {
+        if (field != null && field.value != null && field.value.contains("\n")) {
             holder.txtMainText.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
         }
 
@@ -84,8 +84,6 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
         // Hide the middle text field if it is null
         holder.txtMainText.setVisibility(field.value == null ? View.GONE : View.VISIBLE);
         holder.txtLabel.setVisibility(field.showLabel ? View.VISIBLE : View.GONE);
-
-        // holder.imgLabelIcon.setImageResource(object.imgResource);
 
         if (field.isBold) {
             holder.txtMainText.setTypeface(holder.txtMainText.getTypeface(), Typeface.BOLD);
@@ -207,7 +205,10 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
                     try {
                         Log.i(TAG, "afterTextChanged " + txtMainText.getText().toString());
                         BasicEntity.EntityBasicField field = mData.get(getAdapterPosition());
-                        if (!field.value.equals(txtMainText.getText().toString())) {
+                        if (field.value == null && txtMainText.getText() != null) {
+                            field.value = "";
+                        }
+                        if (txtMainText.getText() != null && !field.value.equals(txtMainText.getText().toString())) {
                             Log.i(TAG, "afterTextChanged Text actually changed!");
                             field.value = txtMainText.getText().toString();
                             onFieldsUpdatedListener.onUpdated(mData);

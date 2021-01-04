@@ -2195,7 +2195,8 @@ public class CrmEntities {
         public static class Contact {
 
             public String etag;
-            public String fullname;
+            public String firstname;
+            public String lastname;
             public String accountid;
             public String accountFormatted;
             public String mobile;
@@ -2223,8 +2224,15 @@ public class CrmEntities {
                     e.printStackTrace();
                 }
                 try {
-                    if (!json.isNull("fullname")) {
-                        this.fullname = (json.getString("fullname"));
+                    if (!json.isNull("firstname")) {
+                        this.firstname = (json.getString("firstname"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("lastname")) {
+                        this.lastname = (json.getString("lastname"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -2296,13 +2304,27 @@ public class CrmEntities {
 
             public BasicEntity toBasicEntity() {
                 BasicEntity entity = new BasicEntity(this);
-                entity.fields.add(new BasicEntity.EntityBasicField("Name:", this.fullname));
-                entity.fields.add(new BasicEntity.EntityBasicField("Email:", this.email));
-                entity.fields.add(new BasicEntity.EntityBasicField("Phone:", this.mobile));
-                entity.fields.add(new BasicEntity.EntityBasicField("Account:", this.accountFormatted));
-                entity.fields.add(new BasicEntity.EntityBasicField("Title:", this.jobtitle));
-                entity.fields.add(new BasicEntity.EntityBasicField("NPI:", this.npiFormatted));
+                entity.fields.add(new BasicEntity.EntityBasicField("First name:", this.firstname, "firstname"));
+                entity.fields.add(new BasicEntity.EntityBasicField("Last name:", this.lastname, "lastname"));
+                entity.fields.add(new BasicEntity.EntityBasicField("Email:", this.email, "emailaddress1"));
+                entity.fields.add(new BasicEntity.EntityBasicField("Phone:", this.mobile, "telephone1"));
+
+                BasicEntity.EntityBasicField accountField = new BasicEntity.EntityBasicField("Account:", this.accountFormatted, "parentcustomerid");
+                accountField.isAccountField = true;
+                accountField.account = new Accounts.Account(this.accountid, this.accountFormatted);
+                entity.fields.add(accountField);
+
+                entity.fields.add(new BasicEntity.EntityBasicField("Title:", this.jobtitle, "jobtitle"));
+
+                // This is a lookup (sadly) and cannot easily be updated/created here.
+                BasicEntity.EntityBasicField npiNum = new BasicEntity.EntityBasicField("NPI:", this.npiFormatted, "msus_associated_npi_number");
+                npiNum.isReadOnly = true;
+                entity.fields.add(npiNum);
                 return entity;
+            }
+
+            public String getFullname() {
+                return this.firstname + " " + this.lastname;
             }
 
             private String toVcardString() {
@@ -2312,11 +2334,11 @@ public class CrmEntities {
 
                 StringBuilder vBody = new StringBuilder(preamble);
 
-                if (this.fullname != null) {
-                    vBody.append("N:" + this.fullname + " ;;;\n");
+                if (this.firstname != null) {
+                    vBody.append("N:" + this.firstname + " " + this.lastname + ";;;\n");
                 }
-                if (this.fullname != null) {
-                    vBody.append("FN:" + this.fullname + "\n");
+                if (this.firstname != null) {
+                    vBody.append("FN:" + this.firstname + " " + this.lastname + "\n");
                 }
                 if (this.address1Phone != null) {
                     vBody.append("TEL;CELL:" + this.address1Phone + "\n");
@@ -2354,9 +2376,9 @@ public class CrmEntities {
                 String vBody = this.toVcardString();
 
                 try {
-                    PrintWriter out = new PrintWriter(Helpers.Files.getAppTempDirectory() + this.fullname + ".vcf");
+                    PrintWriter out = new PrintWriter(Helpers.Files.getAppTempDirectory() + this.firstname + "_" + this.lastname + ".vcf");
                     out.println(vBody);
-                    File vcard = new File(Helpers.Files.getAppTempDirectory() + this.fullname + ".vcf");
+                    File vcard = new File(Helpers.Files.getAppTempDirectory() + this.firstname + " " + this.lastname + ".vcf");
                     out.close();
                     return vcard;
                 } catch (FileNotFoundException e) {
@@ -2368,7 +2390,7 @@ public class CrmEntities {
 
             @Override
             public String toString() {
-                return this.fullname + " " + this.accountFormatted;
+                return this.firstname + " " + this.lastname + ", " + this.accountFormatted;
             }
 
         }

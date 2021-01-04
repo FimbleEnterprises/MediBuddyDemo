@@ -28,6 +28,7 @@ class ContactActions {
     public static final int SMS_REQ = 124;
     public static final String SENT_ACTION = "SENT_ACTION";
     public static final String DELIVERY_ACTION = "DELIVERY_ACTION";
+    public boolean dismissOnSelection = false;
 
     public ContactActions(Activity activity, CrmEntities.Contacts.Contact contact) {
         this.contact = contact;
@@ -78,6 +79,7 @@ class ContactActions {
             @Override
             public void onClick(View view) {
                 if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                    if (dismissOnSelection) { dialog.dismiss(); }
                     Helpers.Permissions.RequestContainer container = new Helpers.Permissions.RequestContainer();
                     container.add(Helpers.Permissions.PermissionType.READ_SMS);
                     container.add(Helpers.Permissions.PermissionType.SEND_SMS);
@@ -92,6 +94,7 @@ class ContactActions {
             @Override
             public void onClick(View view) {
                 if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                    if (dismissOnSelection) { dialog.dismiss(); }
                     Helpers.Permissions.RequestContainer container = new Helpers.Permissions.RequestContainer();
                     container.add(Helpers.Permissions.PermissionType.READ_SMS);
                     container.add(Helpers.Permissions.PermissionType.SEND_SMS);
@@ -111,8 +114,7 @@ class ContactActions {
             public void onClick(View view) {
 
                 EntityContainers.EntityContainer container = new EntityContainers.EntityContainer();
-                // container.entityFields.add(new EntityContainers.EntityField(""))
-
+                if (dismissOnSelection) { dialog.dismiss(); }
                 Helpers.Email.sendEmail(new String[]{contact.email}, "", "", activity);
             }
         });
@@ -120,8 +122,9 @@ class ContactActions {
         btnViewContact.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (dismissOnSelection) { dialog.dismiss(); }
                 Intent intent = new Intent(activity, BasicEntityActivity.class);
-                intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, contact.fullname);
+                intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, contact.getFullname());
                 intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "contact");
                 intent.putExtra(BasicEntityActivity.ENTITYID, contact.contactid);
                 intent.putExtra(BasicEntityActivity.GSON_STRING, contact.toBasicEntity().toGson());
@@ -135,6 +138,7 @@ class ContactActions {
             @Override
             public void onClick(View view) {
                 try {
+                    if (dismissOnSelection) { dialog.dismiss(); }
                     insertContact(contact);
                 } catch (Exception e) {
                     Toast.makeText(activity, "Failed to add contact\n" + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
@@ -147,6 +151,7 @@ class ContactActions {
             @Override
             public void onClick(View view) {
                 try {
+                    if (dismissOnSelection) { dialog.dismiss(); }
                     if (Helpers.Permissions.isGranted(Helpers.Permissions.PermissionType.CALL_PHONE)) {
                         Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + contact.address1Phone));
                         if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
@@ -172,6 +177,7 @@ class ContactActions {
             @Override
             public void onClick(View view) {
                 try {
+                    if (dismissOnSelection) { dialog.dismiss(); }
                     if (Helpers.Permissions.isGranted(Helpers.Permissions.PermissionType.CALL_PHONE)) {
                         Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + contact.mobile));
                         if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
@@ -203,7 +209,7 @@ class ContactActions {
     public void insertContact(CrmEntities.Contacts.Contact contact) {
         Intent intent = new Intent(Intent.ACTION_INSERT);
         intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
-        intent.putExtra(ContactsContract.Intents.Insert.NAME, contact.fullname);
+        intent.putExtra(ContactsContract.Intents.Insert.NAME, contact.getFullname());
         intent.putExtra(ContactsContract.Intents.Insert.EMAIL, contact.email);
         intent.putExtra(ContactsContract.Intents.Insert.PHONE, contact.mobile);
         intent.putExtra(ContactsContract.Intents.Insert.SECONDARY_PHONE, contact.address1Phone);

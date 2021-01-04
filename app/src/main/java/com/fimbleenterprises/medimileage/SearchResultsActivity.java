@@ -868,7 +868,7 @@ public class SearchResultsActivity extends AppCompatActivity {
         protected void populateList() {
             final ArrayList<BasicObject> objects = new ArrayList<>();
             for (CrmEntities.Contacts.Contact contact : contacts.list) {
-                BasicObject object = new BasicObject(contact.fullname, contact.accountFormatted, contact);
+                BasicObject object = new BasicObject(contact.getFullname(), contact.accountFormatted, contact);
                 object.middleText = contact.jobtitle;
                 objects.add(object);
             }

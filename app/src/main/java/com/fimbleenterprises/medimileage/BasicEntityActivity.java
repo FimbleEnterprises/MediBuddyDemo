@@ -64,6 +64,8 @@ public class BasicEntityActivity extends AppCompatActivity {
     private static final String TAG = "BasicEntityActivity";
     private static final int FILE_REQUEST_CODE = 88;
     public static final String CURRENT_TERRITORY = "CURRENT_TERRITORY";
+    public static final String ENTITY_UPDATED = "ENTITY_UPDATED";
+    public static final int RESULT_CODE_ENTITY_UPDATED = 111;
 
     Context context;
     String entityid;
@@ -495,7 +497,7 @@ public class BasicEntityActivity extends AppCompatActivity {
 
         // Build the request
         for (BasicEntity.EntityBasicField field : this.basicEntity.fields) {
-            if (!field.isReadOnly) {
+            if (!field.isReadOnly && field != null && field.value != null) {
                 container.entityFields.add(field.toEntityField());
             }
         }
@@ -514,17 +516,21 @@ public class BasicEntityActivity extends AppCompatActivity {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 isEditMode = false;
-                populateForm(basicEntity.toGson(), true);
+                populateForm(basicEntity.toGson(), false);
                 Toast.makeText(context, "Updated!", Toast.LENGTH_SHORT).show();
                 progressDialog.dismiss();
                 updatePending = false;
-                populateForm();
 
                 // Update entity status if necessary
                 if (statusChangePending) {
                     updateEntityStatus();
                 }
                 isEditMode = false;
+
+                // Send a result intent to any callers interested in the result
+                Intent resultIntent = new Intent(ENTITY_UPDATED);
+                resultIntent.putExtra(GSON_STRING, basicEntity.toGson());
+                setResult(RESULT_CODE_ENTITY_UPDATED, resultIntent);
             }
 
             @Override

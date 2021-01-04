@@ -45,6 +45,7 @@ import jxl.format.Colour;
 import jxl.write.WritableCellFormat;
 import jxl.write.WritableFont;
 
+import static com.fimbleenterprises.medimileage.BasicEntityActivity.GSON_STRING;
 import static com.fimbleenterprises.medimileage.Queries.*;
 
 /*import com.anychart.APIlib;
@@ -104,7 +105,7 @@ public class Activity_AccountData extends AppCompatActivity {
 
     public static boolean menuOpen = false;
     // Receivers for date range changes at the activity level
-    public static IntentFilter intentFilterMenuAction = new IntentFilter(MENU_ACTION);
+    public static IntentFilter intentFilterParentActivity = new IntentFilter(MENU_ACTION);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -173,7 +174,7 @@ public class Activity_AccountData extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-
+        intentFilterParentActivity.addAction(BasicEntityActivity.ENTITY_UPDATED);
 
     }
 
@@ -210,6 +211,16 @@ public class Activity_AccountData extends AppCompatActivity {
                 optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).setChecked(true);
             } catch (Exception e) {
                 e.printStackTrace();
+            }
+        }
+
+        if (resultCode == BasicEntityActivity.RESULT_CODE_ENTITY_UPDATED) {
+            if (data != null && data.getStringExtra(GSON_STRING) != null) {
+                Log.i(TAG, "onActivityResult Basic entity was updated!");
+                BasicEntity updatedEntity = new BasicEntity(data.getStringExtra(GSON_STRING));
+                Intent updatedIntent = new Intent(BasicEntityActivity.ENTITY_UPDATED);
+                updatedIntent.putExtra(GSON_STRING, updatedEntity.toGson());
+                sendBroadcast(updatedIntent);
             }
         }
 
@@ -759,7 +770,7 @@ public class Activity_AccountData extends AppCompatActivity {
         public void onResume() {
 
             // Register the options menu selected receiver
-            getActivity().registerReceiver(parentActivityMenuReceiver, intentFilterMenuAction);
+            getActivity().registerReceiver(parentActivityMenuReceiver, intentFilterParentActivity);
             Log.i(TAG, "onResume Registered the account products receiver");
 
             // Hide/show the choose account button
@@ -1149,7 +1160,7 @@ public class Activity_AccountData extends AppCompatActivity {
         public void onResume() {
 
             // Register the options menu selected receiver
-            getActivity().registerReceiver(parentActivityMenuReceiver, intentFilterMenuAction);
+            getActivity().registerReceiver(parentActivityMenuReceiver, intentFilterParentActivity);
 
             // Hide/show the choose account button
             if (curAccount == null) {
@@ -1432,7 +1443,7 @@ public class Activity_AccountData extends AppCompatActivity {
         Button btnChooseAccount;
         public static String pageTitle = "Contacts";
         TextView txtNoContacts;
-        BroadcastReceiver parentActivityMenuReceiver;
+        BroadcastReceiver parentActivityReceiver;
         CrmEntities.Accounts.Account lastAccount;
         String attemptedPhonenumber;
 
@@ -1481,7 +1492,7 @@ public class Activity_AccountData extends AppCompatActivity {
             super.onCreateView(inflater, container, savedInstanceState);
 
             // Broadcast received regarding an options menu selection
-            parentActivityMenuReceiver = new BroadcastReceiver() {
+            parentActivityReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     Log.i(TAG, "onReceive Local receiver received broadcast!");
@@ -1498,7 +1509,7 @@ public class Activity_AccountData extends AppCompatActivity {
                                     Toast.makeText(context, "No sales to export!", Toast.LENGTH_SHORT).show();
                                 }
                             }
-                        } // is sales line page
+                        }
 
                         // If the current account is null then clear the list.  This is to enable
                         // on back pressed behavior that doesn't automatically finish the activity.
@@ -1512,6 +1523,9 @@ public class Activity_AccountData extends AppCompatActivity {
                         getAccountContacts(true);
 
                         mViewPager.getAdapter().notifyDataSetChanged();
+                    } else if (intent != null && intent.getAction().equals(BasicEntityActivity.ENTITY_UPDATED)) {
+                        Log.i(TAG, "onReceive Broadcast received from parent activity suggesting a record was updated!");
+                        getAccountContacts(true);
                     }
                 }
             };
@@ -1530,7 +1544,7 @@ public class Activity_AccountData extends AppCompatActivity {
         public void onDestroyView() {
             super.onDestroyView();
 
-            getActivity().unregisterReceiver(parentActivityMenuReceiver);
+            getActivity().unregisterReceiver(parentActivityReceiver);
             Log.i(TAG, "Unregistered the account contacts receiver");
         }
 
@@ -1538,7 +1552,7 @@ public class Activity_AccountData extends AppCompatActivity {
         public void onResume() {
 
             // Register the options menu selected receiver
-            getActivity().registerReceiver(parentActivityMenuReceiver, intentFilterMenuAction);
+            getActivity().registerReceiver(parentActivityReceiver, intentFilterParentActivity);
 
             // Hide/show the choose account button
             if (curAccount == null) {
@@ -1605,7 +1619,7 @@ public class Activity_AccountData extends AppCompatActivity {
                         CrmEntities.Contacts contacts = new CrmEntities.Contacts(response);
                         objects.clear();
                         for (CrmEntities.Contacts.Contact contact : contacts.list) {
-                            BasicObject object = new BasicObject(contact.fullname, contact.jobtitle, contact);
+                            BasicObject object = new BasicObject(contact.getFullname(), contact.jobtitle, contact);
                             objects.add(object);
                         }
                         populateList();
@@ -1651,6 +1665,7 @@ public class Activity_AccountData extends AppCompatActivity {
                                     + "(" + clickedObject.title + ")");
 
                             ContactActions contactActions = new ContactActions(getActivity(), clickedContact);
+                            contactActions.dismissOnSelection = true;
                             contactActions.showContactOptions();
                         } catch (Exception e) { e.printStackTrace(); }
                     }
@@ -1783,7 +1798,7 @@ public class Activity_AccountData extends AppCompatActivity {
         public void onResume() {
 
             // Register the options menu selected receiver
-            getActivity().registerReceiver(parentActivityMenuReceiver, intentFilterMenuAction);
+            getActivity().registerReceiver(parentActivityMenuReceiver, intentFilterParentActivity);
 
             // Hide/show the choose account button
             if (curAccount == null) {
@@ -1894,7 +1909,7 @@ public class Activity_AccountData extends AppCompatActivity {
                         intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Opportunity Details");
                         intent.putExtra(BasicEntityActivity.ENTITYID, selectedOpportunity.opportunityid);
                         intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "opportunity");
-                        intent.putExtra(BasicEntityActivity.GSON_STRING, selectedOpportunity.toBasicEntity().toGson());
+                        intent.putExtra(GSON_STRING, selectedOpportunity.toBasicEntity().toGson());
                         startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
                     }
                 });
@@ -1911,7 +1926,7 @@ public class Activity_AccountData extends AppCompatActivity {
         public void insertContact(CrmEntities.Contacts.Contact contact) {
             Intent intent = new Intent(Intent.ACTION_INSERT);
             intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
-            intent.putExtra(ContactsContract.Intents.Insert.NAME, contact.fullname);
+            intent.putExtra(ContactsContract.Intents.Insert.NAME, contact.getFullname());
             intent.putExtra(ContactsContract.Intents.Insert.EMAIL, contact.email);
             intent.putExtra(ContactsContract.Intents.Insert.PHONE, contact.mobile);
             intent.putExtra(ContactsContract.Intents.Insert.SECONDARY_PHONE, contact.address1Phone);
@@ -2046,7 +2061,7 @@ public class Activity_AccountData extends AppCompatActivity {
         public void onResume() {
 
             // Register the options menu selected receiver
-            getActivity().registerReceiver(parentActivityMenuReceiver, intentFilterMenuAction);
+            getActivity().registerReceiver(parentActivityMenuReceiver, intentFilterParentActivity);
 
             // Hide/show the choose account button
             if (curAccount == null) {
@@ -2160,7 +2175,7 @@ public class Activity_AccountData extends AppCompatActivity {
                         intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Ticket Details");
                         intent.putExtra(BasicEntityActivity.ENTITYID, selectedTicket.ticketid);
                         intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "incident");
-                        intent.putExtra(BasicEntityActivity.GSON_STRING, selectedTicket.toBasicEntity().toGson());
+                        intent.putExtra(GSON_STRING, selectedTicket.toBasicEntity().toGson());
                         startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
                     }
                 });

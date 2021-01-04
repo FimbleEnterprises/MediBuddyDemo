@@ -127,6 +127,21 @@ public class BasicEntity {
             this.showLabel = true;
         }
 
+        public EntityBasicField(String label, String value, String crmFieldName) {
+            this.label = label;
+            this.value = value;
+            this.showLabel = true;
+            this.crmFieldName = crmFieldName;
+        }
+
+        public EntityBasicField(String label, String value, String crmFieldName, boolean isReadOnly) {
+            this.label = label;
+            this.value = value;
+            this.showLabel = true;
+            this.crmFieldName = crmFieldName;
+            this.isReadOnly = isReadOnly;
+        }
+
         public EntityContainers.EntityField toEntityField() {
 
             if (this.isOptionSet) {

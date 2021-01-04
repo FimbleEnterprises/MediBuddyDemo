@@ -4,6 +4,7 @@
       <w>entityid</w>
       <w>flowmeters</w>
       <w>fucky</w>
+      <w>parentcustomerid</w>
     </words>
   </dictionary>
 </component>
