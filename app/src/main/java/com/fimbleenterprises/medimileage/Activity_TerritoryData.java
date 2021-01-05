@@ -43,7 +43,6 @@ import static com.fimbleenterprises.medimileage.BasicEntityActivity.ENTITYID;
 import static com.fimbleenterprises.medimileage.BasicEntityActivity.ENTITY_LOGICAL_NAME;
 import static com.fimbleenterprises.medimileage.BasicEntityActivity.REQUEST_BASIC;
 import static com.fimbleenterprises.medimileage.BasicEntityActivity.SEND_EMAIL;
-import static com.fimbleenterprises.medimileage.CrmEntities.Accounts.POTENTIAL_CUSTOMER;
 import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts;
 import static com.fimbleenterprises.medimileage.CrmEntities.OrderProducts.OrderProduct;
 import static com.fimbleenterprises.medimileage.CrmEntities.Tickets.NOT_RESOLVED;
@@ -956,6 +955,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public View rootView;
         public RecyclerView listview;
         RefreshLayout refreshLayout;
+        TextView txtNoOpportunities;
         public ArrayList<Territory> cachedTerritories;
         public Territory curTerritory;
         public CrmEntities.Opportunities opportunities;
@@ -969,6 +969,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
             rootView = inflater.inflate(R.layout.frag_opportunities, container, false);
             listview = rootView.findViewById(R.id.opportunitiesRecyclerview);
             refreshLayout = rootView.findViewById(R.id.refreshLayout);
+            txtNoOpportunities = rootView.findViewById(R.id.txtNoOpportunities);
 
             refreshLayout.setEnableLoadMore(false);
             super.onCreateView(inflater, container, savedInstanceState);
@@ -1069,6 +1070,9 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
                 }
             });
+
+            txtNoOpportunities.setVisibility( (opportunities == null || opportunities.list.size() == 0) ? View.VISIBLE : View.GONE );
+
         }
 
         void showOpportunityOptions(final CrmEntities.Opportunities.Opportunity opportunity) {
@@ -1095,8 +1099,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
             txtAccount.setText(opportunity.accountname);
             txtTopic.setText(opportunity.name);
-            txtStatus.setText(opportunity.status);
-            txtDealStatus.setText(opportunity.dealStatus);
+            txtStatus.setText(opportunity.statuscodeFormatted);
+            txtDealStatus.setText(opportunity.statuscodeFormatted);
             txtDealType.setText(opportunity.dealTypePretty);
             txtCloseProb.setText(opportunity.probabilityPretty);
 

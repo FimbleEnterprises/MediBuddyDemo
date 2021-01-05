@@ -776,6 +776,7 @@ public class Queries {
             factory.addColumn("modifiedby");
             factory.addColumn("msus_probability");
             factory.addColumn("opportunityid");
+            factory.addColumn("new_monthrevenuepppleasecurrency");
             factory.addColumn("statuscode");
             factory.addColumn("statecode");
             factory.addColumn("currentsituation");
@@ -834,6 +835,7 @@ public class Queries {
             factory.addColumn("modifiedby");
             factory.addColumn("msus_probability");
             factory.addColumn("opportunityid");
+            factory.addColumn("new_monthrevenuepppleasecurrency");
             factory.addColumn("statuscode");
             factory.addColumn("statecode");
             factory.addColumn("currentsituation");
@@ -892,11 +894,11 @@ public class Queries {
             factory.addColumn("modifiedby");
             factory.addColumn("msus_probability");
             factory.addColumn("opportunityid");
+            factory.addColumn("new_monthrevenuepppleasecurrency");
             factory.addColumn("statuscode");
             factory.addColumn("statecode");
             factory.addColumn("currentsituation");
             factory.addColumn("stepname");
-
             factory.addColumn("col_estmrevenuedevices");
             factory.addColumn("col_estmrevenueprobes");
             factory.addColumn("estimatedvalue");
@@ -996,6 +998,10 @@ public class Queries {
             query.addColumn("msus_department");
             query.addColumn("contactid");
             query.addColumn("mobilephone");
+            query.addColumn("createdon");
+            query.addColumn("createdby");
+            query.addColumn("modifiedon");
+            query.addColumn("modifiedby");
 
             // Create a filter
             Filter filter = new Filter(AND);

@@ -190,7 +190,7 @@ public class BasicEntityActivity extends AppCompatActivity {
 
         for (int i = 0; i < menu.size(); i++) {
             MenuItem mi = menu.getItem(i);
-            //for aapplying a font to subMenu ...
+            //for applying a font to subMenu ...
             SubMenu subMenu = mi.getSubMenu();
             if (subMenu != null && subMenu.size() > 0) {
                 for (int j = 0; j < subMenu.size(); j++) {
@@ -211,16 +211,29 @@ public class BasicEntityActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 
-        Intent intent = new Intent(MENU_SELECTION);
-
         switch (item.getItemId()) {
             case R.id.action_send_email :
-                intent.putExtra(SEND_EMAIL, SEND_EMAIL);
-                intent.putExtra(ENTITYID, entityid);
-                intent.putExtra(ENTITY_LOGICAL_NAME, entityLogicalName);
-                setResult(RESULT_OK, intent);
-                Log.i(TAG, "onOptionsItemSelected " + SEND_EMAIL + " result was set");
-                finish();
+
+                try {
+                    String emailSuffix = "";
+
+                    Log.i(TAG, "onActivityResult Received a " + SEND_EMAIL + " result extra");
+                    String entityid = this.entityid;
+                    String entityLogicalName = this.entityLogicalName;
+                    Log.i(TAG, "onActivityResult Entityid: " + entityid + " - Entity logical name: " + entityLogicalName);
+                    Log.i(TAG, "onActivityResult ");
+
+                    String recordurl = "";
+                    recordurl = Crm.getRecordUrl(entityid, Integer.toString(Crm.tryGetEntityTypeCodeFromLogicalName(entityLogicalName)));
+                    emailSuffix = "\n\nCRM Link:\n" + recordurl;
+                    Log.i(TAG, "onActivityResult:: " + recordurl);
+
+                    Helpers.Email.sendEmail(emailSuffix + "\n\n", "CRM Link", this);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(context, "Failed to create email link!\n" + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                }
+
                 break;
             case R.id.action_edit :
                 isEditMode = true;
@@ -645,7 +658,7 @@ public class BasicEntityActivity extends AppCompatActivity {
             //                                    OPPORTUNITY
             // ***********************************************************************************
             } else if (entityTypeCode == Crm.ETC_OPPORTUNITY) {
-                final MyProgressDialog dialog = new MyProgressDialog(context, "Retrieving ticket with id: " + guid + "...");
+                final MyProgressDialog dialog = new MyProgressDialog(context, "Retrieving opportunity with id: " + guid + "...");
 
                 String query = Queries.Opportunities.getOpportunityDetails(guid);
                 ArrayList<Requests.Argument> args = new ArrayList<>();
@@ -655,9 +668,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                 crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-
                         CrmEntities.Opportunities opportunities = new CrmEntities.Opportunities(new String(responseBody));
-
                         String gson = opportunities.list.get(0).toBasicEntity().toGson();
                         entityid = guid;
                         entityLogicalName = "opportunity";
@@ -851,11 +862,15 @@ public class BasicEntityActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
-                Toast.makeText(getApplicationContext(), error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-                refreshLayout.finishRefresh();
-                txtNotesLoading.setVisibility(View.GONE);
-                pbNotesLoading.setVisibility(View.GONE);
+                try {
+                    Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
+                    Toast.makeText(getApplicationContext(), error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                    refreshLayout.finishRefresh();
+                    txtNotesLoading.setVisibility(View.GONE);
+                    pbNotesLoading.setVisibility(View.GONE);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
     }

@@ -2,13 +2,8 @@ package com.fimbleenterprises.medimileage;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -41,7 +36,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.NotificationCompat;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -545,8 +539,8 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         
         txtAccount.setText(opportunity.accountname);
         txtTopic.setText(opportunity.name);
-        txtStatus.setText(opportunity.status);
-        txtDealStatus.setText(opportunity.dealStatus);
+        txtStatus.setText(opportunity.statuscodeFormatted);
+        txtDealStatus.setText(opportunity.statuscodeFormatted);
         txtDealType.setText(opportunity.dealTypePretty);
         txtCloseProb.setText(opportunity.probabilityPretty);
 

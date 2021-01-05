@@ -110,12 +110,15 @@ public class BasicEntity {
         boolean isOptionSet = false;
         boolean isReadOnly = false;
         boolean isDateField = false;
+        boolean isNumber = false;
         boolean isDateTimeField = false;
+        boolean isBasicEntity = false;
+        String basicEntityLogicalName;
+        String basicEntityGuid;
+        String basicEntityGson;
         String crmFieldName;
-        boolean isEntityid = false;
         ArrayList<OptionSetValue> optionSetValues = new ArrayList<>();
         ArrayList<EntityStatusReason> entityStatusReasons = new ArrayList<>();        CrmEntities.Accounts.Account account;
-
 
         public EntityBasicField(String label) {
             this.label = label;
@@ -125,6 +128,13 @@ public class BasicEntity {
             this.label = label;
             this.value = value;
             this.showLabel = true;
+        }
+
+        public EntityBasicField(String label, String value, boolean isReadOnly) {
+            this.label = label;
+            this.value = value;
+            this.showLabel = true;
+            this.isReadOnly = isReadOnly;
         }
 
         public EntityBasicField(String label, String value, String crmFieldName) {

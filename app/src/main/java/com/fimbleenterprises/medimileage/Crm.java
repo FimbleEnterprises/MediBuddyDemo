@@ -227,6 +227,20 @@ public class Crm {
         }
     }
 
+    public static int tryGetEntityTypeCodeFromLogicalName(String entityLogicalName) {
+        if (entityLogicalName.toLowerCase().equals("opportunity")) {
+            return ETC_OPPORTUNITY;
+        } else if (entityLogicalName.toLowerCase().equals("incident")) {
+            return ETC_INCIDENT;
+        } else if (entityLogicalName.toLowerCase().equals("contact")) {
+            return ETC_CONTACT;
+        } else if (entityLogicalName.toLowerCase().equals("account")) {
+            return ETC_ACCOUNT;
+        } else {
+            return 0;
+        }
+    }
+
     // region Entity Type Codes
     public static final int ETC_ACCOUNT = 1;
     public static final int ETC_CONTACT = 2;

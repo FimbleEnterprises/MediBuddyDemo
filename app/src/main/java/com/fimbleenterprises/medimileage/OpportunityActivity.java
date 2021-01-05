@@ -29,7 +29,6 @@ import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.CrmEntities.Annotations.Annotation;
 import com.fimbleenterprises.medimileage.CrmEntities.Opportunities.Opportunity;
-import com.google.android.gms.maps.internal.ICameraUpdateFactoryDelegate;
 import com.jaiselrahman.filepicker.activity.FilePickerActivity;
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.model.MediaFile;
@@ -283,8 +282,8 @@ public class OpportunityActivity extends AppCompatActivity {
         txtBackground = findViewById(R.id.textView_OppBackground);
         txtAccount.setText(opportunity.accountname);
         txtTopic.setText(opportunity.name);
-        txtStatus.setText(opportunity.status);
-        txtDealStatus.setText(opportunity.dealStatus);
+        txtStatus.setText(opportunity.statuscodeFormatted);
+        txtDealStatus.setText(opportunity.statuscodeFormatted);
         txtDealType.setText(opportunity.dealTypePretty);
         txtCloseProb.setText(opportunity.probabilityPretty);
         txtBackground.setText(opportunity.currentSituation);

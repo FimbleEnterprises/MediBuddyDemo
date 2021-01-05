@@ -240,6 +240,8 @@ public class Activity_SalesQuotas extends AppCompatActivity {
 
         menu.findItem(R.id.action_east_region).setChecked(isEastRegion);
         menu.findItem(R.id.action_west_region).setChecked(!isEastRegion);
+        menu.findItem(R.id.action_case_status).setVisible(false);
+        menu.findItem(R.id.action_account_type).setVisible(false);
 
         switch (mViewPager.currentPosition) {
             case 0 : // MTD
@@ -567,7 +569,12 @@ public class Activity_SalesQuotas extends AppCompatActivity {
             ValueFormatter xAxisFormatter = new ValueFormatter() {
                 @Override
                 public String getBarLabel(BarEntry barEntry) {
-                    return super.getBarLabel(barEntry);
+                    try {
+                        return super.getBarLabel(barEntry);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return "";
+                    }
                 }
             };
 
@@ -582,7 +589,12 @@ public class Activity_SalesQuotas extends AppCompatActivity {
             ValueFormatter formatter = new ValueFormatter() {
                 @Override
                 public String getFormattedValue(float value) {
-                    return xAxisLabel.get((int) value);
+                    try {
+                        return xAxisLabel.get((int) value);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return "";
+                    }
                 }
             };
             xAxis.setValueFormatter(formatter);
@@ -811,7 +823,12 @@ public class Activity_SalesQuotas extends AppCompatActivity {
             ValueFormatter formatter = new ValueFormatter() {
                 @Override
                 public String getFormattedValue(float value) {
-                    return xAxisLabel.get((int) value);
+                    try {
+                        return xAxisLabel.get((int) value);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return "";
+                    }
                 }
             };
             xAxis.setValueFormatter(formatter);

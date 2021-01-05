@@ -1,7 +1,6 @@
 package com.fimbleenterprises.medimileage;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,13 +8,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.TableRow;
 import android.widget.Toast;
 
 /*import com.anychart.APIlib;
@@ -718,7 +714,7 @@ public class SearchResultsActivity extends AppCompatActivity {
             final ArrayList<BasicObject> objects = new ArrayList<>();
             for (CrmEntities.Opportunities.Opportunity opportunity : opportunities.list) {
                 BasicObject object = new BasicObject(opportunity.name, opportunity.accountname, opportunity);
-                object.middleText = opportunity.dealStatus;
+                object.middleText = opportunity.statuscodeFormatted;
                 objects.add(object);
             }
 

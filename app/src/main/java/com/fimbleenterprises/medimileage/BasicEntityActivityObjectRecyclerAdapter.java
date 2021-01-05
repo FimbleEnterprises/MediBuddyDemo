@@ -1,6 +1,7 @@
 package com.fimbleenterprises.medimileage;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
@@ -109,12 +110,26 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
             holder.btnMainText.setVisibility(View.GONE);
         }
 
+        /*if (field.isBasicEntity) {
+            Intent intent = new Intent(context, BasicEntityActivity.class);
+            intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, field.value);
+            intent.putExtra(BasicEntityActivity.ENTITYID, field.basicEntityGuid);
+            intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, field.basicEntityLogicalName);
+            intent.putExtra(BasicEntityActivity.GSON_STRING, field.basicEntityGson);
+            context.startActivity(intent);
+        }*/
+
         if (field.isEditable) {
             if (!field.isReadOnly) {
                 holder.spinnerMainText.setEnabled(true);
                 holder.txtMainText.setEnabled(true);
                 holder.spinnerMainText.setBackgroundColor(Color.parseColor(editColor));
                 holder.txtMainText.setBackgroundColor(Color.parseColor(editColor));
+
+                if (field.isNumber) {
+                    holder.txtMainText.setInputType(InputType.TYPE_CLASS_NUMBER);
+                }
+
             }
         } else {
             holder.spinnerMainText.setEnabled(false);
@@ -144,7 +159,8 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
     }
 
     // stores and recycles views as they are scrolled off screen
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener, Spinner.OnItemSelectedListener {
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener,
+            View.OnLongClickListener, Spinner.OnItemSelectedListener {
         TextView txtLabel;
         EditText txtMainText;
         ImageView imgLabelIcon;

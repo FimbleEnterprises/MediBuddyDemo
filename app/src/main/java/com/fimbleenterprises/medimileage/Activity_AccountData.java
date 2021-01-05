@@ -1692,6 +1692,7 @@ public class Activity_AccountData extends AppCompatActivity {
         RefreshLayout refreshLayout;
         BasicObjectRecyclerAdapter adapter;
         ArrayList<BasicObject> objects = new ArrayList<>();
+        TextView txtNoOpportunities;
         Button btnChooseAccount;
         public static String pageTitle = "Opportunities";
         BroadcastReceiver parentActivityMenuReceiver;
@@ -1706,6 +1707,7 @@ public class Activity_AccountData extends AppCompatActivity {
             refreshLayout = root.findViewById(R.id.refreshLayout);
             refreshLayout.setEnableLoadMore(false);
             options = new MySettingsHelper(context);
+            txtNoOpportunities = root.findViewById(R.id.txtNoOpportunities);
             RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
             refreshLayout.setOnRefreshListener(new OnRefreshListener() {
                 @Override
@@ -1867,7 +1869,7 @@ public class Activity_AccountData extends AppCompatActivity {
                         CrmEntities.Opportunities opportunities = new CrmEntities.Opportunities(response);
                         objects.clear();
                         for (CrmEntities.Opportunities.Opportunity opportunity : opportunities.list) {
-                            BasicObject object = new BasicObject(opportunity.accountname, opportunity.dealStatus, opportunity);
+                            BasicObject object = new BasicObject(opportunity.accountname, opportunity.statuscodeFormatted, opportunity);
                             objects.add(object);
                         }
                         populateList();
@@ -1917,6 +1919,8 @@ public class Activity_AccountData extends AppCompatActivity {
             } else {
                 Log.w(TAG, "populateList: CAN'T POPULATE AS THE ACTIVITY IS FINISHING!!!");
             }
+
+            txtNoOpportunities.setVisibility( (objects == null || objects.size() == 0) ? View.VISIBLE : View.GONE );
         }
 
         void showOpportunityOptions(final CrmEntities.Opportunities.Opportunity clickedContact) {
