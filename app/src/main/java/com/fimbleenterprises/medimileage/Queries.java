@@ -192,6 +192,7 @@ public class Queries {
             linkEntity_contact.addColumn(new EntityColumn("fullname"));
             linkEntity_contact.addColumn(new EntityColumn("emailaddress1"));
             linkEntity_contact.addColumn(new EntityColumn("telephone1"));
+            linkEntity_contact.addColumn(new EntityColumn("contactid"));
             query.addLinkEntity(linkEntity_contact);
 
             // Spit out the encoded query
@@ -239,6 +240,7 @@ public class Queries {
             linkEntity_contact.addColumn(new EntityColumn("fullname"));
             linkEntity_contact.addColumn(new EntityColumn("emailaddress1"));
             linkEntity_contact.addColumn(new EntityColumn("telephone1"));
+            linkEntity_contact.addColumn(new EntityColumn("contactid"));
             query.addLinkEntity(linkEntity_contact);
 
             SortClause sortClause = new SortClause("createdon", true, SortClause.ClausePosition.ONE);
@@ -288,6 +290,7 @@ public class Queries {
             linkEntity_contact.addColumn(new EntityColumn("fullname"));
             linkEntity_contact.addColumn(new EntityColumn("emailaddress1"));
             linkEntity_contact.addColumn(new EntityColumn("telephone1"));
+            linkEntity_contact.addColumn(new EntityColumn("contactid"));
             query.addLinkEntity(linkEntity_contact);
 
             SortClause sortClause = new SortClause("createdon", true, SortClause.ClausePosition.ONE);
@@ -341,6 +344,7 @@ public class Queries {
             linkEntity_contact.addColumn(new EntityColumn("fullname"));
             linkEntity_contact.addColumn(new EntityColumn("emailaddress1"));
             linkEntity_contact.addColumn(new EntityColumn("telephone1"));
+            linkEntity_contact.addColumn(new EntityColumn("contactid"));
             query.addLinkEntity(linkEntity_contact);
 
 
@@ -371,6 +375,7 @@ public class Queries {
             query.addColumn("customerid");
             query.addColumn("ownerid");
             query.addColumn("caseorigincode");
+            query.addColumn("new_mw_contact");
             query.addColumn("statuscode");
             query.addColumn("new_accountnumber");
             query.addColumn("incidentid");
@@ -401,8 +406,11 @@ public class Queries {
             // Link entity creation to join the contact info
             LinkEntity linkEntity_contact = new LinkEntity("contact", "contactid", "new_mw_contact", "a_b49161e62067e71180d6005056a36b9b");
             linkEntity_contact.addColumn(new EntityColumn("fullname"));
+            linkEntity_contact.addColumn(new EntityColumn("firstname"));
+            linkEntity_contact.addColumn(new EntityColumn("lastname"));
             linkEntity_contact.addColumn(new EntityColumn("emailaddress1"));
             linkEntity_contact.addColumn(new EntityColumn("telephone1"));
+            linkEntity_contact.addColumn(new EntityColumn("contactid"));
             query.addLinkEntity(linkEntity_contact);
 
             SortClause sortClause = new SortClause("createdon", true, SortClause.ClausePosition.ONE);
@@ -1008,6 +1016,40 @@ public class Queries {
 
             // Set filter
             Filter.FilterCondition condition1 = new Filter.FilterCondition("parentcustomerid", Filter.Operator.EQUALS, accountid );
+            filter.addCondition(condition1);
+            query.setFilter(filter);
+
+            // Spit out the encoded query
+            String rslt = query.construct();
+            return rslt;
+        }
+
+        public static String getContact(String contactid) {
+            // Instantiate a new constructor for the case entity and add the columns we want to see
+            QueryFactory query = new QueryFactory("contact");
+            query.addColumn("fullname");
+            query.addColumn("firstname");
+            query.addColumn("lastname");
+            query.addColumn("parentcustomerid");
+            query.addColumn("telephone1");
+            query.addColumn("mobilephone");
+            query.addColumn("address1_telephone1");
+            query.addColumn("emailaddress1");
+            query.addColumn("msus_associated_npi_number");
+            query.addColumn("jobtitle");
+            query.addColumn("msus_department");
+            query.addColumn("contactid");
+            query.addColumn("mobilephone");
+            query.addColumn("createdon");
+            query.addColumn("createdby");
+            query.addColumn("modifiedon");
+            query.addColumn("modifiedby");
+
+            // Create a filter
+            Filter filter = new Filter(AND);
+
+            // Set filter
+            Filter.FilterCondition condition1 = new Filter.FilterCondition("contactid", Filter.Operator.EQUALS, contactid );
             filter.addCondition(condition1);
             query.setFilter(filter);
 

@@ -76,7 +76,7 @@
 						android:layout_marginLeft="5dp"
 						android:layout_marginRight="5dp"
 						android:fontFamily="casual"
-						android:text="55 miles"
+						android:text="Loading..."
 						android:textAppearance="?android:attr/textAppearanceSmall"
 						android:textColor="#606060"
 						android:textSize="13sp" />
@@ -115,7 +115,7 @@
 						android:layout_marginLeft="5dp"
 						android:layout_marginRight="5dp"
 						android:fontFamily="casual"
-						android:text="55 mph"
+						android:text="Loading..."
 						android:textAppearance="?android:attr/textAppearanceSmall"
 						android:textColor="#606060"
 						android:textSize="13sp" />
@@ -159,7 +159,7 @@
 						android:layout_marginLeft="5dp"
 						android:layout_marginRight="5dp"
 						android:fontFamily="casual"
-						android:text="19 mins"
+						android:text="Loading..."
 						android:textAppearance="?android:attr/textAppearanceSmall"
 						android:textColor="#606060"
 						android:textSize="13sp" />
@@ -197,7 +197,7 @@
 						android:layout_marginLeft="5dp"
 						android:layout_marginRight="5dp"
 						android:fontFamily="casual"
-						android:text="55 mph"
+						android:text="Loading..."
 						android:textAppearance="?android:attr/textAppearanceSmall"
 						android:textColor="#606060"
 						android:textSize="13sp" />
@@ -283,7 +283,7 @@
 						android:layout_marginLeft="5dp"
 						android:layout_marginRight="5dp"
 						android:fontFamily="casual"
-						android:text="12/12/12"
+						android:text="Loading..."
 						android:textAppearance="?android:attr/textAppearanceSmall"
 						android:textColor="#606060"
 						android:textSize="13sp" />
@@ -322,7 +322,7 @@
 						android:layout_marginLeft="5dp"
 						android:layout_marginRight="5dp"
 						android:fontFamily="casual"
-						android:text="Yes"
+						android:text="Loading..."
 						android:textAppearance="?android:attr/textAppearanceSmall"
 						android:textColor="#606060"
 						android:textSize="13sp" />
@@ -330,90 +330,102 @@
 			</TableRow>
 		</TableLayout>
 	</RelativeLayout>
-
 	<RelativeLayout
-		android:id="@+id/layout_MapView"
+		android:id="@+id/mapContainer"
 		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:layout_weight=".28">
+		android:layout_weight=".28"
+		android:layout_height="wrap_content">
 
-		<ProgressBar
-			android:id="@+id/progressBar"
-			style="?android:attr/progressBarStyle"
+		<TextView
+			android:id="@+id/txtDrawingMap"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:layout_centerInParent="true" />
+			android:layout_centerInParent="true"
+			android:text="Drawing route on map..." />
 
-		<fragment
-			android:id="@+id/map"
-			class="com.google.android.gms.maps.SupportMapFragment"
-			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:layout_marginLeft="2dp"
-			android:layout_marginRight="2dp"
-			android:layout_marginBottom="2dp" />
-
-		<LinearLayout
-			android:id="@+id/LinearLayout_google_shell"
+		<RelativeLayout
+			android:id="@+id/layout_MapView"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:layout_alignParentTop="true"
-			android:layout_marginLeft="5dp"
-			android:layout_marginTop="5dp"
-			android:layout_marginRight="5dp"
-			android:background="#00FFFFFF"
-			android:clickable="true"
-			android:visibility="visible"
-			android:weightSum="1.0">
+			android:visibility="invisible">
+
+			<ProgressBar
+				android:id="@+id/progressBar"
+				style="?android:attr/progressBarStyle"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_centerInParent="true" />
+
+			<fragment
+				android:id="@+id/map"
+				class="com.google.android.gms.maps.SupportMapFragment"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_marginLeft="2dp"
+				android:layout_marginRight="2dp"
+				android:layout_marginBottom="2dp" />
 
 			<LinearLayout
-				android:id="@+id/LinearLayout_google_contents"
+				android:id="@+id/LinearLayout_google_shell"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
 				android:layout_alignParentTop="true"
-				android:layout_margin="1dp"
+				android:layout_marginLeft="5dp"
+				android:layout_marginTop="5dp"
+				android:layout_marginRight="5dp"
 				android:background="#00FFFFFF"
+				android:clickable="true"
+				android:visibility="visible"
 				android:weightSum="1.0">
 
-				<ToggleButton
-					android:id="@+id/toggleButton_MapOverlay_ShowHideGoogle"
-					android:layout_width="wrap_content"
+				<LinearLayout
+					android:id="@+id/LinearLayout_google_contents"
+					android:layout_width="match_parent"
 					android:layout_height="wrap_content"
-					android:background="@drawable/btn_glass_gray_black_border_toggle"
-					android:checked="false"
-					android:contentDescription="blah blah blah"
-					android:drawableLeft="@drawable/google_map_logo_64x64"
-					android:drawablePadding="0dp"
-					android:paddingLeft="12dp"
-					android:paddingTop="5dp"
-					android:paddingBottom="5dp"
-					android:textColor="#717171"
-					android:textOff=" "
-					android:textOn=" "
-					android:textSize="14sp" />
+					android:layout_alignParentTop="true"
+					android:layout_margin="1dp"
+					android:background="#00FFFFFF"
+					android:weightSum="1.0">
 
-				<TableLayout
-					android:id="@+id/tableLayout_Stats2"
-					android:layout_width="fill_parent"
-					android:layout_height="fill_parent"
-					android:layout_below="@+id/textView_TripName"
-					android:layout_alignParentLeft="true"
-					android:layout_alignParentRight="true"
-					android:layout_marginTop="1dp"
-					android:gravity="center_vertical"
-					android:paddingTop="2dp"
-					android:paddingBottom="2dp">
-
-					<TableRow
-						android:id="@+id/tableRowIcon"
+					<ToggleButton
+						android:id="@+id/toggleButton_MapOverlay_ShowHideGoogle"
 						android:layout_width="wrap_content"
-						android:layout_height="match_parent">
+						android:layout_height="wrap_content"
+						android:background="@drawable/btn_glass_gray_black_border_toggle"
+						android:checked="false"
+						android:contentDescription="blah blah blah"
+						android:drawableLeft="@drawable/google_map_logo_64x64"
+						android:drawablePadding="0dp"
+						android:paddingLeft="12dp"
+						android:paddingTop="5dp"
+						android:paddingBottom="5dp"
+						android:textColor="#717171"
+						android:textOff=" "
+						android:textOn=" "
+						android:textSize="14sp" />
 
-						<!-- <FrameLayout
+					<TableLayout
+						android:id="@+id/tableLayout_Stats2"
+						android:layout_width="fill_parent"
+						android:layout_height="fill_parent"
+						android:layout_below="@+id/textView_TripName"
+						android:layout_alignParentLeft="true"
+						android:layout_alignParentRight="true"
+						android:layout_marginTop="1dp"
+						android:gravity="center_vertical"
+						android:paddingTop="2dp"
+						android:paddingBottom="2dp">
+
+						<TableRow
+							android:id="@+id/tableRowIcon"
+							android:layout_width="wrap_content"
+							android:layout_height="match_parent">
+
+							<!-- <FrameLayout
 			                android:layout_height="match_parent"
 			                android:layout_width="0dp"
 			                android:layout_weight=".5">
-		
+
 				            <TextView
 				                android:id="@+id/TextView_google_distance_lbl"
 				                android:layout_width="match_parent"
@@ -426,62 +438,64 @@
 				                android:textColor="#FFFFFF"
 				                android:textSize="18sp"
 				                android:textStyle="bold" />
-		
+
 			            </FrameLayout> -->
-						<FrameLayout
-							android:layout_width="0dp"
-							android:layout_height="match_parent"
-							android:layout_weight=".5">
-
-							<TextView
-								android:id="@+id/TextView_google_distance_value"
-								android:layout_width="match_parent"
+							<FrameLayout
+								android:layout_width="0dp"
 								android:layout_height="match_parent"
-								android:layout_marginLeft="5dp"
-								android:layout_marginRight="5dp"
-								android:gravity="fill_vertical"
-								android:text="55 miles"
-								android:textAppearance="?android:attr/textAppearanceSmall"
-								android:textColor="#FFFFFF"
-								android:textSize="18sp"
-								tools:visibility="gone" />
+								android:layout_weight=".5">
 
-						</FrameLayout>
-					</TableRow>
+								<TextView
+									android:id="@+id/TextView_google_distance_value"
+									android:layout_width="match_parent"
+									android:layout_height="match_parent"
+									android:layout_marginLeft="5dp"
+									android:layout_marginRight="5dp"
+									android:gravity="fill_vertical"
+									android:text="55 miles"
+									android:textAppearance="?android:attr/textAppearanceSmall"
+									android:textColor="#FFFFFF"
+									android:textSize="18sp"
+									tools:visibility="gone" />
 
-					<TableRow
-						android:id="@+id/tableRowGoogleStats"
-						android:layout_width="wrap_content"
-						android:layout_height="match_parent">
+							</FrameLayout>
+						</TableRow>
 
-						<FrameLayout
-							android:layout_width="0dp"
-							android:layout_height="match_parent"
-							android:layout_weight=".33">
+						<TableRow
+							android:id="@+id/tableRowGoogleStats"
+							android:layout_width="wrap_content"
+							android:layout_height="match_parent">
 
-						</FrameLayout>
+							<FrameLayout
+								android:layout_width="0dp"
+								android:layout_height="match_parent"
+								android:layout_weight=".33">
 
-						<FrameLayout
-							android:layout_width="0dp"
-							android:layout_height="match_parent"
-							android:layout_weight=".66"></FrameLayout>
-					</TableRow>
-				</TableLayout>
+							</FrameLayout>
+
+							<FrameLayout
+								android:layout_width="0dp"
+								android:layout_height="match_parent"
+								android:layout_weight=".66"></FrameLayout>
+						</TableRow>
+					</TableLayout>
+				</LinearLayout>
 			</LinearLayout>
-		</LinearLayout>
 
-		<ImageButton
-			android:id="@+id/imgbtn_toggleMap"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_alignParentRight="true"
-			android:layout_alignParentBottom="true"
-			android:layout_marginStart="7dp"
-			android:layout_marginTop="7dp"
-			android:layout_marginEnd="7dp"
-			android:layout_marginBottom="7dp"
-			android:background="#00000000"
-			app:srcCompat="@drawable/map_type_icon_96px" />
+			<ImageButton
+				android:id="@+id/imgbtn_toggleMap"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_alignParentRight="true"
+				android:layout_alignParentBottom="true"
+				android:layout_marginStart="7dp"
+				android:layout_marginTop="7dp"
+				android:layout_marginEnd="7dp"
+				android:layout_marginBottom="7dp"
+				android:background="#00000000"
+				app:srcCompat="@drawable/map_type_icon_96px" />
+
+		</RelativeLayout>
 	</RelativeLayout>
 
 </LinearLayout>

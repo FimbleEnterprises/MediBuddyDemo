@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import cz.msebera.android.httpclient.Header;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -68,6 +69,7 @@ public class BasicEntityActivity extends AppCompatActivity {
     public static final int RESULT_CODE_ENTITY_UPDATED = 111;
 
     Context context;
+    Activity activity;
     String entityid;
     String entityLogicalName;
     String activityTitle;
@@ -98,6 +100,7 @@ public class BasicEntityActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = this;
+        activity = this;
         setContentView(R.layout.basic_entity_activity);
         options = new MySettingsHelper(context);
 
@@ -457,19 +460,49 @@ public class BasicEntityActivity extends AppCompatActivity {
             @Override
             public void onItemButtonClick(View view, int position) {
                 BasicEntity.EntityBasicField field = basicEntity.fields.get(position);
-                if (basicEntity.fields.get(position).account != null) {
+                if (field.isAccountField) {
+                    if (basicEntity.fields.get(position).account != null) {
+                        if (isEditMode) {
+                            Log.i(TAG, "onItemClick ACCOUNT FIELD WHILE EDITING!");
+                            Intent intent = new Intent(context, FullscreenActivityChooseAccount.class);
+                            intent.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, field.account);
+                            intent.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
+                            intent.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, currentTerritory);
+                            startActivityForResult(intent, FullscreenActivityChooseAccount.REQUESTCODE);
+                        } else {
+                            Intent intent = new Intent(context, Activity_AccountData.class);
+                            intent.setAction(Activity_AccountData.GO_TO_ACCOUNT);
+                            intent.putExtra(Activity_AccountData.GO_TO_ACCOUNT_OBJECT, field.account);
+                            startActivity(intent);
+                        }
+                    }
+                } else if (field.isContactField) {
                     if (isEditMode) {
-                        Log.i(TAG, "onItemClick ACCOUNT FIELD WHILE EDITING!");
-                        Intent intent = new Intent(context, FullscreenActivityChooseAccount.class);
-                        intent.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, field.account);
-                        intent.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
-                        intent.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, currentTerritory);
-                        startActivityForResult(intent, FullscreenActivityChooseAccount.REQUESTCODE);
+
                     } else {
-                        Intent intent = new Intent(context, Activity_AccountData.class);
-                        intent.setAction(Activity_AccountData.GO_TO_ACCOUNT);
-                        intent.putExtra(Activity_AccountData.GO_TO_ACCOUNT_OBJECT, field.account);
-                        startActivity(intent);
+                        final MyProgressDialog progressDialog = new MyProgressDialog(context, "Getting contact info...");
+                        progressDialog.show();
+
+                        String query = Queries.Contacts.getContact(field.contact.contactid);
+                        Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
+                        ArrayList<Requests.Argument> args = new ArrayList<>();
+                        args.add(new Requests.Argument("query", query));
+                        request.arguments = args;
+                        new Crm().makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+                            @Override
+                            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                                String response = new String(responseBody);
+                                CrmEntities.Contacts contacts = new CrmEntities.Contacts(response);
+                                ContactActions actions = new ContactActions(activity, contacts.list.get(0));
+                                actions.showContactOptions();
+                            }
+
+                            @Override
+                            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                                Toast.makeText(context, "Failed to get contact info\n" + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                                progressDialog.dismiss();
+                            }
+                        });
                     }
                 }
             }

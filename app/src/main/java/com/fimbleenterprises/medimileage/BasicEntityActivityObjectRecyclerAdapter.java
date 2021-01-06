@@ -95,6 +95,11 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
             holder.spinnerMainText.setVisibility(View.GONE);
             holder.btnMainText.setVisibility(View.VISIBLE);
             holder.btnMainText.setPaintFlags(holder.btnMainText.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+        } else if (field.isContactField) {
+            holder.txtMainText.setVisibility(View.GONE);
+            holder.spinnerMainText.setVisibility(View.GONE);
+            holder.btnMainText.setVisibility(View.VISIBLE);
+            holder.btnMainText.setPaintFlags(holder.btnMainText.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
         } else if (field.isOptionSet) {
             holder.txtMainText.setVisibility(View.GONE);
             holder.btnMainText.setVisibility(View.GONE);
@@ -109,15 +114,6 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
             holder.spinnerMainText.setVisibility(View.GONE);
             holder.btnMainText.setVisibility(View.GONE);
         }
-
-        /*if (field.isBasicEntity) {
-            Intent intent = new Intent(context, BasicEntityActivity.class);
-            intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, field.value);
-            intent.putExtra(BasicEntityActivity.ENTITYID, field.basicEntityGuid);
-            intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, field.basicEntityLogicalName);
-            intent.putExtra(BasicEntityActivity.GSON_STRING, field.basicEntityGson);
-            context.startActivity(intent);
-        }*/
 
         if (field.isEditable) {
             if (!field.isReadOnly) {

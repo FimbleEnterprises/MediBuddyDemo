@@ -16,6 +16,7 @@ import com.fimbleenterprises.medimileage.EntityContainers.EntityField;
 import com.fimbleenterprises.medimileage.Requests.Request.Function;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.joda.time.DateTime;
@@ -2320,6 +2321,8 @@ public class CrmEntities {
             public String modifiedBy;
             public String modifiedByFormatted;
 
+            public Contact() {}
+
             public Contact(JSONObject json) {
                 try {
                     if (!json.isNull("createdonFormattedValue")) {
@@ -2603,6 +2606,8 @@ public class CrmEntities {
 
         public static class Ticket {
 
+            private static final String TAG = "Ticket";
+
              /**************************************************************************************
              *                                  Case type values
              **************************************************************************************/
@@ -2614,6 +2619,10 @@ public class CrmEntities {
             public String statusFormatted;
             public int statuscode;
             public String caseTypeFormatted;
+            public String contactid;
+            public String contactFirstname;
+            public String contactLastname;
+            public String contactFullname;
             public int casetype;
             public DateTime createdon;
             public String ticketnumber;
@@ -2867,6 +2876,38 @@ public class CrmEntities {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+                try {
+                    if (!json.isNull("a_b49161e62067e71180d6005056a36b9b_contactid")) {
+                        this.contactid = (json.getString("a_b49161e62067e71180d6005056a36b9b_contactid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_b49161e62067e71180d6005056a36b9b_fullname")) {
+                        this.contactFullname = (json.getString("a_b49161e62067e71180d6005056a36b9b_fullname"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_b49161e62067e71180d6005056a36b9b_firstname")) {
+                        this.contactFirstname = (json.getString("a_b49161e62067e71180d6005056a36b9b_firstname"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_b49161e62067e71180d6005056a36b9b_lastname")) {
+                        this.contactLastname = (json.getString("a_b49161e62067e71180d6005056a36b9b_lastname"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                /*
+
+                 */
+
             }
 
             public BasicEntity toBasicEntity() {
@@ -2899,6 +2940,16 @@ public class CrmEntities {
                 BasicEntity.EntityBasicField rep = new BasicEntity.EntityBasicField("Rep:", this.repFormatted);
                 rep.isReadOnly = true;
                 entity.fields.add(rep);
+
+                BasicEntity.EntityBasicField contact = new BasicEntity.EntityBasicField("Contact:", this.contactFullname);
+                contact.isContactField = true;
+                contact.crmFieldName = "new_mw_contact";
+                Contacts.Contact objContact = new Contacts.Contact();
+                objContact.contactid = this.contactid;
+                objContact.firstname = this.contactFirstname;
+                objContact.lastname = this.contactLastname;
+                contact.contact = objContact;
+                entity.fields.add(contact);
 
                 BasicEntity.EntityBasicField createdOn = new BasicEntity.EntityBasicField("Created on:", Helpers.DatesAndTimes.getPrettyDateAndTime(this.createdon));
                 createdOn.isReadOnly = true;

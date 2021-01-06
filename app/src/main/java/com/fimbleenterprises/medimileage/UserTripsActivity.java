@@ -212,62 +212,71 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
 
     @Override
     public void onItemClick(View view, int position) {
-        final FullTrip clickedTrip = allTrips.get(position);
+        try {
 
-        if (clickedTrip.isSeparator) {
-            return;
-        }
+            if (isFinishing()) {
+                return;
+            }
 
-        MySqlDatasource ds = new MySqlDatasource(this);
+            final FullTrip clickedTrip = allTrips.get(position);
 
-        final MyProgressDialog dialog = new MyProgressDialog(this,"Getting trip details...");
-        dialog.show();
+            if (clickedTrip.isSeparator) {
+                return;
+            }
 
-        Log.i(TAG, "onItemClick Getting trip details for tripcode: " + clickedTrip.getTripcode());
+            MySqlDatasource ds = new MySqlDatasource(this);
 
+            final MyProgressDialog dialog = new MyProgressDialog(this,"Getting trip details...");
+            dialog.show();
 
-        QueryFactory queryFactory = new QueryFactory("msus_fulltrip");
-        queryFactory.addColumn("msus_trip_entries_json");
-        Filter.FilterCondition condition = new Filter.FilterCondition("msus_tripcode",
-                Filter.Operator.EQUALS, Long.toString(clickedTrip.getTripcode()));
-        Filter filter = new Filter(Filter.FilterType.AND, condition);
-        queryFactory.setFilter(filter);
-        String query = queryFactory.construct();
-
-        Request request = new Request(Requests.Request.Function.GET);
-        Argument arg = new Argument("query", query);
-        request.arguments.add(arg);
-
-        Crm crm = new Crm();
-        crm.makeCrmRequest(this, request, new AsyncHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+            Log.i(TAG, "onItemClick Getting trip details for tripcode: " + clickedTrip.getTripcode());
 
 
-                try {
-                    String responseStr = new String(responseBody);
-                    JSONArray array = new JSONObject(responseStr).getJSONArray("value");
-                    ArrayList<TripEntry> entries = TripEntry.parseCrmTripEntries(array.getJSONObject(0).getString("msus_trip_entries_json"));
-                    // clickedTrip.setTrip=
-                    Intent intent = new Intent(context, ViewTripActivity.class);
-                    intent.putExtra(ViewTripActivity.CLICKED_TRIP, clickedTrip);
-                    if (entries != null && entries.size() > 0) {
-                        intent.putExtra(ViewTripActivity.TRIP_ENTRIES, entries);
+            QueryFactory queryFactory = new QueryFactory("msus_fulltrip");
+            queryFactory.addColumn("msus_trip_entries_json");
+            Filter.FilterCondition condition = new Filter.FilterCondition("msus_tripcode",
+                    Filter.Operator.EQUALS, Long.toString(clickedTrip.getTripcode()));
+            Filter filter = new Filter(Filter.FilterType.AND, condition);
+            queryFactory.setFilter(filter);
+            String query = queryFactory.construct();
+
+            Request request = new Request(Requests.Request.Function.GET);
+            Argument arg = new Argument("query", query);
+            request.arguments.add(arg);
+
+            Crm crm = new Crm();
+            crm.makeCrmRequest(this, request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+
+
+                    try {
+                        String responseStr = new String(responseBody);
+                        JSONArray array = new JSONObject(responseStr).getJSONArray("value");
+                        ArrayList<TripEntry> entries = TripEntry.parseCrmTripEntries(array.getJSONObject(0).getString("msus_trip_entries_json"));
+                        // clickedTrip.setTrip=
+                        Intent intent = new Intent(context, ViewTripActivity.class);
+                        intent.putExtra(ViewTripActivity.CLICKED_TRIP, clickedTrip);
+                        if (entries != null && entries.size() > 0) {
+                            intent.putExtra(ViewTripActivity.TRIP_ENTRIES, entries);
+                        }
+                        startActivity(intent);
+
+                        dialog.dismiss();
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                    startActivity(intent);
-
-                    dialog.dismiss();
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
-            }
 
-            @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                dialog.dismiss();
-                Toast.makeText(context, "Failed to get trip details!", Toast.LENGTH_SHORT).show();
-            }
-        });
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    dialog.dismiss();
+                    Toast.makeText(context, "Failed to get trip details!", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     void populateTripList() {

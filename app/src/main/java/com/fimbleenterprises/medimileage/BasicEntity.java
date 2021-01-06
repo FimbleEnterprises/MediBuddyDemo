@@ -107,18 +107,17 @@ public class BasicEntity {
         boolean isBold = false;
         boolean isEditable = false;
         boolean isAccountField = false;
+        boolean isContactField = false;
         boolean isOptionSet = false;
         boolean isReadOnly = false;
         boolean isDateField = false;
         boolean isNumber = false;
         boolean isDateTimeField = false;
-        boolean isBasicEntity = false;
-        String basicEntityLogicalName;
-        String basicEntityGuid;
-        String basicEntityGson;
         String crmFieldName;
         ArrayList<OptionSetValue> optionSetValues = new ArrayList<>();
-        ArrayList<EntityStatusReason> entityStatusReasons = new ArrayList<>();        CrmEntities.Accounts.Account account;
+        ArrayList<EntityStatusReason> entityStatusReasons = new ArrayList<>();
+        CrmEntities.Accounts.Account account;
+        CrmEntities.Contacts.Contact contact;
 
         public EntityBasicField(String label) {
             this.label = label;

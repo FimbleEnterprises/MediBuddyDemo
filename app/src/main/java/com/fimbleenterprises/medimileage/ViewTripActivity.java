@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 
 import com.fimbleenterprises.medimileage.CrmEntities.CrmAddresses;
@@ -38,6 +39,7 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -75,8 +77,10 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
     TextView txtReimbursement;
     ImageButton btnCycleMapType;
     ProgressBar progressBar;
+    TextView txtDrawingMap;
     // TextView txt_GoogleDistanceLabel;
     LinearLayout linearLayoutMaster;
+    RelativeLayout layoutMapview;
     public PolylineOptions googlePolyBuilder;
     boolean mapIsReady = false;
     LatLng defaultPosition;
@@ -107,6 +111,8 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
         options = new MySettingsHelper(this);
         curMapType = options.getMapMode();
 
+        Helpers.Animations.pulseAnimation(txtDrawingMap);
+
 
         if (getIntent().hasExtra(CLICKED_TRIP)) {
 
@@ -120,7 +126,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
                 Log.i(TAG, "onNewIntent Found trip entries passed in an intent.  Gon' use em!");
                 tripEntries = getIntent().getParcelableArrayListExtra(TRIP_ENTRIES);
                 clickedTrip.tripEntries = tripEntries;
-                Log.i(TAG, "onNewIntent " + tripEntries.size() + " entries were used from the intent extra!");
+                Log.w(TAG, "onNewIntent " + tripEntries.size() + " entries were used from the intent extra!");
             } else {
                 setTheme(R.style.AppTheme);
             }
@@ -149,8 +155,10 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
         linearLayoutMaster = findViewById(R.id.LinearLayout_MapMaster);
         linearLayout_Contents = findViewById(R.id.LinearLayout_google_contents);
         linearLayout_Shell = findViewById(R.id.LinearLayout_google_shell);
+        layoutMapview = findViewById(R.id.layout_MapView);
         progressBar = findViewById(R.id.progressBar);
         btnCycleMapType = findViewById(R.id.imgbtn_toggleMap);
+        txtDrawingMap = findViewById(R.id.txtDrawingMap);
         btnCycleMapType.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -260,11 +268,18 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
         LatLng current = map.getCameraPosition().target;
         double cur = current.latitude + current.longitude;
         double def = defaultPosition.latitude + defaultPosition.longitude;
+
+        if (def == 0) {
+            return true;
+        }
+
         return ( (float) cur == (float) def );
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
+        Log.w(TAG, "onMapReady: ");
 
         this.map = googleMap;
         this.mapIsReady = true;
@@ -486,6 +501,8 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
 
         sMarker.showInfoWindow();
         eMarker.showInfoWindow();
+
+        defaultPosition = map.getCameraPosition().target;
     }
     
     private void moveCameraToShowUSA(boolean animate) {
@@ -513,6 +530,8 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
         Log.d(TAG, "Moving the camera to get all the markers in view");
 
 
+
+
         // Create a new LatLngBounds.Builder object
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
@@ -528,11 +547,6 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
             for (Marker m : mapMarkers) {
                 // Add the current marker's position to the builder object
                 builder.include(m.getPosition());
-
-                if (crmAddresses != null) {
-
-                }
-
             }
 
             // Create a populated LatLngBounds object by calling the builder object's build() method
@@ -549,7 +563,10 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
                 }else {
                     map.moveCamera(cu);
                 }
-                defaultPosition = map.getCameraPosition().target;
+                Helpers.Animations.fadeIn(layoutMapview, 250);
+                layoutMapview.setVisibility(View.VISIBLE);
+                txtDrawingMap.setVisibility(View.GONE);
+               // defaultPosition = map.getCameraPosition().target;
             } catch (Exception e) {
                 finish();
                 e.printStackTrace();
