@@ -114,4 +114,9 @@ public class MyInterfaces {
         void onSuccess(CrmEntities.Opportunities opportunities);
         void onFailure(String error);
     }
+
+    public interface GetLeadsListener {
+        void onSuccess(CrmEntities.Leads leads);
+        void onFailure(String error);
+    }
 }

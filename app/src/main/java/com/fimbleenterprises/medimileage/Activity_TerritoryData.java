@@ -615,9 +615,10 @@ public class Activity_TerritoryData extends AppCompatActivity {
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
         public static final int SALES_PAGE = 0;
-        public static final int OPPORTUNITIES_PAGE = 1;
-        public static final int CASES_PAGE = 2;
-        public static final int ACCOUNTS_PAGE = 3;
+        public static final int LEADS_PAGE= 1;
+        public static final int OPPORTUNITIES_PAGE = 2;
+        public static final int CASES_PAGE = 3;
+        public static final int ACCOUNTS_PAGE = 4;
 
         public SectionsPagerAdapter(androidx.fragment.app.FragmentManager fm) {
             super(fm);
@@ -632,6 +633,14 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
             if (position == SALES_PAGE) {
                 Fragment fragment = new Frag_SalesLines();
+                Bundle args = new Bundle();
+                args.putInt(Frag_SalesLines.ARG_SECTION_NUMBER, position + 1);
+                fragment.setArguments(args);
+                return fragment;
+            }
+
+            if (position == LEADS_PAGE) {
+                Fragment fragment = new Frag_Leads();
                 Bundle args = new Bundle();
                 args.putInt(Frag_SalesLines.ARG_SECTION_NUMBER, position + 1);
                 fragment.setArguments(args);
@@ -667,7 +676,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return 4;
+            return 5;
         }
         
         public String getCaseCriteriaTitleAddendum() {
@@ -706,6 +715,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
             switch (position) {
                 case SALES_PAGE:
                     return "Sales Lines (" + territory.territoryName + ")";
+                case LEADS_PAGE:
+                    return "Leads (" + territory.territoryName + ")";
                 case OPPORTUNITIES_PAGE:
                     return "Opportunities (" + territory.territoryName + ")";
                 case CASES_PAGE:
@@ -950,6 +961,225 @@ public class Activity_TerritoryData extends AppCompatActivity {
         }
     }
 
+    public static class Frag_Leads extends Fragment {
+        public static final String ARG_SECTION_NUMBER = "section_number";
+        public View rootView;
+        public RecyclerView listview;
+        RefreshLayout refreshLayout;
+        TextView txtNoLeads;
+        public ArrayList<Territory> cachedTerritories;
+        public Territory curTerritory;
+        public CrmEntities.Leads leads;
+        ArrayList<BasicObject> objects = new ArrayList<>();
+        BasicObjectRecyclerAdapter adapter;
+        BroadcastReceiver leadsReceiver;
+
+        @Nullable
+        @Override
+        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            rootView = inflater.inflate(R.layout.frag_leads, container, false);
+            listview = rootView.findViewById(R.id.leadsRecyclerview);
+            refreshLayout = rootView.findViewById(R.id.refreshLayout);
+            txtNoLeads = rootView.findViewById(R.id.txtNoLeads);
+            refreshLayout.setOnRefreshListener(new OnRefreshListener() {
+                @Override
+                public void onRefresh(@NonNull RefreshLayout refreshLayout) {
+                    getLeads();
+                }
+            });
+
+            refreshLayout.setEnableLoadMore(false);
+            super.onCreateView(inflater, container, savedInstanceState);
+
+            // Gifts from Santa - open present and do stuff with what we got!
+            leadsReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Log.i(TAG, "onReceive Opportunities frag received a broadcast!");
+
+                    // User made an options menu selection - receive the details of that choice
+                    // via the broadcast sent by the parent activity.
+                    if (intent.getAction().equals(MENU_SELECTION)) {
+                        if (intent.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT) != null) {
+                            curTerritory = intent.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
+                            getLeads();
+                        }
+                    }
+                }
+            };
+
+            if (curTerritory == null) {
+                curTerritory = MediUser.getMe().getTerritory();
+            }
+
+            if (leads == null && curTerritory != null) {
+                getLeads();
+            } else {
+                populateList();
+            }
+
+            return rootView;
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+
+            Log.i(TAG, "onResume Unregistered opportunities receiver");
+        }
+
+        @Override
+        public void onDestroyView() {
+            getActivity().unregisterReceiver(leadsReceiver);
+            super.onDestroyView();
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            IntentFilter intentFilterMenuSelection = new IntentFilter(MENU_SELECTION);
+            getActivity().registerReceiver(leadsReceiver, intentFilterMenuSelection);
+            Log.i(TAG, "onResume Registered opportunities receiver");
+        }
+
+        public void getLeads() {
+            refreshLayout.autoRefreshAnimationOnly();
+            CrmEntities.Leads.getCrmLeads(context, curTerritory.territoryid, new MyInterfaces.GetLeadsListener() {
+                @Override
+                public void onSuccess(CrmEntities.Leads crmLeads) {
+                    Log.i(TAG, "onSuccess ");
+                    refreshLayout.finishRefresh();
+                    leads = crmLeads;
+                    objects = new ArrayList<>();
+                    for (CrmEntities.Leads.Lead lead : leads.list) {
+                        objects.add(lead.toBasicObject());
+                    }
+                    populateList();
+                }
+
+                @Override
+                public void onFailure(String error) {
+                    refreshLayout.finishRefresh();
+                    Toast.makeText(context, "Failed to get opportunities!\n" + error, Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+
+        void populateList() {
+            adapter = new BasicObjectRecyclerAdapter(context, objects);
+            listview.setLayoutManager(new LinearLayoutManager(context));
+            listview.setAdapter(adapter);
+            adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
+                @Override
+                public void onItemClick(View view, int position) {
+                    CrmEntities.Leads.Lead selectedLead =
+                            (CrmEntities.Leads.Lead) objects.get(position).object;
+
+                    Intent intent = new Intent(context, BasicEntityActivity.class);
+                    intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Lead Details");
+                    intent.putExtra(BasicEntityActivity.ENTITYID, selectedLead.leadid);
+                    intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "lead");
+                    intent.putExtra(BasicEntityActivity.GSON_STRING, selectedLead.toBasicEntity().toGson());
+                    startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
+                }
+            });
+
+            txtNoLeads.setVisibility( (leads == null || leads.list.size() == 0) ? View.VISIBLE : View.GONE );
+
+        }
+
+        void showOpportunityOptions(final CrmEntities.Opportunities.Opportunity opportunity) {
+
+            final Dialog dialog = new Dialog(context);
+            dialog.setContentView(R.layout.dialog_opportunity_options);
+
+            // Fields
+            TextView txtAccount;
+            TextView txtTopic;
+            TextView txtStatus;
+            TextView txtDealStatus;
+            TextView txtDealType;
+            TextView txtCloseProb;
+            TextView txtBackground;
+
+            txtAccount = dialog.findViewById(R.id.textView_OppAccount);
+            txtTopic = dialog.findViewById(R.id.textView_OppTopic);
+            txtStatus = dialog.findViewById(R.id.textView_OppStatus);
+            txtDealStatus = dialog.findViewById(R.id.textView_OppDealStatus);
+            txtDealType = dialog.findViewById(R.id.textView_OppDealType);
+            txtCloseProb = dialog.findViewById(R.id.textView_OppCloseProb);
+            txtBackground = dialog.findViewById(R.id.textView_OppBackground);
+
+            txtAccount.setText(opportunity.accountname);
+            txtTopic.setText(opportunity.name);
+            txtStatus.setText(opportunity.statuscodeFormatted);
+            txtDealStatus.setText(opportunity.statuscodeFormatted);
+            txtDealType.setText(opportunity.dealTypePretty);
+            txtCloseProb.setText(opportunity.probabilityPretty);
+
+            String bgTruncated = "";
+            if (opportunity.currentSituation != null && opportunity.currentSituation.length() > 125) {
+                bgTruncated = opportunity.currentSituation.substring(0, 125) + "...\n";
+            } else {
+                bgTruncated = opportunity.currentSituation;
+            }
+
+            txtBackground.setText(bgTruncated);
+
+            Button btnQuickNote;
+            btnQuickNote = dialog.findViewById(R.id.btn_add_quick_note);
+            btnQuickNote.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    dialog.dismiss();
+                    showAddNoteDialog(opportunity);
+                }
+            });
+
+            Button btnViewOpportunity;
+            btnViewOpportunity = dialog.findViewById(R.id.btn_view_opportunity);
+            btnViewOpportunity.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(context, OpportunityActivity.class);
+                    intent.putExtra(OpportunityActivity.OPPORTUNITY_TAG, opportunity);
+                    startActivity(intent);
+                    dialog.dismiss();
+                }
+            });
+
+            dialog.setCancelable(true);
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            dialog.show();
+        }
+
+        void showAddNoteDialog(final CrmEntities.Opportunities.Opportunity opportunity) {
+            CrmEntities.Annotations.showAddNoteDialog(context, opportunity.opportunityid, new MyInterfaces.CrmRequestListener() {
+                @Override
+                public void onComplete(Object result) {
+                    Log.i(TAG, "onComplete ");
+                    final Helpers.Notifications notifications = new Helpers.Notifications(context);
+                    notifications.create("Opportunity note created",
+                            "Your note was added to the opportunity!", false);
+                    notifications.show();
+                    notifications.setAutoCancel(6000);
+                }
+
+                @Override
+                public void onProgress(Crm.AsyncProgress progress) {
+                    Log.i(TAG, "onProgress ");
+                }
+
+                @Override
+                public void onFail(String error) {
+                    Log.i(TAG, "onFail ");
+                }
+            });
+
+        }
+
+    }
+
     public static class Frag_Opportunities extends Fragment {
         public static final String ARG_SECTION_NUMBER = "section_number";
         public View rootView;
@@ -970,9 +1200,13 @@ public class Activity_TerritoryData extends AppCompatActivity {
             listview = rootView.findViewById(R.id.opportunitiesRecyclerview);
             refreshLayout = rootView.findViewById(R.id.refreshLayout);
             txtNoOpportunities = rootView.findViewById(R.id.txtNoOpportunities);
-
+            refreshLayout.setOnRefreshListener(new OnRefreshListener() {
+                @Override
+                public void onRefresh(@NonNull RefreshLayout refreshLayout) {
+                    getOpportunities();
+                }
+            });
             refreshLayout.setEnableLoadMore(false);
-            super.onCreateView(inflater, container, savedInstanceState);
 
             // Gifts from Santa - open present and do stuff with what we got!
             opportunitiesReceiver = new BroadcastReceiver() {
@@ -1001,6 +1235,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 populateList();
             }
 
+            super.onCreateView(inflater, container, savedInstanceState);
             return rootView;
         }
 

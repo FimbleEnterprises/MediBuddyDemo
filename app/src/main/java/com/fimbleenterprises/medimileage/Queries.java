@@ -591,6 +591,65 @@ public class Queries {
         }
     }
 
+    public static class Leads {
+        public static String getTerritoryLeads(String territoryid) {
+            QueryFactory query = new QueryFactory("lead");
+            query.addColumn("fullname");
+            query.addColumn("createdon");
+            query.addColumn("subject");
+            query.addColumn("emailaddress1");
+            query.addColumn("ownerid");
+            query.addColumn("leadsourcecode");
+            query.addColumn("leadqualitycode");
+            query.addColumn("msus_leadsource_congress");
+            query.addColumn("preferredcontactmethodcode");
+            query.addColumn("leadid");
+            query.addColumn("col_vascular");
+            query.addColumn("col_transplant");
+            query.addColumn("col_totalproceduresperyear");
+            query.addColumn("statuscode");
+            query.addColumn("statecode");
+            query.addColumn("msus_leadsource");
+            query.addColumn("mobilephone");
+            query.addColumn("lastname");
+            query.addColumn("jobtitle");
+            query.addColumn("firstname");
+            query.addColumn("donotphone");
+            query.addColumn("donotpostalmail");
+            query.addColumn("donotfax");
+            query.addColumn("donotemail");
+            query.addColumn("donotbulkemail");
+            query.addColumn("description");
+            query.addColumn("decisionmaker");
+            query.addColumn("createdby");
+            query.addColumn("parentcontactid");
+            query.addColumn("address1_composite");
+            query.addColumn("msus_account_in_system");
+
+            SortClause sortClause = new SortClause("createdon", true, SortClause.ClausePosition.ONE);
+            query.addSortClause(sortClause);
+
+            LinkEntity le1 = new LinkEntity("account", "accountid", "parentaccountid", "a_e1b9eb98752946799234e25abb9bb751");
+            le1.addColumn(new EntityColumn("name"));
+            le1.addColumn(new EntityColumn("accountnumber"));
+            le1.addColumn(new EntityColumn("accountid"));
+            query.addLinkEntity(le1);
+
+            LinkEntity le3 = new LinkEntity("systemuser", "systemuserid", "owninguser", "av");
+            Filter.FilterCondition condition = new Filter.FilterCondition("territoryid", Filter.Operator.EQUALS, territoryid);
+            Filter filter = new Filter(AND, condition);
+            le3.addFilter(filter);
+            query.addLinkEntity(le3);
+
+            /*LinkEntity le4 = new LinkEntity("account", "accountid", "customerid", "a_64b8dfc0d53940e082640b6f5dd3707d");
+            le4.addColumn(new EntityColumn("accountnumber"));
+            le4.addColumn(new EntityColumn("name"));
+            query.addLinkEntity(le4);*/
+
+            return query.construct();
+        }
+    }
+
     public static class Accounts {
 
         public static String getAccountInventory(String accountid, String itemgroupnumber, CustomerInventoryStatusCode status) {

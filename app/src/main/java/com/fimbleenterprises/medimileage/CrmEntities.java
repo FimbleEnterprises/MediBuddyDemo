@@ -1273,6 +1273,470 @@ public class CrmEntities {
 
     }
 
+    public static class Leads {
+
+        ArrayList<Lead> list = new ArrayList<>();
+
+        public Leads(String crmResponse) {
+            try {
+                JSONObject rootObject = new JSONObject(crmResponse);
+                JSONArray rootArray = rootObject.getJSONArray("value");
+                for (int i = 0; i < rootArray.length(); i++) {
+                    this.list.add(new Lead(rootArray.getJSONObject(i)));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public static void getCrmLeads(Context context, String territoryid, final MyInterfaces.GetLeadsListener listener) {
+
+            String query = Queries.Leads.getTerritoryLeads(territoryid);
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            args.add(new Requests.Argument("query", query));
+            Requests.Request request = new Requests.Request(Function.GET, args);
+            new Crm().makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    String response = new String(responseBody);
+                    Leads leads = new Leads(response);
+                    listener.onSuccess(leads);
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    listener.onFailure(error.getLocalizedMessage());
+                }
+            });
+
+        }
+
+        public static class Lead {
+
+            public String etag;
+            public String statecodeFormatted;
+            public int statecode;
+            public String leadQualityFormatted;
+            public int leadQuality;
+            public boolean dontBulkEmail;
+            public String leadid;
+            public String createdOnFormatted;
+            public DateTime createdon;
+            public String fullname;
+            public String subject;
+            public boolean dontMail;
+            public String ownerid;
+            public String owneridFormatted;
+            public boolean dontemail;
+            public boolean dontcall;
+            public String email;
+            public String mobilephone;
+            public String businessphone;
+            public int specialtycode;
+            public String specialtycodeFormatted;
+            public String statuscodeFormatted;
+            public int statuscode;
+            public String firstname;
+            public String lastname;
+            public String createdbyid;
+            public String createdbyFormatted;
+            public String congressid;
+            public String congressidFormatted;
+            public String jobtitle;
+            public String parentcontactid;
+            public String parentcontactidFormatted;
+            public int leadsourcecode = -1;
+            public String leadsourcecodeFormatted;
+            public int preferredContactMethodCode;
+            public String preferredContactMethodCodeFormatted;
+            public String parentAccountId;
+            public String parentAccountName;
+            public String parentAccountnumber;
+
+            public Lead(JSONObject json) {
+                try {
+                    if (!json.isNull("etag")) {
+                        this.etag = (json.getString("etag"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("msus_specialtyFormattedValue")) {
+                        this.specialtycodeFormatted = (json.getString("msus_specialtyFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("msus_specialty")) {
+                        this.specialtycode = (json.getInt("msus_specialty"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("statecodeFormattedValue")) {
+                        this.statecodeFormatted = (json.getString("statecodeFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("mobilephone")) {
+                        this.mobilephone = (json.getString("mobilephone"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("telephone1")) {
+                        this.businessphone = (json.getString("telephone1"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("statecode")) {
+                        this.statecode = (json.getInt("statecode"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("leadqualitycodeFormattedValue")) {
+                        this.leadQualityFormatted = (json.getString("leadqualitycodeFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("leadqualitycode")) {
+                        this.leadQuality = (json.getInt("leadqualitycode"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("donotbulkemail")) {
+                        this.dontBulkEmail = (json.getBoolean("donotbulkemail"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("leadid")) {
+                        this.leadid = (json.getString("leadid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("createdonFormattedValue")) {
+                        this.createdOnFormatted = (json.getString("createdonFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                   if (!json.isNull("createdon")) {
+                       this.createdon = (new DateTime(json.getString("createdon")));
+                   }
+                } catch (JSONException e) {
+                   e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("fullname")) {
+                        this.fullname = (json.getString("fullname"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("subject")) {
+                        this.subject = (json.getString("subject"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("donotpostalmail")) {
+                        this.dontMail = (json.getBoolean("donotpostalmail"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_ownerid_valueFormattedValue")) {
+                        this.owneridFormatted = (json.getString("_ownerid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_ownerid_value")) {
+                        this.ownerid = (json.getString("_ownerid_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("donotemail")) {
+                        this.dontemail = (json.getBoolean("donotemail"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("donotphone")) {
+                        this.dontcall = (json.getBoolean("donotphone"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("emailaddress1")) {
+                        this.email = (json.getString("emailaddress1"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("statuscodeFormattedValue")) {
+                        this.statuscodeFormatted = (json.getString("statuscodeFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("statuscode")) {
+                        this.statuscode = (json.getInt("statuscode"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("firstname")) {
+                        this.firstname = (json.getString("firstname"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_createdby_valueFormattedValue")) {
+                        this.createdbyFormatted = (json.getString("_createdby_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_createdby_value")) {
+                        this.createdbyid = (json.getString("_createdby_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("lastname")) {
+                        this.lastname = (json.getString("lastname"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("preferredcontactmethodcode")) {
+                        this.preferredContactMethodCode = (json.getInt("preferredcontactmethodcode"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("preferredcontactmethodcodeFormattedValue")) {
+                        this.preferredContactMethodCodeFormatted = (json.getString("preferredcontactmethodcodeFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_leadsource_congress_valueFormattedValue")) {
+                        this.congressidFormatted = (json.getString("_msus_leadsource_congress_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_leadsource_congress_value")) {
+                        this.congressid = (json.getString("_msus_leadsource_congress_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("jobtitle")) {
+                        this.jobtitle = (json.getString("jobtitle"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_parentcontactid_valueFormattedValue")) {
+                        this.parentcontactidFormatted = (json.getString("_parentcontactid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_parentcontactid_value")) {
+                        this.parentcontactid = (json.getString("_parentcontactid_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("leadsourcecodeFormattedValue")) {
+                        this.leadsourcecodeFormatted = (json.getString("leadsourcecodeFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("leadsourcecode")) {
+                        this.leadsourcecode = (json.getInt("leadsourcecode"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_e1b9eb98752946799234e25abb9bb751_accountid")) {
+                        this.parentAccountId = (json.getString("a_e1b9eb98752946799234e25abb9bb751_accountid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_e1b9eb98752946799234e25abb9bb751_name")) {
+                        this.parentAccountName = (json.getString("a_e1b9eb98752946799234e25abb9bb751_name"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_e1b9eb98752946799234e25abb9bb751_accountnumber")) {
+                        this.parentAccountnumber = (json.getString("a_e1b9eb98752946799234e25abb9bb751_accountnumber"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            public BasicObject toBasicObject() {
+                BasicObject object = new BasicObject(this.subject, this.firstname + " " + this.lastname, this);
+                object.middleText = this.statuscodeFormatted;
+                object.topRightText = this.leadQualityFormatted;
+                object.iconResource = R.drawable.lead_icon2;
+                return object;
+            }
+
+            public BasicEntity toBasicEntity() {
+
+                BasicEntity entity = new BasicEntity(this);
+
+                BasicEntity.EntityBasicField field = new BasicEntity.EntityBasicField("First name:", this.firstname);
+                field.crmFieldName = "firstname";
+                field.isReadOnly = false;
+                entity.fields.add(field);
+
+                field = new BasicEntity.EntityBasicField("Last name:", this.lastname);
+                field.crmFieldName = "lastname";
+                entity.fields.add(field);
+
+                field = new BasicEntity.EntityBasicField("Topic:", this.subject);
+                field.crmFieldName = "subject";
+                entity.fields.add(field);
+
+                field = new BasicEntity.EntityBasicField("Account:", this.parentAccountName);
+                field.isAccountField = true;
+                field.crmFieldName = "parentaccountid";
+                field.account = new Accounts.Account(this.parentAccountId, this.parentAccountName);
+                entity.fields.add(field);
+
+                ArrayList<BasicEntity.EntityBasicField.OptionSetValue> optionset = new ArrayList<>();
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Cadiac", "745820000"));
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Vascular", "745820001"));
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Transplant", "745820002"));
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Multiple", "745820003"));
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Unknown", "745820004"));
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Other", "745820005"));
+                field = new BasicEntity.EntityBasicField("Specialty: ", this.specialtycodeFormatted);
+                field.crmFieldName = "msus_specialty";
+                field.optionSetValues = optionset;
+                field.isOptionSet = true;
+                field.isReadOnly = false;
+                entity.fields.add(field);
+
+                field = new BasicEntity.EntityBasicField("Email:", this.email);
+                field.crmFieldName = "emailaddress1";
+                entity.fields.add(field);
+
+                field = new BasicEntity.EntityBasicField("Mobile:", this.mobilephone);
+                field.crmFieldName = "mobilephone";
+                entity.fields.add(field);
+
+                field = new BasicEntity.EntityBasicField("Business phone:", this.businessphone);
+                field.crmFieldName = "telephone1";
+                entity.fields.add(field);
+
+                field = new BasicEntity.EntityBasicField("Title:", this.jobtitle);
+                field.crmFieldName = "jobtitle";
+                entity.fields.add(field);
+
+                optionset = new ArrayList<>();
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Advertisement", "1"));
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Prospecting", "100000003"));
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Referral", "2"));
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Current customer - new surgeon", "3"));
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Partner", "4"));
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Other", "745820005"));
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Web", "8"));
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Other", "745820005"));
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Surgeon User - New Hospital", "100000002"));
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Congress/Show", "100000001"));
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Customer contacted office", "100000000"));
+                field = new BasicEntity.EntityBasicField("Lead source: ", this.leadsourcecodeFormatted);
+                field.crmFieldName = "leadsourcecode";
+                field.optionSetValues = optionset;
+                field.isOptionSet = true;
+                field.isReadOnly = false;
+                entity.fields.add(field);
+
+                optionset = new ArrayList<>();
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Text/SMS", "745820000"));
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Any", "1"));
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Email", "2"));
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Phone", "3"));
+                optionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Mail", "5"));
+                field = new BasicEntity.EntityBasicField("Lead source: ", this.preferredContactMethodCodeFormatted);
+                field.crmFieldName = "preferredcontactmethodcode";
+                field.optionSetValues = optionset;
+                field.isOptionSet = true;
+                field.isReadOnly = false;
+                entity.fields.add(field);
+
+                field = new BasicEntity.EntityBasicField("Congress:", this.congressidFormatted, true);
+                entity.fields.add(field);
+
+                return entity;
+
+            }
+
+            @Override
+            public String toString() {
+                return this.fullname + ", " + this.congressidFormatted + " - " + this.leadQualityFormatted;
+            }
+
+        }
+    }
+
     public static class Opportunities {
         private static final String TAG = "Opportunities";
         public ArrayList<Opportunity> list = new ArrayList<>();
