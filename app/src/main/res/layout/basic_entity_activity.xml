@@ -117,14 +117,14 @@
                         android:layout_marginTop="5dp"
                         android:orientation="horizontal">
 
-
-                        <ImageButton
+                        <Button
                             android:id="@+id/btnAddNote"
-                            android:layout_width="48dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="48dp"
                             android:layout_alignParentRight="true"
-                            android:background="@drawable/add_comment_96x96"
+                            android:background="@drawable/btn_glass_navy_border"
                             android:clickable="true"
+                            android:text="Add note..."
                             android:textColor="#003BFF"
                             android:textStyle="bold"
                             android:visibility="visible" />

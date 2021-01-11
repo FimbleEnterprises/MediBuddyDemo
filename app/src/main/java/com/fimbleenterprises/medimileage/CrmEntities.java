@@ -1320,8 +1320,6 @@ public class CrmEntities {
             public int leadQuality;
             public boolean dontBulkEmail;
             public String leadid;
-            public String createdOnFormatted;
-            public DateTime createdon;
             public String fullname;
             public String subject;
             public boolean dontMail;
@@ -1352,6 +1350,14 @@ public class CrmEntities {
             public String parentAccountId;
             public String parentAccountName;
             public String parentAccountnumber;
+            public String createdBy;
+            public String createdByFormatted;
+            public DateTime createdOn;
+            public String createdOnFormatted;
+            public DateTime modifiedOn;
+            public String modifiedOnFormatted;
+            public String modifiedBy;
+            public String modifiedByFormatted;
 
             public Lead(JSONObject json) {
                 try {
@@ -1440,7 +1446,7 @@ public class CrmEntities {
                 }
                 try {
                    if (!json.isNull("createdon")) {
-                       this.createdon = (new DateTime(json.getString("createdon")));
+                       this.createdOn = (new DateTime(json.getString("createdon")));
                    }
                 } catch (JSONException e) {
                    e.printStackTrace();
@@ -1518,20 +1524,6 @@ public class CrmEntities {
                 try {
                     if (!json.isNull("firstname")) {
                         this.firstname = (json.getString("firstname"));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    if (!json.isNull("_createdby_valueFormattedValue")) {
-                        this.createdbyFormatted = (json.getString("_createdby_valueFormattedValue"));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    if (!json.isNull("_createdby_value")) {
-                        this.createdbyid = (json.getString("_createdby_value"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -1623,6 +1615,62 @@ public class CrmEntities {
                 try {
                     if (!json.isNull("a_e1b9eb98752946799234e25abb9bb751_accountnumber")) {
                         this.parentAccountnumber = (json.getString("a_e1b9eb98752946799234e25abb9bb751_accountnumber"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("createdonFormattedValue")) {
+                        this.createdOnFormatted = (json.getString("createdonFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("createdon")) {
+                        this.createdOn = (new DateTime(json.getString("createdon")));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("modifiedonFormattedValue")) {
+                        this.modifiedOnFormatted = (json.getString("modifiedonFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("modifiedon")) {
+                        this.modifiedOn = (new DateTime(json.getString("modifiedon")));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_createdby_value")) {
+                        this.createdBy = (json.getString("_createdby_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_createdby_valueFormattedValue")) {
+                        this.createdByFormatted = (json.getString("_createdby_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_modifiedby_value")) {
+                        this.modifiedBy = (json.getString("_modifiedby_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_modifiedby_valueFormattedValue")) {
+                        this.modifiedByFormatted = (json.getString("_modifiedby_valueFormattedValue"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();

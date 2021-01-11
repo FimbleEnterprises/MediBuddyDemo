@@ -1075,12 +1075,15 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     CrmEntities.Leads.Lead selectedLead =
                             (CrmEntities.Leads.Lead) objects.get(position).object;
 
-                    Intent intent = new Intent(context, BasicEntityActivity.class);
+                    ContactActions actions = new ContactActions(activity, selectedLead);
+                    actions.showContactOptions();
+
+                    /*Intent intent = new Intent(context, BasicEntityActivity.class);
                     intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Lead Details");
                     intent.putExtra(BasicEntityActivity.ENTITYID, selectedLead.leadid);
                     intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "lead");
                     intent.putExtra(BasicEntityActivity.GSON_STRING, selectedLead.toBasicEntity().toGson());
-                    startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
+                    startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);*/
                 }
             });
 

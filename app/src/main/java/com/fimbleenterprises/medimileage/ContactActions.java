@@ -3,16 +3,10 @@ package com.fimbleenterprises.medimileage;
 import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.provider.ContactsContract;
-import android.telephony.SmsManager;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TableRow;
@@ -22,7 +16,62 @@ import androidx.core.app.ActivityCompat;
 
 class ContactActions {
 
-    CrmEntities.Contacts.Contact contact;
+    public static class Person extends CrmEntities.Contacts.Contact {
+        public boolean isLead = false;
+        public String entityid;
+
+        public void qualifyLead(MyInterfaces.leadQualifyListener listener) {
+
+        }
+
+        public Person(CrmEntities.Contacts.Contact contact) {
+            this.lastname = contact.lastname;
+            this.firstname = contact.firstname;
+            this.telephone1 = contact.telephone1;
+            this.mobile = contact.mobile;
+            this.email = contact.email;
+            this.accountFormatted = contact.accountFormatted;
+            this.jobtitle = contact.jobtitle;
+            this.accountid = contact.accountid;
+            this.npiid = contact.npiid;
+            this.npiFormatted = contact.npiFormatted;
+            this.modifiedBy = contact.modifiedBy;
+            this.modifiedByFormatted = contact.modifiedByFormatted;
+            this.createdBy = contact.createdBy;
+            this.createdByFormatted = contact.createdByFormatted;
+            this.modifiedOn = contact.modifiedOn;
+            this.modifiedOnFormatted = contact.modifiedOnFormatted;
+            this.createdOn = contact.createdOn;
+            this.createdOnFormatted = contact.createdOnFormatted;
+            this.etag = contact.etag;
+            this.entityid = contact.contactid;
+        }
+
+        public Person(CrmEntities.Leads.Lead lead) {
+            this.isLead = true;
+            this.lastname = lead.lastname;
+            this.firstname = lead.firstname;
+            this.telephone1 = lead.businessphone;
+            this.mobile = lead.mobilephone;
+            this.email = lead.email;
+            this.accountFormatted = lead.parentAccountName;
+            this.jobtitle = lead.jobtitle;
+            this.accountid = lead.parentAccountId;
+            this.modifiedBy = lead.modifiedBy;
+            this.modifiedByFormatted = lead.modifiedByFormatted;
+            this.createdBy = lead.createdBy;
+            this.createdByFormatted = lead.createdByFormatted;
+            this.modifiedOn = lead.modifiedOn;
+            this.modifiedOnFormatted = lead.modifiedOnFormatted;
+            this.createdOn = lead.createdOn;
+            this.createdOnFormatted = lead.createdOnFormatted;
+            this.etag = lead.etag;
+            this.entityid = lead.leadid;
+        }
+
+    }
+
+    Person person;
     Activity activity;
     public static final int CALL_PHONE_REQ = 123;
     public static final int SMS_REQ = 124;
@@ -31,7 +80,22 @@ class ContactActions {
     public boolean dismissOnSelection = false;
 
     public ContactActions(Activity activity, CrmEntities.Contacts.Contact contact) {
-        this.contact = contact;
+        this.person = new Person(contact);
+
+        this.activity = activity;
+    }
+
+    public ContactActions(Activity activity, CrmEntities.Leads.Lead lead) {
+        this.person = new Person(lead);
+        this.person.lastname = lead.lastname;
+        this.person.firstname = lead.firstname;
+        this.person.telephone1 = lead.businessphone;
+        this.person.mobile = lead.mobilephone;
+        this.person.email = lead.email;
+        this.person.accountFormatted = lead.parentAccountName;
+        this.person.jobtitle = lead.jobtitle;
+        this.person.accountid = lead.parentAccountId;
+
         this.activity = activity;
     }
 
@@ -54,16 +118,16 @@ class ContactActions {
         TableRow businessRow = dialog.findViewById(R.id.tableRow_businessPhone);
         TableRow emailRow = dialog.findViewById(R.id.tableRow_email_addy);
 
-        businessRow.setVisibility(contact.mobile == null ? View.GONE : View.VISIBLE);
-        address1Row.setVisibility(contact.address1Phone == null ? View.GONE : View.VISIBLE);
-        smsRow1.setVisibility(contact.address1Phone == null ? View.GONE : View.VISIBLE);
-        smsRow2.setVisibility(contact.mobile == null ? View.GONE : View.VISIBLE);
-        emailRow.setVisibility(contact.email == null ? View.GONE : View.VISIBLE);
+        businessRow.setVisibility(person.mobile == null ? View.GONE : View.VISIBLE);
+        address1Row.setVisibility(person.address1Phone == null ? View.GONE : View.VISIBLE);
+        smsRow1.setVisibility(person.address1Phone == null ? View.GONE : View.VISIBLE);
+        smsRow2.setVisibility(person.mobile == null ? View.GONE : View.VISIBLE);
+        emailRow.setVisibility(person.email == null ? View.GONE : View.VISIBLE);
 
-        btnCallAddress1.setText(contact.address1Phone != null ? "Call: " + contact.address1Phone : "");
-        btnCallBusiness1.setText(contact.mobile != null ? "Call: " + contact.mobile : "");
-        btnSms1.setText(contact.address1Phone != null ? "Text: " + contact.address1Phone : "");
-        btnSms2.setText(contact.mobile != null ? "Text: " + contact.mobile : "");
+        btnCallAddress1.setText(person.address1Phone != null ? "Call: " + person.address1Phone : "");
+        btnCallBusiness1.setText(person.mobile != null ? "Call: " + person.mobile : "");
+        btnSms1.setText(person.address1Phone != null ? "Text: " + person.address1Phone : "");
+        btnSms2.setText(person.mobile != null ? "Text: " + person.mobile : "");
 
         String s1 = btnSms1.getText().toString();
         String s2 = btnSms2.getText().toString();
@@ -71,7 +135,7 @@ class ContactActions {
         btnShare.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Helpers.Files.shareFile(activity, contact.toVcard());
+                Helpers.Files.shareFile(activity, person.toVcard());
             }
         });
 
@@ -86,7 +150,7 @@ class ContactActions {
                     activity.requestPermissions(container.toArray(), SMS_REQ);
                     return;
                 }
-                Helpers.Sms.sendSms(activity, contact.address1Phone);
+                Helpers.Sms.sendSms(activity, person.address1Phone);
             }
         });
 
@@ -103,7 +167,7 @@ class ContactActions {
                     activity.requestPermissions(container.toArray(), SMS_REQ);
                     return;
                 }
-                Helpers.Sms.sendSms(activity, contact.mobile);
+                Helpers.Sms.sendSms(activity, person.mobile);
 
 
             }
@@ -115,7 +179,7 @@ class ContactActions {
 
                 EntityContainers.EntityContainer container = new EntityContainers.EntityContainer();
                 if (dismissOnSelection) { dialog.dismiss(); }
-                Helpers.Email.sendEmail(new String[]{contact.email}, "", "", activity);
+                Helpers.Email.sendEmail(new String[]{person.email}, "", "", activity);
             }
         });
 
@@ -124,12 +188,13 @@ class ContactActions {
             public void onClick(View view) {
                 if (dismissOnSelection) { dialog.dismiss(); }
                 Intent intent = new Intent(activity, BasicEntityActivity.class);
-                intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, contact.getFullname());
-                intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "contact");
-                intent.putExtra(BasicEntityActivity.ENTITYID, contact.contactid);
-                intent.putExtra(BasicEntityActivity.GSON_STRING, contact.toBasicEntity().toGson());
-                intent.putExtra(BasicEntityActivity.LOAD_NOTES, false);
-                intent.putExtra(BasicEntityActivity.HIDE_MENU, false);
+                intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, person.getFullname());
+                String entityLogicalName = (person.isLead) ? "lead" : "contact";
+                intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, entityLogicalName);
+                intent.putExtra(BasicEntityActivity.ENTITYID, person.entityid);
+                intent.putExtra(BasicEntityActivity.GSON_STRING, person.toBasicEntity().toGson());
+                intent.putExtra(BasicEntityActivity.LOAD_NOTES, true);
+                intent.putExtra(BasicEntityActivity.HIDE_MENU, true);
                 activity.startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
             }
         });
@@ -139,7 +204,7 @@ class ContactActions {
             public void onClick(View view) {
                 try {
                     if (dismissOnSelection) { dialog.dismiss(); }
-                    insertContact(contact);
+                    insertContact();
                 } catch (Exception e) {
                     Toast.makeText(activity, "Failed to add contact\n" + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
@@ -153,7 +218,7 @@ class ContactActions {
                 try {
                     if (dismissOnSelection) { dialog.dismiss(); }
                     if (Helpers.Permissions.isGranted(Helpers.Permissions.PermissionType.CALL_PHONE)) {
-                        Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + contact.address1Phone));
+                        Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + person.address1Phone));
                         if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
                             Helpers.Permissions.RequestContainer container = new Helpers.Permissions.RequestContainer();
                             container.add(Helpers.Permissions.PermissionType.CALL_PHONE);
@@ -179,7 +244,7 @@ class ContactActions {
                 try {
                     if (dismissOnSelection) { dialog.dismiss(); }
                     if (Helpers.Permissions.isGranted(Helpers.Permissions.PermissionType.CALL_PHONE)) {
-                        Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + contact.mobile));
+                        Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + person.mobile));
                         if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
                             Helpers.Permissions.RequestContainer container = new Helpers.Permissions.RequestContainer();
                             container.add(Helpers.Permissions.PermissionType.CALL_PHONE);
@@ -206,16 +271,19 @@ class ContactActions {
 
     }
 
-    public void insertContact(CrmEntities.Contacts.Contact contact) {
+    /**
+     * Shows a dialog allowing the user to add this person to their device's address book.
+     */
+    public void insertContact() {
         Intent intent = new Intent(Intent.ACTION_INSERT);
         intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
-        intent.putExtra(ContactsContract.Intents.Insert.NAME, contact.getFullname());
-        intent.putExtra(ContactsContract.Intents.Insert.EMAIL, contact.email);
-        intent.putExtra(ContactsContract.Intents.Insert.PHONE, contact.mobile);
-        intent.putExtra(ContactsContract.Intents.Insert.SECONDARY_PHONE, contact.address1Phone);
-        intent.putExtra(ContactsContract.Intents.Insert.COMPANY, contact.accountFormatted);
+        intent.putExtra(ContactsContract.Intents.Insert.NAME, person.getFullname());
+        intent.putExtra(ContactsContract.Intents.Insert.EMAIL, person.email);
+        intent.putExtra(ContactsContract.Intents.Insert.PHONE, person.mobile);
+        intent.putExtra(ContactsContract.Intents.Insert.SECONDARY_PHONE, person.address1Phone);
+        intent.putExtra(ContactsContract.Intents.Insert.COMPANY, person.accountFormatted);
         intent.putExtra(ContactsContract.Intents.Insert.NOTES, "Added from MileBuddy");
-        intent.putExtra(ContactsContract.Intents.Insert.JOB_TITLE, contact.jobtitle);
+        intent.putExtra(ContactsContract.Intents.Insert.JOB_TITLE, person.jobtitle);
         if (intent.resolveActivity(activity.getPackageManager()) != null) {
             activity.startActivity(intent);
         }

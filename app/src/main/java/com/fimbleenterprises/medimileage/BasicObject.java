@@ -1,62 +1,76 @@
 package com.fimbleenterprises.medimileage;
 
-class BasicObject {
+import java.util.ArrayList;
 
-    String title;
-    String subtitle;
-    String middleText;
-    String topRightText;
-    String bottomRightText;
-    Object object;
-    int iconResource = -1;
-    boolean isSelected = false;
-    boolean isHeader = false;
-    boolean isEmpty = false;
+class BasicObjects {
 
-    public BasicObject() {  }
+    public ArrayList<BasicObject> list = new ArrayList<>();
 
-    public BasicObject (String name, String subtitle, Object object) {
-        this.title = name;
-        this.subtitle = subtitle;
-        this.object = object;
-        this.iconResource = R.drawable.car_icon_circular;
+    public BasicObject[] toArray() {
+        return this.list.toArray(new BasicObject[this.list.size()]);
     }
 
-    public BasicObject (String name, String subtitle, String middleText, Object object) {
-        this.title = name;
-        this.middleText = middleText;
-        this.subtitle = subtitle;
-        this.object = object;
-        this.iconResource = R.drawable.car_icon_circular;
-    }
+    public static class BasicObject {
 
-    public BasicObject (String name, String subtitle, String middleText, String topRightText, Object object) {
-        this.title = name;
-        this.middleText = middleText;
-        this.subtitle = subtitle;
-        this.topRightText = topRightText;
-        this.object = object;
-        this.iconResource = R.drawable.car_icon_circular;
-    }
+        String title;
+        String subtitle;
+        String middleText;
+        String topRightText;
+        String bottomRightText;
+        Object object;
+        int iconResource = -1;
+        boolean isSelected = false;
+        boolean isHeader = false;
+        boolean isEmpty = false;
+        boolean isVisible = true;
 
-    public BasicObject (String name, String subtitle, String middleText, String topRightText, String bottomRightText, Object object) {
-        this.title = name;
-        this.middleText = middleText;
-        this.subtitle = subtitle;
-        this.topRightText = topRightText;
-        this.bottomRightText = bottomRightText;
-        this.object = object;
-        this.iconResource = R.drawable.car_icon_circular;
-    }
+        public BasicObject() {
+        }
 
-    public BasicObject(String name) {
-        this.isHeader = true;
-        this.title = name;
-    }
+        public BasicObject(String name, String subtitle, Object object) {
+            this.title = name;
+            this.subtitle = subtitle;
+            this.object = object;
+            this.iconResource = R.drawable.car_icon_circular;
+        }
 
-    @Override
-    public String toString() {
-        return "Title: " + this.title + ", Subtitle: " + this.subtitle;
+        public BasicObject(String name, String subtitle, String middleText, Object object) {
+            this.title = name;
+            this.middleText = middleText;
+            this.subtitle = subtitle;
+            this.object = object;
+            this.iconResource = R.drawable.car_icon_circular;
+        }
+
+        public BasicObject(String name, String subtitle, String middleText, String topRightText, Object object) {
+            this.title = name;
+            this.middleText = middleText;
+            this.subtitle = subtitle;
+            this.topRightText = topRightText;
+            this.object = object;
+            this.iconResource = R.drawable.car_icon_circular;
+        }
+
+        public BasicObject(String name, String subtitle, String middleText, String topRightText, String bottomRightText, Object object) {
+            this.title = name;
+            this.middleText = middleText;
+            this.subtitle = subtitle;
+            this.topRightText = topRightText;
+            this.bottomRightText = bottomRightText;
+            this.object = object;
+            this.iconResource = R.drawable.car_icon_circular;
+        }
+
+        public BasicObject(String name) {
+            this.isHeader = true;
+            this.title = name;
+        }
+
+        @Override
+        public String toString() {
+            return "Title: " + this.title + ", Subtitle: " + this.subtitle;
+        }
+
     }
 
 }

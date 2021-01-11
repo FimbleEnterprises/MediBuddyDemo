@@ -84,7 +84,7 @@ public class BasicEntityActivity extends AppCompatActivity {
     CrmEntities.Annotations.Annotation lastClickedNote;
     TextView txtNotesLoading;
     ProgressBar pbNotesLoading;
-    ImageButton btnAddNote;
+    Button btnAddNote;
     TableLayout tblNotes;
     BasicEntity basicEntity;
     MySettingsHelper options;

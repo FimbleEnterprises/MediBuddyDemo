@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/relativeLayout_ParentRow"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:layout_marginLeft="10dp"
+    android:layout_marginRight="10dp"
+    android:layout_marginTop="3dp">
+
+    <TextView
+        android:id="@+id/textview_parentsubtext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView_ParentMainText"
+        android:layout_toEndOf="@+id/parent_left_icon"
+        android:text="TextView"
+        android:visibility="invisible" />
+
+    <ImageView
+        android:id="@+id/parent_left_icon"
+        android:layout_width="35dp"
+        android:layout_height="75dp"
+        android:layout_alignBottom="@+id/textView_childRowSubtext"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_location_city_black_24dp" />
+
+    <TextView
+        android:id="@+id/textView_ParentMainText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="20dp"
+        android:layout_toEndOf="@+id/parent_left_icon"
+        android:gravity="left|center"
+        android:text="Title"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="#354856"
+        android:textStyle="bold" />
+
+    <ImageView
+        android:id="@+id/parent_indicator"
+        android:layout_width="16dp"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/parent_left_icon"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        app:srcCompat="@drawable/ic_carot_right" />
+
+</RelativeLayout>
