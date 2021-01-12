@@ -970,7 +970,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public ArrayList<Territory> cachedTerritories;
         public Territory curTerritory;
         public CrmEntities.Leads leads;
-        ArrayList<BasicObject> objects = new ArrayList<>();
+        ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
         BasicObjectRecyclerAdapter adapter;
         BroadcastReceiver leadsReceiver;
 
@@ -1192,7 +1192,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public ArrayList<Territory> cachedTerritories;
         public Territory curTerritory;
         public CrmEntities.Opportunities opportunities;
-        ArrayList<BasicObject> objects = new ArrayList<>();
+        ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
         BasicObjectRecyclerAdapter adapter;
         BroadcastReceiver opportunitiesReceiver;
 
@@ -1285,7 +1285,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         void populateList() {
             objects = new ArrayList<>();
             for (CrmEntities.Opportunities.Opportunity opp : opportunities.list) {
-                BasicObject object = new BasicObject(opp.name, opp.dealTypePretty, opp);
+                BasicObjects.BasicObject object = new BasicObjects.BasicObject(opp.name, opp.dealTypePretty, opp);
                 object.middleText = opp.accountname;
                 object.topRightText = opp.probabilityPretty;
                 objects.add(object);
@@ -1412,7 +1412,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         RefreshLayout refreshLayout;
         BroadcastReceiver casesReceiver;
         CrmEntities.Tickets tickets;
-        ArrayList<BasicObject> objects = new ArrayList<>();
+        ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
         BasicObjectRecyclerAdapter adapter;
         TextView txtNoTickets;
 
@@ -1494,14 +1494,14 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
                     // Logic to create headers denoting newly seen status'
                     if (ticket.statuscode != lastStatusCode) {
-                        BasicObject object = new BasicObject(ticket.statusFormatted, null, null);
+                        BasicObjects.BasicObject object = new BasicObjects.BasicObject(ticket.statusFormatted, null, null);
                         object.isHeader = true;
                         objects.add(object);
                         lastStatusCode = ticket.statuscode;
                     }
 
                     // Add the ticket as a BasicObject
-                    BasicObject object = new BasicObject(ticket.title, ticket.ticketnumber, ticket);
+                    BasicObjects.BasicObject object = new BasicObjects.BasicObject(ticket.title, ticket.ticketnumber, ticket);
                     object.middleText = ticket.customerFormatted;
                     object.topRightText = Helpers.DatesAndTimes.getPrettyDateAndTime(ticket.modifiedon);
                     object.bottomRightText = ticket.statusFormatted;
@@ -1515,7 +1515,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
             adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
                 @Override
                 public void onItemClick(View view, int position) {
-                    BasicObject object = objects.get(position);
+                    BasicObjects.BasicObject object = objects.get(position);
                     CrmEntities.Tickets.Ticket ticket = (CrmEntities.Tickets.Ticket) object.object;
                     Intent intent = new Intent(context, BasicEntityActivity.class);
                     intent.putExtra(BasicEntityActivity.GSON_STRING, ticket.toBasicEntity().toGson());
@@ -1566,7 +1566,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         RefreshLayout refreshLayout;
         BroadcastReceiver accountsReceiver;
         CrmEntities.Accounts accounts;
-        ArrayList<BasicObject> objects = new ArrayList<>();
+        ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
         BasicObjectRecyclerAdapter adapter;
         TextView txtNoAccounts;
 
@@ -1642,7 +1642,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 for (CrmEntities.Accounts.Account account : accounts.list) {
 
                     // Add the ticket as a BasicObject
-                    BasicObject object = new BasicObject(account.accountnumber, account.customerTypeFormatted, account);
+                    BasicObjects.BasicObject object = new BasicObjects.BasicObject(account.accountnumber, account.customerTypeFormatted, account);
                     object.middleText = account.accountName;
                     objects.add(object);
                 }
@@ -1654,7 +1654,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
             adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
                 @Override
                 public void onItemClick(View view, int position) {
-                    BasicObject object = objects.get(position);
+                    BasicObjects.BasicObject object = objects.get(position);
                     CrmEntities.Accounts.Account account = (CrmEntities.Accounts.Account) object.object;
 
                     Intent intent = new Intent(context, Activity_AccountData.class);

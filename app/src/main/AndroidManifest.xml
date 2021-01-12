@@ -2,7 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.fimbleenterprises.medimileage">
-
     <!-- Permissions -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -27,18 +26,22 @@
         android:roundIcon="@mipmap/car2_static_round_tparent_icon"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".FullscreenAccountTerritoryPicker"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_receive_contact">
+        </activity>
         <activity
             android:name=".ActivityReceiveContact"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_receive_contact"
             android:theme="@style/FullscreenTheme">
-
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+
                 <category android:name="android.intent.category.DEFAULT" />
+
                 <data android:mimeType="text/x-vcard" />
             </intent-filter>
-
         </activity>
         <activity
             android:name=".BasicEntityActivity"
@@ -209,15 +212,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- This may be implemented in the future to detect SMS messages received and update relevant opportunities/contacts
-             It's worth mentioning that it can only detect received SMS NOT SENT so it's of limited value -->
-        <!--<receiver android:name=".SMSReceiver" android:exported="true" android:enabled="true">
+        <!--
+ This may be implemented in the future to detect SMS messages received and update relevant opportunities/contacts
+             It's worth mentioning that it can only detect received SMS NOT SENT so it's of limited value
+        -->
+        <!--
+<receiver android:name=".SMSReceiver" android:exported="true" android:enabled="true">
             <intent-filter android:priority="1000">
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
-        </receiver>-->
-
+        </receiver>
+        -->
         <service
             android:name=".MyLocationService"
             android:enabled="true" />

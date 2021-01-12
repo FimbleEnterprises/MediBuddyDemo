@@ -1,8 +1,25 @@
 package com.fimbleenterprises.medimileage;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.ArrayList;
 
-class BasicObjects {
+public class BasicObjects implements Parcelable {
+
+    String title;
+    BasicObject parentObject = new BasicObject();
+
+    public BasicObjects(BasicObject parentObject) {
+        list = new ArrayList<>();
+        this.parentObject = parentObject;
+    }
+
+    public BasicObjects(String title, BasicObject parentObject) {
+        list = new ArrayList<>();
+        this.parentObject = parentObject;
+        this.title = title;
+    }
 
     public ArrayList<BasicObject> list = new ArrayList<>();
 
@@ -73,4 +90,45 @@ class BasicObjects {
 
     }
 
+
+    protected BasicObjects(Parcel in) {
+        title = in.readString();
+        parentObject = (BasicObject) in.readValue(BasicObject.class.getClassLoader());
+        if (in.readByte() == 0x01) {
+            list = new ArrayList<BasicObject>();
+            in.readList(list, BasicObject.class.getClassLoader());
+        } else {
+            list = null;
+        }
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(title);
+        dest.writeValue(parentObject);
+        if (list == null) {
+            dest.writeByte((byte) (0x00));
+        } else {
+            dest.writeByte((byte) (0x01));
+            dest.writeList(list);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<BasicObjects> CREATOR = new Parcelable.Creator<BasicObjects>() {
+        @Override
+        public BasicObjects createFromParcel(Parcel in) {
+            return new BasicObjects(in);
+        }
+
+        @Override
+        public BasicObjects[] newArray(int size) {
+            return new BasicObjects[size];
+        }
+    };
 }

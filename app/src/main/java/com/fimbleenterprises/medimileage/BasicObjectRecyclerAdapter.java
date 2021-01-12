@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObjectRecyclerAdapter.ViewHolder> {
     private static final String TAG="BasicObjectRecyclerAdapter";
-    public ArrayList<BasicObject> mData;
+    public ArrayList<BasicObjects.BasicObject> mData;
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
     MySettingsHelper options;
@@ -25,7 +25,7 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
     Typeface face;
 
     // data is passed into the constructor
-    public BasicObjectRecyclerAdapter(Context context, ArrayList<BasicObject> data) {
+    public BasicObjectRecyclerAdapter(Context context, ArrayList<BasicObjects.BasicObject> data) {
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
         this.context = context;
@@ -43,7 +43,7 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
     // binds the data to the TextView in each row
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
-        final BasicObject object = mData.get(position);
+        final BasicObjects.BasicObject object = mData.get(position);
 
         holder.txtMainText.setText(object.title);
         holder.txtSubtext.setText(object.subtitle);
@@ -143,13 +143,13 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
 
         @Override
         public boolean onLongClick(View view) {
-            BasicObject clickedTrip = mData.get(getAdapterPosition());
+            BasicObjects.BasicObject clickedTrip = mData.get(getAdapterPosition());
             return true;
         }
     }
 
     // convenience method for getting data at click position
-    public BasicObject getItem(int pos) {
+    public BasicObjects.BasicObject getItem(int pos) {
         return mData.get(pos);
     }
 

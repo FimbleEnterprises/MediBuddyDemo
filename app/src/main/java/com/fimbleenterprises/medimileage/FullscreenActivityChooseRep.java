@@ -29,7 +29,7 @@ public class FullscreenActivityChooseRep extends AppCompatActivity {
 
     Context context;
     RecyclerView listView;
-    ArrayList<BasicObject> objects = new ArrayList<>();
+    ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
     BasicObjectRecyclerAdapter adapter;
     public static final int REQUESTCODE = 012;
     public static final String CHOICE_RESULT = "CHOICE_RESULT";
@@ -91,7 +91,7 @@ public class FullscreenActivityChooseRep extends AppCompatActivity {
                 ArrayList<MediUser> users = MediUser.createMany(response);
                 objects.clear();
                 for (MediUser u : users) {
-                    BasicObject basicObject = new BasicObject(u.fullname, u.territoryname, u);
+                    BasicObjects.BasicObject basicObject = new BasicObjects.BasicObject(u.fullname, u.territoryname, u);
                     basicObject.iconResource = R.drawable.next32;
                     if (currentUser.systemuserid.equals(u.systemuserid)) {
                         basicObject.isSelected = true;

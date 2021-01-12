@@ -39,7 +39,7 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
 
     Context context;
     RecyclerView listView;
-    ArrayList<BasicObject> objects = new ArrayList<>();
+    ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
     BasicObjectRecyclerAdapter adapter;
     public static final int REQUESTCODE = 011;
     public static final String ACCOUNT_RESULT = "ACCOUNT_RESULT";
@@ -166,7 +166,7 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
         objects.clear();
 
         for (Accounts.Account account : accounts) {
-            BasicObject object = new BasicObject(account.accountName, account.accountnumber
+            BasicObjects.BasicObject object = new BasicObjects.BasicObject(account.accountName, account.accountnumber
                     + " " + account.getAgreementTypeFormatted(), account);
             object.iconResource = R.mipmap.ic_business_black_24dp;
             if (currentAccount != null) {

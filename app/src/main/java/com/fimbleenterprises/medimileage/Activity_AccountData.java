@@ -1439,7 +1439,7 @@ public class Activity_AccountData extends AppCompatActivity {
         public RecyclerView recyclerView;
         RefreshLayout refreshLayout;
         BasicObjectRecyclerAdapter adapter;
-        ArrayList<BasicObject> objects = new ArrayList<>();
+        ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
         Button btnChooseAccount;
         public static String pageTitle = "Contacts";
         TextView txtNoContacts;
@@ -1619,7 +1619,7 @@ public class Activity_AccountData extends AppCompatActivity {
                         CrmEntities.Contacts contacts = new CrmEntities.Contacts(response);
                         objects.clear();
                         for (CrmEntities.Contacts.Contact contact : contacts.list) {
-                            BasicObject object = new BasicObject(contact.getFullname(), contact.jobtitle, contact);
+                            BasicObjects.BasicObject object = new BasicObjects.BasicObject(contact.getFullname(), contact.jobtitle, contact);
                             objects.add(object);
                         }
                         populateList();
@@ -1658,7 +1658,7 @@ public class Activity_AccountData extends AppCompatActivity {
                     @Override
                     public void onItemClick(View view, int position) {
                         try {
-                            BasicObject clickedObject = objects.get(position);
+                            BasicObjects.BasicObject clickedObject = objects.get(position);
                             CrmEntities.Contacts.Contact clickedContact = (CrmEntities.Contacts.Contact)
                                     clickedObject.object;
                             Log.i(TAG, "onItemClick Clicked item at position " + position
@@ -1691,7 +1691,7 @@ public class Activity_AccountData extends AppCompatActivity {
         public RecyclerView recyclerView;
         RefreshLayout refreshLayout;
         BasicObjectRecyclerAdapter adapter;
-        ArrayList<BasicObject> objects = new ArrayList<>();
+        ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
         TextView txtNoOpportunities;
         Button btnChooseAccount;
         public static String pageTitle = "Opportunities";
@@ -1869,7 +1869,7 @@ public class Activity_AccountData extends AppCompatActivity {
                         CrmEntities.Opportunities opportunities = new CrmEntities.Opportunities(response);
                         objects.clear();
                         for (CrmEntities.Opportunities.Opportunity opportunity : opportunities.list) {
-                            BasicObject object = new BasicObject(opportunity.accountname, opportunity.statuscodeFormatted, opportunity);
+                            BasicObjects.BasicObject object = new BasicObjects.BasicObject(opportunity.accountname, opportunity.statuscodeFormatted, opportunity);
                             objects.add(object);
                         }
                         populateList();
@@ -1956,7 +1956,7 @@ public class Activity_AccountData extends AppCompatActivity {
         public RecyclerView recyclerView;
         RefreshLayout refreshLayout;
         BasicObjectRecyclerAdapter adapter;
-        ArrayList<BasicObject> objects = new ArrayList<>();
+        ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
         Button btnChooseAccount;
         public static String pageTitle = "Tickets";
         BroadcastReceiver parentActivityMenuReceiver;
@@ -2134,7 +2134,7 @@ public class Activity_AccountData extends AppCompatActivity {
                         CrmEntities.Tickets tickets = new CrmEntities.Tickets(response);
                         objects.clear();
                         for (CrmEntities.Tickets.Ticket ticket : tickets.list) {
-                            BasicObject object = new BasicObject(ticket.ticketnumber, ticket.title, ticket);
+                            BasicObjects.BasicObject object = new BasicObjects.BasicObject(ticket.ticketnumber, ticket.title, ticket);
                             object.middleText = ticket.description;
                             object.topRightText = ticket.statusFormatted;
                             object.bottomRightText = Helpers.DatesAndTimes.getPrettyDateAndTime(ticket.modifiedon);

@@ -30,7 +30,7 @@ public class FullscreenActivityChooseTerritory extends AppCompatActivity {
 
     Context context;
     RecyclerView listView;
-    ArrayList<BasicObject> objects = new ArrayList<>();
+    ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
     BasicObjectRecyclerAdapter adapter;
     public static final int REQUESTCODE = 011;
     public static final String TERRITORY_RESULT = "TERRITORY_RESULT";
@@ -127,7 +127,7 @@ public class FullscreenActivityChooseTerritory extends AppCompatActivity {
 
         objects.clear();
         for (Territory t : cachedTerritories) {
-            BasicObject basicObject = new BasicObject(t.territoryName, t.repName, t);
+            BasicObjects.BasicObject basicObject = new BasicObjects.BasicObject(t.territoryName, t.repName, t);
             basicObject.iconResource = R.drawable.next32;
             if (currentTerritory != null && currentTerritory.territoryid.equals(t.territoryid)) {
                 basicObject.isSelected = true;

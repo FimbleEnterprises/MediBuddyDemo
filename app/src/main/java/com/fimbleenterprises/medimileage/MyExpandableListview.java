@@ -11,7 +11,7 @@ import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ListAdapter;
 
-class MyExpandableListView extends ExpandableListView implements GestureDetector.OnGestureListener {
+class MyExpandableListview extends ExpandableListView implements GestureDetector.OnGestureListener {
 
     private static final String TAG = "MyExpandableListView";
     Context context;
@@ -20,28 +20,28 @@ class MyExpandableListView extends ExpandableListView implements GestureDetector
     MySettingsHelper options;
     GestureDetector gesture;
 
-    public MyExpandableListView(Context context) {
+    public MyExpandableListview(Context context) {
         super(context);
         this.context = context;
         this.options = new MySettingsHelper(context);
         // enableSwipeForBack();
     }
 
-    public MyExpandableListView(Context context, AttributeSet attrs) {
+    public MyExpandableListview(Context context, AttributeSet attrs) {
         super(context, attrs);
         this.context = context;
         this.options = new MySettingsHelper(context);
         // enableSwipeForBack();
     }
 
-    public MyExpandableListView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public MyExpandableListview(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         this.context = context;
         this.options = new MySettingsHelper(context);
         // enableSwipeForBack();
     }
 
-    public MyExpandableListView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public MyExpandableListview(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         this.context = context;
         this.options = new MySettingsHelper(context);
@@ -63,6 +63,13 @@ class MyExpandableListView extends ExpandableListView implements GestureDetector
     public boolean expandGroup(int groupPos) {
         return super.expandGroup(groupPos);
     }
+
+    @Override
+    public void setOnChildClickListener(OnChildClickListener onChildClickListener) {
+        super.setOnChildClickListener(onChildClickListener);
+    }
+
+
 
     @Override
     public boolean expandGroup(int groupPos, boolean animate) {

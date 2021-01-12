@@ -427,6 +427,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         switch (item.getItemId()) {
 
             case R.id.action_settings :
+
+                FullscreenAccountTerritoryPicker.showPicker(this);
+
+                if (1==1) {
+                    return true;
+                }
+
                 Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
                 startActivityForResult(intent, 0);
                 // navController.navigate(R.id.action_HomeFragment_to_SettingsFragment);
@@ -491,6 +498,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         makeDrawerTitles();
+
+        if (data.hasExtra(FullscreenAccountTerritoryPicker.ACCOUNT_RESULT)) {
+            Log.i(TAG, "onActivityResult Account/Territory selection was made!");
+            CrmEntities.Accounts.Account selectedAccount = data.getParcelableExtra(FullscreenAccountTerritoryPicker.ACCOUNT_RESULT);
+            if (selectedAccount != null) {
+                Log.i(TAG, "onActivityResult " + selectedAccount.accountName + " was chosen!");
+            }
+        }
+
+        if (data.hasExtra(FullscreenAccountTerritoryPicker.FOUND_TERRITORIES)) {
+            ArrayList<Territory> territories = data.getParcelableArrayListExtra(FullscreenAccountTerritoryPicker.FOUND_TERRITORIES);
+            Log.i(TAG, "onActivityResult returned " + territories.size() + " territories that we can cache!");
+        }
+
     }
 
     public void makeDrawerTitles() {

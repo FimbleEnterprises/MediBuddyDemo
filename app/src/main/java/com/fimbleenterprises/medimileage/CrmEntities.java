@@ -1677,8 +1677,8 @@ public class CrmEntities {
                 }
             }
 
-            public BasicObject toBasicObject() {
-                BasicObject object = new BasicObject(this.subject, this.firstname + " " + this.lastname, this);
+            public BasicObjects.BasicObject toBasicObject() {
+                BasicObjects.BasicObject object = new BasicObjects.BasicObject(this.subject, this.firstname + " " + this.lastname, this);
                 object.middleText = this.statuscodeFormatted;
                 object.topRightText = this.leadQualityFormatted;
                 object.iconResource = R.drawable.lead_icon2;

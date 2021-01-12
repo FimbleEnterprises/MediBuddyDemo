@@ -336,9 +336,9 @@ public class SearchResultsActivity extends AppCompatActivity {
                 return;
             }
 
-            ArrayList<BasicObject> objects = new ArrayList<>();
+            ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
             for (AccountProducts.AccountProduct product : accountProducts.list) {
-                BasicObject object = new BasicObject(product.partNumber + " s/n "
+                BasicObjects.BasicObject object = new BasicObjects.BasicObject(product.partNumber + " s/n "
                         + product.serialnumber, product.accountname, product);
                 object.middleText = product.statusFormatted;
                 objects.add(object);
@@ -454,9 +454,9 @@ public class SearchResultsActivity extends AppCompatActivity {
         }
 
         protected void populateList() {
-            ArrayList<BasicObject> objects = new ArrayList<>();
+            ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
             for (CrmEntities.Accounts.Account account : accounts.list) {
-                BasicObject object = new BasicObject(account.accountName, account.accountnumber, account);
+                BasicObjects.BasicObject object = new BasicObjects.BasicObject(account.accountName, account.accountnumber, account);
                 object.middleText = account.customerTypeFormatted;
                 objects.add(object);
             }
@@ -579,9 +579,9 @@ public class SearchResultsActivity extends AppCompatActivity {
         }
 
         protected void populateList() {
-            final ArrayList<BasicObject> objects = new ArrayList<>();
+            final ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
             for (CrmEntities.Tickets.Ticket ticket : tickets.list) {
-                BasicObject object = new BasicObject(ticket.ticketnumber, ticket.customerFormatted, ticket);
+                BasicObjects.BasicObject object = new BasicObjects.BasicObject(ticket.ticketnumber, ticket.customerFormatted, ticket);
                 object.middleText = ticket.statusFormatted;
                 objects.add(object);
             }
@@ -711,9 +711,9 @@ public class SearchResultsActivity extends AppCompatActivity {
         }
 
         protected void populateList() {
-            final ArrayList<BasicObject> objects = new ArrayList<>();
+            final ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
             for (CrmEntities.Opportunities.Opportunity opportunity : opportunities.list) {
-                BasicObject object = new BasicObject(opportunity.name, opportunity.accountname, opportunity);
+                BasicObjects.BasicObject object = new BasicObjects.BasicObject(opportunity.name, opportunity.accountname, opportunity);
                 object.middleText = opportunity.statuscodeFormatted;
                 objects.add(object);
             }
@@ -862,9 +862,9 @@ public class SearchResultsActivity extends AppCompatActivity {
         }
 
         protected void populateList() {
-            final ArrayList<BasicObject> objects = new ArrayList<>();
+            final ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
             for (CrmEntities.Contacts.Contact contact : contacts.list) {
-                BasicObject object = new BasicObject(contact.getFullname(), contact.accountFormatted, contact);
+                BasicObjects.BasicObject object = new BasicObjects.BasicObject(contact.getFullname(), contact.accountFormatted, contact);
                 object.middleText = contact.jobtitle;
                 objects.add(object);
             }

@@ -18,71 +18,34 @@ import androidx.fragment.app.FragmentActivity;
 public class ExpandableBasicObjectListviewAdapter extends BaseExpandableListAdapter {
 
     ArrayList<Group> groups = new ArrayList<>();
-
-    static class ParentItem {
-
-        String title;
-        String value;
-        BasicObjects children;
-
-        ParentItem(String title, String value, BasicObjects children) {
-            this.title = title;
-            this.value = value;
-            this.children = children;
-        }
-    }
+    ArrayList<Group> expandedGroups;
+    ExpandableListView lv;
+    Holder holder;
 
     public static final String TAG = "ExpandingListAdapter";
 
     private Activity activity;
     private LayoutInflater inflater;
-    private ArrayList<ParentItem> parents;
+    private ArrayList<BasicObjects> parents;
     Context context;
 
     public ExpandableBasicObjectListviewAdapter() {
         super();
     }
 
-    ArrayList<Group> expandedGroups;
-    ExpandableListView lv;
-    Holder holder;
-    int parentIconImageResource;
-
-    public ExpandableBasicObjectListviewAdapter(ArrayList<ParentItem> parents,
+    public ExpandableBasicObjectListviewAdapter(ArrayList<BasicObjects> parents,
                                       ExpandableListView lv,
-                                      int parentIconImageResource,
-                                      FragmentActivity activity) {
+                                      Activity activity) {
         this.parents = parents;
+        this.expandedGroups = new ArrayList<>();
+        this.lv = lv;
+        this.activity = activity;
+        inflater = activity.getLayoutInflater();
 
-        // Remove the children not marked as, "isVisible"
-        for (ParentItem parent : parents) {
-            BasicObjects cleanChildren = new BasicObjects();
-            for (BasicObjects.BasicObject child : parent.children.toArray()) {
-                if (child.isVisible) {
-                    cleanChildren.list.add(child);
-                }
-            }
-            parent.children = cleanChildren;
+        for (int i = 0; i < parents.size(); i++) {
+            groups.add(new Group(i));
         }
-        this.expandedGroups = new ArrayList<>();
-        this.lv = lv;
-        this.parentIconImageResource = parentIconImageResource;
-        this.activity = activity;
-    }
 
-    public ExpandableBasicObjectListviewAdapter(ArrayList<ParentItem> parents,
-                                      ExpandableListView lv,
-                                      FragmentActivity activity) {
-        this.parents = parents;
-        this.expandedGroups = new ArrayList<>();
-        this.lv = lv;
-        this.parentIconImageResource = R.drawable.ic_location_city_black_24dp;
-        this.activity = activity;
-    }
-
-    public void setInflater(LayoutInflater inflater, FragmentActivity activity) {
-        this.inflater = inflater;
-        this.activity = activity;
     }
 
     @Override
@@ -105,13 +68,20 @@ public class ExpandableBasicObjectListviewAdapter extends BaseExpandableListAdap
 
         holder = new Holder();
         holder.indicator = convertView.findViewById(R.id.parent_indicator);
-        holder.icon = convertView.findViewById(R.id.parent_left_icon);
-        holder.icon.setImageResource(parentIconImageResource);
+
+        /*if (getGroup(groupPosition).expanded) {
+            Log.i(TAG, "getGroupView " + groupPosition + " is expanded");
+            holder.icon.setImageResource(R.drawable.ic_carot_down);
+        } else {
+            Log.i(TAG, "getGroupView " + groupPosition + " is NOT expanded");
+            holder.icon.setImageResource(R.drawable.ic_carot_right);
+        }*/
+
         holder.title = convertView.findViewById(R.id.textView_ParentMainText);
         holder.value = convertView.findViewById(R.id.textview_parentsubtext);
 
-        holder.title.setText(parents.get(groupPosition).title);
-        String jobTitle = parents.get(groupPosition).value;
+        holder.title.setText(parents.get(groupPosition).parentObject.title);
+        String jobTitle = parents.get(groupPosition).parentObject.title;
         if (jobTitle != null) {
             holder.value.setText(jobTitle);
             holder.value.setVisibility(View.VISIBLE);
@@ -128,10 +98,9 @@ public class ExpandableBasicObjectListviewAdapter extends BaseExpandableListAdap
     @Override
     public View getChildView(int groupPosition, int childPosition, boolean isLastChild,
                              View convertView, ViewGroup parent) {
-        ParentItem parentItem = parents.get(groupPosition);
-        BasicObjects children = parentItem.children;
-        BasicObjects.BasicObject child = children.list.get(childPosition);
-
+        BasicObjects parentObject = parents.get(groupPosition);
+        ArrayList<BasicObjects.BasicObject> children = parentObject.list;
+        BasicObjects.BasicObject child = children.get(childPosition);
 
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.listview_childrow, null);
@@ -139,8 +108,8 @@ public class ExpandableBasicObjectListviewAdapter extends BaseExpandableListAdap
 
         holder.title = convertView.findViewById(R.id.child_title);
         holder.value = convertView.findViewById(R.id.textView_childRowSubtext);
-        holder.title.setText(children.list.get(childPosition).title);
-        holder.value.setText(children.list.get(childPosition).subtitle);
+        holder.title.setText(children.get(childPosition).title);
+        holder.value.setText(children.get(childPosition).subtitle);
         /*convertView.setFocusable(true);
         convertView.setClickable(true);
         convertView.setLongClickable(true);*/
@@ -160,6 +129,8 @@ public class ExpandableBasicObjectListviewAdapter extends BaseExpandableListAdap
     @Override
     public void onGroupCollapsed(int groupPosition) {
         super.onGroupCollapsed(groupPosition);
+        /*Group group = (Group) getGroup(groupPosition);
+        group.isExpanded(false);*/
     }
 
     @Override
@@ -176,12 +147,12 @@ public class ExpandableBasicObjectListviewAdapter extends BaseExpandableListAdap
 
     @Override
     public int getChildrenCount(int groupPosition) {
-        return parents.get(groupPosition).children.list.size();
+        return parents.get(groupPosition).list.size();
     }
 
     @Override
     public Object getGroup(int groupPosition) {
-        return 0;
+        return null;
         /*try {
             if (groups == null
                     || groups.size() == 0
@@ -204,7 +175,8 @@ public class ExpandableBasicObjectListviewAdapter extends BaseExpandableListAdap
 
     @Override
     public long getGroupId(int groupPosition) {
-        try {
+        return 0;
+        /*try {
             if (groups == null
                     || groups.size() == 0
                     || groups.get(groupPosition) == null) {
@@ -216,7 +188,7 @@ public class ExpandableBasicObjectListviewAdapter extends BaseExpandableListAdap
         } catch (Exception e) {
             e.printStackTrace();
             return 0;
-        }
+        }*/
     }
 
     @Override
@@ -242,8 +214,9 @@ public class ExpandableBasicObjectListviewAdapter extends BaseExpandableListAdap
     class Group {
         int index;
         int groupPosition;
-        long id;
-        boolean expanded = false;
+        public long id;
+        public boolean expanded = false;
+
         Group(int groupPosition) {
             this.groupPosition = groupPosition;
             this.id = System.currentTimeMillis();

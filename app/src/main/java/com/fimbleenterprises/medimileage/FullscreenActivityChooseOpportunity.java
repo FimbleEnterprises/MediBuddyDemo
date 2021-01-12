@@ -50,7 +50,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
 
     Context context;
     RecyclerView listView;
-    ArrayList<BasicObject> objects = new ArrayList<>();
+    ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
     BasicObjectRecyclerAdapter adapter;
     public static final int REQUESTCODE = 011;
     public static final String FROM_MAIN_NAV_DRAWER = "FROM_MAIN_NAV_DRAWER";
@@ -286,7 +286,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         return null;
     }
 
-    ArrayList<BasicObject> buildOpportunityListBasedOnTrip() {
+    ArrayList<BasicObjects.BasicObject> buildOpportunityListBasedOnTrip() {
         if (objects == null) {
             objects = new ArrayList<>();
         }
@@ -321,25 +321,25 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
             }
         }
 
-        objects.add(new BasicObject("Nearby"));
+        objects.add(new BasicObjects.BasicObject("Nearby"));
         // If there are no nearby opportunities then create an empty one
         if (nearbyOpportunities.size() == 0) {
-            BasicObject emptyObject = new BasicObject();
+            BasicObjects.BasicObject emptyObject = new BasicObjects.BasicObject();
             emptyObject.title = "No opportunities";
             emptyObject.isEmpty = true;
             emptyObject.isHeader = false;
             objects.add(emptyObject);
         }
         for (Opportunity nearbyOpp : nearbyOpportunities) {
-            BasicObject obj = new BasicObject(nearbyOpp.name, nearbyOpp.getPrettyEstimatedValue(), nearbyOpp);
+            BasicObjects.BasicObject obj = new BasicObjects.BasicObject(nearbyOpp.name, nearbyOpp.getPrettyEstimatedValue(), nearbyOpp);
             obj.middleText = nearbyOpp.accountname;
             obj.topRightText = nearbyOpp.probabilityPretty;
             obj.iconResource = R.drawable.opportunity_icon;
             objects.add(obj);
         }
-        objects.add(new BasicObject("Other"));
+        objects.add(new BasicObjects.BasicObject("Other"));
         for (Opportunity otherOpp : notNearbyOpportunities) {
-            BasicObject obj = new BasicObject(otherOpp.name, otherOpp.getPrettyEstimatedValue(), otherOpp);
+            BasicObjects.BasicObject obj = new BasicObjects.BasicObject(otherOpp.name, otherOpp.getPrettyEstimatedValue(), otherOpp);
             obj.middleText = otherOpp.accountname;
             obj.topRightText = otherOpp.probabilityPretty;
             obj.iconResource = R.drawable.opportunity_icon;
@@ -349,7 +349,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         return objects;
     }
 
-    ArrayList<BasicObject> buildOpportunityListBasedOnExternalApp() {
+    ArrayList<BasicObjects.BasicObject> buildOpportunityListBasedOnExternalApp() {
         if (objects == null) {
             objects = new ArrayList<>();
         }
@@ -359,7 +359,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         CrmEntities.Opportunities savedOpportunities = opportunities;
 
         for (Opportunity opp : savedOpportunities.list) {
-            BasicObject obj = new BasicObject(opp.name, opp.getPrettyEstimatedValue(), opp);
+            BasicObjects.BasicObject obj = new BasicObjects.BasicObject(opp.name, opp.getPrettyEstimatedValue(), opp);
             obj.middleText = opp.accountname;
             obj.topRightText = opp.probabilityPretty;
             obj.iconResource = R.drawable.opportunity_icon;
@@ -420,7 +420,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
                 }
 
                 try {
-                    for (BasicObject o : objects) {
+                    for (BasicObjects.BasicObject o : objects) {
                         // Crashed here a couple of times while working on the background uploader.  Will put a STOP here to try and debug it next time it happens.
                         o.iconResource = (o.isHeader ? -1 : o.iconResource);
                     }
