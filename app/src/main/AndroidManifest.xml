@@ -28,7 +28,7 @@
         android:theme="@style/AppTheme">
         <activity android:name=".FullscreenAccountTerritoryPicker"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_receive_contact">
+            android:label="@string/title_activity_pick_account_territory">
         </activity>
         <activity
             android:name=".ActivityReceiveContact"

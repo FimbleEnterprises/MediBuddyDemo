@@ -279,5 +279,6 @@
     <string name="change_account_type">Account type</string>
     <string name="action_save">Save</string>
     <string name="action_edit">Edit</string>
+    <string name="title_activity_pick_account_territory">Choose an account</string>
 
 </resources>

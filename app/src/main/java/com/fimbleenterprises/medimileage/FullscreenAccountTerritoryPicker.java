@@ -7,6 +7,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
 import android.widget.ExpandableListView;
@@ -30,6 +31,7 @@ public class FullscreenAccountTerritoryPicker extends AppCompatActivity implemen
     ArrayList<BasicObjects> parents = new ArrayList<>();
     ArrayList<Territory> territories = new ArrayList<>();
     Context context;
+    Parcelable lastListviewState;
 
     CrmEntities.Accounts.Account selectedAccount;
 
@@ -82,16 +84,13 @@ public class FullscreenAccountTerritoryPicker extends AppCompatActivity implemen
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 territories = Territory.createMany(new String(responseBody));
-
                 for (Territory t : territories) {
                     BasicObjects.BasicObject parentTerritoryObject = new BasicObjects.BasicObject(t.repName, t.territoryName, t);
                     BasicObjects parent = new BasicObjects(t.territoryName, parentTerritoryObject);
                     parents.add(parent);
                 }
-
                 populateListdata();
                 progressDialog.dismiss();
-
             }
 
             @Override
@@ -105,15 +104,18 @@ public class FullscreenAccountTerritoryPicker extends AppCompatActivity implemen
     void populateListdata() {
 
         adapter = new ExpandableBasicObjectListviewAdapter(parents, listview, this);
-
         listview.setOnGroupExpandListener(this);
         listview.setOnGroupCollapseListener(this);
         listview.setOnGroupClickListener(this);
         listview.setOnChildClickListener(this);
-
-
-
         listview.setAdapter(adapter);
+
+        if (lastListviewState != null) {
+            listview.onRestoreInstanceState(lastListviewState);
+            Log.i(TAG, "populateListdata Scrolling to last known position.");
+            lastListviewState = null;
+        }
+
     }
 
     @Override
@@ -158,7 +160,14 @@ public class FullscreenAccountTerritoryPicker extends AppCompatActivity implemen
         final BasicObjects parent = parents.get(groupIndex);
 
         if (parent != null) {
+
+            Log.w(TAG, "onGroupExpand Last state: " + lastListviewState);
+
+            lastListviewState = listview.onSaveInstanceState();
+            Log.i(TAG, "onGroupExpand Saved the last known listview position");
+
             if (parent.list.size() == 0) {
+
                 final MyProgressDialog progressDialog = new MyProgressDialog(context, "Getting accounts...");
                 progressDialog.show();
 
