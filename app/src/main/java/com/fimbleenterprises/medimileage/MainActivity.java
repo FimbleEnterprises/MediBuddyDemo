@@ -428,11 +428,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             case R.id.action_settings :
 
-                FullscreenAccountTerritoryPicker.showPicker(this);
-
+                /*FullscreenAccountTerritoryPicker.showPicker(this);
                 if (1==1) {
                     return true;
-                }
+                }*/
 
                 Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
                 startActivityForResult(intent, 0);
@@ -497,21 +496,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
         makeDrawerTitles();
 
-        if (data.hasExtra(FullscreenAccountTerritoryPicker.ACCOUNT_RESULT)) {
-            Log.i(TAG, "onActivityResult Account/Territory selection was made!");
-            CrmEntities.Accounts.Account selectedAccount = data.getParcelableExtra(FullscreenAccountTerritoryPicker.ACCOUNT_RESULT);
-            if (selectedAccount != null) {
-                Log.i(TAG, "onActivityResult " + selectedAccount.accountName + " was chosen!");
+
+        if (data != null) {
+            if (data.hasExtra(FullscreenAccountTerritoryPicker.ACCOUNT_RESULT)) {
+                Log.i(TAG, "onActivityResult Account/Territory selection was made!");
+                CrmEntities.Accounts.Account selectedAccount = data.getParcelableExtra(FullscreenAccountTerritoryPicker.ACCOUNT_RESULT);
+                if (selectedAccount != null) {
+                    Log.i(TAG, "onActivityResult " + selectedAccount.accountName + " was chosen!");
+                }
+            }
+            if (data.hasExtra(FullscreenAccountTerritoryPicker.FOUND_TERRITORIES)) {
+                ArrayList<Territory> territories = data.getParcelableArrayListExtra(FullscreenAccountTerritoryPicker.FOUND_TERRITORIES);
+                Log.i(TAG, "onActivityResult returned " + territories.size() + " territories that we can cache!");
             }
         }
-
-        if (data.hasExtra(FullscreenAccountTerritoryPicker.FOUND_TERRITORIES)) {
-            ArrayList<Territory> territories = data.getParcelableArrayListExtra(FullscreenAccountTerritoryPicker.FOUND_TERRITORIES);
-            Log.i(TAG, "onActivityResult returned " + territories.size() + " territories that we can cache!");
-        }
-
     }
 
     public void makeDrawerTitles() {
