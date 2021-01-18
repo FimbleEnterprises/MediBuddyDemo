@@ -55,8 +55,10 @@ import com.fimbleenterprises.medimileage.CrmEntities;
 import com.fimbleenterprises.medimileage.DatePickerFragment;
 import com.fimbleenterprises.medimileage.FullTrip;
 import com.fimbleenterprises.medimileage.FullscreenActivityChooseOpportunity;
+import com.fimbleenterprises.medimileage.FullscreenActivityChooseRep;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.LocationContainer;
+import com.fimbleenterprises.medimileage.MainActivity;
 import com.fimbleenterprises.medimileage.MediUser;
 import com.fimbleenterprises.medimileage.MileBuddyMetrics;
 import com.fimbleenterprises.medimileage.MonthYearPickerDialog;
@@ -153,9 +155,15 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     Handler mtdTogglerHandler = new Handler();
     boolean isShowingMilesTotal = false;
 
+    FullTrip tripToReassign;
+
     double lastMtdValue;
     private double lastMtdMilesValue = 0;
     MyAnimatedNumberTextView animatedNumberTextView;
+
+    // Filter to listen for rep chooser result broadcasts.
+    IntentFilter repChosenFilter = new IntentFilter(FullscreenActivityChooseRep.CHOICE_RESULT);
+    BroadcastReceiver repChosenReceiver;
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -512,6 +520,50 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             }
         };
 
+        repChosenReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent data) {
+                Log.i(TAG, "onReceive Rep chosen receiver was triggered!");
+                if (data != null && data.hasExtra(FullscreenActivityChooseRep.CHOICE_RESULT)) {
+                    if (tripToReassign != null) {
+                        MediUser chosenUser = data.getParcelableExtra(FullscreenActivityChooseRep.CHOICE_RESULT);
+                        if (chosenUser != null) {
+                            final MyProgressDialog progressDialog = new MyProgressDialog(getContext(), "Reassigning trip to " + chosenUser.fullname);
+                            progressDialog.show();
+
+                            Request request = new Request(Request.Function.ASSIGN);
+                            request.arguments.add(new Requests.Argument("entityname", "msus_fulltrip"));
+                            request.arguments.add(new Requests.Argument("entityid", tripToReassign.tripGuid));
+                            request.arguments.add(new Requests.Argument("assignto", chosenUser.systemuserid));
+                            request.arguments.add(new Requests.Argument("asuser", MediUser.getMe().systemuserid));
+
+                            new Crm().makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+                                @Override
+                                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                                    MySqlDatasource ds = new MySqlDatasource(getContext());
+                                    ds.deleteFulltrip(tripToReassign.getTripcode(), true);
+                                    Toast.makeText(getContext(), "Trip was reassigned", Toast.LENGTH_SHORT).show();
+                                    populateTripList();
+                                    progressDialog.dismiss();
+                                    tripToReassign = null;
+                                }
+
+                                @Override
+                                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                                    Toast.makeText(getContext(), "Failed to reassign trip\n" + error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                                    populateTripList();
+                                    progressDialog.dismiss();
+                                    tripToReassign = null;
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+        };
+
+        getActivity().registerReceiver(repChosenReceiver, repChosenFilter);
+
         return root;
     }
 
@@ -589,6 +641,17 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             }
         }
 
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        try {
+            getActivity().unregisterReceiver(repChosenReceiver);
+            Log.i(TAG, "onDestroy Unregistered the rep chosen receiver");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -1262,6 +1325,8 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             }
         });
 
+        toggleEditButton.setEnabled(triplist.size() > 0);
+
     }
 
     void showTripOptions(final FullTrip clickedTrip) {
@@ -1379,6 +1444,23 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         });
 
         btnEditTrip.setEnabled(!clickedTrip.getIsSubmitted());
+
+        Button btnReassign = dialog.findViewById(R.id.assign_trip);
+        btnReassign.setEnabled(MediUser.getMe().isAdmin());
+        btnReassign.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                if (!clickedTrip.getIsSubmitted()) {
+                    Toast.makeText(getContext(), "Trip must be submitted before it can be reassigned!", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                tripToReassign = clickedTrip;
+                dialog.dismiss();
+                FullscreenActivityChooseRep.showRepChooser((MainActivity)getActivity(), MediUser.getMe());
+            }
+        });
 
         if (options.isExplicitMode()) {
             btn_ViewTrip.setText(getString(R.string.tripOptions_view_explicit));

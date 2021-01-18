@@ -3063,8 +3063,10 @@ public class CrmEntities {
 
                 String vBody = this.toVcardString();
 
+
+
                 try {
-                    PrintWriter out = new PrintWriter(Helpers.Files.getAppTempDirectory() + this.firstname + "_" + this.lastname + ".vcf");
+                    PrintWriter out = new PrintWriter(Helpers.Files.getAppTempDirectory().getPath() + File.separator + this.firstname + "_" + this.lastname + ".vcf");
                     out.println(vBody);
                     File vcard = new File(Helpers.Files.getAppTempDirectory() + this.firstname + " " + this.lastname + ".vcf");
                     out.close();

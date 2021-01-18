@@ -642,7 +642,7 @@ public class FullTrip implements Parcelable {
 
     @Override
     public String toString() {
-        return "Tripcode: " + this.tripcode + " Distance: " + this.getDistanceInMiles() + " miles";
+        return "Tripcode: " + this.tripcode + " Distance: " + this.getDistanceInMiles() + " miles Ownerid: " + this.getOwnerid();
     }
 
     protected FullTrip(Parcel in) {

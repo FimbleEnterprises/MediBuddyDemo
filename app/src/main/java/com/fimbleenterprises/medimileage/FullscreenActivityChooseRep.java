@@ -1,5 +1,6 @@
 package com.fimbleenterprises.medimileage;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -36,6 +37,20 @@ public class FullscreenActivityChooseRep extends AppCompatActivity {
     public static final String CURRENT_VALUE = "CURRENT_VALUE";
     MediUser currentUser;
     MySettingsHelper options;
+
+    /**
+     * Shows a picker for sales reps.  Will return an intent with the selected user as a MediUser object with a tag of: CHOICE_RESULT
+     * @param activity An activity that can raise an OnActivityResult event.
+     * @param currentUser A MediUser - if null will use the current user.
+     */
+    public static void showRepChooser(Activity activity, MediUser currentUser) {
+        if (currentUser == null) {
+            currentUser = MediUser.getMe();
+        }
+        Intent intent = new Intent(activity, FullscreenActivityChooseRep.class);
+        intent.putExtra(CURRENT_VALUE, currentUser);
+        activity.startActivityForResult(intent, REQUESTCODE);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

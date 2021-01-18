@@ -378,6 +378,13 @@ public class MediUser implements Parcelable {
         return ds.getMe();
     }
 
+    public boolean isAdmin() {
+        if (this.msus_medibuddy_managed_territories == null) {
+            return false;
+        }
+        return this.msus_medibuddy_managed_territories.toLowerCase().equals("all");
+    }
+
     /**
      * Builds a basic Territory object using this object's territoryid and territoryname properties.
      * @return A Territory object using this object's territory properties
@@ -536,4 +543,9 @@ public class MediUser implements Parcelable {
             return new MediUser[size];
         }
     };
+
+    @Override
+    public String toString() {
+        return this.fullname + ", " + this.systemuserid;
+    }
 }

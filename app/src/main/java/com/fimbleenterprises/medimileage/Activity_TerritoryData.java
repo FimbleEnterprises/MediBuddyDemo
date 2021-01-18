@@ -315,7 +315,9 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
                 menu.findItem(R.id.action_account_type).setVisible(false);
                 break;
+            case SectionsPagerAdapter.LEADS_PAGE: // Sales lines
             case SectionsPagerAdapter.OPPORTUNITIES_PAGE: // Opportunities
+            case SectionsPagerAdapter.ACCOUNTS_PAGE: // Accounts
                 menu.findItem(R.id.action_west_region).setVisible(false);
                 menu.findItem(R.id.action_east_region).setVisible(false);
                 menu.findItem(R.id.action_this_year).setVisible(false);
@@ -330,6 +332,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
                 menu.findItem(R.id.action_account_type).setVisible(false);
                 break;
+
             case SectionsPagerAdapter.CASES_PAGE: // Cases
                 menu.findItem(R.id.action_west_region).setVisible(false);
                 menu.findItem(R.id.action_east_region).setVisible(false);
@@ -345,155 +348,73 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
                 menu.findItem(R.id.action_case_status).setVisible(true);
                 break;
-            case SectionsPagerAdapter.ACCOUNTS_PAGE: // Accounts
-                menu.findItem(R.id.action_west_region).setVisible(false);
-                menu.findItem(R.id.action_east_region).setVisible(false);
-                menu.findItem(R.id.action_this_year).setVisible(false);
-                menu.findItem(R.id.action_last_year).setVisible(false);
 
-                menu.findItem(R.id.action_this_month).setVisible(false);
-                menu.findItem(R.id.action_last_month).setVisible(false);
-                menu.findItem(R.id.action_choose_month).setVisible(false);
-                menu.findItem(R.id.action_choose_territory).setVisible(true);
+        }
 
-                menu.findItem(R.id.action_case_status).setVisible(false);
-
-                menu.findItem(R.id.action_account_type).setVisible(false);
-
-                // Set case status values
-                switch (case_status) {
-                    case NOT_RESOLVED :
-                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(true);
-                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
-                        break;
-                    case CrmEntities.Tickets.IN_PROGRESS :
-                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(true);
-                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
-                        break;
-                    case CrmEntities.Tickets.ON_HOLD :
-                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(true);
-                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
-                        break;
-                    case CrmEntities.Tickets.TO_BE_INSPECTED :
-                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(true);
-                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
-                        break;
-                    case CrmEntities.Tickets.WAITING_FOR_PRODUCT :
-                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(true);
-                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
-                        break;
-                    case CrmEntities.Tickets.WAITING_ON_CUSTOMER :
-                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(true);
-                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
-                        break;
-                    case CrmEntities.Tickets.TO_BE_BILLED :
-                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(true);
-                        break;
-                }/*
-
-                // Set account type values
-                switch (customer_type) {
-                    case POTENTIAL_CUSTOMER :
-                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(true);
-                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
-                        break;
-                    case CrmEntities.Tickets.IN_PROGRESS :
-                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(true);
-                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
-                        break;
-                    case CrmEntities.Tickets.ON_HOLD :
-                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(true);
-                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
-                        break;
-                    case CrmEntities.Tickets.TO_BE_INSPECTED :
-                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(true);
-                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
-                        break;
-                    case CrmEntities.Tickets.WAITING_FOR_PRODUCT :
-                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(true);
-                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
-                        break;
-                    case CrmEntities.Tickets.WAITING_ON_CUSTOMER :
-                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(true);
-                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
-                        break;
-                    case CrmEntities.Tickets.TO_BE_BILLED :
-                        menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
-                        menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(true);
-                        break;
-                }*/
-
+        // Set case status values
+        switch (case_status) {
+            case NOT_RESOLVED :
+                menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(true);
+                menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
+                break;
+            case CrmEntities.Tickets.IN_PROGRESS :
+                menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_inprogress).setChecked(true);
+                menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
+                break;
+            case CrmEntities.Tickets.ON_HOLD :
+                menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_on_hold).setChecked(true);
+                menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
+                break;
+            case CrmEntities.Tickets.TO_BE_INSPECTED :
+                menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(true);
+                menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
+                break;
+            case CrmEntities.Tickets.WAITING_FOR_PRODUCT :
+                menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(true);
+                menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
+                break;
+            case CrmEntities.Tickets.WAITING_ON_CUSTOMER :
+                menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(true);
+                menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
+                break;
+            case CrmEntities.Tickets.TO_BE_BILLED :
+                menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(true);
                 break;
         }
 

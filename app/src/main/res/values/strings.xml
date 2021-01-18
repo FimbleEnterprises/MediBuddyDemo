@@ -280,5 +280,8 @@
     <string name="action_save">Save</string>
     <string name="action_edit">Edit</string>
     <string name="title_activity_pick_account_territory">Choose an account</string>
+    <string name="btn_submitrating">Submit</string>
+    <string name="action_feedback">Feedback...</string>
+    <string name="action_feedback_explicit">Fucking feedback...</string>
 
 </resources>

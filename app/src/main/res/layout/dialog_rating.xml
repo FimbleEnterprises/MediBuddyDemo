@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/btn_glass_gray">
+
+    <TableLayout
+        android:id="@+id/tableLayout_oppotunitydetails"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp">
+
+        <TableRow
+            android:id="@+id/tableRow_0"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <TextView
+                    android:id="@+id/txtSubject"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
+                    android:fontFamily="@font/casual"
+                    android:gravity="left"
+                    android:text="Feedback"
+                    android:inputType="textImeMultiLine"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:textColor="#454545"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/tableRow_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+
+                <EditText
+                    android:id="@+id/editComments"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="start|top"
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:lines="5"
+                    android:selectAllOnFocus="true"
+                    android:singleLine="false" />
+            </FrameLayout>
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/tableRow_rating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+
+                android:textStyle="bold" />
+
+                <RatingBar
+                    android:id="@+id/ratingBar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_margin="15dp"
+                    android:isIndicator="false"
+                    android:numStars="5"
+                    android:progressDrawable="@drawable/custom_rating_bar"
+                    android:stepSize="1" />
+            </FrameLayout>
+        </TableRow>
+
+    </TableLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tableLayout_oppotunitydetails"
+        android:layout_marginBottom="2dp"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/btnSubmit"
+            style="@style/ButtonTextWhiteShadow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/LinearLayout02"
+            android:layout_alignParentLeft="true"
+            android:layout_margin="5dp"
+            android:background="@drawable/btn_glass_gray_black_border"
+            android:paddingLeft="5dp"
+            android:text="@string/btn_submitrating"
+            android:textColor="#000000" />
+
+    </LinearLayout>
+
+</RelativeLayout>

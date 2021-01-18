@@ -26,10 +26,11 @@
         android:roundIcon="@mipmap/car2_static_round_tparent_icon"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".FullscreenAccountTerritoryPicker"
+        <activity android:name=".MyRatingDialog"></activity>
+        <activity
+            android:name=".FullscreenAccountTerritoryPicker"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_pick_account_territory">
-        </activity>
+            android:label="@string/title_activity_pick_account_territory"></activity>
         <activity
             android:name=".ActivityReceiveContact"
             android:configChanges="orientation|keyboardHidden|screenSize"

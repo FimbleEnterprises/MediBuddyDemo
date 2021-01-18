@@ -392,6 +392,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         MenuItem update = menu.findItem(R.id.action_update);
         update.setTitle(options.isExplicitMode() ? getString(R.string.action_update_check_explicit) : getString(R.string.action_update_check));
 
+        MenuItem feedback = menu.findItem(R.id.action_feedback);
+        feedback.setTitle(options.isExplicitMode() ? getString(R.string.action_feedback_explicit) : getString(R.string.action_feedback));
+
         MenuItem settings = menu.findItem(R.id.action_settings);
         settings.setTitle(options.isExplicitMode() ? getString(R.string.action_settings_explicit) : getString(R.string.action_settings));
 
@@ -425,17 +428,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 
         switch (item.getItemId()) {
-
             case R.id.action_settings :
-
-                /*FullscreenAccountTerritoryPicker.showPicker(this);
-                if (1==1) {
-                    return true;
-                }*/
 
                 Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
                 startActivityForResult(intent, 0);
                 // navController.navigate(R.id.action_HomeFragment_to_SettingsFragment);
+                break;
+
+            case R.id.action_feedback :
+                MyRatingDialog.rate(activity, new MyRatingDialog.OnRatingSubmitted() {
+                    @Override
+                    public void onSuccessful() {
+                        Toast.makeText(activity, "Feedback submitted!  Thanks!", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onFailed() {
+                        Toast.makeText(activity, "Failed to submit feedback.", Toast.LENGTH_SHORT).show();
+                    }
+                });
                 break;
 
             case R.id.action_export_to_excel :
@@ -499,6 +510,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         makeDrawerTitles();
 
+        // A rep was chosen using the fullscreen rep chooser dialog.  Broadcast that shiz.
+        if (data != null && data.getAction().equals(FullscreenActivityChooseRep.CHOICE_RESULT)) {
+            Intent repPickerResultIntent = new Intent(FullscreenActivityChooseRep.CHOICE_RESULT);
+            repPickerResultIntent.putExtra(FullscreenActivityChooseRep.CHOICE_RESULT, data.getParcelableExtra(FullscreenActivityChooseRep.CHOICE_RESULT));
+            sendBroadcast(repPickerResultIntent);
+        }
 
         if (data != null) {
             if (data.hasExtra(FullscreenAccountTerritoryPicker.ACCOUNT_RESULT)) {
