@@ -49,6 +49,8 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/orderLinesRecyclerview"
             android:layout_width="match_parent"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
             android:layout_height="match_parent" />
 
         <com.scwang.smart.refresh.footer.ClassicsFooter

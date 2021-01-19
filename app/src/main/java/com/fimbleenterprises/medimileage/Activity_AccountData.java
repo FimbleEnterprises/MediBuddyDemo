@@ -176,6 +176,12 @@ public class Activity_AccountData extends AppCompatActivity {
 
         intentFilterParentActivity.addAction(BasicEntityActivity.ENTITY_UPDATED);
 
+        try {
+            MileBuddyMetrics.updateMetric(context, MileBuddyMetrics.MetricName.LAST_ACCESSED_ACCOUNT_DATA, DateTime.now());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override
@@ -1324,7 +1330,8 @@ public class Activity_AccountData extends AppCompatActivity {
 
             if (!getActivity().isFinishing()) {
                 adapter = new OrderLineRecyclerAdapter(getContext(), orderList);
-                adapter.setClickListener(new OrderLineRecyclerAdapter.ItemClickListener() {
+                adapter.setClickListener(null);
+                /*adapter.setClickListener(new OrderLineRecyclerAdapter.ItemClickListener() {
                     @Override
                     public void onItemClick(View view, int position) {
                         final MyProgressDialog progressDialog = new MyProgressDialog(context , "Getting order details...");
@@ -1348,7 +1355,7 @@ public class Activity_AccountData extends AppCompatActivity {
                         });
 
                     }
-                });
+                });*/
                 recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
                 recyclerView.setAdapter(adapter);
 
@@ -1358,6 +1365,8 @@ public class Activity_AccountData extends AppCompatActivity {
             }
 
             txtNoSales.setVisibility( (allOrders == null || allOrders.size() == 0) ? View.VISIBLE : View.GONE);
+
+
         }
 
         ExcelSpreadsheet exportToExcel(String filename) {
@@ -1913,6 +1922,12 @@ public class Activity_AccountData extends AppCompatActivity {
                         intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "opportunity");
                         intent.putExtra(GSON_STRING, selectedOpportunity.toBasicEntity().toGson());
                         startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
+
+                        try {
+                            MileBuddyMetrics.updateMetric(context, MileBuddyMetrics.MetricName.LAST_OPENED_OPPORTUNITY, DateTime.now());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 });
                 refreshLayout.finishRefresh();
@@ -2181,6 +2196,12 @@ public class Activity_AccountData extends AppCompatActivity {
                         intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "incident");
                         intent.putExtra(GSON_STRING, selectedTicket.toBasicEntity().toGson());
                         startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
+
+                        try {
+                            MileBuddyMetrics.updateMetric(context, MileBuddyMetrics.MetricName.LAST_OPENED_TICKET, DateTime.now());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 });
                 refreshLayout.finishRefresh();

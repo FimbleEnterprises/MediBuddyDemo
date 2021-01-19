@@ -25,6 +25,8 @@ import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
 import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
+import org.joda.time.DateTime;
+
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
@@ -82,6 +84,12 @@ public class SearchResultsActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+
+        try {
+            MileBuddyMetrics.updateMetric(context, MileBuddyMetrics.MetricName.LAST_ACCESSED_SEARCH, DateTime.now());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
     }
@@ -604,6 +612,12 @@ public class SearchResultsActivity extends AppCompatActivity {
                     intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "incident");
                     intent.putExtra(BasicEntityActivity.GSON_STRING, selectedTicket.toBasicEntity().toGson());
                     startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
+
+                    try {
+                        MileBuddyMetrics.updateMetric(getContext(), MileBuddyMetrics.MetricName.LAST_OPENED_TICKET, DateTime.now());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             });
             refreshLayout.finishRefresh();
@@ -736,6 +750,12 @@ public class SearchResultsActivity extends AppCompatActivity {
                     intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "opportunity");
                     intent.putExtra(BasicEntityActivity.GSON_STRING, selectedOpportunity.toBasicEntity().toGson());
                     startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
+
+                    try {
+                        MileBuddyMetrics.updateMetric(getContext(), MileBuddyMetrics.MetricName.LAST_OPENED_OPPORTUNITY, DateTime.now());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             });
             refreshLayout.finishRefresh();

@@ -22,13 +22,18 @@ public class MileBuddyMetrics {
         LAST_ACCESSED_MILEAGE_SYNC,
         LAST_ACCESSED_MILEAGE_STATS,
         LAST_ACCESSED_IS_DRIVING,
+        LAST_ACCESSED_SEARCH,
+        LAST_OPENED_OPPORTUNITY,
+        LAST_OPENED_TICKET,
+        LAST_CREATED_NOTE,
+        LAST_ACCESSED_ACCOUNT_DATA,
         LAST_ACCESSED_APP_SETTINGS;
     }
 
     private static String getMetricName(MetricName metricName) {
         switch (metricName) {
             case LAST_ACCESSED_TERRITORY_DATA:
-                return "msus_milebuddy_last_accessed_territory_data";
+                return "msus_last_accessed_territory_data";
             case LAST_ACCESSED_APP_SETTINGS:
                 return "msus_last_opened_settings";
             case LAST_ACCESSED_TERRITORY_CHANGER:
@@ -41,6 +46,16 @@ public class MileBuddyMetrics {
                 return "msus_last_synced_mileage";
             case LAST_ACCESSED_MILEAGE_STATS:
                 return "msus_last_viewed_mileage_stats";
+            case LAST_ACCESSED_SEARCH:
+                    return "msus_last_accessed_search";
+            case LAST_OPENED_OPPORTUNITY:
+                return "msus_last_opened_opportunity";
+            case LAST_OPENED_TICKET:
+                return "msus_last_opened_ticket";
+            case LAST_CREATED_NOTE:
+                return "msus_last_created_note";
+            case LAST_ACCESSED_ACCOUNT_DATA:
+                return "msus_last_accessed_account_data";
             default:
                 return "msus_last_accessed_milebuddy";
         }

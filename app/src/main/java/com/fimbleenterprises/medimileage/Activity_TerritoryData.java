@@ -121,7 +121,11 @@ public class Activity_TerritoryData extends AppCompatActivity {
         activity = this;
 
         // Log a metric
-        MileBuddyMetrics.updateMetric(this, MileBuddyMetrics.MetricName.LAST_ACCESSED_TERRITORY_DATA, DateTime.now());
+        try {
+            MileBuddyMetrics.updateMetric(context, MileBuddyMetrics.MetricName.LAST_ACCESSED_TERRITORY_DATA, DateTime.now());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         territory = new Territory();
         territory.territoryid = MediUser.getMe().territoryid;
@@ -1227,6 +1231,12 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "opportunity");
                     intent.putExtra(BasicEntityActivity.GSON_STRING, selectedOpportunity.toBasicEntity().toGson());
                     startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
+
+                    try {
+                        MileBuddyMetrics.updateMetric(context, MileBuddyMetrics.MetricName.LAST_OPENED_OPPORTUNITY, DateTime.now());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             });
 
@@ -1445,6 +1455,12 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "incident");
                     intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Ticket " + ticket.ticketnumber);
                     startActivityForResult(intent, REQUEST_BASIC);
+
+                    try {
+                        MileBuddyMetrics.updateMetric(context, MileBuddyMetrics.MetricName.LAST_OPENED_TICKET, DateTime.now());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             });
 

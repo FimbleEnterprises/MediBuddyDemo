@@ -310,6 +310,12 @@ public class CrmEntities {
              */
             public void submit(Context context, final MyInterfaces.CrmRequestListener listener) {
 
+                try {
+                    MileBuddyMetrics.updateMetric(context, MileBuddyMetrics.MetricName.LAST_CREATED_NOTE, DateTime.now());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
                 if (this.annotationid == null) {
                     // Create new note
 
@@ -3066,12 +3072,17 @@ public class CrmEntities {
 
 
                 try {
-                    PrintWriter out = new PrintWriter(Helpers.Files.getAppTempDirectory().getPath() + File.separator + this.firstname + "_" + this.lastname + ".vcf");
+                    String fqfn = Helpers.Files.getAppTempDirectory().getPath() + File.separator + this.firstname + "_" + this.lastname + ".vcf";
+                    File file = new File(fqfn);
+                    if (file.exists()) {
+                        file.delete();
+                        file.createNewFile();
+                    }
+                    PrintWriter out = new PrintWriter(file);
                     out.println(vBody);
-                    File vcard = new File(Helpers.Files.getAppTempDirectory() + this.firstname + " " + this.lastname + ".vcf");
                     out.close();
-                    return vcard;
-                } catch (FileNotFoundException e) {
+                    return file;
+                } catch (Exception e) {
                     e.printStackTrace();
                     return null;
                 }
