@@ -113,6 +113,7 @@ public class BasicEntity {
         boolean isDateField = false;
         boolean isNumber = false;
         boolean isDateTimeField = false;
+        boolean isRequired = false;
         String crmFieldName;
         ArrayList<OptionSetValue> optionSetValues = new ArrayList<>();
         ArrayList<EntityStatusReason> entityStatusReasons = new ArrayList<>();
