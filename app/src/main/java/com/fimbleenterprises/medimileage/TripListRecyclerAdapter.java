@@ -99,15 +99,10 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
             holder.txtIsEditedOrManual.setText("");
         }
 
-        holder.txtIsAutoStoppedTrip.setVisibility(trip.wasAutoKilled() ? View.VISIBLE : View.INVISIBLE);
-        holder.txtIsEditedOrManual.setVisibility(trip.getIsEdited() ? View.VISIBLE : View.INVISIBLE);
-
         if (trip.isChecked) {
             Log.i(TAG, "onBindViewHolder Checked trip found (" + trip.getTripcode() + ")");
         }
 
-        holder.chkbxSelectTrip.setVisibility((isInEditMode) ? View.VISIBLE : View.INVISIBLE);
-        holder.chkbxSelectTrip.setChecked(trip.isChecked);
         holder.chkbxSelectTrip.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
@@ -118,10 +113,6 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
         holder.imgSubmitStatus.setImageResource((trip.getIsSubmitted())
                 ? (int) R.drawable.av_checkmark : (int) R.drawable.upload_icon2_48x48);
 
-        holder.txtSubtext.setVisibility((trip.isSeparator) ? View.GONE : View.VISIBLE);
-        holder.txtIsEditedOrManual.setVisibility((trip.isSeparator) ? View.GONE : View.VISIBLE);
-        holder.txtIsAutoStoppedTrip.setVisibility((trip.isSeparator) ? View.GONE : View.VISIBLE);
-        holder.imgSubmitStatus.setVisibility((trip.isSeparator) ? View.GONE : View.VISIBLE);
         if (options.getDebugMode()) {
             holder.imgHasAssociations.setVisibility(trip.hasAssociations() ? View.VISIBLE : View.GONE);
         } else {
@@ -131,11 +122,17 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
         if (trip.isSeparator) {
             holder.txtMainText.setText(trip.getTitle());
             holder.txtMainText.setTypeface(originalTypeface, Typeface.BOLD);
+            holder.txtSubtext.setVisibility(View.GONE);
             holder.chkbxSelectTrip.setVisibility(View.GONE);
             holder.layout.setBackground(null);
             holder.imgHasAssociations.setVisibility(View.GONE);
+            holder.txtIsAutoStoppedTrip.setVisibility(View.GONE);
+            holder.txtIsEditedOrManual.setVisibility(View.GONE);
+            holder.imgSubmitStatus.setVisibility(View.GONE);
         } else {
+            Log.i(TAG, "onBindViewHolder " + trip.getTitle() + " is auto-killed: " + trip.wasAutoKilled());
             holder.txtMainText.setTypeface(originalTypeface);
+            holder.imgSubmitStatus.setVisibility(View.VISIBLE);
             ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams)
                     holder.layout.getLayoutParams();
             layoutParams.bottomMargin = 6;
@@ -145,6 +142,9 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
             holder.txtMainText.setText(trip.getTitle() + " - " + Helpers.DatesAndTimes.getPrettyDate
                     (trip.getDateTime()));
             holder.chkbxSelectTrip.setVisibility((isInEditMode) ? View.VISIBLE : View.INVISIBLE);
+            holder.chkbxSelectTrip.setChecked(trip.isChecked);
+            holder.txtIsEditedOrManual.setVisibility(trip.getIsEditedOrIsManual() ? View.VISIBLE : View.INVISIBLE);
+            holder.txtIsAutoStoppedTrip.setVisibility(trip.getTripMinderKilledTrip() ? View.VISIBLE : View.INVISIBLE);
             /*try {
                 if (options.showOpportunityOptions()) {
                     if (trip.hasNearbyAssociations == 1) {
@@ -159,9 +159,6 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
                 e.printStackTrace();
             }*/
         }
-
-        holder.txtIsEditedOrManual.setVisibility(trip.getIsEditedOrIsManual() ? View.VISIBLE : View.INVISIBLE);
-        holder.txtIsAutoStoppedTrip.setVisibility(trip.getUserStoppedTrip() ? View.VISIBLE : View.INVISIBLE);
 
         holder.itemView.setLongClickable(true);
     }

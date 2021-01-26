@@ -1,4 +1,4 @@
-package com.fimbleenterprises.medimileage.ui.settings.mileage;
+package com.fimbleenterprises.medimileage.ui.settings;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;

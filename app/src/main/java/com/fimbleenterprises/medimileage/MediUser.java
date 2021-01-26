@@ -31,6 +31,7 @@ public class MediUser implements Parcelable {
     public String jobtitleid;
     public String systemuserid;
     public String managername;
+    public String milebuddyVersion;
     public String managerid;
     public String email;
     public String fullname;
@@ -68,6 +69,13 @@ public class MediUser implements Parcelable {
             try {
                 if (!json.isNull("msus_last_generated_receipt")) {
                     this.msus_last_generated_receipt = (new DateTime(json.getString("msus_last_generated_receipt")));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (!json.isNull("msus_milebuddy_version")) {
+                    this.milebuddyVersion = (json.getString("msus_milebuddy_version"));
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -480,6 +488,7 @@ public class MediUser implements Parcelable {
         msus_last_synced_mileage = (DateTime) in.readValue(DateTime.class.getClassLoader());
         msus_milebuddy_last_accessed_territory_changer = (DateTime) in.readValue(DateTime.class.getClassLoader());
         msus_last_accessed_other_user_trips = (DateTime) in.readValue(DateTime.class.getClassLoader());
+        milebuddyVersion = in.readString();
     }
 
     @Override
@@ -529,6 +538,7 @@ public class MediUser implements Parcelable {
         dest.writeValue(msus_last_synced_mileage);
         dest.writeValue(msus_milebuddy_last_accessed_territory_changer);
         dest.writeValue(msus_last_accessed_other_user_trips);
+        dest.writeString(milebuddyVersion);
     }
 
     @SuppressWarnings("unused")
