@@ -12,7 +12,10 @@ import android.widget.Button;
 import android.widget.TableRow;
 import android.widget.Toast;
 
+import com.loopj.android.http.AsyncHttpResponseHandler;
+
 import androidx.core.app.ActivityCompat;
+import cz.msebera.android.httpclient.Header;
 
 class ContactActions {
 
@@ -78,6 +81,7 @@ class ContactActions {
     public static final String SENT_ACTION = "SENT_ACTION";
     public static final String DELIVERY_ACTION = "DELIVERY_ACTION";
     public boolean dismissOnSelection = false;
+    public boolean allowDelete = false;
 
     public ContactActions(Activity activity, CrmEntities.Contacts.Contact contact) {
         this.person = new Person(contact);
@@ -112,12 +116,15 @@ class ContactActions {
         Button btnShare = dialog.findViewById(R.id.btn_share_contact);
         Button btnSms1 = dialog.findViewById(R.id.btn_sms_contact1);
         Button btnSms2 = dialog.findViewById(R.id.btn_sms_contact2);
+        Button btnDelete = dialog.findViewById(R.id.delete_contact);
+        TableRow deleteRow = dialog.findViewById(R.id.tableRowDeleteButton);
         TableRow smsRow1 = dialog.findViewById(R.id.tableRowSms1);
         TableRow smsRow2 = dialog.findViewById(R.id.tableRowSms2);
         TableRow address1Row = dialog.findViewById(R.id.tableRow_address1Phone);
         TableRow businessRow = dialog.findViewById(R.id.tableRow_businessPhone);
         TableRow emailRow = dialog.findViewById(R.id.tableRow_email_addy);
 
+        deleteRow.setVisibility(allowDelete ? View.VISIBLE : View.GONE);
         businessRow.setVisibility(person.mobile == null ? View.GONE : View.VISIBLE);
         address1Row.setVisibility(person.address1Phone == null ? View.GONE : View.VISIBLE);
         smsRow1.setVisibility(person.address1Phone == null ? View.GONE : View.VISIBLE);
@@ -261,6 +268,35 @@ class ContactActions {
                     Toast.makeText(activity, "Failed to call\n" + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                 }
+            }
+        });
+
+        MyYesNoDialog.show(activity, new MyYesNoDialog.YesNoListener() {
+            @Override
+            public void onYes() {
+                Requests.Request request = new Requests.Request(Requests.Request.Function.DELETE);
+                String entityLogiName = person.isLead ? "lead" : "contact";
+                request.arguments.add(new Requests.Argument("entityname", entityLogiName));
+                request.arguments.add(new Requests.Argument("entityid", person.entityid));
+                request.arguments.add(new Requests.Argument("asuser", MediUser.getMe().systemuserid));
+
+                new Crm().makeCrmRequest(activity, request, new AsyncHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                        String response = new String(responseBody);
+                        Toast.makeText(activity, "Deleted successfully.", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                        Toast.makeText(activity, "Failed to delete\n" + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onNo() {
+                dialog.dismiss();
             }
         });
 
