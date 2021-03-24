@@ -38,6 +38,7 @@ public abstract class MyYesNoDialog {
         dialog = builder.setMessage(message)
                 .setPositiveButton("Yes", dialogClickListener)
                 .setNegativeButton("No", dialogClickListener)
+                .setCancelable(true)
                 .create();
     }
 

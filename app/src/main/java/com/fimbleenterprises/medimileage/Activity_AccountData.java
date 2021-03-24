@@ -443,7 +443,7 @@ public class Activity_AccountData extends AppCompatActivity {
             case R.id.action_export_to_excel :
                 Intent intentExportInventory = new Intent(MENU_ACTION);
                 intentExportInventory.putExtra(EXPORT_INVENTORY, EXPORT_INVENTORY);
-                intentExportInventory.putExtra(EXPORT_PAGE_INDEX, curPageIndex);
+                intentExportInventory.putExtra(EXPORT_PAGE_INDEX, mViewPager.currentPosition);
                 sendBroadcast(intentExportInventory);
                 return true;
         }
@@ -601,448 +601,6 @@ public class Activity_AccountData extends AppCompatActivity {
     }
 
 // ********************************** FRAGS *****************************************
-
-    public static class Frag_AccountInventory extends Fragment {
-        public static final String ARG_SECTION_NUMBER = "section_number";
-        public View root;
-        public RecyclerView recyclerView;
-        RefreshLayout refreshLayout;
-        AccountInventoryRecyclerAdapter adapter;
-        ArrayList<CrmEntities.AccountProducts.AccountProduct> custInventory = new ArrayList<>();
-        Button btnChooseAccount;
-        ProductType productType = ProductType.PROBES; // Set a default so our first createview can show data
-        ProductStatus productStatus = ProductStatus.IN_STOCK;
-        public static String pageTitle = "Inventory";
-        TextView txtNoInventory;
-        BroadcastReceiver parentActivityMenuReceiver;
-        CrmEntities.Accounts.Account lastAccount;
-
-
-        enum ProductType {
-            ALL, PROBES, CABLES, FLOWMETERS, LICENSES
-        }
-
-        enum ProductStatus {
-            IN_STOCK, RETURNED, EXPIRED, ANY, LOST
-        }
-
-        @Nullable
-        @Override
-        public View onCreateView(@NonNull final LayoutInflater inflater, @Nullable ViewGroup container,
-                                 @Nullable Bundle savedInstanceState) {
-            root = inflater.inflate(R.layout.frag_account_inventory, container, false);
-            txtNoInventory = root.findViewById(R.id.txtNoInventory);
-            refreshLayout = root.findViewById(R.id.refreshLayout);
-            options = new MySettingsHelper(context);
-            RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
-            refreshLayout.setEnableLoadMore(false);
-            refreshLayout.setOnRefreshListener(new OnRefreshListener() {
-                @Override
-                public void onRefresh(RefreshLayout refreshlayout) {
-                    getAccountInventory(true);
-                }
-            });
-            refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
-                @Override
-                public void onLoadMore(RefreshLayout refreshlayout) {
-                    refreshlayout.finishLoadMore(500/*,false*/);
-                }
-            });
-
-            btnChooseAccount = root.findViewById(R.id.btnChooseAct);
-            btnChooseAccount.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intentChangeAccount = new Intent(context, FullscreenActivityChooseAccount.class);
-                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
-                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, curAccount);
-                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
-                    startActivityForResult(intentChangeAccount, FullscreenActivityChooseAccount.REQUESTCODE);
-                }
-            });
-
-            if (lastAccount != curAccount) {
-                getAccountInventory(true);
-                lastAccount = curAccount;
-            }
-
-            recyclerView = root.findViewById(R.id.orderLinesRecyclerview);
-            super.onCreateView(inflater, container, savedInstanceState);
-
-            // Broadcast received regarding an options menu selection
-            parentActivityMenuReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    Log.i(TAG, "onReceive Local receiver received broadcast!");
-                    // Validate intent shit
-                    if (intent != null && intent.getAction().equals(MENU_ACTION)) {
-
-                        // Check if this is regarding an inventory export to Excel
-                        if (intent.getStringExtra(EXPORT_INVENTORY) != null) {
-
-                            // Check which active page was stipulated by the caller so we know if our list is desired
-                            if (intent.getIntExtra(EXPORT_PAGE_INDEX, -1) == SectionsPagerAdapter.INVENTORY_PAGE) {
-
-                                // Ensure there is an account stipulated and inventory to export
-                                if (curAccount != null && custInventory != null &&
-                                        custInventory.size() > 0) {
-                                    // Export and share
-                                    ExcelSpreadsheet spreadsheet = exportToExcel(
-                                            curAccount.accountName
-                                                    + "_inventory_export.xls");
-                                    Helpers.Files.shareFile(context, spreadsheet.file);
-                                } else {
-                                    Toast.makeText(context, "No inventory to export!", Toast.LENGTH_SHORT).show();
-                                }
-
-                            } // is inventory page
-                        }
-
-                        // If the current account is null then clear the list.  This is to enable
-                        // on back pressed behavior that doesn't automatically finish the activity.
-                        if (curAccount == null) {
-                            custInventory.clear();
-                            populateList();
-                        }
-
-                        // *******************************************************************
-                        // *                EVALUATE MENU SELECTIONS                         *
-                        // *******************************************************************
-                        // *                     PRODUCT TYPE                                *
-                        // *******************************************************************
-                        if (optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().getItem(0).isChecked()) {
-                            productType = ProductType.PROBES;
-                        }
-                        if (optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().getItem(1).isChecked()) {
-                            productType = ProductType.FLOWMETERS;
-                        }
-                        if (optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().getItem(2).isChecked()) {
-                            productType = ProductType.CABLES;
-                        }
-                        if (optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().getItem(3).isChecked()) {
-                            productType = ProductType.LICENSES;
-                        }
-                        // *******************************************************************
-                        // *                     PRODUCT STATUS                              *
-                        // *******************************************************************
-                        if (optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(0).isChecked()) {
-                            productStatus = ProductStatus.IN_STOCK;
-                        }
-                        if (optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(1).isChecked()) {
-                            productStatus = ProductStatus.RETURNED;
-                        }
-                        if (optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(2).isChecked()) {
-                            productStatus = ProductStatus.EXPIRED;
-                        }
-                        if (optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(3).isChecked()) {
-                            productStatus = ProductStatus.LOST;
-                        }
-                        if (optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(4).isChecked()) {
-                            productStatus = ProductStatus.ANY;
-                        }
-                        // *******************************************************************
-                        // *                END EVALUATE MENU SELECTIONS                     *
-                        // *******************************************************************
-
-
-                        btnChooseAccount.setVisibility(curAccount == null ? View.VISIBLE : View.GONE);
-
-                        getAccountInventory(true);
-                        mViewPager.getAdapter().notifyDataSetChanged();
-                    }
-                }
-            };
-
-            // Get inventory using whatever menu selections are currently set
-            getAccountInventory((lastAccount != curAccount));
-
-            return root;
-        }
-
-        @Override
-        public void onStop() {
-            super.onStop();
-        }
-
-        @Override
-        public void onDestroyView() {
-            super.onDestroyView();
-
-            getActivity().unregisterReceiver(parentActivityMenuReceiver);
-            Log.i(TAG, "Unregistered the account products receiver");
-        }
-
-        @Override
-        public void onResume() {
-
-            // Register the options menu selected receiver
-            getActivity().registerReceiver(parentActivityMenuReceiver, intentFilterParentActivity);
-            Log.i(TAG, "onResume Registered the account products receiver");
-
-            // Hide/show the choose account button
-            if (curAccount == null) {
-                btnChooseAccount.setVisibility(View.VISIBLE);
-            } else {
-                btnChooseAccount.setVisibility(View.GONE);
-            }
-
-            super.onResume();
-        }
-
-        @Override
-        public void onPause() {
-            super.onPause();
-        }
-
-        protected void getAccountInventory(boolean forceRefresh) {
-            String query = "";
-
-            if (custInventory != null && custInventory.size() > 0 && forceRefresh != true) {
-                populateList();
-                return;
-            }
-
-            lastAccount = curAccount;
-
-            txtNoInventory.setVisibility(View.GONE);
-
-            if (curAccount == null) {
-                // Toast.makeText(context, "Please select an account", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            CustomerInventoryStatusCode statusCode = CustomerInventoryStatusCode.ONSITE;
-            switch (productStatus) {
-                case ANY:
-                    statusCode = CustomerInventoryStatusCode.ANY;
-                    break;
-                case RETURNED:
-                    statusCode = CustomerInventoryStatusCode.RETURNED;
-                    break;
-                case EXPIRED:
-                    statusCode = CustomerInventoryStatusCode.EXPIRED;
-                    break;
-                case LOST:
-                    statusCode = CustomerInventoryStatusCode.LOST;
-                    break;
-                case IN_STOCK:
-                    statusCode = CustomerInventoryStatusCode.ONSITE;
-                    break;
-            }
-
-            switch (productType) {
-                case PROBES:
-                    query = Accounts.getAccountInventory(curAccount
-                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_PROBES, statusCode);
-                    break;
-                case FLOWMETERS:
-                    query = Accounts.getAccountInventory(curAccount
-                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_FLOWMETERS, statusCode);
-                    break;
-                case CABLES:
-                    query = Accounts.getAccountInventory(curAccount
-                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_LICENSES, statusCode);
-                    break;
-                case LICENSES:
-                    query = Accounts.getAccountInventory(curAccount
-                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_CABLES, statusCode);
-                    break;
-            }
-
-            getPagerTitle();
-
-            refreshLayout.autoRefreshAnimationOnly();
-            ArrayList<Requests.Argument> args = new ArrayList<>();
-            Requests.Argument argument = new Requests.Argument("query", query);
-            args.add(argument);
-            Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
-            Crm crm = new Crm();
-            crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                    try {
-                        String response = new String(responseBody);
-                        Log.i(TAG, "onSuccess " + response);
-                        custInventory = new CrmEntities.AccountProducts(response).list;
-                        populateList();
-                        refreshLayout.finishRefresh();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                    Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
-
-                    refreshLayout.finishRefresh();
-                }
-            });
-        }
-
-        String getPagerTitle() {
-            String txtAppend = "";
-
-            switch (productType) {
-                case PROBES:
-                    txtAppend = "probes - ";
-                    break;
-                case FLOWMETERS:
-                    txtAppend = "flowmeters - ";
-                    break;
-                case CABLES:
-                    txtAppend = "cables - ";
-                    break;
-                case LICENSES:
-                    txtAppend = "licenses - ";
-                    break;
-            }
-
-            switch (productStatus) {
-                case ANY:
-                    txtAppend += "all";
-                    break;
-                case RETURNED:
-                    txtAppend += "returned";
-                    break;
-                case EXPIRED:
-                    txtAppend += "expired";
-                    break;
-                case LOST:
-                    txtAppend += "lost";
-                    break;
-                case IN_STOCK:
-                    txtAppend += "in stock/at location";
-                    break;
-            }
-
-            pageTitle = "Inventory (" + txtAppend + ")";
-            mViewPager.getAdapter().notifyDataSetChanged();
-            return pageTitle;
-        }
-
-        protected void populateList() {
-
-            btnChooseAccount.setVisibility(curAccount == null ? View.VISIBLE : View.GONE);
-
-            final ArrayList<CrmEntities.AccountProducts.AccountProduct> productList = new ArrayList<>();
-
-            Log.i(TAG, "populateTripList: Preparing the dividers and trips...");
-            for (int i = 0; i < (custInventory.size()); i++) {
-                // Cur product
-                CrmEntities.AccountProducts.AccountProduct accountProduct = custInventory.get(i);
-                productList.add(accountProduct);
-            }
-
-            Log.i(TAG, "populateTripList Finished preparing the dividers and trips.");
-
-            if (!getActivity().isFinishing()) {
-                adapter = new AccountInventoryRecyclerAdapter(getContext(), productList);
-                adapter.setClickListener(new AccountInventoryRecyclerAdapter.ItemClickListener() {
-                    @Override
-                    public void onItemClick(View view, int position) {
-                        Toast.makeText(context, custInventory.get(position).productDescription, Toast.LENGTH_SHORT).show();
-                        ArrayList<Requests.Argument> args = new ArrayList<>();
-                        String query = Queries.CustomerInventory.getCustomerInventoryDetails(productList.get(position).customerinventoryid);
-                        args.add(new Requests.Argument("query", query));
-                    }
-                });
-                recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-                recyclerView.setAdapter(adapter);
-
-                refreshLayout.finishRefresh();
-            } else {
-                Log.w(TAG, "populateList: CAN'T POPULATE AS THE ACTIVITY IS FINISHING!!!");
-            }
-
-            getPagerTitle();
-
-            if (custInventory == null || custInventory.size() == 0) {
-                txtNoInventory.setVisibility(View.VISIBLE);
-            } else {
-                txtNoInventory.setVisibility(View.GONE);
-            }
-
-        }
-
-        ExcelSpreadsheet exportToExcel(String filename) {
-
-            ExcelSpreadsheet spreadsheet = null;
-
-            final int SHEET1 = 0;
-
-            // Create a new spreadsheet
-            try {
-                spreadsheet = new ExcelSpreadsheet(filename);
-            } catch (Exception e) {
-                // Toast.makeText(this, "Failed to create spreadsheet!\n" + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-                e.printStackTrace();
-                return null;
-            }
-
-            // Add the sheets that we will populate
-            try {
-
-                // All raw trips last 2 months
-                spreadsheet.createSheet("Inventory", SHEET1);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            // Format header and content values
-            WritableFont headerFont = new WritableFont(WritableFont.TAHOMA, 10, WritableFont.BOLD);
-            try {
-                headerFont.setColour(Colour.BLACK);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            WritableCellFormat headerFormat = new WritableCellFormat(headerFont);
-
-            WritableFont contentFont = new WritableFont(WritableFont.TAHOMA, 10, WritableFont.NO_BOLD);
-            try {
-                contentFont.setColour(Colour.BLACK);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            WritableCellFormat contentFormat = new WritableCellFormat(contentFont);
-
-            WritableFont capitalFont = new WritableFont(WritableFont.TAHOMA, 10, WritableFont.NO_BOLD);
-            try {
-                capitalFont.setColour(Colour.DARK_RED);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            WritableCellFormat capitalFormat = new WritableCellFormat(capitalFont);
-
-            spreadsheet.addCell(SHEET1, 0, 0, curAccount.accountName, headerFormat);
-
-            // Header row
-            spreadsheet.addCell(SHEET1, 0, 1, "Product");
-            spreadsheet.addCell(SHEET1, 1, 1, "Serial number");
-            spreadsheet.addCell(SHEET1, 2, 1, "Status");
-            spreadsheet.addCell(SHEET1, 3, 1, "Date modified");
-            spreadsheet.addCell(SHEET1, 4, 1, "Is capital");
-            spreadsheet.addCell(SHEET1, 5, 1, "Revision");
-
-            for (int i = 2; i < custInventory.size() + 2; i++) {
-                CrmEntities.AccountProducts.AccountProduct product = custInventory.get(i - 2);
-                spreadsheet.addCell(SHEET1, 0, i, product.partNumber);
-                spreadsheet.addCell(SHEET1, 1, i, product.serialnumber);
-                spreadsheet.addCell(SHEET1, 2, i, product.statusFormatted);
-                spreadsheet.addCell(SHEET1, 3, i, product.modifiedOnFormatted);
-                spreadsheet.addCell(SHEET1, 4, i, product.isCapitalFormatted, product.isCapital ? capitalFormat : contentFormat);
-                spreadsheet.addCell(SHEET1, 5, i, product.revision);
-            }
-
-            // Save the file
-            spreadsheet.save();
-
-            return spreadsheet;
-
-        }
-
-    }
 
     public static class Frag_SalesLines extends Fragment {
         public static final String ARG_SECTION_NUMBER = "section_number";
@@ -1961,6 +1519,448 @@ public class Activity_AccountData extends AppCompatActivity {
             pageTitle = "Opportunities";
             mViewPager.getAdapter().notifyDataSetChanged();
             return pageTitle;
+        }
+
+    }
+
+    public static class Frag_AccountInventory extends Fragment {
+        public static final String ARG_SECTION_NUMBER = "section_number";
+        public View root;
+        public RecyclerView recyclerView;
+        RefreshLayout refreshLayout;
+        AccountInventoryRecyclerAdapter adapter;
+        ArrayList<CrmEntities.AccountProducts.AccountProduct> custInventory = new ArrayList<>();
+        Button btnChooseAccount;
+        ProductType productType = ProductType.PROBES; // Set a default so our first createview can show data
+        ProductStatus productStatus = ProductStatus.IN_STOCK;
+        public static String pageTitle = "Inventory";
+        TextView txtNoInventory;
+        BroadcastReceiver parentActivityMenuReceiver;
+        CrmEntities.Accounts.Account lastAccount;
+
+
+        enum ProductType {
+            ALL, PROBES, CABLES, FLOWMETERS, LICENSES
+        }
+
+        enum ProductStatus {
+            IN_STOCK, RETURNED, EXPIRED, ANY, LOST
+        }
+
+        @Nullable
+        @Override
+        public View onCreateView(@NonNull final LayoutInflater inflater, @Nullable ViewGroup container,
+                                 @Nullable Bundle savedInstanceState) {
+            root = inflater.inflate(R.layout.frag_account_inventory, container, false);
+            txtNoInventory = root.findViewById(R.id.txtNoInventory);
+            refreshLayout = root.findViewById(R.id.refreshLayout);
+            options = new MySettingsHelper(context);
+            RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
+            refreshLayout.setEnableLoadMore(false);
+            refreshLayout.setOnRefreshListener(new OnRefreshListener() {
+                @Override
+                public void onRefresh(RefreshLayout refreshlayout) {
+                    getAccountInventory(true);
+                }
+            });
+            refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
+                @Override
+                public void onLoadMore(RefreshLayout refreshlayout) {
+                    refreshlayout.finishLoadMore(500/*,false*/);
+                }
+            });
+
+            btnChooseAccount = root.findViewById(R.id.btnChooseAct);
+            btnChooseAccount.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intentChangeAccount = new Intent(context, FullscreenActivityChooseAccount.class);
+                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
+                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, curAccount);
+                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
+                    startActivityForResult(intentChangeAccount, FullscreenActivityChooseAccount.REQUESTCODE);
+                }
+            });
+
+            if (lastAccount != curAccount) {
+                getAccountInventory(true);
+                lastAccount = curAccount;
+            }
+
+            recyclerView = root.findViewById(R.id.orderLinesRecyclerview);
+            super.onCreateView(inflater, container, savedInstanceState);
+
+            // Broadcast received regarding an options menu selection
+            parentActivityMenuReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Log.i(TAG, "onReceive Local receiver received broadcast!");
+                    // Validate intent shit
+                    if (intent != null && intent.getAction().equals(MENU_ACTION)) {
+
+                        // Check if this is regarding an inventory export to Excel
+                        if (intent.getStringExtra(EXPORT_INVENTORY) != null) {
+
+                            // Check which active page was stipulated by the caller so we know if our list is desired
+                            if (intent.getIntExtra(EXPORT_PAGE_INDEX, -1) == SectionsPagerAdapter.INVENTORY_PAGE) {
+
+                                // Ensure there is an account stipulated and inventory to export
+                                if (curAccount != null && custInventory != null &&
+                                        custInventory.size() > 0) {
+                                    // Export and share
+                                    ExcelSpreadsheet spreadsheet = exportToExcel(
+                                            curAccount.accountName
+                                                    + "_inventory_export.xls");
+                                    Helpers.Files.shareFile(context, spreadsheet.file);
+                                } else {
+                                    Toast.makeText(context, "No inventory to export!", Toast.LENGTH_SHORT).show();
+                                }
+
+                            } // is inventory page
+                        }
+
+                        // If the current account is null then clear the list.  This is to enable
+                        // on back pressed behavior that doesn't automatically finish the activity.
+                        if (curAccount == null) {
+                            custInventory.clear();
+                            populateList();
+                        }
+
+                        // *******************************************************************
+                        // *                EVALUATE MENU SELECTIONS                         *
+                        // *******************************************************************
+                        // *                     PRODUCT TYPE                                *
+                        // *******************************************************************
+                        if (optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().getItem(0).isChecked()) {
+                            productType = ProductType.PROBES;
+                        }
+                        if (optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().getItem(1).isChecked()) {
+                            productType = ProductType.FLOWMETERS;
+                        }
+                        if (optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().getItem(2).isChecked()) {
+                            productType = ProductType.CABLES;
+                        }
+                        if (optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().getItem(3).isChecked()) {
+                            productType = ProductType.LICENSES;
+                        }
+                        // *******************************************************************
+                        // *                     PRODUCT STATUS                              *
+                        // *******************************************************************
+                        if (optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(0).isChecked()) {
+                            productStatus = ProductStatus.IN_STOCK;
+                        }
+                        if (optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(1).isChecked()) {
+                            productStatus = ProductStatus.RETURNED;
+                        }
+                        if (optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(2).isChecked()) {
+                            productStatus = ProductStatus.EXPIRED;
+                        }
+                        if (optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(3).isChecked()) {
+                            productStatus = ProductStatus.LOST;
+                        }
+                        if (optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(4).isChecked()) {
+                            productStatus = ProductStatus.ANY;
+                        }
+                        // *******************************************************************
+                        // *                END EVALUATE MENU SELECTIONS                     *
+                        // *******************************************************************
+
+
+                        btnChooseAccount.setVisibility(curAccount == null ? View.VISIBLE : View.GONE);
+
+                        getAccountInventory(true);
+                        mViewPager.getAdapter().notifyDataSetChanged();
+                    }
+                }
+            };
+
+            // Get inventory using whatever menu selections are currently set
+            getAccountInventory((lastAccount != curAccount));
+
+            return root;
+        }
+
+        @Override
+        public void onStop() {
+            super.onStop();
+        }
+
+        @Override
+        public void onDestroyView() {
+            super.onDestroyView();
+
+            getActivity().unregisterReceiver(parentActivityMenuReceiver);
+            Log.i(TAG, "Unregistered the account products receiver");
+        }
+
+        @Override
+        public void onResume() {
+
+            // Register the options menu selected receiver
+            getActivity().registerReceiver(parentActivityMenuReceiver, intentFilterParentActivity);
+            Log.i(TAG, "onResume Registered the account products receiver");
+
+            // Hide/show the choose account button
+            if (curAccount == null) {
+                btnChooseAccount.setVisibility(View.VISIBLE);
+            } else {
+                btnChooseAccount.setVisibility(View.GONE);
+            }
+
+            super.onResume();
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+        }
+
+        protected void getAccountInventory(boolean forceRefresh) {
+            String query = "";
+
+            if (custInventory != null && custInventory.size() > 0 && forceRefresh != true) {
+                populateList();
+                return;
+            }
+
+            lastAccount = curAccount;
+
+            txtNoInventory.setVisibility(View.GONE);
+
+            if (curAccount == null) {
+                // Toast.makeText(context, "Please select an account", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            CustomerInventoryStatusCode statusCode = CustomerInventoryStatusCode.ONSITE;
+            switch (productStatus) {
+                case ANY:
+                    statusCode = CustomerInventoryStatusCode.ANY;
+                    break;
+                case RETURNED:
+                    statusCode = CustomerInventoryStatusCode.RETURNED;
+                    break;
+                case EXPIRED:
+                    statusCode = CustomerInventoryStatusCode.EXPIRED;
+                    break;
+                case LOST:
+                    statusCode = CustomerInventoryStatusCode.LOST;
+                    break;
+                case IN_STOCK:
+                    statusCode = CustomerInventoryStatusCode.ONSITE;
+                    break;
+            }
+
+            switch (productType) {
+                case PROBES:
+                    query = Accounts.getAccountInventory(curAccount
+                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_PROBES, statusCode);
+                    break;
+                case FLOWMETERS:
+                    query = Accounts.getAccountInventory(curAccount
+                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_FLOWMETERS, statusCode);
+                    break;
+                case CABLES:
+                    query = Accounts.getAccountInventory(curAccount
+                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_LICENSES, statusCode);
+                    break;
+                case LICENSES:
+                    query = Accounts.getAccountInventory(curAccount
+                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_CABLES, statusCode);
+                    break;
+            }
+
+            getPagerTitle();
+
+            refreshLayout.autoRefreshAnimationOnly();
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            Requests.Argument argument = new Requests.Argument("query", query);
+            args.add(argument);
+            Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
+            Crm crm = new Crm();
+            crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    try {
+                        String response = new String(responseBody);
+                        Log.i(TAG, "onSuccess " + response);
+                        custInventory = new CrmEntities.AccountProducts(response).list;
+                        populateList();
+                        refreshLayout.finishRefresh();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
+
+                    refreshLayout.finishRefresh();
+                }
+            });
+        }
+
+        String getPagerTitle() {
+            String txtAppend = "";
+
+            switch (productType) {
+                case PROBES:
+                    txtAppend = "probes - ";
+                    break;
+                case FLOWMETERS:
+                    txtAppend = "flowmeters - ";
+                    break;
+                case CABLES:
+                    txtAppend = "cables - ";
+                    break;
+                case LICENSES:
+                    txtAppend = "licenses - ";
+                    break;
+            }
+
+            switch (productStatus) {
+                case ANY:
+                    txtAppend += "all";
+                    break;
+                case RETURNED:
+                    txtAppend += "returned";
+                    break;
+                case EXPIRED:
+                    txtAppend += "expired";
+                    break;
+                case LOST:
+                    txtAppend += "lost";
+                    break;
+                case IN_STOCK:
+                    txtAppend += "in stock/at location";
+                    break;
+            }
+
+            pageTitle = "Inventory (" + txtAppend + ")";
+            mViewPager.getAdapter().notifyDataSetChanged();
+            return pageTitle;
+        }
+
+        protected void populateList() {
+
+            btnChooseAccount.setVisibility(curAccount == null ? View.VISIBLE : View.GONE);
+
+            final ArrayList<CrmEntities.AccountProducts.AccountProduct> productList = new ArrayList<>();
+
+            Log.i(TAG, "populateTripList: Preparing the dividers and trips...");
+            for (int i = 0; i < (custInventory.size()); i++) {
+                // Cur product
+                CrmEntities.AccountProducts.AccountProduct accountProduct = custInventory.get(i);
+                productList.add(accountProduct);
+            }
+
+            Log.i(TAG, "populateTripList Finished preparing the dividers and trips.");
+
+            if (!getActivity().isFinishing()) {
+                adapter = new AccountInventoryRecyclerAdapter(getContext(), productList);
+                adapter.setClickListener(new AccountInventoryRecyclerAdapter.ItemClickListener() {
+                    @Override
+                    public void onItemClick(View view, int position) {
+                        Toast.makeText(context, custInventory.get(position).productDescription, Toast.LENGTH_SHORT).show();
+                        ArrayList<Requests.Argument> args = new ArrayList<>();
+                        String query = Queries.CustomerInventory.getCustomerInventoryDetails(productList.get(position).customerinventoryid);
+                        args.add(new Requests.Argument("query", query));
+                    }
+                });
+                recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+                recyclerView.setAdapter(adapter);
+
+                refreshLayout.finishRefresh();
+            } else {
+                Log.w(TAG, "populateList: CAN'T POPULATE AS THE ACTIVITY IS FINISHING!!!");
+            }
+
+            getPagerTitle();
+
+            if (custInventory == null || custInventory.size() == 0) {
+                txtNoInventory.setVisibility(View.VISIBLE);
+            } else {
+                txtNoInventory.setVisibility(View.GONE);
+            }
+
+        }
+
+        ExcelSpreadsheet exportToExcel(String filename) {
+
+            ExcelSpreadsheet spreadsheet = null;
+
+            final int SHEET1 = 0;
+
+            // Create a new spreadsheet
+            try {
+                spreadsheet = new ExcelSpreadsheet(filename);
+            } catch (Exception e) {
+                // Toast.makeText(this, "Failed to create spreadsheet!\n" + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
+                return null;
+            }
+
+            // Add the sheets that we will populate
+            try {
+
+                // All raw trips last 2 months
+                spreadsheet.createSheet("Inventory", SHEET1);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            // Format header and content values
+            WritableFont headerFont = new WritableFont(WritableFont.TAHOMA, 10, WritableFont.BOLD);
+            try {
+                headerFont.setColour(Colour.BLACK);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            WritableCellFormat headerFormat = new WritableCellFormat(headerFont);
+
+            WritableFont contentFont = new WritableFont(WritableFont.TAHOMA, 10, WritableFont.NO_BOLD);
+            try {
+                contentFont.setColour(Colour.BLACK);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            WritableCellFormat contentFormat = new WritableCellFormat(contentFont);
+
+            WritableFont capitalFont = new WritableFont(WritableFont.TAHOMA, 10, WritableFont.NO_BOLD);
+            try {
+                capitalFont.setColour(Colour.DARK_RED);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            WritableCellFormat capitalFormat = new WritableCellFormat(capitalFont);
+
+            spreadsheet.addCell(SHEET1, 0, 0, curAccount.accountName, headerFormat);
+
+            // Header row
+            spreadsheet.addCell(SHEET1, 0, 1, "Product");
+            spreadsheet.addCell(SHEET1, 1, 1, "Serial number");
+            spreadsheet.addCell(SHEET1, 2, 1, "Status");
+            spreadsheet.addCell(SHEET1, 3, 1, "Date modified");
+            spreadsheet.addCell(SHEET1, 4, 1, "Is capital");
+            spreadsheet.addCell(SHEET1, 5, 1, "Revision");
+
+            for (int i = 2; i < custInventory.size() + 2; i++) {
+                CrmEntities.AccountProducts.AccountProduct product = custInventory.get(i - 2);
+                spreadsheet.addCell(SHEET1, 0, i, product.partNumber);
+                spreadsheet.addCell(SHEET1, 1, i, product.serialnumber);
+                spreadsheet.addCell(SHEET1, 2, i, product.statusFormatted);
+                spreadsheet.addCell(SHEET1, 3, i, product.modifiedOnFormatted);
+                spreadsheet.addCell(SHEET1, 4, i, product.isCapitalFormatted, product.isCapital ? capitalFormat : contentFormat);
+                spreadsheet.addCell(SHEET1, 5, i, product.revision);
+            }
+
+            // Save the file
+            spreadsheet.save();
+
+            return spreadsheet;
+
         }
 
     }

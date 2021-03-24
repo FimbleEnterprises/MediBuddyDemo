@@ -19,6 +19,12 @@ import cz.msebera.android.httpclient.Header;
 
 class ContactActions {
 
+    /*
+        Version: 1.81
+        Fixed an erroneous line of code, likely from a copy/paste action that was showing a completely
+        unnecessary Yes/No dialog and then deleting the contact regardless of choice.
+     */
+
     public static class Person extends CrmEntities.Contacts.Contact {
         public boolean isLead = false;
         public String entityid;
@@ -268,35 +274,6 @@ class ContactActions {
                     Toast.makeText(activity, "Failed to call\n" + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                 }
-            }
-        });
-
-        MyYesNoDialog.show(activity, new MyYesNoDialog.YesNoListener() {
-            @Override
-            public void onYes() {
-                Requests.Request request = new Requests.Request(Requests.Request.Function.DELETE);
-                String entityLogiName = person.isLead ? "lead" : "contact";
-                request.arguments.add(new Requests.Argument("entityname", entityLogiName));
-                request.arguments.add(new Requests.Argument("entityid", person.entityid));
-                request.arguments.add(new Requests.Argument("asuser", MediUser.getMe().systemuserid));
-
-                new Crm().makeCrmRequest(activity, request, new AsyncHttpResponseHandler() {
-                    @Override
-                    public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                        String response = new String(responseBody);
-                        Toast.makeText(activity, "Deleted successfully.", Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                        Toast.makeText(activity, "Failed to delete\n" + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-
-            @Override
-            public void onNo() {
-                dialog.dismiss();
             }
         });
 

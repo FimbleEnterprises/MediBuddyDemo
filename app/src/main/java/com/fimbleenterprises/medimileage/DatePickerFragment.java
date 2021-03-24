@@ -14,6 +14,12 @@ import androidx.fragment.app.DialogFragment;
 public class DatePickerFragment extends DialogFragment
         implements DatePickerDialog.OnDateSetListener {
 
+    /*
+        Version: 1.81
+        Fixed the month to adjust for a zero base index by adding a month when selecting a new date and
+        subtracting a month when showing an already selected date
+     */
+
     MyInterfaces.DateSelector listener;
     DateTime showDate;
 
@@ -25,6 +31,8 @@ public class DatePickerFragment extends DialogFragment
         this.showDate = dateTime;
     }
 
+
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         // Use the current date as the default date in the picker
@@ -35,11 +43,11 @@ public class DatePickerFragment extends DialogFragment
 
         // Create a new instance of DatePickerDialog and return it
         return new DatePickerDialog(getActivity(), this, showDate.getYear(),
-                showDate.getMonthOfYear(), showDate.getDayOfMonth());
+                showDate.getMonthOfYear() - 1, showDate.getDayOfMonth());
     }
 
     public void onDateSet(DatePicker view, int year, int month, int day) {
-        DateTime selectedDate = new DateTime(year, month, day, 0, 0);
+        DateTime selectedDate = new DateTime(year, month + 1, day, 0, 0);
         listener.onDateSelected(selectedDate, Helpers.DatesAndTimes.getPrettyDate(selectedDate));
     }
 }
