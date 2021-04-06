@@ -1,4 +1,4 @@
-package com.fimbleenterprises.medimileage.ui.settings.mileage;
+package com.fimbleenterprises.medimileage.ui.settings;
 
 import android.Manifest;
 import android.content.Context;
@@ -27,7 +27,6 @@ import com.fimbleenterprises.medimileage.MyYesNoDialog;
 import com.fimbleenterprises.medimileage.Queries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.Requests;
-import com.fimbleenterprises.medimileage.RestResponse;
 import com.fimbleenterprises.medimileage.UserAddresses;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
@@ -36,7 +35,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
-import java.util.Objects;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
@@ -204,7 +202,7 @@ public class SettingsActivity extends AppCompatActivity {
                     // Check if the user left it blank - if so then change that blank value to the
                     // default value
                     if (newValue.toString().length() == 0) {
-                        newValue = requireContext().getString(R.string.base_server_url);
+                        newValue = requireContext().getString(R.string.default_base_server_url);
                     }
 
                     final String newValueFinal = newValue.toString();

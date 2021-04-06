@@ -24,6 +24,7 @@ public class MileageUser implements Parcelable {
     public String fullname;
     public String territoryid;
     public String state;
+    public String milebuddyVersion;
     public String positionid;
     public String managed_territories;
     public String address;
@@ -67,6 +68,13 @@ public class MileageUser implements Parcelable {
         try {
             if (!json.isNull("a_79740df757a5e81180e8005056a36b9b_businessunitid")) {
                 this.businessunitid = (json.getString("a_79740df757a5e81180e8005056a36b9b_businessunitid"));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        try {
+            if (!json.isNull("a_79740df757a5e81180e8005056a36b9b_msus_milebuddy_version")) {
+                this.milebuddyVersion = (json.getString("a_79740df757a5e81180e8005056a36b9b_msus_milebuddy_version"));
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -187,6 +195,7 @@ public class MileageUser implements Parcelable {
         positionid = in.readString();
         managed_territories = in.readString();
         address = in.readString();
+        milebuddyVersion = in.readString();
     }
 
     @Override
@@ -206,6 +215,7 @@ public class MileageUser implements Parcelable {
         dest.writeString(positionid);
         dest.writeString(managed_territories);
         dest.writeString(address);
+        dest.writeString(milebuddyVersion);
     }
 
     @SuppressWarnings("unused")

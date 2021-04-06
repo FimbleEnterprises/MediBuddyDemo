@@ -10,7 +10,7 @@
             android:theme="@style/AppTheme"
             app:key="NAME_TRIP_ON_START"
             android:fontFamily="casual"
-            app:defaultValue="false"
+            app:defaultValue="@string/default_name_trip_on_start"
             android:summary="Allows you to name your trips before they are started."
             app:title="Name Trips" />
 
@@ -18,7 +18,7 @@
             android:foreground="#000000"
             android:theme="@style/AppTheme"
             app:key="SUBMIT_ON_END"
-            app:defaultValue="true"
+            app:defaultValue="@string/auto_submit_trips"
             android:fontFamily="casual"
             android:summary="Automatically submit trips upon stopping them."
             app:title="Auto Submit" />
@@ -27,26 +27,26 @@
             android:foreground="#000000"
             android:theme="@style/AppTheme"
             app:key="CONFIRM_END"
-            app:defaultValue="false"
+            app:defaultValue="@string/default_auto_end_trip_value"
             android:fontFamily="casual"
             android:summary="Asks you to confirm whether or not you want to end the currently running trip."
             app:title="Confirm ending a trip" />
 
-        <SwitchPreference
+        <!--<SwitchPreference
             android:foreground="#000000"
             android:theme="@style/AppTheme"
             app:key="SHOW_OPPORTUNITY_MGR"
             app:defaultValue="true"
             android:fontFamily="casual"
             android:summary="Allows the ability to manage opportunities based on trips."
-            app:title="Manage opportunities" />
+            app:title="Manage opportunities" />-->
 
         <SwitchPreference
             android:foreground="#000000"
             android:theme="@style/AppTheme"
             app:key="TRIP_MINDER"
             android:fontFamily="casual"
-            app:defaultValue="true"
+            app:defaultValue="@string/default_trip_minder_value"
             android:summary="@string/settings_auto_stop_summary"
             app:title="@string/settings_auto_stop_title" />
 
@@ -56,7 +56,7 @@
             android:theme="@style/AppTheme"
             app:key="TRIP_MINDER_INTERVAL"
             android:fontFamily="casual"
-            app:defaultValue="1200000"
+            app:defaultValue="@string/default_trip_minder_interval"
             android:title="Auto-stop interval (minutes)"
             android:summary="The length of time between location updates to determine a forgotten, running trip."
             android:entries="@array/trip_minder_intervals"
@@ -67,7 +67,7 @@
             android:theme="@style/AppTheme"
             app:key="RECEIPT_FORMATS"
             android:fontFamily="casual"
-            app:defaultValue=".png"
+            app:defaultValue="@string/default_receipt_format"
             android:title="Receipt file format"
             android:summary="The format to use when creating receipt files."
             android:entries="@array/receipt_formats"
@@ -178,7 +178,7 @@
             android:theme="@style/AppTheme"
             app:key="DISTANCE_THRESHOLD"
             android:fontFamily="casual"
-            app:defaultValue="8046"
+            app:defaultValue="@string/default_opportunity_distance_threshold"
             android:title="@string/distance_threshold_settings_title"
             android:summary="@string/distance_threshold_settings_summary"
             android:entries="@array/distance_threshold_entries"
@@ -190,7 +190,7 @@
             app:key="SERVER_BASE_URL"
             android:fontFamily="casual"
             app:isPreferenceVisible="true"
-            android:defaultValue="@string/base_server_url"
+            android:defaultValue="@string/default_base_server_url"
             app:summary="@string/change_server_addy_description"
             app:title="@string/change_server_addy" />
 

@@ -26,7 +26,7 @@
         android:roundIcon="@mipmap/car2_static_round_tparent_icon"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MyRatingDialog"></activity>
+
         <activity
             android:name=".FullscreenAccountTerritoryPicker"
             android:configChanges="orientation|keyboardHidden|screenSize"
@@ -151,7 +151,7 @@
                 android:resource="@xml/searchable" />
         </activity>
         <activity
-            android:name=".ui.settings.mileage.SettingsActivity"
+            android:name=".ui.settings.SettingsActivity"
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/title_activity_settings"
             android:screenOrientation="portrait"

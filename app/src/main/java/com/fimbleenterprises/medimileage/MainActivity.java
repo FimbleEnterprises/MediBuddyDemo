@@ -26,7 +26,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.ui.mileage.MileageFragment;
-import com.fimbleenterprises.medimileage.ui.settings.mileage.SettingsActivity;
+import com.fimbleenterprises.medimileage.ui.settings.SettingsActivity;
 import com.google.android.material.navigation.NavigationView;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
@@ -694,6 +694,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         linkEntity.addColumn(new EntityColumn("businessunitid"));
         linkEntity.addColumn(new EntityColumn("address1_composite"));
         linkEntity.addColumn(new EntityColumn("msus_last_lon"));
+        linkEntity.addColumn(new EntityColumn("msus_milebuddy_version"));
         linkEntity.addColumn(new EntityColumn("msus_last_lat"));
         linkEntity.addColumn(new EntityColumn("msus_last_loc_timestamp"));
         factory.addLinkEntity(linkEntity);
