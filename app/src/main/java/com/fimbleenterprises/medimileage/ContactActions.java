@@ -12,9 +12,18 @@ import android.widget.Button;
 import android.widget.TableRow;
 import android.widget.Toast;
 
+import com.loopj.android.http.AsyncHttpResponseHandler;
+
 import androidx.core.app.ActivityCompat;
+import cz.msebera.android.httpclient.Header;
 
 class ContactActions {
+
+    /*
+        Version: 1.81
+        Fixed an erroneous line of code, likely from a copy/paste action that was showing a completely
+        unnecessary Yes/No dialog and then deleting the contact regardless of choice.
+     */
 
     public static class Person extends CrmEntities.Contacts.Contact {
         public boolean isLead = false;
@@ -78,6 +87,7 @@ class ContactActions {
     public static final String SENT_ACTION = "SENT_ACTION";
     public static final String DELIVERY_ACTION = "DELIVERY_ACTION";
     public boolean dismissOnSelection = false;
+    public boolean allowDelete = false;
 
     public ContactActions(Activity activity, CrmEntities.Contacts.Contact contact) {
         this.person = new Person(contact);
@@ -112,12 +122,15 @@ class ContactActions {
         Button btnShare = dialog.findViewById(R.id.btn_share_contact);
         Button btnSms1 = dialog.findViewById(R.id.btn_sms_contact1);
         Button btnSms2 = dialog.findViewById(R.id.btn_sms_contact2);
+        Button btnDelete = dialog.findViewById(R.id.delete_contact);
+        TableRow deleteRow = dialog.findViewById(R.id.tableRowDeleteButton);
         TableRow smsRow1 = dialog.findViewById(R.id.tableRowSms1);
         TableRow smsRow2 = dialog.findViewById(R.id.tableRowSms2);
         TableRow address1Row = dialog.findViewById(R.id.tableRow_address1Phone);
         TableRow businessRow = dialog.findViewById(R.id.tableRow_businessPhone);
         TableRow emailRow = dialog.findViewById(R.id.tableRow_email_addy);
 
+        deleteRow.setVisibility(allowDelete ? View.VISIBLE : View.GONE);
         businessRow.setVisibility(person.mobile == null ? View.GONE : View.VISIBLE);
         address1Row.setVisibility(person.address1Phone == null ? View.GONE : View.VISIBLE);
         smsRow1.setVisibility(person.address1Phone == null ? View.GONE : View.VISIBLE);

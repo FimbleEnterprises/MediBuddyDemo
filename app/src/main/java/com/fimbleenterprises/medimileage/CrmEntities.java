@@ -3558,6 +3558,44 @@ public class CrmEntities {
 
                 return entity;
             }
+
+            public static BasicEntity toBasicCreateEntity() {
+
+                
+                Ticket ticket = new Ticket();
+                
+                ticket.subjectFormatted = "Product complaint (probe)";
+                ticket.subjectid = "44663885-CE62-476D-9268-C95A618B3CD9";
+                
+                ticket.caseorigin = 1;
+                ticket.caseOriginFormatted = "Phone";
+                
+                ticket.caseTypeFormatted = "Problem";
+                ticket.casetype = 2;
+
+                ticket.customerFormatted = "";
+                ticket.customerid = "";
+                
+                ticket.contactid = "";
+                ticket.contactLastname = "";
+                ticket.contactFirstname = "";
+                ticket.contactFullname = "";
+                
+                ticket.customerid = "";
+                ticket.customerFormatted = "";
+
+                ticket.createdon = DateTime.now();
+                ticket.createdByFormatted = MediUser.getMe().fullname;
+                ticket.createdby = MediUser.getMe().systemuserid;
+
+                ticket.modifiedon = DateTime.now();
+                ticket.modifiedBy = MediUser.getMe().systemuserid;
+                ticket.modifiedByFormatted = MediUser.getMe().fullname;
+
+                return ticket.toBasicEntity();
+
+
+            }
         }
     }
 

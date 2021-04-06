@@ -299,6 +299,54 @@
 			</TableRow>
 
 			<TableRow
+				android:id="@+id/tableRowDeleteButton"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content">
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+					<Button
+						android:id="@+id/delete_contact"
+						style="@style/ButtonTextWhiteShadow"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_margin="2dp"
+						android:background="@drawable/btn_glass_gray_black_border"
+						android:drawableTop="@drawable/delete_icon"
+						android:drawablePadding="0dp"
+						android:fontFamily="casual"
+						android:includeFontPadding="true"
+						android:text="Delete..."
+						android:textColor="#000000" />
+
+				</FrameLayout>
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1"
+					android:visibility="gone">
+
+					<Button
+						android:id="@+id/delete_contact_from_server"
+						style="@style/ButtonTextWhiteShadow"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_below="@+id/unsubmit_trip"
+						android:layout_margin="2dp"
+						android:background="@drawable/btn_glass_gray_black_border"
+						android:drawableTop="@drawable/unsubmit_icon_38x38"
+						android:drawablePadding="1dp"
+						android:paddingTop="5dp"
+						android:text="Unsubmit"
+						android:textColor="#000000" />
+				</FrameLayout>
+			</TableRow>
+
+			<TableRow
 				android:id="@+id/tableRow4"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content">

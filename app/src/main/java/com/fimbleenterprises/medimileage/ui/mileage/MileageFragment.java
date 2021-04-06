@@ -2016,6 +2016,9 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         Button btnThisMonth = dialog.findViewById(R.id.btnThisMonth);
         Button btnLastMonth = dialog.findViewById(R.id.btnLastMonth);
         Button btnChoose = dialog.findViewById(R.id.btnChooseMonth);
+
+
+
         btnThisMonth.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
