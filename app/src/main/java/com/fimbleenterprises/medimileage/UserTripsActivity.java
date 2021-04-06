@@ -396,7 +396,7 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
         if (options.isExplicitMode()) {
             try {
                 String[] names = user.fullname.split(" ");
-                txtName.setText(names[0] + " Fucking " + names[1]);
+                txtName.setText(names[0] + " Fucking " + names[1] + " (" + user.milebuddyVersion + ")");
                 txtMtdCount.setText("" + tripCount + " fucking trips");
                 txtMtdCountLastMonth.setText("" + tripCountLastMonth + " fucking trips");
                 txtRate.setText("Rate: " + Helpers.Numbers.convertToCurrency((double) rate) + " / fucking mile");
@@ -409,7 +409,7 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
                 txtRateLastMonth.setText("Rate: " + Helpers.Numbers.convertToCurrency((double) rateLastMonth) + " / mile");
             }
         } else {
-            txtName.setText(user.fullname);
+            txtName.setText(user.fullname + " (" + user.milebuddyVersion + ")");
             txtMtdCount.setText("" + tripCount + " trips");
             txtMtdCountLastMonth.setText("" + tripCountLastMonth + " trips");
             txtRate.setText("Rate: " + Helpers.Numbers.convertToCurrency((double) rate) + " / mile");

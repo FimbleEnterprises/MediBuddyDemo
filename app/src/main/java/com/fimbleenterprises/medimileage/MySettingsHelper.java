@@ -6,7 +6,6 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.google.gson.Gson;
-import com.google.rpc.Help;
 
 import org.joda.time.DateTime;
 import org.joda.time.Days;
@@ -93,7 +92,7 @@ public class MySettingsHelper {
     }
 
     public String getServerBaseUrl() {
-        return prefs.getString(SERVER_BASE_URL, context.getString(R.string.base_server_url));
+        return prefs.getString(SERVER_BASE_URL, context.getString(R.string.default_base_server_url));
     }
 
     public boolean isExplicitMode() {
@@ -343,8 +342,11 @@ public class MySettingsHelper {
         return prefs.getInt(MAP_MODE, 1);
     }
 
+    /*
+    Updated default to 20 minutes, up from 2.5 minutes - 1.9
+     */
     public int getTripMinderIntervalMillis() {
-        String val = prefs.getString(TRIP_MINDER_INTERVAL, "150000");
+        String val = prefs.getString(TRIP_MINDER_INTERVAL, context.getString(R.string.default_trip_minder_interval));
         return (Integer.parseInt(val));
     }
 

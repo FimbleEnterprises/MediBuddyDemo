@@ -768,7 +768,8 @@ public class MyLocationService extends Service implements LocationListener {
                     options.lastTripAutoKilled(true);
 
                     // This will update the trip as auto-killed prior to submission
-                    fullTrip.tripMinderKilled = 1;
+                    fullTrip.setTripMinderKilledTrip(true);
+                    fullTrip.userStoppedTrip = 0;
                     fullTrip.save();
                 } catch (Exception e) {
                     e.printStackTrace();
