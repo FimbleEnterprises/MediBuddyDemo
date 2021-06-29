@@ -46,6 +46,7 @@ public class MySettingsHelper {
     public static final String OPPORTUNITIES_JSON = "OPPORTUNITIES_JSON";
     public static final String SHOW_OPPORTUNITY_MGR = "SHOW_OPPORTUNITY_MGR";
     public static final String LAST_ACCOUNT_SELECTED = "LAST_ACCOUNT_SELECTED";
+    public static final String SEARCH_SP_ENABLED = "SEARCH_SP_ENABLED";
 
     public static final String RECEIPT_FORMAT_PNG = ".png";
     public static final String RECEIPT_FORMAT_JPEG = ".jpeg";
@@ -53,6 +54,11 @@ public class MySettingsHelper {
 
     Context context;
     SharedPreferences prefs;
+
+    public MySettingsHelper() {
+        this.context = MyApp.getAppContext();
+        prefs = PreferenceManager.getDefaultSharedPreferences(context);
+    }
 
     public MySettingsHelper(Context context) {
         this.context = context;
@@ -86,6 +92,18 @@ public class MySettingsHelper {
             return gson.fromJson(gsonVal, CrmEntities.Accounts.Account.class);
         }
     }*/
+
+    /**
+     * Allows SharePoint to be one of the search clients.
+     * @param val
+     */
+    public void setEnableSpSearch(Boolean val) {
+        prefs.edit().putBoolean(SEARCH_SP_ENABLED, val).commit();
+    }
+
+    public Boolean getEnableSpSearch() {
+        return prefs.getBoolean(SEARCH_SP_ENABLED, false);
+    }
 
     public void setServerBaseUrl(String url) {
         prefs.edit().putString(SERVER_BASE_URL, url).commit();

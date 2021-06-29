@@ -21,6 +21,7 @@ import com.anychart.chart.common.dataentry.DataEntry;
 import com.anychart.chart.common.dataentry.ValueDataEntry;
 import com.anychart.charts.Cartesian;*/
 import com.fimbleenterprises.medimileage.CrmEntities.AccountProducts;
+import com.fimbleenterprises.medimileage.sharepoint.SharePoint;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
 import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
@@ -148,6 +149,7 @@ public class SearchResultsActivity extends AppCompatActivity {
         public static final int TICKETS = 2;
         public static final int OPPORTUNITIES = 3;
         public static final int CONTACTS = 4;
+        public static final int SHAREPOINT = 5;
 
         public SectionsPagerAdapter(androidx.fragment.app.FragmentManager fm) {
             super(fm);
@@ -192,9 +194,17 @@ public class SearchResultsActivity extends AppCompatActivity {
             }
 
             if (position == CONTACTS) {
-                Fragment fragment = new Frag_SearchContacts();
+                Fragment fragment = new Frag_SearchSharePoint();
                 Bundle args = new Bundle();
-                args.putInt(Frag_SearchContacts.ARG_SECTION_NUMBER, position + 1);
+                args.putInt(Frag_SearchSharePoint.ARG_SECTION_NUMBER, position + 1);
+                fragment.setArguments(args);
+                return fragment;
+            }
+
+            if (position == SHAREPOINT) {
+                Fragment fragment = new Frag_SearchSharePoint();
+                Bundle args = new Bundle();
+                args.putInt(Frag_SearchSharePoint.ARG_SECTION_NUMBER, position + 1);
                 fragment.setArguments(args);
                 return fragment;
             }
@@ -203,7 +213,11 @@ public class SearchResultsActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return 5;
+            if (new MySettingsHelper().getEnableSpSearch()) {
+                return 6;
+            } else {
+                return 5;
+            }
         }
 
         @Override
@@ -222,6 +236,8 @@ public class SearchResultsActivity extends AppCompatActivity {
                     return "Opportunities";
                 case CONTACTS:
                     return "Contacts";
+                case SHAREPOINT:
+                    return "SharePoint";
             }
             return null;
         }
@@ -876,6 +892,145 @@ public class SearchResultsActivity extends AppCompatActivity {
                     }
                 });
             } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        protected void populateList() {
+            final ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
+            for (CrmEntities.Contacts.Contact contact : contacts.list) {
+                BasicObjects.BasicObject object = new BasicObjects.BasicObject(contact.getFullname(), contact.accountFormatted, contact);
+                object.middleText = contact.jobtitle;
+                objects.add(object);
+            }
+
+            if (getContext() == null) {
+                return;
+            }
+
+            adapter = new BasicObjectRecyclerAdapter(getContext(), objects);
+            recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+            recyclerView.setAdapter(adapter);
+            adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
+                @Override
+                public void onItemClick(View view, int position) {
+                    CrmEntities.Contacts.Contact selectedContact =
+                            (CrmEntities.Contacts.Contact) objects.get(position).object;
+
+                    ContactActions contactActions = new ContactActions(getActivity(), selectedContact);
+                    contactActions.showContactOptions();
+
+                }
+            });
+            refreshLayout.finishRefresh();
+        }
+    }
+
+    public static class Frag_SearchSharePoint extends Fragment {
+        private static final String TAG = "Frag_CustomerInventory";
+        public static final String ARG_SECTION_NUMBER = "section_number";
+        public View root;
+        public RecyclerView recyclerView;
+        RefreshLayout refreshLayout;
+        BroadcastReceiver searchReceiver;
+        CrmEntities.Contacts contacts;
+        BasicObjectRecyclerAdapter adapter;
+        String attemptedPhonenumber;
+
+        @Nullable
+        @Override
+        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                                 @Nullable Bundle savedInstanceState) {
+            root = inflater.inflate(R.layout.frag_search_results_generic, container, false);
+            refreshLayout = root.findViewById(R.id.refreshLayout);
+            RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
+            refreshLayout.setEnableLoadMore(false);
+            refreshLayout.setOnRefreshListener(new OnRefreshListener() {
+                @Override
+                public void onRefresh(RefreshLayout refreshlayout) {
+                    doSearch();
+                }
+            });
+
+            recyclerView = root.findViewById(R.id.recyclerview);
+            super.onCreateView(inflater, container, savedInstanceState);
+
+
+            searchReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    if (intent.getAction().equals(SEARCH_INITIATED)) {
+                        doSearch();
+                    }
+                }
+            };
+
+            doSearch();
+
+            return root;
+        }
+
+        @Override
+        public void onStop() {
+            super.onStop();
+
+        }
+
+        @Override
+        public void onDestroyView() {
+            super.onDestroyView();
+        }
+
+        @Override
+        public void onResume() {
+            getActivity().registerReceiver(searchReceiver, searchFilter);
+            super.onResume();
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+            getActivity().unregisterReceiver(searchReceiver);
+        }
+
+        @Override
+        public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+            try {
+                if (requestCode == CALL_PHONE_REQ && Helpers.Permissions.isGranted(Helpers.Permissions.PermissionType.CALL_PHONE)) {
+                    Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + attemptedPhonenumber));
+                    startActivity(intent);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            Log.i(TAG, "onRequestPermissionsResult ");
+
+        }
+
+        void doSearch() {
+
+            refreshLayout.autoRefreshAnimationOnly();
+
+            try {
+                SharePoint.searchSp(getContext(), SearchResultsActivity.query, new SharePoint.SearchListener() {
+                    @Override
+                    public void onSuccess(@Nullable SharePoint.SharePointItems items) {
+                        Toast.makeText(getContext(), items.list.size() + " results!", Toast.LENGTH_SHORT).show();
+                        refreshLayout.finishRefresh();
+                    }
+
+                    @Override
+                    public void onFailure(String msg) {
+                        refreshLayout.finishRefresh();
+                        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } catch (Exception e) {
+                refreshLayout.finishRefresh();
                 e.printStackTrace();
             }
 

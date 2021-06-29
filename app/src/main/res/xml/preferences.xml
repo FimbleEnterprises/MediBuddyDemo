@@ -173,6 +173,15 @@
         android:title="Other"
         android:fontFamily="casual">
 
+        <SwitchPreference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
+            app:key="SEARCH_SP_ENABLED"
+            android:fontFamily="casual"
+            app:defaultValue="@string/enable_sp_search_pref_string"
+            android:summary="@string/settings_search_sp_enabled_enabled_summary"
+            app:title="@string/settings_search_sp_enabled_disabled_summary" />
+
         <ListPreference
             android:foreground="#000000"
             android:theme="@style/AppTheme"

@@ -922,6 +922,7 @@ public class CrmEntities {
             String customerinventoryid;
             String itemgroupnumber;
             String productDescription;
+            DateTime physicalDate;
             String productid;
             String qty;
             String statusFormatted;
@@ -1007,6 +1008,14 @@ public class CrmEntities {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+                // Added 1.83 and meant to replace modifiedon
+                try {
+                   if (!json.isNull("new_physical_date")) {
+                       this.physicalDate = (new DateTime(json.getString("new_physical_date")));
+                   }
+                } catch (JSONException e) {
+                   e.printStackTrace();
+                }
                 try {
                     if (!json.isNull("statuscodeFormattedValue")) {
                         this.statusFormatted = (json.getString("statuscodeFormattedValue"));
@@ -1062,6 +1071,16 @@ public class CrmEntities {
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
+                }
+            }
+
+            // Added (1.83)
+            public String getPrettyPhysicalDate() {
+                try {
+                    return Helpers.DatesAndTimes.getPrettyDateAndTime(this.physicalDate);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return "unknown";
                 }
             }
         }

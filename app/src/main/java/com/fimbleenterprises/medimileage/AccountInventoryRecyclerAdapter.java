@@ -80,7 +80,8 @@ public class AccountInventoryRecyclerAdapter extends RecyclerView.Adapter<Accoun
             holder.layout.setBackgroundResource(R.drawable.btn_glass_gray_black_border);
 
             // Values
-            holder.txtDate.setText(customerInventoryItem.modifiedOnFormatted);
+            // holder.txtDate.setText(customerInventoryItem.modifiedOnFormatted);
+            holder.txtDate.setText(customerInventoryItem.getPrettyPhysicalDate()); // Changed from modifiedon value to new_physical_date (1.83)
             holder.txtCustName.setText(customerInventoryItem.accountname);
             holder.txtSerialNumber.setText(customerInventoryItem.serialnumber);
             holder.txtStatus.setText(customerInventoryItem.statusFormatted);

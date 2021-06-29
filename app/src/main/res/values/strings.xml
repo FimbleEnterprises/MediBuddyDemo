@@ -292,6 +292,9 @@
     <string name="auto_submit_trips">true</string>
     <string name="default_name_trip_on_start">false</string>
     <string name="default_opportunity_distance_threshold">8046</string>
+    <string name="settings_search_sp_enabled_disabled_summary">SharePoint searching.</string>
+    <string name="settings_search_sp_enabled_enabled_summary">Enables SharePoint search results in the app\'s search results..</string>
+    <string name="enable_sp_search_pref_string">false</string>
 
 
 </resources>

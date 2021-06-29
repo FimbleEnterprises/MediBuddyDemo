@@ -659,6 +659,7 @@ public class Queries {
             query.addColumn("statuscode");
             query.addColumn("col_serialnumber");
             query.addColumn("col_ownershipcapital");
+            query.addColumn("new_physical_date"); // Added 1.83
             query.addColumn("modifiedon");
             query.addColumn("col_revision");
             query.addColumn("overriddencreatedon");
@@ -1015,6 +1016,7 @@ public class Queries {
             query.addColumn("col_serialnumber");
             query.addColumn("col_ownershipcapital");
             query.addColumn("modifiedon");
+            query.addColumn("new_physical_date"); // Added in 1.83 to replace modifiedon
             query.addColumn("col_revision");
             query.addColumn("overriddencreatedon");
             query.addColumn("col_quantity");
