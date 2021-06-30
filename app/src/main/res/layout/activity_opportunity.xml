@@ -29,7 +29,7 @@
             android:fillViewport="true"
             android:focusable="true"
             android:padding="10dp"
-            tools:context=".OpportunityActivity">
+            tools:context=".activities.OpportunityActivity">
 
             <RelativeLayout
                 android:layout_width="match_parent"

@@ -1,6 +1,6 @@
 package com.fimbleenterprises.medimileage;
 
-import com.google.common.collect.DiscreteDomain;
+import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 
 import org.joda.time.DateTime;
 

@@ -10,10 +10,10 @@ public class QueryFactory {
     private static final String TAG = "QueryFactory";
     private String entityName;
     private String preamble;
-    ArrayList<EntityColumn> columns = new ArrayList<>();
-    ArrayList<LinkEntity> linkEntities = new ArrayList<>();
-    ArrayList<SortClause> sortClauses = new ArrayList<>();
-    Filter filter;
+    public ArrayList<EntityColumn> columns = new ArrayList<>();
+    public ArrayList<LinkEntity> linkEntities = new ArrayList<>();
+    public ArrayList<SortClause> sortClauses = new ArrayList<>();
+    public Filter filter;
     private boolean distinct = false;
 
     @Override
@@ -331,7 +331,7 @@ public class QueryFactory {
 
     public static class Filter {
         private FilterType type;
-        ArrayList<FilterCondition> conditions;
+        public ArrayList<FilterCondition> conditions;
 
         @Override
         public String toString() {

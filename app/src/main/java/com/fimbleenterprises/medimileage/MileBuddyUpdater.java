@@ -5,19 +5,19 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.util.Log;
 
+import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyUpdate;
+import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 import cz.msebera.android.httpclient.Header;
 
-import static com.fimbleenterprises.medimileage.QueryFactory.*;
-import static com.fimbleenterprises.medimileage.Requests.*;
+import static com.fimbleenterprises.medimileage.objects_and_containers.Requests.*;
 
 public class MileBuddyUpdater {
     private static final String TAG = "MileBuddyUpdater";

@@ -28,11 +28,11 @@
         android:theme="@style/AppTheme">
 
         <activity
-            android:name=".FullscreenAccountTerritoryPicker"
+            android:name=".fullscreen_pickers.FullscreenAccountTerritoryPicker"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_pick_account_territory"></activity>
         <activity
-            android:name=".ActivityReceiveContact"
+            android:name=".activities.ActivityReceiveContact"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_receive_contact"
             android:theme="@style/FullscreenTheme">
@@ -45,7 +45,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".BasicEntityActivity"
+            android:name=".activities.BasicEntityActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:exported="true"
             android:theme="@style/AppThemeBasicActivity">
@@ -61,7 +61,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".SearchResultsActivity"
+            android:name=".activities.SearchResultsActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_search_results"
             android:theme="@style/AppThemeSearch">
@@ -79,33 +79,33 @@
             android:label="@string/title_activity_receive_share_for_opp_note"
             android:theme="@style/FullscreenTheme" />
         <activity
-            android:name=".OpportunityActivity"
+            android:name=".activities.OpportunityActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_opportunity"
             android:theme="@style/AppThemeAlt" />
         <activity
-            android:name=".IndividualAggregateStatsActivity"
+            android:name=".activities.IndividualAggregateStatsActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_individual_aggregate_stats"
             android:theme="@style/AppThemeAlt" />
         <activity
-            android:name=".FullscreenActivityChooseTerritory"
+            android:name=".fullscreen_pickers.FullscreenActivityChooseTerritory"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen_choose_territory"
             android:parentActivityName=".MainActivity"
             android:theme="@style/FullscreenAltTheme" />
         <activity
-            android:name=".FullscreenActivityChooseRep"
+            android:name=".fullscreen_pickers.FullscreenActivityChooseRep"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen_choose_territory"
             android:theme="@style/FullscreenAltTheme" />
         <activity
-            android:name=".FullscreenActivityChooseAccount"
+            android:name=".fullscreen_pickers.FullscreenActivityChooseAccount"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen_choose_account"
             android:theme="@style/FullscreenAltTheme" />
         <activity
-            android:name=".FullscreenActivityChooseOpportunity"
+            android:name=".fullscreen_pickers.FullscreenActivityChooseOpportunity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen_choose_opportunity"
             android:theme="@style/FullscreenAltTheme">
@@ -133,14 +133,14 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".AggregateStatsActivity"
+            android:name=".activities.AggregateStatsActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_aggregate_stats"
             android:screenOrientation="portrait"
             android:theme="@style/FullscreenTheme"
             tools:ignore="LockedOrientationActivity" />
         <activity
-            android:name=".Activity_AccountData"
+            android:name=".activities.Activity_AccountData"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_widgets"
             android:screenOrientation="portrait"
@@ -158,14 +158,14 @@
             android:theme="@style/AppTheme"
             tools:ignore="LockedOrientationActivity" />
         <activity
-            android:name=".Activity_TerritoryData"
+            android:name=".activities.Activity_TerritoryData"
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/title_activity__sales_performance"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme"
             tools:ignore="LockedOrientationActivity" />
         <activity
-            android:name=".Activity_SalesQuotas"
+            android:name=".activities.Activity_SalesQuotas"
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/title_activity__sales_performance"
             android:screenOrientation="portrait"
@@ -180,21 +180,21 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".ViewTripActivity"
+            android:name=".activities.ViewTripActivity"
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/title_activity_view_trip"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme"
             tools:ignore="LockedOrientationActivity" />
         <activity
-            android:name=".Activity_ManualTrip"
+            android:name=".activities.Activity_ManualTrip"
             android:configChanges="orientation|keyboardHidden"
             android:label="Add Manual Trip"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme"
             tools:ignore="LockedOrientationActivity" />
         <activity
-            android:name=".UserTripsActivity"
+            android:name=".activities.UserTripsActivity"
             android:configChanges="orientation|keyboardHidden"
             android:label="Trips"
             android:screenOrientation="portrait"
@@ -225,23 +225,23 @@
         </receiver>
         -->
         <service
-            android:name=".MyLocationService"
+            android:name=".services.MyLocationService"
             android:enabled="true" />
         <service
-            android:name=".MyFirebaseMessagingService"
+            android:name=".services.MyFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
         <service
-            android:name=".MyAttachmentUploadService"
+            android:name=".services.MyAttachmentUploadService"
             android:enabled="true" />
         <service
-            android:name=".MyContactUploadService"
+            android:name=".services.MyContactUploadService"
             android:enabled="true" />
         <service
-            android:name=".MyFirebaseMessagingService"
+            android:name=".services.MyFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

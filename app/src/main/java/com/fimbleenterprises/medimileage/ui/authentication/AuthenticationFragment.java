@@ -2,8 +2,6 @@ package com.fimbleenterprises.medimileage.ui.authentication;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,32 +12,24 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 
-import com.fimbleenterprises.medimileage.BasicEntity;
-import com.fimbleenterprises.medimileage.BasicEntityActivity;
 import com.fimbleenterprises.medimileage.BuildConfig;
 import com.fimbleenterprises.medimileage.Crm;
-import com.fimbleenterprises.medimileage.CrmEntities;
-import com.fimbleenterprises.medimileage.MediUser;
+import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.MyInterfaces;
-import com.fimbleenterprises.medimileage.MyProgressDialog;
+import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
 import com.fimbleenterprises.medimileage.MySettingsHelper;
 import com.fimbleenterprises.medimileage.MySqlDatasource;
 import com.fimbleenterprises.medimileage.Queries;
 import com.fimbleenterprises.medimileage.R;
-import com.fimbleenterprises.medimileage.Requests;
-import com.fimbleenterprises.medimileage.RestResponse;
+import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestHandle;
 
-import org.joda.time.DateTime;
-
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
-import cn.pedant.SweetAlert.SweetAlertDialog;
 import cz.msebera.android.httpclient.Header;
 
 public class AuthenticationFragment extends Fragment {

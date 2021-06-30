@@ -23,8 +23,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
-import android.graphics.fonts.Font;
 import android.location.Location;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -55,7 +53,6 @@ import android.view.animation.AnimationSet;
 import android.view.animation.AnimationUtils;
 import android.view.animation.TranslateAnimation;
 import android.webkit.MimeTypeMap;
-import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Toast;
 
@@ -102,8 +99,6 @@ import androidx.core.app.NotificationCompat;
 
 import static android.content.Context.MODE_PRIVATE;
 import static android.content.Context.NOTIFICATION_SERVICE;
-import static com.fimbleenterprises.medimileage.ContactActions.DELIVERY_ACTION;
-import static com.fimbleenterprises.medimileage.ContactActions.SENT_ACTION;
 
 public abstract class Helpers {
 
@@ -2657,7 +2652,7 @@ public abstract class Helpers {
             private static final String TAG = "MySwipeListener";
             Context context;
 
-            interface MySwipeListener {
+            public interface MySwipeListener {
                 void onSwipeLeft();
                 void onSwipeRight();
             }
@@ -2840,7 +2835,7 @@ public abstract class Helpers {
         /**
          * An enumeration of permission names to (more easily) enable strongly typed permission handling
          */
-        enum PermissionType {
+        public enum PermissionType {
             ACCEPT_HANDOVER,
             ACCESS_BACKGROUND_LOCATION,
             ACCESS_CHECKIN_PROPERTIES,

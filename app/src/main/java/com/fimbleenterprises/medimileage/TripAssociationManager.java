@@ -2,14 +2,18 @@ package com.fimbleenterprises.medimileage;
 
 import android.util.Log;
 
-import com.fimbleenterprises.medimileage.CrmEntities.Opportunities.Opportunity;
-import com.fimbleenterprises.medimileage.CrmEntities.TripAssociations;
+import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
+import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.Opportunities.Opportunity;
+import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.TripAssociations;
+import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
+import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
+import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
+import com.fimbleenterprises.medimileage.objects_and_containers.TripEntry;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
-import androidx.preference.Preference;
 import cz.msebera.android.httpclient.Header;
 
 /**

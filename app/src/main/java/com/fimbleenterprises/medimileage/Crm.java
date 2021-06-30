@@ -3,12 +3,11 @@ package com.fimbleenterprises.medimileage;
 import android.content.Context;
 import android.util.Log;
 
+import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestHandle;
 import com.loopj.android.http.RequestParams;
-
-import java.sql.Time;
 
 import cz.msebera.android.httpclient.Header;
 import cz.msebera.android.httpclient.entity.StringEntity;
@@ -126,7 +125,7 @@ public class Crm {
 
         if (timeout == Timeout.LONG) {
             client.setTimeout(1000000);
-        } else if (timeout == Timeout.SHORT){
+        } else if (timeout == Timeout.SHORT) {
             client.setTimeout(10000);
         }
 

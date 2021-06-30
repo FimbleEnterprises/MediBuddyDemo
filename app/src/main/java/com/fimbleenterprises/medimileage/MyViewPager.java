@@ -21,7 +21,7 @@ public class MyViewPager extends ViewPager {
     MyInterfaces.TripPageCallback tripPageCallback;
     public int currentPosition;
     private int pageCount = -1;
-    OnRealPageChangedListener onRealPageChangedListener;
+    public OnRealPageChangedListener onRealPageChangedListener;
     public boolean isPaging = false;
 
     public interface OnRealPageChangedListener {

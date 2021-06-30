@@ -8,14 +8,17 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.google.gson.Gson;
+import com.fimbleenterprises.medimileage.services.MyLocationService;
+import com.fimbleenterprises.medimileage.objects_and_containers.AccountAddresses;
+import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
+import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
+import com.fimbleenterprises.medimileage.objects_and_containers.TripEntry;
+import com.fimbleenterprises.medimileage.objects_and_containers.UserAddresses;
 
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 import java.util.Locale;
-
-import okhttp3.Cache;
 
 import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_IS_ME;
 import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_JSON;

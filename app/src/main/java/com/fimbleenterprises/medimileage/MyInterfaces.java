@@ -1,5 +1,10 @@
 package com.fimbleenterprises.medimileage;
 
+import com.fimbleenterprises.medimileage.objects_and_containers.AccountAddresses;
+import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
+import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
+import com.fimbleenterprises.medimileage.objects_and_containers.UserAddresses;
+
 import org.joda.time.DateTime;
 
 import java.io.File;

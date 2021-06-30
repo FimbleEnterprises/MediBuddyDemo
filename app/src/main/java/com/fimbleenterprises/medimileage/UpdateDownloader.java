@@ -19,6 +19,9 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
+import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyUpdate;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;

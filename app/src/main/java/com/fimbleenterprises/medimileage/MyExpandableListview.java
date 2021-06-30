@@ -11,7 +11,7 @@ import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ListAdapter;
 
-class MyExpandableListview extends ExpandableListView implements GestureDetector.OnGestureListener {
+public class MyExpandableListview extends ExpandableListView implements GestureDetector.OnGestureListener {
 
     private static final String TAG = "MyExpandableListView";
     Context context;

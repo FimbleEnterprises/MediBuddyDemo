@@ -25,7 +25,27 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.fimbleenterprises.medimileage.sharepoint.SharePoint;
+import com.fimbleenterprises.medimileage.activities.Activity_AccountData;
+import com.fimbleenterprises.medimileage.activities.Activity_SalesQuotas;
+import com.fimbleenterprises.medimileage.activities.Activity_TerritoryData;
+import com.fimbleenterprises.medimileage.activities.AggregateStatsActivity;
+import com.fimbleenterprises.medimileage.activities.SearchResultsActivity;
+import com.fimbleenterprises.medimileage.activities.UserTripsActivity;
+import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
+import com.fimbleenterprises.medimileage.services.MyFirebaseMessagingService;
+import com.fimbleenterprises.medimileage.services.MyLocationService;
+import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
+import com.fimbleenterprises.medimileage.dialogs.MyRatingDialog;
+import com.fimbleenterprises.medimileage.dialogs.MyTwoChoiceDialog;
+import com.fimbleenterprises.medimileage.fullscreen_pickers.FullscreenAccountTerritoryPicker;
+import com.fimbleenterprises.medimileage.fullscreen_pickers.FullscreenActivityChooseRep;
+import com.fimbleenterprises.medimileage.objects_and_containers.AggregateStats;
+import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
+import com.fimbleenterprises.medimileage.objects_and_containers.ExcelSpreadsheet;
+import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
+import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyUpdate;
+import com.fimbleenterprises.medimileage.objects_and_containers.MileageUser;
+import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
 import com.fimbleenterprises.medimileage.ui.mileage.MileageFragment;
 import com.fimbleenterprises.medimileage.ui.settings.SettingsActivity;
 import com.google.android.material.navigation.NavigationView;
@@ -230,6 +250,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onDrawerOpened(@NonNull View drawerView) {
         try {
+
+            if (!MediUser.isLoggedIn()) {
+                drawer.close();
+                Toast.makeText(activity, "You must login.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             TextView txtUserName = navigationView.getHeaderView(0).findViewById(R.id.textViewUser);
             txtUserName.setText(MediUser.getMe().fullname);
 
@@ -249,6 +276,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+
+        if (!MediUser.isLoggedIn()) {
+            Toast.makeText(activity, "You must login.", Toast.LENGTH_SHORT).show();
+            drawer.close();
+            return true;
+        }
+
         if (item.getTitle().equals(getString(R.string.retry))) {
             Log.i(TAG, "onNavigationItemSelected Retrying user populate...");
             drawer.closeDrawer(navigationView);
@@ -291,6 +325,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         return false;
     }
+
+
 
     @Override
     protected void onStart() {
@@ -371,6 +407,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main, menu);
 
@@ -427,6 +464,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+
+        if (!MediUser.isLoggedIn()) {
+            return true;
+        }
 
         switch (item.getItemId()) {
             case R.id.action_settings :

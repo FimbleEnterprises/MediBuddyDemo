@@ -1,13 +1,10 @@
 package com.fimbleenterprises.medimileage.sharepoint;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.fimbleenterprises.medimileage.Crm;
-import com.fimbleenterprises.medimileage.MyInterfaces;
-import com.fimbleenterprises.medimileage.Requests;
-import com.google.gson.Gson;
+import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.joda.time.DateTime;
@@ -16,11 +13,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 import androidx.annotation.Nullable;
-import androidx.core.view.accessibility.AccessibilityViewCommand;
 import cz.msebera.android.httpclient.Header;
 
 public class SharePoint {
