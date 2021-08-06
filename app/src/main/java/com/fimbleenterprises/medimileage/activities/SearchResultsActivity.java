@@ -20,6 +20,7 @@ import com.anychart.AnyChartView;
 import com.anychart.chart.common.dataentry.DataEntry;
 import com.anychart.chart.common.dataentry.ValueDataEntry;
 import com.anychart.charts.Cartesian;*/
+import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.adapters.BasicObjectRecyclerAdapter;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 import com.fimbleenterprises.medimileage.dialogs.ContactActions;
@@ -30,9 +31,9 @@ import com.fimbleenterprises.medimileage.DelayedWorker;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.MyViewPager;
-import com.fimbleenterprises.medimileage.Queries;
+import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.sharepoint.SharePoint;
@@ -57,6 +58,7 @@ import cz.msebera.android.httpclient.Header;
 
 public class SearchResultsActivity extends AppCompatActivity {
 
+    private static final String TAG = "SearchResultsActivity";
     public Context context;
     public static final int CALL_PHONE_REQ = 123;
     public static final String SEARCH_INITIATED = "SEARCH_INITIATED";
@@ -110,6 +112,28 @@ public class SearchResultsActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        MyApp.setIsVisible(false, this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        MyApp.setIsVisible(true, this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         handleIntent(getIntent());
@@ -139,6 +163,23 @@ public class SearchResultsActivity extends AppCompatActivity {
         handleIntent(intent);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        /*
+        Intent resultIntent = new Intent(ENTITY_UPDATED);
+        resultIntent.putExtra(GSON_STRING, basicEntity.toGson());
+        setResult(RESULT_CODE_ENTITY_UPDATED, resultIntent);
+         */
+    }
+
+    /**
+     * This where the search query is retrieved and repackaged as a broadcast to any listening fragments
+     * so that they may perform their respective searches.
+     * @param intent This is the intent from the activity hosting the searchview sent by the OS.
+     *               This intent contains the query as a string extra.
+     */
     private void handleIntent(Intent intent) {
 
         if (!MediUser.isLoggedIn()) {
@@ -147,16 +188,21 @@ public class SearchResultsActivity extends AppCompatActivity {
             return;
         }
 
+        // Check if the search query exists and extract it if so.
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
             query = intent.getStringExtra(SearchManager.QUERY);
             Intent newIntent = new Intent(SEARCH_INITIATED);
             newIntent.putExtra(SEARCH_QUERY, query);
             sendBroadcast(newIntent);
 
+            // If the query is numeric we can pretty safely assume the user is interested in
+            // customer inventory (though account numbers are a real possibility).  As such,
+            // we instruct the pager to go to the customer inventory page.  Otherwise we go
+            // to the page specified in settings as the default search page.
             if (Helpers.Numbers.isNumeric(query)) {
                 mViewPager.setCurrentItem(SectionsPagerAdapter.CUSTOMER_INVENTORY, true);
             } else {
-                mViewPager.setCurrentItem(SectionsPagerAdapter.ACCOUNTS, true);
+                mViewPager.setCurrentItem(new MyPreferencesHelper().getDefaultSearchPage(), true);
             }
 
         }
@@ -214,7 +260,7 @@ public class SearchResultsActivity extends AppCompatActivity {
             }
 
             if (position == CONTACTS) {
-                Fragment fragment = new Frag_SearchSharePoint();
+                Fragment fragment = new Frag_SearchContacts();
                 Bundle args = new Bundle();
                 args.putInt(Frag_SearchSharePoint.ARG_SECTION_NUMBER, position + 1);
                 fragment.setArguments(args);
@@ -233,7 +279,7 @@ public class SearchResultsActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            if (new MySettingsHelper().getEnableSpSearch()) {
+            if (new MyPreferencesHelper().getEnableSpSearch()) {
                 return 6;
             } else {
                 return 5;
@@ -343,7 +389,7 @@ public class SearchResultsActivity extends AppCompatActivity {
             refreshLayout.autoRefreshAnimationOnly();
 
             try {
-                String query = Queries.Search.searchCustInventory(Integer.parseInt(SearchResultsActivity.query));
+                String query = CrmQueries.Search.searchCustInventory(Integer.parseInt(SearchResultsActivity.query));
                 Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
                 ArrayList<Requests.Argument> args = new ArrayList<>();
                 args.add(new Requests.Argument("query", query));
@@ -467,7 +513,7 @@ public class SearchResultsActivity extends AppCompatActivity {
             refreshLayout.autoRefreshAnimationOnly();
 
             try {
-                String query = Queries.Search.searchAccounts(SearchResultsActivity.query);
+                String query = CrmQueries.Search.searchAccounts(SearchResultsActivity.query);
                 Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
                 ArrayList<Requests.Argument> args = new ArrayList<>();
                 args.add(new Requests.Argument("query", query));
@@ -592,7 +638,7 @@ public class SearchResultsActivity extends AppCompatActivity {
             refreshLayout.autoRefreshAnimationOnly();
 
             try {
-                String query = Queries.Search.searchTickets(SearchResultsActivity.query);
+                String query = CrmQueries.Search.searchTickets(SearchResultsActivity.query);
                 Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
                 ArrayList<Requests.Argument> args = new ArrayList<>();
                 args.add(new Requests.Argument("query", query));
@@ -644,7 +690,7 @@ public class SearchResultsActivity extends AppCompatActivity {
                             (CrmEntities.Tickets.Ticket) objects.get(position).object;
                     Intent intent = new Intent(getContext(), BasicEntityActivity.class);
                     intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Ticket Details");
-                    intent.putExtra(BasicEntityActivity.ENTITYID, selectedTicket.ticketid);
+                    intent.putExtra(BasicEntityActivity.ENTITYID, selectedTicket.entityid);
                     intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "incident");
                     intent.putExtra(BasicEntityActivity.GSON_STRING, selectedTicket.toBasicEntity().toGson());
                     startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
@@ -730,7 +776,7 @@ public class SearchResultsActivity extends AppCompatActivity {
             refreshLayout.autoRefreshAnimationOnly();
 
             try {
-                String query = Queries.Search.searchOpportunities(SearchResultsActivity.query);
+                String query = CrmQueries.Search.searchOpportunities(SearchResultsActivity.query);
                 Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
                 ArrayList<Requests.Argument> args = new ArrayList<>();
                 args.add(new Requests.Argument("query", query));
@@ -782,7 +828,7 @@ public class SearchResultsActivity extends AppCompatActivity {
                             (CrmEntities.Opportunities.Opportunity) objects.get(position).object;
                     Intent intent = new Intent(getContext(), BasicEntityActivity.class);
                     intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Opportunity Details");
-                    intent.putExtra(BasicEntityActivity.ENTITYID, selectedOpportunity.opportunityid);
+                    intent.putExtra(BasicEntityActivity.ENTITYID, selectedOpportunity.entityid);
                     intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "opportunity");
                     intent.putExtra(BasicEntityActivity.GSON_STRING, selectedOpportunity.toBasicEntity().toGson());
                     startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
@@ -799,6 +845,8 @@ public class SearchResultsActivity extends AppCompatActivity {
     }
 
     public static class Frag_SearchContacts extends Fragment {
+
+        final ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
         private static final String TAG = "Frag_CustomerInventory";
         public static final String ARG_SECTION_NUMBER = "section_number";
         public View root;
@@ -851,11 +899,13 @@ public class SearchResultsActivity extends AppCompatActivity {
         @Override
         public void onDestroyView() {
             super.onDestroyView();
+            Log.i(TAG, "onDestroyView | Unregistered the entity edited reciever.");
         }
 
         @Override
         public void onResume() {
             getActivity().registerReceiver(searchReceiver, searchFilter);
+            Log.i(TAG, "onResume | Registered the search receiver!");
             super.onResume();
         }
 
@@ -863,6 +913,7 @@ public class SearchResultsActivity extends AppCompatActivity {
         public void onPause() {
             super.onPause();
             getActivity().unregisterReceiver(searchReceiver);
+            Log.i(TAG, "onPause Unregistered the search receiver.");
         }
 
         @Override
@@ -887,7 +938,7 @@ public class SearchResultsActivity extends AppCompatActivity {
             refreshLayout.autoRefreshAnimationOnly();
 
             try {
-                String query = Queries.Search.searchContacts(SearchResultsActivity.query);
+                String query = CrmQueries.Search.searchContacts(SearchResultsActivity.query);
                 Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
                 ArrayList<Requests.Argument> args = new ArrayList<>();
                 args.add(new Requests.Argument("query", query));
@@ -918,7 +969,6 @@ public class SearchResultsActivity extends AppCompatActivity {
         }
 
         protected void populateList() {
-            final ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
             for (CrmEntities.Contacts.Contact contact : contacts.list) {
                 BasicObjects.BasicObject object = new BasicObjects.BasicObject(contact.getFullname(), contact.accountFormatted, contact);
                 object.middleText = contact.jobtitle;

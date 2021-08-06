@@ -14,21 +14,28 @@ import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.Switch;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.fimbleenterprises.medimileage.MyApp;
+import com.fimbleenterprises.medimileage.ui.CustomViews.MyHyperlinkTextview;
+import com.fimbleenterprises.medimileage.ui.CustomViews.NonScrollRecyclerView;
 import com.fimbleenterprises.medimileage.objects_and_containers.AggregateStats;
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.CustomTypefaceSpan;
+import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.ExcelSpreadsheet;
 import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileageUser;
 import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.MySqlDatasource;
 import com.fimbleenterprises.medimileage.QueryFactory;
 import com.fimbleenterprises.medimileage.QueryFactory.Filter;
@@ -48,13 +55,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.RecyclerView;
 import cz.msebera.android.httpclient.Header;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests.*;
 
 public class UserTripsActivity extends AppCompatActivity implements TripListRecyclerAdapter.ItemClickListener {
 
-    MySettingsHelper options;
+    MyPreferencesHelper options;
     public static final String MILEAGE_USER = "USERID_INTENT";
     private static final String TAG = "UserTripsFragment";
     public static final String SALES_WEST_GUID = "CA022A1D-AEDE-E811-80EA-005056A36B9B";
@@ -62,12 +68,12 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
     ArrayList<MileageUser> users = new ArrayList<>();
     TripListRecyclerAdapter adapter;
     ArrayList<FullTrip> allTrips = new ArrayList<>();
-    RecyclerView recyclerView;
+    NonScrollRecyclerView recyclerView;
     Switch switchLastMonth;
     LinearLayout llTop;
     public MileageUser user;
     Context context = this;
-    RelativeLayout masterLayout;
+    ScrollView masterLayout;
     AggregateStats stats;
 
     LinearLayout userInfoContainer;
@@ -78,6 +84,12 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
     TextView txtName;
     TextView txtRate;
     TextView txtRateLastMonth;
+    MyHyperlinkTextview txtAccountAssociations;
+    MyHyperlinkTextview txtOpportunityAssociations;
+    TableRow tableRowAccountAssociations;
+    TableRow tableRowOpportunityAssociations;
+    RelativeLayout layoutAssociations;
+    ProgressBar pbAssociations;
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -94,7 +106,7 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_trips);
 
-        this.options = new MySettingsHelper(this);
+        this.options = new MyPreferencesHelper(this);
         this.recyclerView = findViewById(R.id.rvUserTrips);
 
         if (getIntent().getParcelableExtra(MILEAGE_USER) != null) {
@@ -119,6 +131,15 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
         txtRateLastMonth = findViewById(R.id.txtReimbursementRateLastMonth);
         userInfoContainer.setVisibility(View.INVISIBLE);
         masterLayout = findViewById(R.id.masterLayout);
+        tableRowAccountAssociations = findViewById(R.id.rowFilesystem);
+        tableRowOpportunityAssociations = findViewById(R.id.tableRow_02);
+        layoutAssociations = findViewById(R.id.associationslayout);
+        layoutAssociations.setVisibility(View.VISIBLE);
+        tableRowAccountAssociations.setVisibility(View.GONE);
+        tableRowOpportunityAssociations.setVisibility(View.INVISIBLE);
+        pbAssociations = findViewById(R.id.pbAssociations);
+        txtAccountAssociations = findViewById(R.id.txtNearbyAccounts);
+        txtOpportunityAssociations = findViewById(R.id.txtNearbyOpportunities);
 
         Helpers.Views.MySwipeHandler mySwipeHandler = new Helpers.Views.MySwipeHandler(new Helpers.Views.MySwipeHandler.MySwipeListener() {
             @Override
@@ -135,7 +156,9 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
         mySwipeHandler.addView(masterLayout);
         mySwipeHandler.addView(recyclerView);
 
-        getAllMtdTrips();// Create the navigation up button
+        getAllMtdTrips();   // Get the trips to date for the user
+        getAssociations();  // Get the recent opportunity and account associations for the user
+
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -151,8 +174,8 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
             @Override
             public void onClick(View view) {
                 // Toast.makeText(context, "User: " + user.fullname, Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(context, IndividualAggregateStatsActivity.class);
-                intent.putExtra(IndividualAggregateStatsActivity.USER_TAG, user);
+                Intent intent = new Intent(context, IndividualAggregateMileageStatsActivity.class);
+                intent.putExtra(IndividualAggregateMileageStatsActivity.USER_TAG, user);
                 startActivity(intent);
             }
         });
@@ -216,7 +239,23 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
     @Override
     public void onStart() {
         super.onStart();
+    }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        MyApp.setIsVisible(false, this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        MyApp.setIsVisible(true, this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
     }
 
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
@@ -477,7 +516,6 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
         Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
         Requests.Argument argument = new Requests.Argument("query", query);
         request.arguments.add(argument);
-
         Crm crm = new Crm();
         crm.makeCrmRequest(this, request, new AsyncHttpResponseHandler() {
             @Override
@@ -510,6 +548,101 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
                 finish();
             }
         });
+    }
+
+    public void getAssociations() {
+
+        // Grab a reference to the progressbar just to be safe
+        pbAssociations = findViewById(R.id.pbAssociations);
+
+        QueryFactory factory = new QueryFactory("msus_mileageassociation");
+        factory.addColumn("msus_name");
+        factory.addColumn("msus_disposition");
+        factory.addColumn("msus_associated_trip");
+        factory.addColumn("msus_associated_opportunity");
+        factory.addColumn("msus_associated_account");
+        factory.addColumn("createdon");
+        factory.addColumn("msus_mileageassociationid");
+
+        // Sort by create date desc
+        factory.addSortClause(new QueryFactory.SortClause("createdon", true, QueryFactory.SortClause.ClausePosition.ONE));
+
+        // Main query filter (must have associated opportunity)
+        Filter mainFilter = new Filter(Filter.FilterType.AND, new Filter.FilterCondition("msus_associated_opportunity", Filter.Operator.CONTAINS_DATA));
+        factory.setFilter(mainFilter);
+
+        // Trip association - filter must have trip within last two months and owned by user being viewed.
+        QueryFactory.LinkEntity linkEntityFullTrip = new QueryFactory.LinkEntity("msus_fulltrip","msus_fulltripid", "msus_associated_trip", "a_856aa51bdcf9ea11810b005056a36b9b");
+        linkEntityFullTrip.addColumn(new QueryFactory.EntityColumn("msus_dt_tripdate"));
+        linkEntityFullTrip.addColumn(new QueryFactory.EntityColumn("ownerid"));
+        linkEntityFullTrip.addColumn(new QueryFactory.EntityColumn("msus_totaldistance"));
+
+        Filter filter = new Filter(Filter.FilterType.AND);
+        filter.conditions.add(new Filter.FilterCondition("msus_dt_tripdate", Filter.Operator.LAST_X_MONTHS, "2"));
+        filter.conditions.add(new Filter.FilterCondition("ownerid", Filter.Operator.EQUALS, user.ownerid));
+        linkEntityFullTrip.addFilter(filter);
+        factory.addLinkEntity(linkEntityFullTrip);
+
+        // Opportunity link entity
+        QueryFactory.LinkEntity linkEntityOpportunity = new QueryFactory.LinkEntity("opportunity", "opportunityid", "msus_associated_opportunity", "a_eeba8cefdbf9ea11810b005056a36b9b");
+        linkEntityOpportunity.addColumn(new QueryFactory.EntityColumn("name"));
+        linkEntityOpportunity.addColumn(new QueryFactory.EntityColumn("modifiedon"));
+        factory.addLinkEntity(linkEntityOpportunity);
+
+        // Set distinct though this shouldn't really be necessary...
+        factory.isDistinct(true);
+
+        String query = factory.construct();
+
+        Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
+        Requests.Argument argument = new Requests.Argument("query", query);
+        request.arguments.add(argument);
+
+        Crm crm = new Crm();
+        crm.makeCrmRequest(this, request, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                String rslt = new String(responseBody);
+                Toast.makeText(UserTripsActivity.this, "rslt", Toast.LENGTH_SHORT).show();
+                CrmEntities.TripAssociations tripAssociations = new CrmEntities.TripAssociations(rslt);
+                populateAssociationSummaries(tripAssociations);
+                pbAssociations.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                Toast.makeText(UserTripsActivity.this, error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                populateAssociationSummaries(null);
+                pbAssociations.setVisibility(View.GONE);
+            }
+        });
+
+        // Show the pb while the request is executed.
+        pbAssociations.setVisibility(View.VISIBLE);
+    }
+
+    void populateAssociationSummaries(final CrmEntities.TripAssociations associations) {
+        int accts = 0, opps = 0;
+
+        for (CrmEntities.TripAssociations.TripAssociation association : associations.list) {
+            if (association.associated_opportunity_id != null) { opps ++; }
+            if (association.associated_account_id != null) { accts ++; }
+        }
+
+        txtAccountAssociations.setText(accts + " account associations");
+        txtOpportunityAssociations.setText(opps + " nearby opportunities");
+        txtOpportunityAssociations.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(context, ActivityAssociatedOpportunities.class);
+                intent.putExtra(ActivityAssociatedOpportunities.OPPORTUNITY_LIST, associations.toGson());
+                startActivity(intent);
+            }
+        });
+
+
+
+        tableRowOpportunityAssociations.setVisibility(View.VISIBLE);
     }
 
     void getAndExportAggregateStats() {

@@ -13,7 +13,7 @@ import android.widget.TextView;
 
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.Helpers;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.R;
 
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ public class AccountInventoryRecyclerAdapter extends RecyclerView.Adapter<Accoun
     public ArrayList<CrmEntities.AccountProducts.AccountProduct> mData;
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
-    MySettingsHelper options;
+    MyPreferencesHelper options;
     Context context;
     Typeface originalTypeface;
     TextView textView;
@@ -38,7 +38,7 @@ public class AccountInventoryRecyclerAdapter extends RecyclerView.Adapter<Accoun
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
         this.context = context;
-        this.options = new MySettingsHelper(context);
+        this.options = new MyPreferencesHelper(context);
     }
 
     // inflates the row layout from xml when needed

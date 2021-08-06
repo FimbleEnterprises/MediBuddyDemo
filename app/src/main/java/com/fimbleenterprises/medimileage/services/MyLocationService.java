@@ -26,10 +26,10 @@ import android.widget.Toast;
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.DelayedWorker;
 import com.fimbleenterprises.medimileage.Helpers;
-import com.fimbleenterprises.medimileage.MainActivity;
+import com.fimbleenterprises.medimileage.activities.MainActivity;
 import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.MyInterfaces;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.MySqlDatasource;
 import com.fimbleenterprises.medimileage.QueryFactory;
 import com.fimbleenterprises.medimileage.QueryFactory.Filter;
@@ -122,7 +122,7 @@ public class MyLocationService extends Service implements LocationListener {
     PowerManager.WakeLock wakeLock;
     public static boolean isRunning;
     static Location mLastLocation;
-    MySettingsHelper options;
+    MyPreferencesHelper options;
     public static boolean isMoving = false;
 
     MySqlDatasource datasource;
@@ -153,7 +153,7 @@ public class MyLocationService extends Service implements LocationListener {
     public void onCreate() {
         Log.e(TAG, "onCreate");
         initializeLocationManager();
-        options = new MySettingsHelper(this);
+        options = new MyPreferencesHelper(this);
         userHasBeenWarned = false;
     }
 
@@ -703,7 +703,7 @@ public class MyLocationService extends Service implements LocationListener {
                     JSONArray array = new JSONObject(new String(responseBody)).getJSONArray("value");
                     JSONObject object = array.getJSONObject(0);
                     double rate = object.getDouble("msus_mileage_reimbursement_rate");
-                    MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+                    MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
                     options.setReimbursementRate((float) rate);
                     Log.i(TAG, "onSuccess Reimbursement rate set at: " + rate);
                     callback.onSuccess((float) rate);

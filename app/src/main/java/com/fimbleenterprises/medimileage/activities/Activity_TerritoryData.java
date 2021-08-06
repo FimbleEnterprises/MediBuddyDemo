@@ -31,6 +31,7 @@ import com.anychart.AnyChartView;
 import com.anychart.chart.common.dataentry.DataEntry;
 import com.anychart.chart.common.dataentry.ValueDataEntry;
 import com.anychart.charts.Cartesian;*/
+import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.adapters.BasicObjectRecyclerAdapter;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 import com.fimbleenterprises.medimileage.dialogs.ContactActions;
@@ -41,11 +42,11 @@ import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics;
 import com.fimbleenterprises.medimileage.dialogs.MonthYearPickerDialog;
 import com.fimbleenterprises.medimileage.MyInterfaces;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
-import com.fimbleenterprises.medimileage.MyUnderlineEditText;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
+import com.fimbleenterprises.medimileage.ui.CustomViews.MyUnderlineEditText;
 import com.fimbleenterprises.medimileage.MyViewPager;
 import com.fimbleenterprises.medimileage.adapters.OrderLineRecyclerAdapter;
-import com.fimbleenterprises.medimileage.Queries;
+import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
@@ -97,7 +98,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
     public static PagerTitleStrip mPagerStrip;
     public static SectionsPagerAdapter sectionsPagerAdapter;
     public static androidx.fragment.app.FragmentManager fragMgr;
-    public static MySettingsHelper options;
+    public static MyPreferencesHelper options;
     public ArrayList<Territory> cachedTerritories = new ArrayList<>();
     SearchView searchView;
 
@@ -120,7 +121,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
     public static boolean isEastRegion = true;
 
     // var for territory shared with all fragments that want or need it
-    public static Territory territory;
+    public static Territory globalTerritory;
 
     // The popup dialog for goals represented by the chart.
     public static Dialog chartPopupDialog;
@@ -138,6 +139,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         context = this;
         activity = this;
+        options = new MyPreferencesHelper(getBaseContext());
 
         // Log a metric
         try {
@@ -146,9 +148,9 @@ public class Activity_TerritoryData extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        territory = new Territory();
-        territory.territoryid = MediUser.getMe().territoryid;
-        territory.territoryName = MediUser.getMe().territoryname;
+        globalTerritory = new Territory();
+        globalTerritory.territoryid = MediUser.getMe().territoryid;
+        globalTerritory.territoryName = MediUser.getMe().territoryname;
         monthNum = DateTime.now().getMonthOfYear();
         yearNum = DateTime.now().getYear();
 
@@ -165,7 +167,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         mPagerStrip = (PagerTitleStrip) findViewById(R.id.pager_title_strip_sales_perf);
         mViewPager.setAdapter(sectionsPagerAdapter);
         mViewPager.setOffscreenPageLimit(0);
-        mViewPager.setCurrentItem(0);
+        mViewPager.setCurrentItem(options.getDefaultTerritoryPage());
         mViewPager.setPageCount(6);
         mViewPager.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
@@ -238,13 +240,13 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 }
             }
 
-            territory = data.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
+            globalTerritory = data.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
             cachedTerritories = data.getParcelableArrayListExtra(FullscreenActivityChooseTerritory.CACHED_TERRITORIES);
             sectionsPagerAdapter.notifyDataSetChanged();
 
             Intent intent = new Intent(MENU_SELECTION);
             intent.setAction(MENU_SELECTION);
-            intent.putExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT, territory);
+            intent.putExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT, globalTerritory);
             sendBroadcast(intent);
 
         } catch (Exception e) {
@@ -265,13 +267,20 @@ public class Activity_TerritoryData extends AppCompatActivity {
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
+        MyApp.setIsVisible(true, this);
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        MyApp.setIsVisible(false, this);
     }
 
     @Override
@@ -456,7 +465,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 break;
             case R.id.action_choose_territory :
                 Intent intent = new Intent(context, FullscreenActivityChooseTerritory.class);
-                intent.putExtra(FullscreenActivityChooseTerritory.CURRENT_TERRITORY, territory);
+                intent.putExtra(FullscreenActivityChooseTerritory.CURRENT_TERRITORY, globalTerritory);
                 intent.putExtra(FullscreenActivityChooseTerritory.CACHED_TERRITORIES, cachedTerritories);
                 startActivityForResult(intent, 0);
                 break;
@@ -652,21 +661,21 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
             curPageIndex = position;
 
-            if (territory == null) {
-                territory = MediUser.getMe().getTerritory();
+            if (globalTerritory == null) {
+                globalTerritory = MediUser.getMe().getTerritory();
             }
 
             switch (position) {
                 case SALES_PAGE:
-                    return "Sales Lines (" + territory.territoryName + ")";
+                    return "Sales Lines (" + globalTerritory.territoryName + ")";
                 case LEADS_PAGE:
-                    return "Leads (" + territory.territoryName + ")";
+                    return "Leads (" + globalTerritory.territoryName + ")";
                 case OPPORTUNITIES_PAGE:
-                    return "Opportunities (" + territory.territoryName + ")";
+                    return "Opportunities (" + globalTerritory.territoryName + ")";
                 case CASES_PAGE:
-                    return "Cases (" + territory.territoryName + ")" + getCaseCriteriaTitleAddendum();
+                    return "Cases (" + globalTerritory.territoryName + ")" + getCaseCriteriaTitleAddendum();
                 case ACCOUNTS_PAGE:
-                    return "Accounts (" + territory.territoryName + ")";
+                    return "Accounts (" + globalTerritory.territoryName + ")";
             }
             return null;
         }
@@ -679,6 +688,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public RecyclerView recyclerView;
         RefreshLayout refreshLayout;
         OrderLineRecyclerAdapter adapter;
+        Territory curTerritory;
+        BroadcastReceiver territoryChangedReceiver;
         ArrayList<OrderProducts.OrderProduct> allOrders = new ArrayList<>();
         TextView txtNoSales;
         BroadcastReceiver salesLinesReceiver;
@@ -720,11 +731,19 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 }
             };
 
-            if (allOrders == null || allOrders.size() == 0) {
+            if (allOrders == null || allOrders.size() == 0 || curTerritory != globalTerritory) {
                 getSalesLines();
             } else {
                 populateList();
             }
+
+            territoryChangedReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    curTerritory = globalTerritory;
+                    getSalesLines();
+                }
+            };
 
             return root;
         }
@@ -739,6 +758,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public void onDestroyView() {
             super.onDestroyView();
             getActivity().unregisterReceiver(salesLinesReceiver);
+            getActivity().unregisterReceiver(territoryChangedReceiver);
             Log.i(TAG, "onPause Unregistered the sales lines receiver");
         }
 
@@ -747,6 +767,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
             IntentFilter filter = new IntentFilter(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
             filter.addAction(MENU_SELECTION);
             getActivity().registerReceiver(salesLinesReceiver, filter);
+            getActivity().registerReceiver(territoryChangedReceiver, new IntentFilter(MENU_SELECTION));
 
             Log.i(TAG, "onResume Registered the sales lines receiver");
             super.onResume();
@@ -764,13 +785,13 @@ public class Activity_TerritoryData extends AppCompatActivity {
             String query = null;
 
             if (monthNum == DateTime.now().getMonthOfYear()) {
-                query = Queries.OrderLines.getOrderLines(territory.territoryid,
-                        Queries.Operators.DateOperator.THIS_MONTH);
+                query = CrmQueries.OrderLines.getOrderLines(globalTerritory.territoryid,
+                        CrmQueries.Operators.DateOperator.THIS_MONTH);
             } else if (monthNum == DateTime.now().minusMonths(1).getMonthOfYear()) {
-                query = Queries.OrderLines.getOrderLines(territory.territoryid,
-                        Queries.Operators.DateOperator.LAST_MONTH);
+                query = CrmQueries.OrderLines.getOrderLines(globalTerritory.territoryid,
+                        CrmQueries.Operators.DateOperator.LAST_MONTH);
             } else {
-                query = Queries.OrderLines.getOrderLines(territory.territoryid, monthNum);
+                query = CrmQueries.OrderLines.getOrderLines(globalTerritory.territoryid, monthNum);
             }
 
             txtNoSales.setVisibility(View.GONE);
@@ -917,6 +938,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
         BasicObjectRecyclerAdapter adapter;
         BroadcastReceiver leadsReceiver;
+        BroadcastReceiver territoryChangedReceiver;
 
         @Nullable
         @Override
@@ -956,11 +978,20 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 curTerritory = MediUser.getMe().getTerritory();
             }
 
-            if (leads == null && curTerritory != null) {
+            if (leads == null && curTerritory != null && curTerritory != globalTerritory) {
+                curTerritory = globalTerritory;
                 getLeads();
             } else {
                 populateList();
             }
+
+            territoryChangedReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    curTerritory = globalTerritory;
+                    getLeads();
+                }
+            };
 
             return rootView;
         }
@@ -975,6 +1006,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         @Override
         public void onDestroyView() {
             getActivity().unregisterReceiver(leadsReceiver);
+            getActivity().unregisterReceiver(territoryChangedReceiver);
             super.onDestroyView();
         }
 
@@ -983,6 +1015,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
             super.onResume();
             IntentFilter intentFilterMenuSelection = new IntentFilter(MENU_SELECTION);
             getActivity().registerReceiver(leadsReceiver, intentFilterMenuSelection);
+            getActivity().registerReceiver(territoryChangedReceiver, new IntentFilter(MENU_SELECTION));
             Log.i(TAG, "onResume Registered opportunities receiver");
         }
 
@@ -1101,7 +1134,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         }
 
         void showAddNoteDialog(final CrmEntities.Opportunities.Opportunity opportunity) {
-            CrmEntities.Annotations.showAddNoteDialog(context, opportunity.opportunityid, new MyInterfaces.CrmRequestListener() {
+            CrmEntities.Annotations.showAddNoteDialog(context, opportunity.entityid, new MyInterfaces.CrmRequestListener() {
                 @Override
                 public void onComplete(Object result) {
                     Log.i(TAG, "onComplete ");
@@ -1176,10 +1209,13 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 curTerritory = MediUser.getMe().getTerritory();
             }
 
-            if (opportunities == null && curTerritory != null) {
+            if (globalTerritory != curTerritory) {
+                curTerritory = globalTerritory;
                 getOpportunities();
-            } else {
-                populateList();
+            }  else {
+                if (opportunities != null) {
+                    populateList();
+                }
             }
 
             super.onCreateView(inflater, container, savedInstanceState);
@@ -1246,7 +1282,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
                     Intent intent = new Intent(context, BasicEntityActivity.class);
                     intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Opportunity Details");
-                    intent.putExtra(BasicEntityActivity.ENTITYID, selectedOpportunity.opportunityid);
+                    intent.putExtra(BasicEntityActivity.ENTITYID, selectedOpportunity.entityid);
                     intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "opportunity");
                     intent.putExtra(BasicEntityActivity.GSON_STRING, selectedOpportunity.toBasicEntity().toGson());
                     startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
@@ -1329,7 +1365,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         }
 
         void showAddNoteDialog(final CrmEntities.Opportunities.Opportunity opportunity) {
-            CrmEntities.Annotations.showAddNoteDialog(context, opportunity.opportunityid, new MyInterfaces.CrmRequestListener() {
+            CrmEntities.Annotations.showAddNoteDialog(context, opportunity.entityid, new MyInterfaces.CrmRequestListener() {
                 @Override
                 public void onComplete(Object result) {
                     Log.i(TAG, "onComplete ");
@@ -1361,9 +1397,11 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public RecyclerView listview;
         RefreshLayout refreshLayout;
         BroadcastReceiver casesReceiver;
+        Territory curTerritory;
         CrmEntities.Tickets tickets;
         ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
         BasicObjectRecyclerAdapter adapter;
+        BroadcastReceiver territoryChangeReceiver;
         TextView txtNoTickets;
 
         @Nullable
@@ -1390,11 +1428,26 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 }
             };
 
-            if (objects == null || objects.size() == 0) {
+            if (curTerritory == null) {
+                curTerritory = globalTerritory;
+            }
+
+            if (objects == null || objects.size() == 0 || curTerritory != globalTerritory) {
+                curTerritory = globalTerritory;
                 getTickets();
             } else {
                 populateList();
             }
+
+            territoryChangeReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    if (intent.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT) != null) {
+                        curTerritory = globalTerritory;
+                        getTickets();
+                    }
+                }
+            };
 
             txtNoTickets = rootView.findViewById(R.id.txtNoTickets);
 
@@ -1405,10 +1458,12 @@ public class Activity_TerritoryData extends AppCompatActivity {
             refreshLayout.autoRefreshAnimationOnly();
             String query = null;
 
+            curTerritory = globalTerritory;
+
             if (case_status == NOT_RESOLVED) {
-                query = Queries.Tickets.getNonResolvedTickets(territory.territoryid);
+                query = CrmQueries.Tickets.getNonResolvedTickets(globalTerritory.territoryid);
             } else {
-                query = Queries.Tickets.getTickets(territory.territoryid, case_status);
+                query = CrmQueries.Tickets.getTickets(globalTerritory.territoryid, case_status);
             }
 
             ArrayList<Requests.Argument> args = new ArrayList<>();
@@ -1469,8 +1524,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     CrmEntities.Tickets.Ticket ticket = (CrmEntities.Tickets.Ticket) object.object;
                     Intent intent = new Intent(context, BasicEntityActivity.class);
                     intent.putExtra(BasicEntityActivity.GSON_STRING, ticket.toBasicEntity().toGson());
-                    intent.putExtra(BasicEntityActivity.ENTITYID, ticket.ticketid);
-                    intent.putExtra(BasicEntityActivity.CURRENT_TERRITORY, territory);
+                    intent.putExtra(BasicEntityActivity.ENTITYID, ticket.entityid);
+                    intent.putExtra(BasicEntityActivity.CURRENT_TERRITORY, globalTerritory);
                     intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "incident");
                     intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Ticket " + ticket.ticketnumber);
                     startActivityForResult(intent, REQUEST_BASIC);
@@ -1499,6 +1554,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
             IntentFilter filter = new IntentFilter(MENU_SELECTION);
             filter.addAction(MENU_SELECTION);
             getActivity().registerReceiver(casesReceiver, filter);
+            getActivity().registerReceiver(territoryChangeReceiver, new IntentFilter(MENU_SELECTION));
             Log.i(TAG, "onResume Registered the cases receiver");
         }
 
@@ -1511,6 +1567,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public void onDestroyView() {
             super.onDestroyView();
             getActivity().unregisterReceiver(casesReceiver);
+            getActivity().unregisterReceiver(territoryChangeReceiver);
             Log.i(TAG, "onPause Unregistered the cases receiver");
         }
     }
@@ -1521,9 +1578,11 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public RecyclerView listview;
         RefreshLayout refreshLayout;
         BroadcastReceiver accountsReceiver;
+        Territory curTerritory;
         CrmEntities.Accounts accounts;
         ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
         BasicObjectRecyclerAdapter adapter;
+        BroadcastReceiver territoryChangedReceiver;
         TextView txtNoAccounts;
 
         @Nullable
@@ -1550,7 +1609,16 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 }
             };
 
-            if (objects == null || objects.size() == 0) {
+            territoryChangedReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    if (intent.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT) != null) {
+                        curTerritory = globalTerritory;
+                    }
+                }
+            };
+
+            if (objects == null || objects.size() == 0 || curTerritory != globalTerritory) {
                 getAccounts();
             } else {
                 populateList();
@@ -1564,7 +1632,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         void getAccounts() {
             refreshLayout.autoRefreshAnimationOnly();
 
-            String query = Queries.Accounts.getAccountsByTerritory(territory.territoryid);
+            String query = CrmQueries.Accounts.getAccountsByTerritory(globalTerritory.territoryid);
 
             ArrayList<Requests.Argument> args = new ArrayList<>();
             args.add(new Requests.Argument("query", query));
@@ -1636,6 +1704,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
             IntentFilter filter = new IntentFilter(MENU_SELECTION);
             filter.addAction(MENU_SELECTION);
             getActivity().registerReceiver(accountsReceiver, filter);
+            getActivity().registerReceiver(territoryChangedReceiver, new IntentFilter(MENU_SELECTION));
             Log.i(TAG, "onResume Registered the cases receiver");
         }
 
@@ -1648,6 +1717,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public void onDestroyView() {
             super.onDestroyView();
             getActivity().unregisterReceiver(accountsReceiver);
+            getActivity().unregisterReceiver(territoryChangedReceiver);
             Log.i(TAG, "onPause Unregistered the cases receiver");
         }
     }

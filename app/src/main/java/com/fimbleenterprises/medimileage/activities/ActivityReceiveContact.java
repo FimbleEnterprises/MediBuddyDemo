@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.services.MyContactUploadService;
@@ -45,6 +46,28 @@ public class ActivityReceiveContact extends AppCompatActivity {
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        MyApp.setIsVisible(false, this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        MyApp.setIsVisible(true, this);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
@@ -59,7 +82,7 @@ public class ActivityReceiveContact extends AppCompatActivity {
 
             Intent startIntent = new Intent(context, MyContactUploadService.class);
             startIntent.setAction(MyContactUploadService.CREATE_NEW_CONTACT);
-            startIntent.putExtra(MyContactUploadService.ACCOUNTID, chosenAccount.accountid);
+            startIntent.putExtra(MyContactUploadService.ACCOUNTID, chosenAccount.entityid);
             startIntent.putExtra(MyContactUploadService.VCARD_STRING, vcardString);
             getApplicationContext().startService(startIntent);
             finish();

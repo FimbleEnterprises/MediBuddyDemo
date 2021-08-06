@@ -295,6 +295,17 @@
     <string name="settings_search_sp_enabled_disabled_summary">SharePoint searching.</string>
     <string name="settings_search_sp_enabled_enabled_summary">Enables SharePoint search results in the app\'s search results..</string>
     <string name="enable_sp_search_pref_string">false</string>
+    <string name="title_activity_associated_opportunities">Nearby Opportunities</string>
+    <string name="intial_search_page_results_summary">The first entity to apply your search terms to when using the global search feature.</string>
+    <string name="title_activity_permissions">Permission Time Baby!</string>
+    <string name="initial_territory_page_pref_title">Initial territory data page</string>
+    <string name="intial_territory_page_results_summary">The page to start on when viewing territory data.</string>
+    <string name="intial_account_page_results_summary">The initial page of the account data pager</string>
+    <string name="initial_account_page_pref_title">Initial account data page.</string>
+    <string name="title_activity_metrics">MetricsActivity</string>
+    <string name="tab_text_1">Tab 1</string>
+    <string name="tab_text_2">Tab 2</string>
+    <string name="menu_usage">Usage</string>
 
 
 </resources>

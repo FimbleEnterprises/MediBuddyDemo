@@ -5,8 +5,7 @@ import android.util.Log;
 
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.MyApp;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
-import com.google.gson.Gson;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 
 import org.joda.time.DateTime;
 import org.json.JSONException;
@@ -14,13 +13,13 @@ import org.json.JSONObject;
 
 import java.io.File;
 
-import static com.fimbleenterprises.medimileage.MySettingsHelper.MILEBUDDY_UPDATE_JSON;
+import static com.fimbleenterprises.medimileage.MyPreferencesHelper.MILEBUDDY_UPDATE_JSON;
 
 public class MileBuddyUpdate {
 
     public static final String TAG = "MileBuddyUpdate";
 
-    MySettingsHelper options;
+    MyPreferencesHelper options;
 
     // public String name;
     public String changelog;
@@ -32,13 +31,13 @@ public class MileBuddyUpdate {
 
     public MileBuddyUpdate() {
         try {
-            this.options = new MySettingsHelper(MyApp.getAppContext());
+            this.options = new MyPreferencesHelper(MyApp.getAppContext());
         } catch (Exception e) { }
     }
     public MileBuddyUpdate(JSONObject json) {
 
         try {
-            options = new MySettingsHelper(MyApp.getAppContext());
+            options = new MyPreferencesHelper(MyApp.getAppContext());
         } catch (Exception e) { }
 
         this.json = json.toString();
@@ -91,7 +90,7 @@ public class MileBuddyUpdate {
     public boolean existsLocally() {
         File file = null;
         if (options != null) {
-            file = new File(Helpers.Files.getAppDownloadDirectory() + File.separator +
+            file = new File(Helpers.Files.AppUpdates.getDirectory() + File.separator +
                     "MileBuddy " + this.version);
 
         }
@@ -101,7 +100,7 @@ public class MileBuddyUpdate {
     public void deleteLocally() {
         SharedPreferences prefs = options.getSharedPrefs();
         prefs.edit().remove(MILEBUDDY_UPDATE_JSON).commit();
-        File file = new File(Helpers.Files.getAppDownloadDirectory() + File.separator +
+        File file = new File(Helpers.Files.AppUpdates.getDirectory() + File.separator +
                 "MileBuddy " + this.version);
         if (file.exists()) {
             file.delete();
@@ -111,10 +110,10 @@ public class MileBuddyUpdate {
 
     public static void deleteAllLocallyAvailableUpdates() {
         int i = 0;
-        MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+        MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
         SharedPreferences prefs = options.getSharedPrefs();
         prefs.edit().remove(MILEBUDDY_UPDATE_JSON).commit();
-        File[] files = Helpers.Files.getAppDownloadDirectory().listFiles();
+        File[] files = Helpers.Files.AppUpdates.getFiles();
         for (File file : files) {
             if (! file.isDirectory() && file.getName().endsWith(".apk")) {
                 file.delete();

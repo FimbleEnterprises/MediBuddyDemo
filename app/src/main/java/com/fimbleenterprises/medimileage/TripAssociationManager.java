@@ -20,6 +20,10 @@ import cz.msebera.android.httpclient.Header;
  * A class containing static methods used to manage trip associations both locally and server-side.
  */
 public class TripAssociationManager {
+
+    public static final int DEPARTURE = 745820000;
+    public static final int ARRIVAL = 745820001;
+
     private static final String TAG = "AssociatedTripManager";
 
     /**
@@ -35,7 +39,7 @@ public class TripAssociationManager {
     public static TripAssociations getNearbyAccountsAndOpportunities(@NonNull FullTrip trip) {
 
         // Get shared preferences and identify the departure and destination locations for the specified trip
-        MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+        MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
         TripEntry startEntry = trip.tripEntries.get(0);
         TripEntry endEntry = trip.tripEntries.get(trip.tripEntries.size() - 1);
 
@@ -82,9 +86,8 @@ public class TripAssociationManager {
                         association2.associated_account_id = address.accountid;
                         association2.associated_trip_id = trip.tripGuid;
                         association2.associated_opportunity_name = opp.name;
-                        association2.associated_opportunity_id = opp.opportunityid;
-                        association2.tripDisposition = TripAssociations.TripAssociation
-                                .TripDisposition.START;
+                        association2.associated_opportunity_id = opp.entityid;
+                        association2.tripDispositionValue = DEPARTURE;
                         pendingAssociations.addAssociation(association2);
                     }
                 } else { // No opportunities found
@@ -93,8 +96,7 @@ public class TripAssociationManager {
                             new TripAssociations.TripAssociation(trip.getDateTime());
                     association.associated_account_id = address.accountid;
                     association.associated_trip_id = trip.tripGuid;
-                    association.tripDisposition = TripAssociations.TripAssociation
-                            .TripDisposition.START;
+                    association.tripDispositionValue = DEPARTURE;
                     pendingAssociations.addAssociation(association);
                 }
 
@@ -109,9 +111,8 @@ public class TripAssociationManager {
                         association2.associated_account_id = address.accountid;
                         association2.associated_trip_id = trip.tripGuid;
                         association2.associated_opportunity_name = opp.name;
-                        association2.associated_opportunity_id = opp.opportunityid;
-                        association2.tripDisposition = TripAssociations.TripAssociation
-                                .TripDisposition.END;
+                        association2.associated_opportunity_id = opp.entityid;
+                        association2.tripDispositionValue = ARRIVAL;
                         pendingAssociations.addAssociation(association2);
                     }
                 } else { // No opportunities found
@@ -120,8 +121,7 @@ public class TripAssociationManager {
                             new TripAssociations.TripAssociation(trip.getDateTime());
                     association.associated_account_id = address.accountid;
                     association.associated_trip_id = trip.tripGuid;
-                    association.tripDisposition = TripAssociations.TripAssociation
-                            .TripDisposition.END;
+                    association.tripDispositionValue = ARRIVAL;
                     pendingAssociations.addAssociation(association);
                 }
             }
@@ -232,7 +232,7 @@ public class TripAssociationManager {
      *                 none were found but no errors occured) or an error message if an error was thrown.
      */
     public static void retrieveAssociations(String tripid, final MyInterfaces.TripAssociationsListener listener) {
-        String query = Queries.TripAssociation.getAssociationsByTripid(tripid);
+        String query = CrmQueries.TripAssociation.getAssociationsByTripid(tripid);
         Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
         ArrayList<Requests.Argument> args = new ArrayList<>();
         Requests.Argument argument1 = new Requests.Argument("query", query);
@@ -268,7 +268,7 @@ public class TripAssociationManager {
 
         String[] guids = new String[associations.list.size()];
         for (int i = 0; i < associations.list.size(); i++) {
-            guids[i] = associations.list.get(i).id;
+            guids[i] = associations.list.get(i).entityid;
         }
 
         Requests.Request request = new Requests.Request(Requests.Request.Function.DELETE_MANY);

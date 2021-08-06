@@ -31,7 +31,7 @@ public class ContactActions {
 
     public static class Person extends CrmEntities.Contacts.Contact {
         public boolean isLead = false;
-        public String entityid;
+        public String parentid;
 
         public void qualifyLead(MyInterfaces.leadQualifyListener listener) {
 
@@ -57,7 +57,7 @@ public class ContactActions {
             this.createdOn = contact.createdOn;
             this.createdOnFormatted = contact.createdOnFormatted;
             this.etag = contact.etag;
-            this.entityid = contact.contactid;
+            this.parentid = contact.entityid;
         }
 
         public Person(CrmEntities.Leads.Lead lead) {
@@ -79,7 +79,7 @@ public class ContactActions {
             this.createdOn = lead.createdOn;
             this.createdOnFormatted = lead.createdOnFormatted;
             this.etag = lead.etag;
-            this.entityid = lead.leadid;
+            this.parentid = lead.entityid;
         }
 
     }
@@ -208,10 +208,10 @@ public class ContactActions {
                 intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, person.getFullname());
                 String entityLogicalName = (person.isLead) ? "lead" : "contact";
                 intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, entityLogicalName);
-                intent.putExtra(BasicEntityActivity.ENTITYID, person.entityid);
+                intent.putExtra(BasicEntityActivity.ENTITYID, person.parentid);
                 intent.putExtra(BasicEntityActivity.GSON_STRING, person.toBasicEntity().toGson());
                 intent.putExtra(BasicEntityActivity.LOAD_NOTES, true);
-                intent.putExtra(BasicEntityActivity.HIDE_MENU, true);
+                intent.putExtra(BasicEntityActivity.HIDE_MENU, false);
                 activity.startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
             }
         });

@@ -10,7 +10,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.R;
 
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
     public ArrayList<BasicObjects.BasicObject> mData;
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
-    MySettingsHelper options;
+    MyPreferencesHelper options;
     Context context;
     public int selectedIndex = -1;
     Typeface face;
@@ -33,7 +33,7 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
         this.context = context;
-        this.options = new MySettingsHelper(context);
+        this.options = new MyPreferencesHelper(context);
         face = context.getResources().getFont(R.font.casual);
     }
 

@@ -14,7 +14,7 @@ import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.Acco
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics;
 import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
-import com.fimbleenterprises.medimileage.Queries;
+import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
@@ -143,7 +143,7 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
 
         Crm crm = new Crm();
         ArrayList<Requests.Argument> args = new ArrayList<>();
-        Requests.Argument argument = new Requests.Argument("query", Queries.Accounts.getAccountsByTerritory(currentTerritory.territoryid));
+        Requests.Argument argument = new Requests.Argument("query", CrmQueries.Accounts.getAccountsByTerritory(currentTerritory.territoryid));
         args.add(argument);
         Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
 
@@ -179,7 +179,7 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
                     + " " + account.getAgreementTypeFormatted(), account);
             object.iconResource = R.mipmap.ic_business_black_24dp;
             if (currentAccount != null) {
-                object.isSelected = currentAccount.accountid.equals(account.accountid);
+                object.isSelected = currentAccount.entityid.equals(account.entityid);
             }
             objects.add(object);
         }

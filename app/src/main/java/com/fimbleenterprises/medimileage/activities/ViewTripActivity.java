@@ -8,6 +8,7 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
+import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.CrmAddresses;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.CrmAddresses.CrmAddress;
 import com.fimbleenterprises.medimileage.DelayedWorker;
@@ -17,7 +18,7 @@ import com.fimbleenterprises.medimileage.adapters.MyInfoWindowAdapter;
 import com.fimbleenterprises.medimileage.objects_and_containers.MyMapMarker;
 import com.fimbleenterprises.medimileage.MyMapRouteHelper;
 import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.MySqlDatasource;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.TripEntry;
@@ -69,7 +70,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
     FullTrip clickedTrip;
     ArrayList<TripEntry> tripEntries = new ArrayList<>();
     GoogleMap map;
-    MySettingsHelper options;
+    MyPreferencesHelper options;
     Polyline googlePoly;
     LinearLayout linearLayout_Shell;
     LinearLayout linearLayout_Contents;
@@ -115,7 +116,7 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
         mapFragment.getMapAsync(this);
 
         context = this;
-        options = new MySettingsHelper(this);
+        options = new MyPreferencesHelper(this);
         curMapType = options.getMapMode();
 
         Helpers.Animations.pulseAnimation(txtDrawingMap);
@@ -200,7 +201,29 @@ public class ViewTripActivity extends AppCompatActivity implements OnMapReadyCal
 
     }
 
-/*    @Override
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        MyApp.setIsVisible(true, this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        MyApp.setIsVisible(false, this);
+    }
+
+    /*    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_viewtrip, menu);
         return super.onCreateOptionsMenu(menu);

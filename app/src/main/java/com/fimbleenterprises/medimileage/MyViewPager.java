@@ -16,7 +16,7 @@ public class MyViewPager extends ViewPager {
 
     final static String TAG = "MyViewPager";
     private boolean isPagingEnabled = true;
-    MySettingsHelper options;
+    MyPreferencesHelper options;
     Context context;
     MyInterfaces.TripPageCallback tripPageCallback;
     public int currentPosition;
@@ -32,7 +32,7 @@ public class MyViewPager extends ViewPager {
         super(context);
         this.context = context;
         this.tripPageCallback = tripPageCallback;
-        options = new MySettingsHelper(context);
+        options = new MyPreferencesHelper(context);
     }
 
     public MyViewPager(Context context,  MyInterfaces.OnPageChanged onPageChanged) {
@@ -45,7 +45,7 @@ public class MyViewPager extends ViewPager {
         this.context = context;
         this.pageCount = pageCount;
         this.tripPageCallback = tripPageCallback;
-        options = new MySettingsHelper(context);
+        options = new MyPreferencesHelper(context);
     }
 
     public MyViewPager(Context context,  MyInterfaces.OnPageChanged onPageChanged, int pageCount) {
@@ -133,7 +133,7 @@ public class MyViewPager extends ViewPager {
 
     public MyViewPager(Context context, AttributeSet attrs) {
         super(context, attrs);
-        options = new MySettingsHelper(context);
+        options = new MyPreferencesHelper(context);
     }
 
     @Override

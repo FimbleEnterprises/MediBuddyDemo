@@ -21,10 +21,10 @@ import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyUpdate;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.services.MyLocationService;
 import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.MySqlDatasource;
 import com.fimbleenterprises.medimileage.dialogs.MyYesNoDialog;
-import com.fimbleenterprises.medimileage.Queries;
+import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.UserAddresses;
@@ -55,7 +55,7 @@ import androidx.preference.PreferenceFragmentCompat;*/
 public class SettingsActivity extends AppCompatActivity {
 
     private static final String TAG = "SettingsActivity";
-    public static MySettingsHelper options;
+    public static MyPreferencesHelper options;
 
     public static final int REQ_PERMISSION_BACKUP = 1;
     public static final int REQ_PERMISSION_RESTORE = 0;
@@ -86,6 +86,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String SET_DEFAULTS = "SET_DEFAULTS";
     public static final String SERVER_BASE_URL = "SERVER_BASE_URL";
     public static final String OPPORTUNITIES_KEY = "updateOpportunities";
+    public static final String DEFAULT_SEARCH_PAGE = "DEFAULT_SEARCH_PAGE";
 
     public static String DEFAULT_DATABASE_NAME = "mileagetracking.db";
 
@@ -105,7 +106,7 @@ public class SettingsActivity extends AppCompatActivity {
         MileBuddyMetrics.updateMetric(this, MileBuddyMetrics.MetricName.LAST_ACCESSED_APP_SETTINGS, DateTime.now());
 
         this.context = this;
-        options = new MySettingsHelper(context);
+        options = new MyPreferencesHelper(context);
 
         getSupportFragmentManager()
                 .beginTransaction()
@@ -157,6 +158,7 @@ public class SettingsActivity extends AppCompatActivity {
             Preference prefUpdateMyUserInfo;
             Preference prefExplicitMode;
             Preference prefSetDefaults;
+
             final Preference prefSetServerBaseUrl;
             Preference prefUpdateOpportunities;
 
@@ -211,7 +213,7 @@ public class SettingsActivity extends AppCompatActivity {
                     dialog.show();
                     final String originalValue = options.getServerBaseUrl();
                     options.setServerBaseUrl(newValue.toString());
-                    Requests.Argument argument = new Requests.Argument("query", Queries.Utility.getMyUser());
+                    Requests.Argument argument = new Requests.Argument("query", CrmQueries.Utility.getMyUser());
                     ArrayList<Requests.Argument> args = new ArrayList<>();
                     args.add(argument);
                     Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
@@ -486,7 +488,7 @@ public class SettingsActivity extends AppCompatActivity {
         public void retrieveAndSaveOpportunities() {
             final MyProgressDialog dialog = new MyProgressDialog(getContext(), "Retrieving opportunities...");
             dialog.show();
-            String query = Queries.Opportunities.getOpportunitiesByTerritory(MediUser.getMe().territoryid);
+            String query = CrmQueries.Opportunities.getOpportunitiesByTerritory(MediUser.getMe().territoryid);
             ArrayList<Requests.Argument> args = new ArrayList<>();
             Requests.Argument argument = new Requests.Argument("query", query);
             args.add(argument);
@@ -625,7 +627,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         public void getUser(String email) {
-            String query = Queries.Users.getUser(email);
+            String query = CrmQueries.Users.getUser(email);
             Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
             request.arguments.add(new Requests.Argument(null, query));
             Crm crm = new Crm();

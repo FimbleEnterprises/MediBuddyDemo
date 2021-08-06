@@ -39,9 +39,11 @@ import androidx.core.content.FileProvider;
 public class UpdateDownloader extends AsyncTask<String, String, String> {
 
     private static final String TAG = "UpdateDownloader";
+    /*
     public final static String FILE_NAME = "MileBuddy.apk";
     public final static String FILE_BASE_PATH = "file://";
     public final static String MIME_TYPE = "application/vnd.android.package-archive";
+    */
     public final static String PROVIDER_PATH = ".provider";
     public final static String APP_INSTALL_PATH = "\"application/vnd.android.package-archive\"";
 
@@ -71,12 +73,12 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
     private String downloadFailureReason = "";
     private boolean cancelRequested = false;
     MileBuddyUpdate update;
-    MySettingsHelper options;
+    MyPreferencesHelper options;
     boolean silently;
 
-    UpdateDownloader(Activity activity, MileBuddyUpdate update, boolean silently) {
+    public UpdateDownloader(Activity activity, MileBuddyUpdate update, boolean silently) {
         this.activity = activity;
-        this.options = new MySettingsHelper(activity);
+        this.options = new MyPreferencesHelper(activity);
         this.silently = silently;
         this.update = update;
         this.myProgressDialog = new MyProgressDialog(activity, MyProgressDialog.PROGRESS_TYPE);
@@ -141,12 +143,8 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
         cancelRequested = false;
         DOWNLOADING = true;
 
-        // 1. Instantiate an AlertDialog.Builder with its constructor
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(activity);
         LayoutInflater inflater = (LayoutInflater) activity.getSystemService(Service.LAYOUT_INFLATER_SERVICE);
-
-        // 2. Chain together various setter methods to set the dialog
-        // characteristics
         alertDialog.setView(inflater.inflate(R.layout.update_app_dialog, null))
                 // .setCancelable(false)
                 .setIcon(R.drawable.ms64).setTitle("Retrieving update...");
@@ -158,7 +156,7 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
             }
         });
 
-        myProgressDialog.setTitleText("Downloading");
+        myProgressDialog.setTitleText("Downloading New Version");
         if (! this.silently) {
             myProgressDialog.show();
         }
@@ -179,7 +177,7 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
             connection.connect();
             int fileLength = connection.getContentLength();
 
-            output = new FileOutputStream(new File(Helpers.Files.getAppDownloadDirectory().getPath(),
+            output = new FileOutputStream(new File(Helpers.Files.AppUpdates.getDirectory().getPath(),
                     update.version + ".apk"));
             // download the file using the passed url to a filestream object
             input = new BufferedInputStream(url.openStream());
@@ -252,7 +250,7 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
             }
         }
 
-        File file = new File(Helpers.Files.getAppDownloadDirectory().getPath(),
+        File file = new File(Helpers.Files.AppUpdates.getDirectory().getPath(),
                 update.version + ".apk");
         if (file.exists()) {
             options.clearMileBuddyUpdate();
@@ -327,7 +325,7 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
 
     public static void install(boolean show, final Activity activity, final MileBuddyUpdate update) {
 
-        final MySettingsHelper options = new MySettingsHelper(activity);
+        final MyPreferencesHelper options = new MyPreferencesHelper(activity);
 
         if (show) {
 
@@ -353,18 +351,19 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
                 public void onClick(View view) {
                     dialog.dismiss();
 
-                    final File originalFile = new File(Helpers.Files.getAppDownloadDirectory().getPath(), update.version + ".apk");
-                    final File tempDir = Helpers.Files.getAppTempDirectory();
-                    tempDir.delete();
-                    tempDir.mkdirs();
+                    final File originalFile = new File(Helpers.Files.AppUpdates.getDirectory().getPath(), update.version + ".apk");
+                    // Creates a staging directory to install from.
+                    final File tempDir = Helpers.Files.AppUpdates.createStagingDir();
 
+                    // Prepare the update file for copy to the staging directory.
                     final File tempApp = new File(tempDir.getAbsolutePath(),update.version + ".apk");
                     if (tempApp.exists()) {
                         tempApp.delete();
                     }
 
+                    // Copy the update to the staging directory as a ready to execute file.
                     if (!Helpers.Files.copy(originalFile, tempApp)) {
-                        Toast.makeText(activity, "Failed to instal (the copy part failed, dawg).", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(activity, "Failed to install (the copy part failed, dawg).", Toast.LENGTH_SHORT).show();
                         Log.w(TAG, "install: Failed to copy the update file to a temp location for installation");
                         MileBuddyUpdate.deleteAllLocallyAvailableUpdates();
                         return;
@@ -376,6 +375,7 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
                     // a temporary location.
                     MileBuddyUpdate.deleteAllLocallyAvailableUpdates();
 
+                    // Install the app according to the OS' best practices.
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         Uri contentUri = FileProvider.getUriForFile(activity,
                                 BuildConfig.APPLICATION_ID + PROVIDER_PATH, tempApp);
@@ -391,16 +391,6 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
                         install.setDataAndType(Uri.fromFile(tempApp), APP_INSTALL_PATH);
                         activity.startActivity(install);
                     }
-
-                    /*Intent i = new Intent();
-                    i.setAction(Intent.ACTION_VIEW);
-                    i.setDataAndType(Uri.fromFile(options.getUpdateFile()), "application/vnd.android.package-archive");
-                    options.setUpdateVersion(0);
-                    options.setUpdateChangelog(null);
-                    options.setUpdateFile(null);
-                    options.updateIsAvailable(false);
-                    Log.d(TAG, "About to install new .apk");
-                    activity.startActivity(i);*/
                 }
             });
             dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {

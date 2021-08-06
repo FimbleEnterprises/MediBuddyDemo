@@ -1,4 +1,4 @@
-package com.fimbleenterprises.medimileage;
+package com.fimbleenterprises.medimileage.ui.CustomViews;
 
 import android.content.Context;
 import android.util.AttributeSet;

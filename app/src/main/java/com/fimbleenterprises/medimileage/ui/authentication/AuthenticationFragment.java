@@ -20,9 +20,9 @@ import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.MySqlDatasource;
-import com.fimbleenterprises.medimileage.Queries;
+import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.loopj.android.http.AsyncHttpResponseHandler;
@@ -39,7 +39,7 @@ public class AuthenticationFragment extends Fragment {
     private static final String TAG = "AuthenticationFragment";
     private AuthenticationViewModel authenticationViewModel;
     Button btnLogin;
-    MySettingsHelper options;
+    MyPreferencesHelper options;
     Context context;
     EditText txtUsername;
     EditText txtPassword;
@@ -56,7 +56,7 @@ public class AuthenticationFragment extends Fragment {
 
         context = getContext();
         // progress = new SweetAlertDialog(context, SweetAlertDialog.PROGRESS_TYPE);
-        options = new MySettingsHelper(context);
+        options = new MyPreferencesHelper(context);
         context = getContext();
         txtUsername = root.findViewById(R.id.text_username);
         txtPassword = root.findViewById(R.id.text_password);
@@ -195,7 +195,7 @@ public class AuthenticationFragment extends Fragment {
     }
 
     public void getUser(String email) {
-        String query = Queries.Users.getUser(email);
+        String query = CrmQueries.Users.getUser(email);
         Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
         request.arguments.add(new Requests.Argument(null, query));
         Crm crm = new Crm();

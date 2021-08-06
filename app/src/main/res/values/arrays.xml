@@ -19,6 +19,54 @@
         <item>10 Miles</item>
     </string-array>
 
+    <string-array name="default_search_page_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+
+    <string-array name="default_search_page_entries">
+        <item>Customer Inventory</item>
+        <item>Accounts</item>
+        <item>Tickets</item>
+        <item>Opportunities</item>
+        <item>Contacts</item>
+    </string-array>
+
+    <string-array name="default_territory_page_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+
+    <string-array name="default_territory_page_entries">
+        <item>Sales Lines</item>
+        <item>Leads</item>
+        <item>Opportunities</item>
+        <item>Tickets</item>
+        <item>Accounts</item>
+    </string-array>
+
+    <string-array name="default_account_page_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+
+    <string-array name="default_account_page_entries">
+        <item>Contacts</item>
+        <item>Sales</item>
+        <item>Inventory</item>
+        <item>Opportunities</item>
+        <item>Tickets</item>
+    </string-array>
+
     <string-array name="distance_threshold_values">
         <item>0</item>
         <item>402</item>

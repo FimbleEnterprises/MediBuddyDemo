@@ -18,6 +18,7 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
 import com.fimbleenterprises.medimileage.Helpers;
@@ -25,9 +26,9 @@ import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.adapters.MyInfoWindowAdapter;
 import com.fimbleenterprises.medimileage.objects_and_containers.MyMapMarker;
 import com.fimbleenterprises.medimileage.MyMapRouteHelper;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.MySqlDatasource;
-import com.fimbleenterprises.medimileage.MyUnderlineEditText;
+import com.fimbleenterprises.medimileage.ui.CustomViews.MyUnderlineEditText;
 import com.fimbleenterprises.medimileage.MyViewPager;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.TripEntry;
@@ -101,7 +102,7 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
     public static androidx.fragment.app.FragmentManager fragMgr;
     public static RectangularBounds bounds;
     public static String distanceStr;
-    public static MySettingsHelper options;
+    public static MyPreferencesHelper options;
     ProgressBar prog;
 
     public static final int TAG_FROM = 0;
@@ -123,7 +124,7 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
 
         context = this;
         activity = this;
-        options = new MySettingsHelper(context);
+        options = new MyPreferencesHelper(context);
 
         setContentView(R.layout.activity_manual_trip);
         // getActionBar().setDisplayHomeAsUpEnabled(true);
@@ -234,6 +235,18 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        MyApp.setIsVisible(false, this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        MyApp.setIsVisible(true, this);
+    }
+
+    @Override
     public boolean onSupportNavigateUp() {
         onBackPressed();
         return super.onSupportNavigateUp();
@@ -242,6 +255,11 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
     @Override
     protected void onStart() {
         super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
     }
 
     @Override

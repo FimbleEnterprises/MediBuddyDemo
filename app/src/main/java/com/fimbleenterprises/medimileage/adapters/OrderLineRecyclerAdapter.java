@@ -11,7 +11,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.fimbleenterprises.medimileage.Helpers;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.R;
 
 import static com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.OrderProducts.OrderProduct;
@@ -28,7 +28,7 @@ public class OrderLineRecyclerAdapter extends RecyclerView.Adapter<OrderLineRecy
     public ArrayList<OrderProduct> mData;
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
-    MySettingsHelper options;
+    MyPreferencesHelper options;
     Context context;
     Typeface originalTypeface;
     TextView textView;
@@ -40,7 +40,7 @@ public class OrderLineRecyclerAdapter extends RecyclerView.Adapter<OrderLineRecy
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
         this.context = context;
-        this.options = new MySettingsHelper(context);
+        this.options = new MyPreferencesHelper(context);
     }
 
     // inflates the row layout from xml when needed

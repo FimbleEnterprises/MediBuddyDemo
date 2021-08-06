@@ -12,6 +12,8 @@ import android.telephony.SmsMessage;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.fimbleenterprises.medimileage.activities.MainActivity;
+
 
 public class SMSReceiver extends BroadcastReceiver {
 

@@ -35,7 +35,7 @@ import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.services.MyAttachmentUploadService;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.activities.OpportunityActivity;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
@@ -76,7 +76,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
     FullTrip fulltrip;
     TextView txtAbout;
     RefreshLayout refreshLayout;
-    MySettingsHelper options;
+    MyPreferencesHelper options;
     String baseMsg;
     String pendingNotetext;
     boolean isLaunchedFromExternalApp = false;
@@ -89,7 +89,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         this.context = this;
         objects = new ArrayList<>();
-        options = new MySettingsHelper(context);
+        options = new MyPreferencesHelper(context);
         currentTerritory = MediUser.getMe().getTerritory();
         opportunities = options.getSavedOpportunities();
         setContentView(R.layout.activity_fullscreen_choose_opportunity);
@@ -229,7 +229,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
                 // Build an annotation object to pass to the service
                 final CrmEntities.Annotations.Annotation annotation = new CrmEntities.Annotations.Annotation();
                 // Toast.makeText(context, "Created!  Adding attachment...", Toast.LENGTH_SHORT).show();
-                annotation.objectid = opportunity.opportunityid;
+                annotation.objectid = opportunity.entityid;
                 annotation.subject = "Shared from MileBuddy";
                 annotation.notetext = "\n\nShared text:\n" + sharedText;
                 annotation.isDocument = false;
@@ -267,7 +267,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
                     // Build an annotation object to pass to the service
                     final CrmEntities.Annotations.Annotation annotation = new CrmEntities.Annotations.Annotation();
                     // Toast.makeText(context, "Created!  Adding attachment...", Toast.LENGTH_SHORT).show();
-                    annotation.objectid = opportunity.opportunityid;
+                    annotation.objectid = opportunity.entityid;
                     annotation.subject = "Shared from MileBuddy";
                     annotation.notetext = "I added this note from MileBuddy!";
                     annotation.isDocument = true;
@@ -309,7 +309,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         }
         objects.clear();
 
-        MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+        MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
         CrmEntities.CrmAddresses accountAddresses = options.getAllSavedCrmAddresses();
 
         ArrayList<Opportunity> nearbyOpportunities = new ArrayList<>();
@@ -372,7 +372,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         }
         objects.clear();
 
-        MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+        MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
         CrmEntities.Opportunities savedOpportunities = opportunities;
 
         for (Opportunity opp : savedOpportunities.list) {
@@ -602,7 +602,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
     }
 
     void showAddNoteDialog(final Opportunity opportunity) {
-        CrmEntities.Annotations.showAddNoteDialog(context, opportunity.opportunityid, new MyInterfaces.CrmRequestListener() {
+        CrmEntities.Annotations.showAddNoteDialog(context, opportunity.entityid, new MyInterfaces.CrmRequestListener() {
             @Override
             public void onComplete(Object result) {
                 Log.i(TAG, "onComplete ");

@@ -1,10 +1,10 @@
-package com.fimbleenterprises.medimileage;
+package com.fimbleenterprises.medimileage.ui.CustomViews;
 
 import android.content.Context;
 import android.os.Handler;
-import android.text.SpannableString;
-import android.text.style.UnderlineSpan;
 import android.widget.TextView;
+
+import com.fimbleenterprises.medimileage.Helpers;
 
 public class MyAnimatedNumberTextView {
 

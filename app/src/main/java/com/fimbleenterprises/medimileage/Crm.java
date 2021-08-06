@@ -20,15 +20,15 @@ public class Crm {
     // private static final String FCM_URL = "https://mediproxyrestapi.azurewebsites.net/api/crm/Fcm/";
     // public static final String BASE_URL = "http://192.168.16.135:44341/";
     private static AsyncHttpClient client = new AsyncHttpClient();
-    private MySettingsHelper options;
+    private MyPreferencesHelper options;
 
     public Crm() {
-        options = new MySettingsHelper(MyApp.getAppContext());
+        options = new MyPreferencesHelper(MyApp.getAppContext());
     }
 
     public static void userCanAuthenticate(String username, String password, final MyInterfaces.AuthenticationResult result) {
 
-        final MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+        final MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
 
         Requests.Request request = new Requests.Request(Requests.Request.Function.CAN_AUTHENTICATE);
         request.arguments.add(new Requests.Argument(null, username));
@@ -163,7 +163,7 @@ public class Crm {
     }
 
     private static String getAbsoluteUrl(String relativeUrl) {
-        MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+        MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
         return options.getServerBaseUrl() + relativeUrl;
     }
 

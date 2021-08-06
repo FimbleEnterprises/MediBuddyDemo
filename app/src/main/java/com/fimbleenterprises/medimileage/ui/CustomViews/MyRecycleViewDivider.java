@@ -1,10 +1,11 @@
-package com.fimbleenterprises.medimileage;
+package com.fimbleenterprises.medimileage.ui.CustomViews;
 
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 
+import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.adapters.TripListRecyclerAdapter;
 import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
 

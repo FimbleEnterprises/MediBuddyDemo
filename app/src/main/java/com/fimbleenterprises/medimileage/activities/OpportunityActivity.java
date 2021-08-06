@@ -27,6 +27,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.adapters.AnnotationsAdapter;
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
@@ -37,8 +38,8 @@ import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
-import com.fimbleenterprises.medimileage.NonScrollRecyclerView;
-import com.fimbleenterprises.medimileage.Queries;
+import com.fimbleenterprises.medimileage.ui.CustomViews.NonScrollRecyclerView;
+import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.jaiselrahman.filepicker.activity.FilePickerActivity;
@@ -118,6 +119,28 @@ public class OpportunityActivity extends AppCompatActivity {
         Helpers.Files.AttachmentTempFiles.makeDirectory();
         Helpers.Files.AttachmentTempFiles.clear();
 
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        MyApp.setIsVisible(false, this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        MyApp.setIsVisible(true, this);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
     }
 
     @Override
@@ -278,7 +301,7 @@ public class OpportunityActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Annotation newNote = new Annotation();
                 newNote.subject = "MileBuddy added note";
-                newNote.objectid = opportunity.opportunityid;
+                newNote.objectid = opportunity.entityid;
                 newNote.isDocument = false;
                 newNote.objectEntityName = "opportunity";
                 showAddEditNote(newNote);
@@ -305,7 +328,7 @@ public class OpportunityActivity extends AppCompatActivity {
 
     void showAddEditNote(@Nullable final Annotation clickedNote) {
 
-        final boolean isEditing = clickedNote.annotationid != null;
+        final boolean isEditing = clickedNote.entityid != null;
         final String originalSubject = clickedNote.subject;
 
         final Dialog dialog = new Dialog(OpportunityActivity.this);
@@ -345,7 +368,7 @@ public class OpportunityActivity extends AppCompatActivity {
                         CrmEntities.CrmEntityResponse crmEntityResponse = new CrmEntities.CrmEntityResponse(result.toString());
                         if (crmEntityResponse.wasSuccessful) {
                             Log.i(TAG, "onYes Note was updated!");
-                            clickedNote.annotationid = crmEntityResponse.guid;
+                            clickedNote.entityid = crmEntityResponse.guid;
                             if (crmEntityResponse.wasCreated) {
                                 Toast.makeText(context, "Note was created!", Toast.LENGTH_SHORT).show();
                                 /*clickedNote.annotationid = updateResponse.guid;
@@ -416,7 +439,7 @@ public class OpportunityActivity extends AppCompatActivity {
 
     void getOpportunityNotes() {
         ArrayList<Requests.Argument> args = new ArrayList<>();
-        Requests.Argument argument = new Requests.Argument("query", Queries.Annotations.getAnnotations(opportunity.opportunityid));
+        Requests.Argument argument = new Requests.Argument("query", CrmQueries.Annotations.getAnnotations(opportunity.entityid));
         args.add(argument);
         Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
 
@@ -523,7 +546,7 @@ public class OpportunityActivity extends AppCompatActivity {
                     getNoteProgress.show();
                     clickedNote.inUse = true;
                     adapterNotes.notifyDataSetChanged();
-                    CrmEntities.Annotations.getAnnotationFromCrm(clickedNote.annotationid, true, new MyInterfaces.CrmRequestListener() {
+                    CrmEntities.Annotations.getAnnotationFromCrm(clickedNote.entityid, true, new MyInterfaces.CrmRequestListener() {
                         @Override
                         public void onComplete(Object result) {
                             String response = result.toString();
@@ -571,7 +594,7 @@ public class OpportunityActivity extends AppCompatActivity {
                     getNoteProgress.show();
                     clickedNote.inUse = true;
                     adapterNotes.notifyDataSetChanged();
-                    CrmEntities.Annotations.getAnnotationFromCrm(clickedNote.annotationid, true, new MyInterfaces.CrmRequestListener() {
+                    CrmEntities.Annotations.getAnnotationFromCrm(clickedNote.entityid, true, new MyInterfaces.CrmRequestListener() {
                         @Override
                         public void onComplete(Object result) {
                             String response = new String(result.toString());

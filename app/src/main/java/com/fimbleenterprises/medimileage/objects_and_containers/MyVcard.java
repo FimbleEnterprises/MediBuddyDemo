@@ -107,9 +107,9 @@ public class MyVcard {
         vBody.append(closingText);
 
         try {
-            PrintWriter out = new PrintWriter(Helpers.Files.getAppTempDirectory() + this.fullname + ".vcf");
+            PrintWriter out = new PrintWriter(Helpers.Files.getAppDirectory() + this.fullname + ".vcf");
             out.println(vBody);
-            File vcard = new File(Helpers.Files.getAppTempDirectory() + this.fullname + ".vcf");
+            File vcard = new File(Helpers.Files.getAppDirectory() + this.fullname + ".vcf");
             return vcard;
         } catch (FileNotFoundException e) {
             e.printStackTrace();

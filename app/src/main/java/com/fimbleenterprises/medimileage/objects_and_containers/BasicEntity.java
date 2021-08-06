@@ -162,7 +162,9 @@ public class BasicEntity {
                 }
                 return null;
             } else if (this.isAccountField) {
-                return new EntityContainers.EntityField(this.crmFieldName, this.account.accountid);
+                return new EntityContainers.EntityField(this.crmFieldName, this.account.entityid);
+            } else if (this.isContactField) {
+                return new EntityContainers.EntityField(this.crmFieldName, this.contact.entityid);
             } else {
                 return new EntityContainers.EntityField(this.crmFieldName, this.value);
             }

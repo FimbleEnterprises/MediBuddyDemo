@@ -47,6 +47,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import cz.msebera.android.httpclient.Header;
 
 import com.bumptech.glide.Glide;
+import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.activities.Activity_ManualTrip;
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
@@ -56,20 +57,20 @@ import com.fimbleenterprises.medimileage.fullscreen_pickers.FullscreenActivityCh
 import com.fimbleenterprises.medimileage.fullscreen_pickers.FullscreenActivityChooseRep;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.objects_and_containers.LocationContainer;
-import com.fimbleenterprises.medimileage.MainActivity;
+import com.fimbleenterprises.medimileage.activities.MainActivity;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics;
 import com.fimbleenterprises.medimileage.dialogs.MonthYearPickerDialog;
-import com.fimbleenterprises.medimileage.MyAnimatedNumberTextView;
+import com.fimbleenterprises.medimileage.ui.CustomViews.MyAnimatedNumberTextView;
 import com.fimbleenterprises.medimileage.services.MyAttachmentUploadService;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.services.MyLocationService;
 import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.MySpeedoGauge;
 import com.fimbleenterprises.medimileage.MySqlDatasource;
 import com.fimbleenterprises.medimileage.dialogs.MyYesNoDialog;
-import com.fimbleenterprises.medimileage.Queries;
+import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.QueryFactory;
 import com.fimbleenterprises.medimileage.QueryFactory.Filter;
 import com.fimbleenterprises.medimileage.R;
@@ -80,6 +81,7 @@ import com.fimbleenterprises.medimileage.adapters.TripListRecyclerAdapter;
 import com.fimbleenterprises.medimileage.activities.ViewTripActivity;
 import static com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.TripAssociations;
 import static com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.TripAssociations.TripAssociation;
+import static com.fimbleenterprises.medimileage.MyApp.LocationPermissionResult;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.scwang.smart.refresh.header.MaterialHeader;
@@ -94,8 +96,10 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Array;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MileageFragment extends Fragment implements TripListRecyclerAdapter.ItemClickListener {
@@ -123,7 +127,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     public static int SERVICE_ID = 200;
     IntentFilter locFilter = new IntentFilter(MyLocationService.LOCATION_EVENT);
     public static final int DEFAULT_FONT_COLOR = -1979711488;
-    MySettingsHelper options;
+    MyPreferencesHelper options;
     ImageView emptyTripList;
     boolean isStarting = true;
     public static View rootView;
@@ -186,7 +190,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                              ViewGroup container, Bundle savedInstanceState) {
         mileageViewModel = ViewModelProviders.of(this).get(MileageViewModel.class);
 
-        options = new MySettingsHelper(getContext());
+        options = new MyPreferencesHelper(getContext());
         options.authenticateFragIsVisible(false);
 
         // Log a metric
@@ -297,7 +301,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             public void onClick(View view) {
 
                 // Check permission and request if not present
-                if (checkLocationPermission() == LOCATION_PERM_RESULT.NONE) {
+                if (checkLocationPermission() == LocationPermissionResult.NONE) {
 
                     boolean showRational = shouldShowRequestPermissionRationale(
                             Manifest.permission.ACCESS_FINE_LOCATION);
@@ -638,6 +642,90 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             }
         }
 
+        // int vals[] = { 13, 2, 64, 41, 1, 19, 24 }; // 43
+        // int vals[] = { 2, 2, 64, 41, 1, 19, 24 }; // 43
+        // int vals[] = { 2, 2, 64, 41, 25, 19, 24 }; // 60
+        int vals[] = { 13, 2, 64, 41, 41, 40, 19, 24 }; // 54
+
+        try {
+            arrayGame(vals, true);
+            arrayGame(vals, false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    /**
+     * Sums the second highest and the second lowest elements of an array.
+     * @param vals The array to parse (must have at least 4 elements).
+     * @param ignoreDuplicateValues A lazy, fast method that can get screwed up if duplicate values
+     *                              are present at the beginning or end of the array.
+     * @return The sum of the second largest and second smallest elements.
+     * @throws Exception Exceptions can be thrown for multiple reasons - see exception text.
+     */
+    int arrayGame(int[] vals, boolean ignoreDuplicateValues) throws Exception {
+
+        // Need at least four elements in the array
+        if (vals.length < 4) {
+            throw new Exception("You must supply an array with at least four elements.");
+        }
+
+        // Sort the array from lowest to highest
+        Arrays.sort(vals);
+
+        // If we do not care about leading or trailing duplicates (e.g. { 2, 2, 53, 21, 88, 21 } )
+        if (ignoreDuplicateValues) {
+
+            // Grab the second from first and second from last values in the sorted array
+            int secondLowest = vals[1]; // probably
+            int secondHighest = vals[vals.length - 2]; // probably
+
+            // Sum and return.
+            Log.i(TAG, "arrayGame | lazy method | " + ((secondLowest) + (secondHighest)));
+            return  (secondLowest) + (secondHighest);
+        }
+
+        int lowest, highest, secondLowest, secondHighest;
+
+        // Can assume first and last values are lowest and highest respectively in this sorted array.
+        lowest = vals[0];
+        highest = vals[vals.length - 1];
+
+        // safest initial value (like negative whatever the maximum integer value can be)
+        secondHighest = Integer.MIN_VALUE;
+
+        // Do our second iteration
+        for (int i = 0; i < vals.length; i++) {
+            // Ignoring the highest value, find the next highest value
+            if (vals[i] != highest) {
+                secondHighest = Math.max(secondHighest, vals[i]);
+            }
+        }
+
+        // If var is still our initial value, something has almost certainly gone horribly wrong.
+        if (secondHighest == Integer.MIN_VALUE) {
+            throw new Exception("Could not determine a second largest value!");
+        }
+
+        // Safeset initial value
+        secondLowest = Integer.MAX_VALUE;
+
+        // Do our third and final iteration
+        for (int i = 0; i < vals.length; i++) {
+            if(vals[i] != lowest) {
+                secondLowest = Math.min(secondLowest, vals[i]);
+            }
+        }
+
+        // If var is still our initial value, something has almost certainly gone horribly wrong.
+        if (secondLowest == Integer.MAX_VALUE) {
+            throw new Exception("Could not determine a second smallest value!");
+        }
+
+        // Sum and return
+        Log.i(TAG, "arrayGame | verbose method | " + ((secondLowest) + (secondHighest)));
+        return secondLowest + secondHighest;
     }
 
     @Override
@@ -797,7 +885,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case PERMISSION_START_TRIP:
-                if (checkLocationPermission() != LOCATION_PERM_RESULT.FULL) {
+                if (checkLocationPermission() != LocationPermissionResult.FULL) {
                     Toast.makeText(getContext(), "Location permission must be: " +
                             "\"Allow all the time\"", Toast.LENGTH_SHORT).show();
                     break;
@@ -812,7 +900,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 break;
 
             case PERMISSION_MAKE_TRIP:
-                if (checkLocationPermission() != LOCATION_PERM_RESULT.NONE) {
+                if (checkLocationPermission() != LocationPermissionResult.NONE) {
                     Intent intent = new Intent(getContext(), Activity_ManualTrip.class);
                     startActivityForResult(intent, 0);
                 }
@@ -889,10 +977,10 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION};
         }
 
-        if (checkLocationPermission() != LOCATION_PERM_RESULT.FULL) {
+        if (checkLocationPermission() != LocationPermissionResult.FULL) {
 
             boolean showRational = shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION);
-            if (showRational && checkLocationPermission() == LOCATION_PERM_RESULT.NONE) {
+            if (showRational && checkLocationPermission() == LocationPermissionResult.NONE) {
                 final Dialog dialog = new Dialog(getActivity());
                 final Context c = getActivity();
                 dialog.setContentView(R.layout.generic_app_dialog);
@@ -1046,7 +1134,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     }
 
     public void getUser(String email) {
-        String query = Queries.Users.getUser(email);
+        String query = CrmQueries.Users.getUser(email);
         Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
         request.arguments.add(new Requests.Argument(null, query));
         Crm crm = new Crm();
@@ -1058,7 +1146,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                                       byte[] responseBody) {
                     String strResponse = new String(responseBody);
                     MediUser user = MediUser.createOne(strResponse);
-                    user.save(getContext());
+                    user.save(getActivity());
                     Log.d(TAG, "onSuccess " + strResponse);
                 }
 
@@ -1492,7 +1580,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
     void parseTripsForAssociations() {
 
-        String query = Queries.TripAssociation.getAssociationsLastXMonths(3);
+        String query = CrmQueries.TripAssociation.getAssociationsLastXMonths(3);
 
         if (allTrips != null && allTrips.size() > 0) {
             // String query = Queries.TripAssociation.getAssociationsLastXMonths(3);
@@ -1530,7 +1618,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     }
 
     public void getAllAccountAddresses() {
-        Requests.Argument argument = new Requests.Argument("query", Queries.Addresses.getAllAccountAddresses());
+        Requests.Argument argument = new Requests.Argument("query", CrmQueries.Addresses.getAllAccountAddresses());
         ArrayList<Requests.Argument> args = new ArrayList<>();
         args.add(argument);
         Request request = new Request(Request.Function.GET, args);
@@ -1553,7 +1641,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     }
 
     public void getAllOpportunityAddresses() {
-        Requests.Argument argument = new Requests.Argument("query", Queries.Addresses.getAllAccountAddresses());
+        Requests.Argument argument = new Requests.Argument("query", CrmQueries.Addresses.getAllAccountAddresses());
         ArrayList<Requests.Argument> args = new ArrayList<>();
         args.add(argument);
         Request request = new Request(Request.Function.GET, args);
@@ -1575,11 +1663,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         });
     }
 
-    public enum LOCATION_PERM_RESULT {
-        FULL, PARTIAL, NONE
-    }
-
-    public LOCATION_PERM_RESULT checkLocationPermission() {
+    public LocationPermissionResult checkLocationPermission() {
         boolean result = true;
         String permission = "android.permission.ACCESS_FINE_LOCATION";
         String bgPermission = "android.permission.ACCESS_BACKGROUND_LOCATION";
@@ -1588,18 +1672,18 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             if (res1 == PackageManager.PERMISSION_GRANTED && res2 == PackageManager.PERMISSION_GRANTED) {
-                return LOCATION_PERM_RESULT.FULL;
+                return MyApp.LocationPermissionResult.FULL;
             } else if (res1 == PackageManager.PERMISSION_GRANTED && res2 != PackageManager.PERMISSION_GRANTED ||
                     res2 == PackageManager.PERMISSION_GRANTED && res1 != PackageManager.PERMISSION_GRANTED) {
-                return LOCATION_PERM_RESULT.PARTIAL;
+                return LocationPermissionResult.PARTIAL;
             } else {
-                return LOCATION_PERM_RESULT.NONE;
+                return LocationPermissionResult.NONE;
             }
         } else {
             if (res1 == PackageManager.PERMISSION_GRANTED) {
-                return LOCATION_PERM_RESULT.FULL;
+                return LocationPermissionResult.FULL;
             } else {
-                return LOCATION_PERM_RESULT.NONE;
+                return LocationPermissionResult.NONE;
             }
         }
     }
@@ -1620,7 +1704,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         Crm crm = new Crm();
         Request request = new Request();
         request.function = Request.Function.GET.name();
-        request.arguments.add(new Requests.Argument("query", Queries.Trips.getAllTripsByOwnerForLastXmonths(2, MediUser.getMe().systemuserid)));
+        request.arguments.add(new Requests.Argument("query", CrmQueries.Trips.getAllTripsByOwnerForLastXmonths(2, MediUser.getMe().systemuserid)));
 
         // Log a metric
         MileBuddyMetrics.updateMetric(getContext(), MileBuddyMetrics.MetricName.LAST_ACCESSED_MILEAGE_SYNC, DateTime.now());
@@ -1768,7 +1852,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
         Crm crm = new Crm();
 
-        String query = Queries.Trips.getTripidByTripcode(clickedTrip.getTripcode());
+        String query = CrmQueries.Trips.getTripidByTripcode(clickedTrip.getTripcode());
 
         Request request = new Request();
         request.function = Request.Function.GET.name();
@@ -2014,8 +2098,6 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         Button btnLastMonth = dialog.findViewById(R.id.btnLastMonth);
         Button btnChoose = dialog.findViewById(R.id.btnChooseMonth);
 
-
-
         btnThisMonth.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -2078,7 +2160,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         List<FullTrip> allTrips = ds.getTrips(monthNum, year, true);
         String fName = "mileage_receipt_month_" + DateTime.now().getMonthOfYear() + "_year_" +
                 DateTime.now().getYear() + ".txt";
-        File txtFile = new File(Helpers.Files.getAppTempDirectory(), fName);
+        File txtFile = new File(Helpers.Files.ReceiptTempFiles.getDirectory(), fName);
         File finalReceiptFile = null;
 
         float total = 0f;
@@ -2118,9 +2200,9 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             }
 
             try {
-                if (options.getReceiptFormat().equals(MySettingsHelper.RECEIPT_FORMAT_PNG)) {
+                if (options.getReceiptFormat().equals(MyPreferencesHelper.RECEIPT_FORMAT_PNG)) {
                     finalReceiptFile = Helpers.Bitmaps.createPngFileFromString(stringBuilder.toString(), fName);
-                } else if (options.getReceiptFormat().equals(MySettingsHelper.RECEIPT_FORMAT_JPEG)) {
+                } else if (options.getReceiptFormat().equals(MyPreferencesHelper.RECEIPT_FORMAT_JPEG)) {
                     finalReceiptFile = Helpers.Bitmaps.createJpegFileFromString(stringBuilder.toString(), fName);
                 } else {
                     finalReceiptFile = txtFile;

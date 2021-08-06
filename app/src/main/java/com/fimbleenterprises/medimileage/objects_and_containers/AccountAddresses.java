@@ -6,7 +6,7 @@ import android.util.Log;
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.MyInterfaces;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.MySqlDatasource;
 import com.fimbleenterprises.medimileage.QueryFactory;
 import com.google.gson.Gson;
@@ -167,7 +167,7 @@ public class AccountAddresses  {
             } else {
                 ds.updateAccounts(this);
             }
-            new MySettingsHelper(MyApp.getAppContext()).updateLastUpdatedActAddys();
+            new MyPreferencesHelper(MyApp.getAppContext()).updateLastUpdatedActAddys();
             Log.i(TAG, "save Accounts saved to local database!");
         } catch (Exception e) {
             e.printStackTrace();

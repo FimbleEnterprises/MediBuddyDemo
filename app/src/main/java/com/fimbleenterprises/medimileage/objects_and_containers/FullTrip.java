@@ -9,7 +9,7 @@ import android.util.Log;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.services.MyLocationService;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.MySqlDatasource;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests.Request;
 import com.google.android.gms.maps.model.LatLng;
@@ -256,7 +256,7 @@ public class FullTrip implements Parcelable {
         Location targetLocation = new Location("GPS");
         targetLocation.setLatitude(latLng.latitude);
         targetLocation.setLongitude(latLng.longitude);
-        MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+        MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
         if (this.hasEntries()) {
             return targetLocation.distanceTo(getStartLoc()) <= options.getDistanceThreshold();
         }
@@ -267,7 +267,7 @@ public class FullTrip implements Parcelable {
         Location targetLocation = new Location("GPS");
         targetLocation.setLatitude(latLng.latitude);
         targetLocation.setLongitude(latLng.longitude);
-        MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+        MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
         if (this.hasEntries()) {
             return targetLocation.distanceTo(getEndLoc()) <= options.getDistanceThreshold();
         }
@@ -372,7 +372,7 @@ public class FullTrip implements Parcelable {
 
     public float getReimbursementRate() {
         if (reimbursementRate == 0) {
-            MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+            MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
             reimbursementRate = options.getReimbursementRate();
         }
         return reimbursementRate;

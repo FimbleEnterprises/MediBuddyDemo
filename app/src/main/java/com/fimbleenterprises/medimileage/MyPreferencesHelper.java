@@ -1,6 +1,7 @@
 package com.fimbleenterprises.medimileage;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -18,7 +19,9 @@ import org.json.JSONObject;
 
 import java.io.File;
 
-public class MySettingsHelper {
+import androidx.annotation.NonNull;
+
+public class MyPreferencesHelper {
 
     private static final String TAG = "MySettingsHelper";
     public static final String DB_PATH = "DB_PATH";
@@ -52,6 +55,9 @@ public class MySettingsHelper {
     public static final String SHOW_OPPORTUNITY_MGR = "SHOW_OPPORTUNITY_MGR";
     public static final String LAST_ACCOUNT_SELECTED = "LAST_ACCOUNT_SELECTED";
     public static final String SEARCH_SP_ENABLED = "SEARCH_SP_ENABLED";
+    public static final String DEFAULT_SEARCH_PAGE = "DEFAULT_SEARCH_PAGE";
+    public static final String DEFAULT_TERRITORY_PAGE = "DEFAULT_TERRITORY_PAGE";
+    public static final String DEFAULT_ACCOUNT_PAGE = "DEFAULT_ACCOUNT_PAGE";
 
     public static final String RECEIPT_FORMAT_PNG = ".png";
     public static final String RECEIPT_FORMAT_JPEG = ".jpeg";
@@ -60,12 +66,12 @@ public class MySettingsHelper {
     Context context;
     SharedPreferences prefs;
 
-    public MySettingsHelper() {
+    public MyPreferencesHelper() {
         this.context = MyApp.getAppContext();
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
-    public MySettingsHelper(Context context) {
+    public MyPreferencesHelper(@NonNull Context context) {
         this.context = context;
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
     }
@@ -164,6 +170,61 @@ public class MySettingsHelper {
     public double getDistanceThresholdInMiles() {
         double dist = Double.parseDouble(prefs.getString(DISTANCE_THRESHOLD, "1609"));
         return Helpers.Geo.convertMetersToMiles(dist, 1);
+    }
+
+    public int getDefaultSearchPage() {
+        return Integer.parseInt(prefs.getString(DEFAULT_SEARCH_PAGE, "0"));
+    }
+
+    public void setDefaultSearchPage(int pageindex) {
+        prefs.edit().putString(DEFAULT_SEARCH_PAGE, Integer.toString(pageindex)).commit();
+    }
+
+    /**
+     * Gets the initial starting pager page for the TerritoryData activity.
+     */
+    public int getDefaultTerritoryPage() {
+        return Integer.parseInt(prefs.getString(DEFAULT_TERRITORY_PAGE, "2"));
+    }
+
+    /**
+     * Sets the initial starting pager page for the TerritoryData activity.
+     * @param val
+     */
+    public void setDefaultTerritoryPage(int val) {
+        prefs.edit().putString(DEFAULT_TERRITORY_PAGE, Integer.toString(val)).commit();
+    }
+
+    /**
+     * Sets the initial starting pager page for the TerritoryData activity.
+     * @param val
+     */
+    public void setDefaultTerritoryPage(String val) {
+        prefs.edit().putString(DEFAULT_TERRITORY_PAGE, val).commit();
+    }
+
+    /**
+     * Gets the initial pager page for the TerritoryData activity.
+     * @return
+     */
+    public int getDefaultAccountPage() {
+        return Integer.parseInt(prefs.getString(DEFAULT_ACCOUNT_PAGE, "2"));
+    }
+
+    /**
+     * Sets the initial starting pager page for the AccountData activity.
+     * @param val
+     */
+    public void setDefaultAccountPage(int val) {
+        prefs.edit().putString(DEFAULT_ACCOUNT_PAGE, Integer.toString(val)).commit();
+    }
+
+    /**
+     * Sets the initial starting pager page for the AccountData activity.
+     * @param val
+     */
+    public void setDefaultAccountPage(String val) {
+        prefs.edit().putString(DEFAULT_ACCOUNT_PAGE, val).commit();
     }
 
     public CrmEntities.CrmAddresses getAllSavedCrmAddresses() {
@@ -424,7 +485,7 @@ public class MySettingsHelper {
         } else if (update.version > Helpers.Application.getAppVersion(MyApp.getAppContext())) {
             Log.i(TAG, "updateIsAvailableLocally Preferences says a local update is available.  " +
                     "Checking if the actual file exists...");
-            File file = new File(Helpers.Files.getAppDownloadDirectory().getPath(), update.version + ".apk");
+            File file = new File(Helpers.Files.AppUpdates.getDirectory().getPath(), update.version + ".apk");
             if (file.exists()) {
                 Log.i(TAG, "updateIsAvailableLocally File is available!");
                 return true;

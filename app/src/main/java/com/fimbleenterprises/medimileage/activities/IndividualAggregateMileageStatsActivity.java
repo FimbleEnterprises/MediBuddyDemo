@@ -18,6 +18,7 @@ import android.view.SubMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.objects_and_containers.AggregateStats;
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.CustomTypefaceSpan;
@@ -68,7 +69,7 @@ import cz.msebera.android.httpclient.Header;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class IndividualAggregateStatsActivity extends AppCompatActivity {
+public class IndividualAggregateMileageStatsActivity extends AppCompatActivity {
 
     Context context;
     public static final String USER_TAG = "USER_TAG";
@@ -159,6 +160,28 @@ public class IndividualAggregateStatsActivity extends AppCompatActivity {
             finish();
         }
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        MyApp.setIsVisible(true, this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        MyApp.setIsVisible(false, this);
     }
 
     @Override
@@ -302,7 +325,7 @@ public class IndividualAggregateStatsActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                Toast.makeText(IndividualAggregateStatsActivity.this, "Failed to get stats", Toast.LENGTH_SHORT).show();
+                Toast.makeText(IndividualAggregateMileageStatsActivity.this, "Failed to get stats", Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
                 finish();
             }

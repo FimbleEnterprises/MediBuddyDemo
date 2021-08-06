@@ -19,7 +19,7 @@ import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics;
 import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
-import com.fimbleenterprises.medimileage.Queries;
+import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
@@ -104,7 +104,7 @@ public class FullscreenActivityChooseTerritory extends AppCompatActivity {
 
         Crm crm = new Crm();
         ArrayList<Requests.Argument> args = new ArrayList<>();
-        Requests.Argument argument = new Requests.Argument("query", Queries.Territories
+        Requests.Argument argument = new Requests.Argument("query", CrmQueries.Territories
                 .getTerritoriesWithManagersAssigned());
         args.add(argument);
         Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);

@@ -17,34 +17,34 @@ public class MyExpandableListview extends ExpandableListView implements GestureD
     Context context;
     public Activity activity;
     ExpandableListAdapter adapter;
-    MySettingsHelper options;
+    MyPreferencesHelper options;
     GestureDetector gesture;
 
     public MyExpandableListview(Context context) {
         super(context);
         this.context = context;
-        this.options = new MySettingsHelper(context);
+        this.options = new MyPreferencesHelper(context);
         // enableSwipeForBack();
     }
 
     public MyExpandableListview(Context context, AttributeSet attrs) {
         super(context, attrs);
         this.context = context;
-        this.options = new MySettingsHelper(context);
+        this.options = new MyPreferencesHelper(context);
         // enableSwipeForBack();
     }
 
     public MyExpandableListview(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         this.context = context;
-        this.options = new MySettingsHelper(context);
+        this.options = new MyPreferencesHelper(context);
         // enableSwipeForBack();
     }
 
     public MyExpandableListview(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         this.context = context;
-        this.options = new MySettingsHelper(context);
+        this.options = new MyPreferencesHelper(context);
         // enableSwipeForBack();
     }
 

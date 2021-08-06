@@ -28,11 +28,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.adapters.AnnotationsAdapter;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicEntity;
 import com.fimbleenterprises.medimileage.adapters.BasicEntityActivityObjectRecyclerAdapter;
@@ -45,13 +47,15 @@ import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
-import com.fimbleenterprises.medimileage.NonScrollRecyclerView;
-import com.fimbleenterprises.medimileage.Queries;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
+import com.fimbleenterprises.medimileage.ui.CustomViews.NonScrollRecyclerView;
+import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
 import com.fimbleenterprises.medimileage.fullscreen_pickers.FullscreenActivityChooseAccount;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.jaiselrahman.filepicker.activity.FilePickerActivity;
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.model.MediaFile;
@@ -92,6 +96,7 @@ public class BasicEntityActivity extends AppCompatActivity {
     String entityLogicalName;
     String activityTitle;
     BasicEntityActivityObjectRecyclerAdapter adapter;
+    FloatingActionButton fab;
     NonScrollRecyclerView notesListView;
     CrmEntities.Annotations.Annotation newImageBaseAnnotation;
     Dialog dialogNoteOptions;
@@ -105,7 +110,7 @@ public class BasicEntityActivity extends AppCompatActivity {
     Button btnAddNote;
     TableLayout tblNotes;
     BasicEntity basicEntity;
-    MySettingsHelper options;
+    MyPreferencesHelper options;
     boolean hideMenu = false;
     boolean isEditMode = false;
     ArrayList<CrmEntities.Accounts.Account> cachedAccounts;
@@ -113,6 +118,7 @@ public class BasicEntityActivity extends AppCompatActivity {
     Territory currentTerritory;
     boolean statusChangePending = false;
     boolean updatePending = false;
+    ScrollView mainScrollview;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,7 +126,7 @@ public class BasicEntityActivity extends AppCompatActivity {
         context = this;
         activity = this;
         setContentView(R.layout.basic_entity_activity);
-        options = new MySettingsHelper(context);
+        options = new MyPreferencesHelper(context);
 
         try {
             if (currentTerritory == null) {
@@ -131,12 +137,15 @@ public class BasicEntityActivity extends AppCompatActivity {
         }
 
         // Find and get handles on all of our important activity bits
+        mainScrollview = findViewById(R.id.scrollview);
         tblNotes = findViewById(R.id.tableLayout_notes);
         refreshLayout = findViewById(R.id.refreshLayout);
         notesListView = findViewById(R.id.notesRecyclerView);
         txtNotesLoading = findViewById(R.id.textViewopportunityNotesLoading);
         pbNotesLoading = findViewById(R.id.progressBarWorking);
         btnAddNote = findViewById(R.id.btnAddNote);
+        /*
+        -= Switched to a floating action button (v1.85)=-
         btnAddNote.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -146,6 +155,22 @@ public class BasicEntityActivity extends AppCompatActivity {
                 newNote.isDocument = false;
                 newNote.objectEntityName = entityLogicalName;
                 showAddEditNote(newNote);
+            }
+        });*/
+
+        // Set up the floating action button and add a click listener for adding notes to the entity.
+        fab = findViewById(R.id.fab_addNote);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                CrmEntities.Annotations.Annotation newNote = new CrmEntities.Annotations.Annotation();
+                newNote.subject = "MileBuddy added note";
+                newNote.objectid = entityid;
+                newNote.isDocument = false;
+                newNote.objectEntityName = entityLogicalName;
+                showAddEditNote(newNote);
+                mainScrollview.smoothScrollTo(0, findViewById(R.id.tableLayout_notes).getTop()); // Scroll to the beginning of the notes
             }
         });
 
@@ -165,14 +190,17 @@ public class BasicEntityActivity extends AppCompatActivity {
             currentTerritory = getIntent().getParcelableExtra(CURRENT_TERRITORY);
         }
 
-        // Hide the notes table by default
+        // Hide the notes table and the floating add note button button by default
         tblNotes.setVisibility(View.GONE);
+        fab.setVisibility(View.GONE);
 
         if (gson != null) {
             // See if notes should be loaded (default is yes)
-            if (getIntent() != null && getIntent().getBooleanExtra(LOAD_NOTES, true) == true) {
+            if (getIntent() != null && getIntent().getBooleanExtra(LOAD_NOTES, true)) {
                 getNotes();
                 tblNotes.setVisibility(View.VISIBLE);
+                // Show the floating action button since this entity has notes
+                fab.setVisibility(View.VISIBLE);
             }
             populateForm(gson, false);
         } else {
@@ -180,6 +208,28 @@ public class BasicEntityActivity extends AppCompatActivity {
             finish();
         }
 
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        MyApp.setIsVisible(false, this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        MyApp.setIsVisible(true, this);
     }
 
     @Override
@@ -501,7 +551,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                         final MyProgressDialog progressDialog = new MyProgressDialog(context, "Getting contact info...");
                         progressDialog.show();
 
-                        String query = Queries.Contacts.getContact(field.contact.contactid);
+                        String query = CrmQueries.Contacts.getContact(field.contact.entityid);
                         Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
                         ArrayList<Requests.Argument> args = new ArrayList<>();
                         args.add(new Requests.Argument("query", query));
@@ -673,7 +723,7 @@ public class BasicEntityActivity extends AppCompatActivity {
             if (entityTypeCode == Crm.ETC_INCIDENT) {
                 final MyProgressDialog dialog = new MyProgressDialog(context, "Retrieving ticket with id: " + guid + "...");
 
-                String query = Queries.Tickets.getCase(guid);
+                String query = CrmQueries.Tickets.getCase(guid);
                 ArrayList<Requests.Argument> args = new ArrayList<>();
                 args.add(new Requests.Argument("query", query));
                 Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
@@ -711,7 +761,7 @@ public class BasicEntityActivity extends AppCompatActivity {
             } else if (entityTypeCode == Crm.ETC_OPPORTUNITY) {
                 final MyProgressDialog dialog = new MyProgressDialog(context, "Retrieving opportunity with id: " + guid + "...");
 
-                String query = Queries.Opportunities.getOpportunityDetails(guid);
+                String query = CrmQueries.Opportunities.getOpportunityDetails(guid);
                 ArrayList<Requests.Argument> args = new ArrayList<>();
                 args.add(new Requests.Argument("query", query));
                 Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
@@ -761,7 +811,7 @@ public class BasicEntityActivity extends AppCompatActivity {
 
     void showAddEditNote(@Nullable final CrmEntities.Annotations.Annotation clickedNote) {
 
-        final boolean isEditing = clickedNote.annotationid != null;
+        final boolean isEditing = clickedNote.entityid != null;
         final String originalSubject = clickedNote.subject;
 
         final Dialog dialog = new Dialog(context);
@@ -801,7 +851,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                         CrmEntities.CrmEntityResponse crmEntityResponse = new CrmEntities.CrmEntityResponse(result.toString());
                         if (crmEntityResponse.wasSuccessful) {
                             Log.i(TAG, "onYes Note was updated!");
-                            clickedNote.annotationid = crmEntityResponse.guid;
+                            clickedNote.entityid = crmEntityResponse.guid;
                             if (crmEntityResponse.wasCreated) {
                                 Toast.makeText(context, "Note was created!", Toast.LENGTH_SHORT).show();
                                 /*clickedNote.annotationid = updateResponse.guid;
@@ -872,7 +922,7 @@ public class BasicEntityActivity extends AppCompatActivity {
 
     void getNotes() {
         ArrayList<Requests.Argument> args = new ArrayList<>();
-        Requests.Argument argument = new Requests.Argument("query", Queries.Annotations.getAnnotations(entityid));
+        Requests.Argument argument = new Requests.Argument("query", CrmQueries.Annotations.getAnnotations(entityid));
         args.add(argument);
         Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
 
@@ -983,7 +1033,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                     getNoteProgress.show();
                     clickedNote.inUse = true;
                     adapterNotes.notifyDataSetChanged();
-                    CrmEntities.Annotations.getAnnotationFromCrm(clickedNote.annotationid, true, new MyInterfaces.CrmRequestListener() {
+                    CrmEntities.Annotations.getAnnotationFromCrm(clickedNote.entityid, true, new MyInterfaces.CrmRequestListener() {
                         @Override
                         public void onComplete(Object result) {
                             String response = result.toString();
@@ -1031,7 +1081,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                     getNoteProgress.show();
                     clickedNote.inUse = true;
                     adapterNotes.notifyDataSetChanged();
-                    CrmEntities.Annotations.getAnnotationFromCrm(clickedNote.annotationid, true, new MyInterfaces.CrmRequestListener() {
+                    CrmEntities.Annotations.getAnnotationFromCrm(clickedNote.entityid, true, new MyInterfaces.CrmRequestListener() {
                         @Override
                         public void onComplete(Object result) {
                             String response = new String(result.toString());

@@ -25,7 +25,7 @@ import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.MapLocationProvider;
 import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.MyMapRouteHelper;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.R;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -86,7 +86,7 @@ public class Activity_ParkingMap extends FragmentActivity implements OnMarkerCli
 	float currentBearing = 0f;
 	boolean isCameraMoving = false;
 
-	MySettingsHelper options;
+	MyPreferencesHelper options;
 	TextView txtDistance;
 	TextView txtWalkingDistance;
 	TextView txtAccuracy;
@@ -107,7 +107,7 @@ public class Activity_ParkingMap extends FragmentActivity implements OnMarkerCli
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		options = new MySettingsHelper(this);
+		options = new MyPreferencesHelper(this);
 		Log.e(TAG + "onCreate", "Creating!");
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_parking_map);
@@ -156,7 +156,7 @@ public class Activity_ParkingMap extends FragmentActivity implements OnMarkerCli
                 // Have the camera initially hover over the US in toto as opposed to Lat=0 / Lng=0 (which is in the middle of the Atlantic)
                 moveCameraToShowUSA(false);
 
-                options = new MySettingsHelper(Activity_ParkingMap.this);
+                options = new MyPreferencesHelper(Activity_ParkingMap.this);
                 getSpot();
 
                 final Handler handler = new Handler();
@@ -184,16 +184,25 @@ public class Activity_ParkingMap extends FragmentActivity implements OnMarkerCli
 	
 	@Override
 	protected void onStart() {
-		
-
-		
 		super.onStart();
 	}
-	
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+	}
+
 	@Override
 	protected void onPause() {
 		provider.deactivate();
 		super.onPause();
+		MyApp.setIsVisible(false, this);
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		MyApp.setIsVisible(true, this);
 	}
 
 	// Capture key presses

@@ -173,14 +173,47 @@
         android:title="Other"
         android:fontFamily="casual">
 
-        <SwitchPreference
+        <ListPreference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
+            app:key="DEFAULT_SEARCH_PAGE"
+            android:fontFamily="casual"
+            app:defaultValue="1"
+            android:summary="@string/intial_search_page_results_summary"
+            app:title="Initial search page"
+            android:entries="@array/default_search_page_entries"
+            android:entryValues="@array/default_search_page_values" />
+
+        <ListPreference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
+            app:key="DEFAULT_TERRITORY_PAGE"
+            android:fontFamily="casual"
+            app:defaultValue="2"
+            android:summary="@string/intial_territory_page_results_summary"
+            app:title="@string/initial_territory_page_pref_title"
+            android:entries="@array/default_territory_page_entries"
+            android:entryValues="@array/default_territory_page_values" />
+
+        <ListPreference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
+            app:key="DEFAULT_ACCOUNT_PAGE"
+            android:fontFamily="casual"
+            app:defaultValue="1"
+            android:summary="@string/intial_account_page_results_summary"
+            app:title="@string/initial_account_page_pref_title"
+            android:entries="@array/default_account_page_entries"
+            android:entryValues="@array/default_account_page_values" />
+
+        <!--<SwitchPreference
             android:foreground="#000000"
             android:theme="@style/AppTheme"
             app:key="SEARCH_SP_ENABLED"
             android:fontFamily="casual"
             app:defaultValue="@string/enable_sp_search_pref_string"
             android:summary="@string/settings_search_sp_enabled_enabled_summary"
-            app:title="@string/settings_search_sp_enabled_disabled_summary" />
+            app:title="@string/settings_search_sp_enabled_disabled_summary" />-->
 
         <ListPreference
             android:foreground="#000000"

@@ -6,12 +6,17 @@ import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 
-import static com.fimbleenterprises.medimileage.Queries.Operators.getDateOperator;
+import static com.fimbleenterprises.medimileage.CrmQueries.Operators.getDateOperator;
 import static com.fimbleenterprises.medimileage.QueryFactory.*;
 import static com.fimbleenterprises.medimileage.QueryFactory.Filter.FilterType.AND;
 import static com.fimbleenterprises.medimileage.QueryFactory.Filter.FilterType.OR;
 
-public class Queries {
+/**
+ * Common CRM queries used throughout the application.  If you cannot find a query here you can always
+ * build your own using the QueryFactory class.  In fact, every query in this class was built using
+ * the QueryFactory class - so, it works.
+ */
+public class CrmQueries {
 
     public static final String EAST_REGIONID = "00AB0144-2AFA-E711-80DE-005056A36B9B";
     public static final String WEST_REGIONID = "61E8B94E-2AFA-E711-80DE-005056A36B9B";
@@ -2431,6 +2436,15 @@ public class Queries {
             // Instantiate a new constructor for the case entity and add the columns we want to see
             QueryFactory query = new QueryFactory("contact");
             query.addColumn("fullname");
+            query.addColumn("firstname");
+            query.addColumn("lastname");
+            query.addColumn("createdon");
+            query.addColumn("createdby");
+            query.addColumn("statecode");
+            query.addColumn("modifiedon");
+            query.addColumn("modifiedby");
+            query.addColumn("statuscode");
+            query.addColumn("address1_composite");
             query.addColumn("parentcustomerid");
             query.addColumn("mobilephone");
             query.addColumn("telephone1");

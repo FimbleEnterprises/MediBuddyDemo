@@ -6,7 +6,7 @@ import android.util.Log;
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.MyInterfaces;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.MySqlDatasource;
 import com.fimbleenterprises.medimileage.QueryFactory;
 import com.google.gson.Gson;
@@ -103,7 +103,7 @@ public class UserAddresses {
             } else {
                 ds.updateUserAddys(this);
             }
-            new MySettingsHelper(MyApp.getAppContext()).updateLastUpdatedUserAddys();
+            new MyPreferencesHelper(MyApp.getAppContext()).updateLastUpdatedUserAddys();
         } catch (Exception e) {
             e.printStackTrace();
         }

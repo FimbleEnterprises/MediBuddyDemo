@@ -16,7 +16,7 @@ import android.widget.TextView;
 
 import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
 import com.fimbleenterprises.medimileage.Helpers;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.ui.mileage.MileageFragment;
 
@@ -31,7 +31,7 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
     public ArrayList<FullTrip> mData;
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
-    MySettingsHelper options;
+    MyPreferencesHelper options;
     public boolean isInEditMode = false;
     MileageFragment mileageFragment;
     Context context;
@@ -45,7 +45,7 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
         this.context = context;
-        this.options = new MySettingsHelper(context);
+        this.options = new MyPreferencesHelper(context);
     }
 
     // data is passed into the constructor
@@ -54,7 +54,7 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
         this.mData = data;
         this.context = context;
         this.mileageFragment = callingFrag;
-        this.options = new MySettingsHelper(context);
+        this.options = new MyPreferencesHelper(context);
     }
 
     // inflates the row layout from xml when needed

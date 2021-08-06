@@ -11,7 +11,7 @@ public class GoalSummary {
 
     private static final String TAG = "GoalSummary";
 
-    public GoalSummary(CrmEntities.Goal goal, DateTime curDate, DateTime startDate, DateTime endDate) {
+    public GoalSummary(CrmEntities.Goals.Goal goal, DateTime curDate, DateTime startDate, DateTime endDate) {
         this.daysBetweenStartAndEnd = Days.daysBetween(startDate.toLocalDate(), endDate.toLocalDate()).getDays() +1;
         this.amtNeededPerDay = goal.target / daysBetweenStartAndEnd;
         this.daysBetweenStartAndNow = Days.daysBetween(startDate.toLocalDate(), curDate.toLocalDate()).getDays() + 1;
@@ -25,7 +25,7 @@ public class GoalSummary {
 
     float daysBetweenStartAndEnd;
     float amtNeededPerDay;
-    CrmEntities.Goal goal;
+    CrmEntities.Goals.Goal goal;
 
     public String getDaysBetweenStartAndEnd() {
         return Helpers.Numbers.convertToCurrency(daysBetweenStartAndEnd);

@@ -5,7 +5,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.Crm;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.EntityContainers;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
@@ -32,13 +32,13 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     }
 
     private static final String TAG = "MyFirebaseMessagingService";
-    private MySettingsHelper options;
+    private MyPreferencesHelper options;
     private Context context;
 
     public MyFirebaseMessagingService(Context context) {
         super();
         this.context = context;
-        options = new MySettingsHelper(context);
+        options = new MyPreferencesHelper(context);
         requestNewFcmToken();
     }
 

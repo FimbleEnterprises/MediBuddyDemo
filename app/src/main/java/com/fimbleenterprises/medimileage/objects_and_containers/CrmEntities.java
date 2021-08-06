@@ -15,8 +15,8 @@ import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.MyInterfaces;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
-import com.fimbleenterprises.medimileage.Queries;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
+import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.EntityContainers.EntityContainer;
 import com.fimbleenterprises.medimileage.objects_and_containers.EntityContainers.EntityField;
@@ -41,6 +41,13 @@ import androidx.annotation.Nullable;
 import cz.msebera.android.httpclient.Header;
 
 public class CrmEntities {
+
+    public static class CrmEntity {
+        public String logicalname;
+        public String pluralname;
+        public String entityid;
+        public String etag;
+    }
 
     public static class Annotations {
         private static final String TAG = "Annotations";
@@ -69,7 +76,7 @@ public class CrmEntities {
          * @param listener A callback.
         */
         public static void getAnnotationFromCrm(String annotationid, boolean includeAttachment, final MyInterfaces.CrmRequestListener listener) {
-            String query = Queries.Annotations.getAnnotation(annotationid, includeAttachment);
+            String query = CrmQueries.Annotations.getAnnotation(annotationid, includeAttachment);
             Crm crm = new Crm();
 
             Requests.Request request = new Requests.Request(Function.GET);
@@ -155,12 +162,12 @@ public class CrmEntities {
 
         }
 
-        public static class Annotation implements Parcelable {
+        public static class Annotation extends CrmEntity implements Parcelable {
 
             private static final String TAG = "Annotation";
 
-            public String etag;
-            public String annotationid;
+            // public String etag;
+            // public String entityid;
             public String objectid;
             public String filename;
             public String documentBody;
@@ -212,7 +219,7 @@ public class CrmEntities {
                 }
                 try {
                     if (!json.isNull("annotationid")) {
-                        this.annotationid = (json.getString("annotationid"));
+                        this.entityid = (json.getString("annotationid"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -322,7 +329,7 @@ public class CrmEntities {
                     e.printStackTrace();
                 }
 
-                if (this.annotationid == null) {
+                if (this.entityid == null) {
                     // Create new note
 
                     // The annotation entity is slightly different so instead of a basic EntityContainer
@@ -369,7 +376,7 @@ public class CrmEntities {
 
                     // Update existing note
                     Requests.Request request = new Requests.Request(Function.UPDATE);
-                    request.arguments.add(new Requests.Argument("guid", this.annotationid));
+                    request.arguments.add(new Requests.Argument("guid", this.entityid));
                     request.arguments.add(new Requests.Argument("entityname", "annotation"));
                     request.arguments.add(new Requests.Argument("container", entityContainer.toJson()));
                     request.arguments.add(new Requests.Argument("asuserid", MediUser.getMe().systemuserid));
@@ -409,7 +416,7 @@ public class CrmEntities {
 
                 Requests.Request request = new Requests.Request(Function.DELETE);
                 request.arguments.add(new Requests.Argument("entityname", "annotation"));
-                request.arguments.add(new Requests.Argument("entityid", this.annotationid));
+                request.arguments.add(new Requests.Argument("entityid", this.entityid));
                 request.arguments.add(new Requests.Argument("asuserid", MediUser.getMe().systemuserid));
 
                 Crm crm = new Crm();
@@ -436,7 +443,7 @@ public class CrmEntities {
              */
             public void addAttachment(Context context, final MyInterfaces.CrmRequestListener listener) {
 
-                if (this.annotationid == null) {
+                if (this.entityid == null) {
                     // Create new note
 
                     // The annotation entity is slightly different so instead of a basic EntityContainer
@@ -482,7 +489,7 @@ public class CrmEntities {
 
                     // Build request to update the existing note on the server
                     Requests.Request request = new Requests.Request(Function.UPDATE);
-                    request.arguments.add(new Requests.Argument("guid", this.annotationid));
+                    request.arguments.add(new Requests.Argument("guid", this.entityid));
                     request.arguments.add(new Requests.Argument("entityname", "annotation"));
                     request.arguments.add(new Requests.Argument("container", entityContainer.toJson()));
                     request.arguments.add(new Requests.Argument("asuserid", MediUser.getMe().systemuserid));
@@ -535,7 +542,7 @@ public class CrmEntities {
                 container.entityFields.add(new EntityField("mimetype", ""));
 
                 Requests.Request request = new Requests.Request(Function.UPDATE);
-                request.arguments.add(new Requests.Argument("entityid", this.annotationid));
+                request.arguments.add(new Requests.Argument("entityid", this.entityid));
                 request.arguments.add(new Requests.Argument("entityname", "annotation"));
                 request.arguments.add(new Requests.Argument("container", container.toJson()));
                 request.arguments.add(new Requests.Argument("asuserid", MediUser.getMe().systemuserid));
@@ -567,7 +574,7 @@ public class CrmEntities {
 
             protected Annotation(Parcel in) {
                 etag = in.readString();
-                annotationid = in.readString();
+                entityid = in.readString();
                 objectid = in.readString();
                 filename = in.readString();
                 documentBody = in.readString();
@@ -593,7 +600,7 @@ public class CrmEntities {
             @Override
             public void writeToParcel(Parcel dest, int flags) {
                 dest.writeString(etag);
-                dest.writeString(annotationid);
+                dest.writeString(entityid);
                 dest.writeString(objectid);
                 dest.writeString(filename);
                 dest.writeString(documentBody);
@@ -656,10 +663,10 @@ public class CrmEntities {
             }
         }
 
-        public static class OrderProduct {
+        public static class OrderProduct extends CrmEntity {
 
             public boolean isSeparator;
-            public String etag;
+            // public String etag;
             public String productid;
             public String productidFormatted;
             public String partNumber;
@@ -692,6 +699,13 @@ public class CrmEntities {
             public OrderProduct() { }
 
             public OrderProduct(JSONObject json) {
+                try {
+                    if (!json.isNull("orderdetailid")) {
+                        this.entityid = (json.getString("orderdetailid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
                 try {
                     if (!json.isNull("etag")) {
                         this.etag = (json.getString("etag"));
@@ -919,10 +933,10 @@ public class CrmEntities {
             }
         }
 
-        public static class AccountProduct {
+        public static class AccountProduct extends CrmEntity {
 
             public boolean isSeparator;
-            public String etag;
+            // public String etag;
             public String serialnumber;
             public String partNumber;
             public String customerinventoryid;
@@ -1126,182 +1140,180 @@ public class CrmEntities {
             }
         }
 
-    }
+        public static class Goal extends CrmEntity {
 
-    public static class Goal {
+            public float pct;
+            public String title;
+            public String ownerid;
+            public String ownername;
+            public float target;
+            public float actual;
+            public int period;
+            public int year;
+            public String fiscalFirstDayFormatted;
+            public String fiscalFirstDayValue;
+            public DateTime rawStartDate;
+            public DateTime rawEndDate;
+            public String territoryid;
+            public String territoryname;
 
-        public String goalid;
-        public float pct;
-        public String title;
-        public String ownerid;
-        public String ownername;
-        public float target;
-        public float actual;
-        public int period;
-        public int year;
-        public String fiscalFirstDayFormatted;
-        public String fiscalFirstDayValue;
-        public DateTime rawStartDate;
-        public DateTime rawEndDate;
-        public String territoryid;
-        public String territoryname;
-
-        public String getPrettyPct() {
-           return Helpers.Numbers.formatAsZeroDecimalPointNumber(this.pct, RoundingMode.UNNECESSARY) + "%";
-        }
-
-        public String getPrettyTarget() {
-            return Helpers.Numbers.convertToCurrency(this.target);
-        }
-
-        public String getPrettyActual() {
-            return Helpers.Numbers.convertToCurrency(this.actual);
-        }
-
-        @NonNull
-        @Override
-        public String toString() {
-            return title + " Target: " + this.getPrettyTarget() + ", Actual: "
-                    + this.getPrettyActual() + ", Pct: " + this.getPrettyPct();
-        }
-
-        public Goal(JSONObject json) {
-            try {
-                if (!json.isNull("goalid")) {
-                    this.goalid = (json.getString("goalid"));
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("a_1124b4bdf013df11a16e00155d7aa40d_employeeid")) {
-                    this.territoryname = (json.getString("a_1124b4bdf013df11a16e00155d7aa40d_employeeid"));
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("a_1124b4bdf013df11a16e00155d7aa40d_territoryid")) {
-                    this.territoryid = (json.getString("a_1124b4bdf013df11a16e00155d7aa40d_territoryid"));
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("percentage")) {
-                    this.pct = (json.getLong("percentage"));
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("goalstartdate")) {
-                    this.rawStartDate = (new DateTime(json.getString("goalstartdate")));
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("goalenddate")) {
-                    this.rawEndDate = (new DateTime(json.getString("goalenddate")));
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("title")) {
-                    this.title = (json.getString("title"));
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("_goalownerid_value")) {
-                    this.ownerid = (json.getString("_goalownerid_value"));
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("_goalownerid_valueFormattedValue")) {
-                    this.ownername = (json.getString("_goalownerid_valueFormattedValue"));
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("targetmoney")) {
-                    this.target = (json.getLong("targetmoney"));
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (!json.isNull("msus_fiscalfirstdayofmonthFormattedValue")) {
-                    this.fiscalFirstDayFormatted = json.getString("msus_fiscalfirstdayofmonthFormattedValue");
-                }
-            } catch (Exception e) { }
-            try {
-                if (!json.isNull("msus_fiscalfirstdayofmonth")) {
-                    this.fiscalFirstDayValue = json.getString("msus_fiscalfirstdayofmonth");
-                    DateTime fiscalFirstDay = new DateTime(this.fiscalFirstDayValue);
-                    this.period = fiscalFirstDay.getMonthOfYear();
-                    this.year = fiscalFirstDay.getYear();
-                }
-            } catch (Exception e) { }
-            try {
-                if (!json.isNull("actualmoney")) {
-                    this.actual = (json.getLong("actualmoney"));
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
+            public String getPrettyPct() {
+               return Helpers.Numbers.formatAsZeroDecimalPointNumber(this.pct, RoundingMode.UNNECESSARY) + "%";
             }
 
-        }
-
-        public static ArrayList<Goal> createMany(String crmResponse, int period, int year) {
-            ArrayList<Goal> goals = new ArrayList<>();
-            try {
-                JSONObject root = new JSONObject(crmResponse);
-                JSONArray rootArray = root.getJSONArray("value");
-                for (int i = 0; i < rootArray.length(); i++) {
-                    Goal goal = new Goal(rootArray.getJSONObject(i));
-                    goal.period = period;
-                    goal.year = year;
-                    goals.add(goal);
-                }
-                return goals;
-            } catch (JSONException e) {
-                e.printStackTrace();
-                return null;
+            public String getPrettyTarget() {
+                return Helpers.Numbers.convertToCurrency(this.target);
             }
-        }
 
-        public GoalSummary getGoalSummary(DateTime startDate, DateTime endDate, DateTime measureDate) {
-            return new GoalSummary(this, measureDate, startDate, endDate);
-        }
+            public String getPrettyActual() {
+                return Helpers.Numbers.convertToCurrency(this.actual);
+            }
 
-        public DateTime getStartDate() {
-            return this.rawStartDate;
-        }
+            @NonNull
+            @Override
+            public String toString() {
+                return title + " Target: " + this.getPrettyTarget() + ", Actual: "
+                        + this.getPrettyActual() + ", Pct: " + this.getPrettyPct();
+            }
 
-        public DateTime getEndDate() {
-            return this.rawEndDate;
-        }
+            public Goal(JSONObject json) {
+                try {
+                    if (!json.isNull("goalid")) {
+                        this.entityid = (json.getString("goalid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_1124b4bdf013df11a16e00155d7aa40d_employeeid")) {
+                        this.territoryname = (json.getString("a_1124b4bdf013df11a16e00155d7aa40d_employeeid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_1124b4bdf013df11a16e00155d7aa40d_territoryid")) {
+                        this.territoryid = (json.getString("a_1124b4bdf013df11a16e00155d7aa40d_territoryid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("percentage")) {
+                        this.pct = (json.getLong("percentage"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("goalstartdate")) {
+                        this.rawStartDate = (new DateTime(json.getString("goalstartdate")));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("goalenddate")) {
+                        this.rawEndDate = (new DateTime(json.getString("goalenddate")));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("title")) {
+                        this.title = (json.getString("title"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_goalownerid_value")) {
+                        this.ownerid = (json.getString("_goalownerid_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_goalownerid_valueFormattedValue")) {
+                        this.ownername = (json.getString("_goalownerid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("targetmoney")) {
+                        this.target = (json.getLong("targetmoney"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("msus_fiscalfirstdayofmonthFormattedValue")) {
+                        this.fiscalFirstDayFormatted = json.getString("msus_fiscalfirstdayofmonthFormattedValue");
+                    }
+                } catch (Exception e) { }
+                try {
+                    if (!json.isNull("msus_fiscalfirstdayofmonth")) {
+                        this.fiscalFirstDayValue = json.getString("msus_fiscalfirstdayofmonth");
+                        DateTime fiscalFirstDay = new DateTime(this.fiscalFirstDayValue);
+                        this.period = fiscalFirstDay.getMonthOfYear();
+                        this.year = fiscalFirstDay.getYear();
+                    }
+                } catch (Exception e) { }
+                try {
+                    if (!json.isNull("actualmoney")) {
+                        this.actual = (json.getLong("actualmoney"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
 
-        public DateTime getEndDateForMonthlyGoal() {
-            int daysInMonth = Helpers.DatesAndTimes.getDaysInMonth(this.year, this.period);
-            return new DateTime(this.year, this.period, daysInMonth, 0, 0);
-        }
+            }
 
-        public DateTime getStartDateForMonthlyGoal() {
-            return new DateTime(this.year, this.period, 1, 0, 0);
-        }
+            public static ArrayList<Goal> createMany(String crmResponse, int period, int year) {
+                ArrayList<Goal> goals = new ArrayList<>();
+                try {
+                    JSONObject root = new JSONObject(crmResponse);
+                    JSONArray rootArray = root.getJSONArray("value");
+                    for (int i = 0; i < rootArray.length(); i++) {
+                        Goal goal = new Goal(rootArray.getJSONObject(i));
+                        goal.period = period;
+                        goal.year = year;
+                        goals.add(goal);
+                    }
+                    return goals;
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
 
-        public int daysInMonth() {
-            return Helpers.DatesAndTimes.getDaysInMonth(this.year, this.period);
-        }
+            public GoalSummary getGoalSummary(DateTime startDate, DateTime endDate, DateTime measureDate) {
+                return new GoalSummary(this, measureDate, startDate, endDate);
+            }
 
+            public DateTime getStartDate() {
+                return this.rawStartDate;
+            }
+
+            public DateTime getEndDate() {
+                return this.rawEndDate;
+            }
+
+            public DateTime getEndDateForMonthlyGoal() {
+                int daysInMonth = Helpers.DatesAndTimes.getDaysInMonth(this.year, this.period);
+                return new DateTime(this.year, this.period, daysInMonth, 0, 0);
+            }
+
+            public DateTime getStartDateForMonthlyGoal() {
+                return new DateTime(this.year, this.period, 1, 0, 0);
+            }
+
+            public int daysInMonth() {
+                return Helpers.DatesAndTimes.getDaysInMonth(this.year, this.period);
+            }
+
+        }
     }
 
     public static class Leads {
@@ -1322,7 +1334,7 @@ public class CrmEntities {
 
         public static void getCrmLeads(Context context, String territoryid, final MyInterfaces.GetLeadsListener listener) {
 
-            String query = Queries.Leads.getTerritoryLeads(territoryid);
+            String query = CrmQueries.Leads.getTerritoryLeads(territoryid);
             ArrayList<Requests.Argument> args = new ArrayList<>();
             args.add(new Requests.Argument("query", query));
             Requests.Request request = new Requests.Request(Function.GET, args);
@@ -1342,15 +1354,15 @@ public class CrmEntities {
 
         }
 
-        public static class Lead {
+        public static class Lead extends CrmEntity {
 
-            public String etag;
+            // public String etag;
+            // public String entityid;
             public String statecodeFormatted;
             public int statecode;
             public String leadQualityFormatted;
             public int leadQuality;
             public boolean dontBulkEmail;
-            public String leadid;
             public String fullname;
             public String subject;
             public boolean dontMail;
@@ -1463,7 +1475,7 @@ public class CrmEntities {
                 }
                 try {
                     if (!json.isNull("leadid")) {
-                        this.leadid = (json.getString("leadid"));
+                        this.entityid = (json.getString("leadid"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -1848,12 +1860,12 @@ public class CrmEntities {
         }
 
         public static Opportunities getSaved() {
-            MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+            MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
             return options.getSavedOpportunities();
         }
 
         public void save() {
-            MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+            MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
             options.saveOpportunities(this);
         }
 
@@ -1865,8 +1877,8 @@ public class CrmEntities {
          *                 error message as a string on failure (cast returned object to string).
          */
         public static void retrieveAndSaveOpportunities(final MyInterfaces.YesNoResult listener) {
-            final MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
-            String query = Queries.Opportunities.getOpportunitiesByTerritory(MediUser.getMe().territoryid);
+            final MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
+            String query = CrmQueries.Opportunities.getOpportunitiesByTerritory(MediUser.getMe().territoryid);
             ArrayList<Requests.Argument> args = new ArrayList<>();
             Requests.Argument argument = new Requests.Argument("query", query);
             args.add(argument);
@@ -1901,7 +1913,35 @@ public class CrmEntities {
          * @param listener An interface that constructs a Territories object and returns it on success.
          */
         public static void retrieveOpportunities(String territoryId, final MyInterfaces.GetOpportunitiesListener listener) {
-            String query = Queries.Opportunities.getOpportunitiesByTerritory(territoryId);
+            String query = CrmQueries.Opportunities.getOpportunitiesByTerritory(territoryId);
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            Requests.Argument argument = new Requests.Argument("query", query);
+            args.add(argument);
+            Requests.Request request = new Requests.Request(Requests.Request.GET, args);
+            Crm crm = new Crm();
+            crm.makeCrmRequest(MyApp.getAppContext(), request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    String response = new String(responseBody);
+                    listener.onSuccess(new CrmEntities.Opportunities(response));
+                    Log.i(TAG, "onSuccess " + response);
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
+                    listener.onFailure(error.getLocalizedMessage());
+                }
+            });
+        }
+
+        /**
+         * Will query CRM and get an opportunity's details.
+         * That's it.  That's all it does.
+         * @param listener An interface that constructs a Territories object and returns it on success.
+         */
+        public static void retrieveOpportunityDetails(String opportunityid, final MyInterfaces.GetOpportunitiesListener listener) {
+            String query = CrmQueries.Opportunities.getOpportunityDetails(opportunityid);
             ArrayList<Requests.Argument> args = new ArrayList<>();
             Requests.Argument argument = new Requests.Argument("query", query);
             args.add(argument);
@@ -2000,8 +2040,9 @@ public class CrmEntities {
             return count;
         }
 
-        public static class Opportunity implements Parcelable {
-            public String etag;
+        public static class Opportunity extends CrmEntity implements Parcelable {
+            /*public String etag;
+            public String entityid;*/
             public String accountid;
             public String accountname;
             public String probabilityPretty;
@@ -2028,7 +2069,6 @@ public class CrmEntities {
             public String dealTypePretty;
             public int dealTypeOptionsetValue;
             public String territoryid;
-            public String opportunityid;
             public String name;
             public float floatEstimatedValue;
             public String currentSituation;
@@ -2050,7 +2090,7 @@ public class CrmEntities {
                 BasicEntity.EntityBasicField accountField = new BasicEntity.EntityBasicField("Account:", this.accountname);
                 accountField.isAccountField = true;
                 Accounts.Account account = new Accounts.Account();
-                account.accountid = this.accountid;
+                account.entityid = this.accountid;
                 account.accountName = this.accountname;
                 accountField.account = account;
                 accountField.crmFieldName = "parentaccountid";
@@ -2384,7 +2424,7 @@ public class CrmEntities {
                 }
                 try {
                     if (!json.isNull("opportunityid")) {
-                        this.opportunityid = (json.getString("opportunityid"));
+                        this.entityid = (json.getString("opportunityid"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -2404,7 +2444,7 @@ public class CrmEntities {
              */
             public CrmAddresses.CrmAddress tryGetCrmAddress() {
                 try {
-                    MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+                    MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
                     if (options.hasSavedAddresses()) {
                         CrmAddresses addresses = options.getAllSavedCrmAddresses();
                         return addresses.getAddress(this.accountid);
@@ -2424,7 +2464,7 @@ public class CrmEntities {
              */
             public boolean isNearby(String accountid) {
                 try {
-                    MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+                    MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
                     if (!options.hasSavedAddresses()) {
                         return false;
                     }
@@ -2449,7 +2489,7 @@ public class CrmEntities {
              */
             public boolean isNearby(CrmAddresses.CrmAddress addy) {
                 try {
-                    MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+                    MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
                     if (!options.hasSavedAddresses()) {
                         return false;
                     }
@@ -2493,7 +2533,7 @@ public class CrmEntities {
                 dealTypePretty = in.readString();
                 dealTypeOptionsetValue = in.readInt();
                 territoryid = in.readString();
-                opportunityid = in.readString();
+                entityid = in.readString();
                 name = in.readString();
                 floatEstimatedValue = in.readFloat();
                 currentSituation = in.readString();
@@ -2535,7 +2575,7 @@ public class CrmEntities {
                 dest.writeString(dealTypePretty);
                 dest.writeInt(dealTypeOptionsetValue);
                 dest.writeString(territoryid);
-                dest.writeString(opportunityid);
+                dest.writeString(entityid);
                 dest.writeString(name);
                 dest.writeFloat(floatEstimatedValue);
                 dest.writeString(currentSituation);
@@ -2590,8 +2630,8 @@ public class CrmEntities {
          *                 error message as a string on failure (cast returned object to string).
          */
         public static void retrieveAndSaveCrmAddresses(final MyInterfaces.YesNoResult listener) {
-            final MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
-            Requests.Argument argument = new Requests.Argument("query", Queries.Addresses.getAllAccountAddresses());
+            final MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
+            Requests.Argument argument = new Requests.Argument("query", CrmQueries.Addresses.getAllAccountAddresses());
             ArrayList<Requests.Argument> args = new ArrayList<>();
             args.add(argument);
             Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
@@ -2787,7 +2827,7 @@ public class CrmEntities {
             public boolean isNearby(CrmAddress targetAddy) {
                 try {
                     try {
-                        MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+                        MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
                         return targetAddy.distanceTo(this.getLatLng()) <= options.getDistanceThreshold();
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -2808,7 +2848,7 @@ public class CrmEntities {
             public boolean isNearby(TripEntry targetAddy) {
                 try {
                     try {
-                        MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+                        MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
                         return targetAddy.distanceTo(this.getLatLng()) <= options.getDistanceThreshold();
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -2840,18 +2880,19 @@ public class CrmEntities {
 
         }
 
-        public static class Contact {
+        public static class Contact extends CrmEntity {
 
-            public String etag;
+            /*public String etag;
+                        public String entityid;*/
             public String firstname;
             public String lastname;
             public String accountid;
             public String accountFormatted;
             public String mobile;
+            public String address1composite;
             public String telephone1;
             public String address1Phone;
             public String jobtitle;
-            public String contactid;
             public String npiid;
             public String npiFormatted;
             public String email;
@@ -2863,6 +2904,10 @@ public class CrmEntities {
             public String modifiedOnFormatted;
             public String modifiedBy;
             public String modifiedByFormatted;
+            public String statecodeformatted;
+            public String statuscodeformatted;
+            public int statecode;
+            public int statuscode;
 
             public Contact() {}
 
@@ -2995,7 +3040,7 @@ public class CrmEntities {
                 }
                 try {
                     if (!json.isNull("contactid")) {
-                        this.contactid = (json.getString("contactid"));
+                        this.entityid = (json.getString("contactid"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -3010,6 +3055,62 @@ public class CrmEntities {
                 try {
                     if (!json.isNull("_msus_associated_npi_number_value")) {
                         this.npiid = (json.getString("_msus_associated_npi_number_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("modifiedon")) {
+                        this.modifiedOn = (new DateTime(json.getString("modifiedon")));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_modifiedby_valueFormattedValue")) {
+                        this.modifiedByFormatted = (json.getString("_modifiedby_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_modifiedby_value")) {
+                        this.modifiedBy = (json.getString("_modifiedby_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("address1_composite")) {
+                        this.address1composite = (json.getString("address1_composite"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("statuscode")) {
+                        this.statuscode = (json.getInt("statuscode"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("statuscodeFormattedValue")) {
+                        this.statuscodeformatted = (json.getString("statuscodeFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("statecode")) {
+                        this.statecode = (json.getInt("statecode"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("statecodeFormattedValue")) {
+                        this.statecodeformatted = (json.getString("statecodeFormattedValue"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -3097,7 +3198,7 @@ public class CrmEntities {
 
 
                 try {
-                    String fqfn = Helpers.Files.getAppTempDirectory().getPath() + File.separator + this.firstname + "_" + this.lastname + ".vcf";
+                    String fqfn = Helpers.Files.getAppDirectory().getPath() + File.separator + this.firstname + "_" + this.lastname + ".vcf";
                     File file = new File(fqfn);
                     if (file.exists()) {
                         file.delete();
@@ -3154,7 +3255,7 @@ public class CrmEntities {
             }
         }
 
-        public static class Ticket {
+        public static class Ticket extends CrmEntity {
 
             private static final String TAG = "Ticket";
 
@@ -3163,7 +3264,8 @@ public class CrmEntities {
              **************************************************************************************/
             // public static final int COMPLAINT
 
-            public String etag;
+            /*public String etag;
+            public String entityid;*/
             public String statecodeFormatted;
             public int statecode;
             public String statusFormatted;
@@ -3193,7 +3295,6 @@ public class CrmEntities {
             public String subjectFormatted;
             public String createdby;
             public String createdByFormatted;
-            public String ticketid;
             public String territoryid;
             public String territoryFormatted;
             public String repFormatted;
@@ -3393,7 +3494,7 @@ public class CrmEntities {
                 }
                 try {
                     if (!json.isNull("incidentid")) {
-                        this.ticketid = (json.getString("incidentid"));
+                        this.entityid = (json.getString("incidentid"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -3495,7 +3596,7 @@ public class CrmEntities {
                 contact.isContactField = true;
                 contact.crmFieldName = "new_mw_contact";
                 Contacts.Contact objContact = new Contacts.Contact();
-                objContact.contactid = this.contactid;
+                objContact.entityid = this.contactid;
                 objContact.firstname = this.contactFirstname;
                 objContact.lastname = this.contactLastname;
                 contact.contact = objContact;
@@ -3655,8 +3756,8 @@ public class CrmEntities {
          *                 error message as a string on failure (cast returned object to string).
          */
         public static void retrieveAndSaveCrmAddresses(final MyInterfaces.YesNoResult listener) {
-            final MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
-            Requests.Argument argument = new Requests.Argument("query", Queries.Addresses.getAllAccountAddresses());
+            final MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
+            Requests.Argument argument = new Requests.Argument("query", CrmQueries.Addresses.getAllAccountAddresses());
             ArrayList<Requests.Argument> args = new ArrayList<>();
             args.add(argument);
             Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
@@ -3759,10 +3860,10 @@ public class CrmEntities {
             }
         };
 
-        public static class Account implements Parcelable {
+        public static class Account extends CrmEntity implements Parcelable {
 
-            public String etag;
-            public String accountid;
+           /* public String etag;
+            public String entityid;*/
             public String accountnumber;
             public int customerTypeCode;
             public String customerTypeFormatted;
@@ -3782,9 +3883,9 @@ public class CrmEntities {
 
             public Account() { }
 
-            public Account(String accountid, String accountName) {
+            public Account(String entityid, String accountName) {
                 this.accountName = accountName;
-                this.accountid = accountid;
+                this.entityid = entityid;
             }
 
             public Account(JSONObject json) {
@@ -3797,7 +3898,7 @@ public class CrmEntities {
                 }
                 try {
                     if (!json.isNull("accountid")) {
-                        this.accountid = (json.getString("accountid"));
+                        this.entityid = (json.getString("accountid"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -3901,7 +4002,7 @@ public class CrmEntities {
 
             protected Account(Parcel in) {
                 etag = in.readString();
-                accountid = in.readString();
+                entityid = in.readString();
                 accountnumber = in.readString();
                 customerTypeCode = in.readInt();
                 customerTypeFormatted = in.readString();
@@ -3924,7 +4025,7 @@ public class CrmEntities {
             @Override
             public void writeToParcel(Parcel dest, int flags) {
                 dest.writeString(etag);
-                dest.writeString(accountid);
+                dest.writeString(entityid);
                 dest.writeString(accountnumber);
                 dest.writeInt(customerTypeCode);
                 dest.writeString(customerTypeFormatted);
@@ -4150,281 +4251,6 @@ public class CrmEntities {
 
     public static class TripAssociations implements Parcelable {
 
-        public static class TripAssociation implements Parcelable {
-            private static final String TAG = "MileageReimbursementAssociation";
-            public String etag;
-            public String name;
-            public String id;
-            public String ownerid;
-            public String ownername;
-            public DateTime createdon;
-            public String associated_trip_name;
-            public String associated_trip_id;
-            public String associated_account_name;
-            public String associated_account_id;
-            public String associated_opportunity_name;
-            public String associated_opportunity_id;
-            public float associated_trip_reimbursement;
-            public long associated_trip_date;
-            public TripDisposition tripDisposition;
-
-            public DateTime getAssociatedTripDate() {
-                return new DateTime(associated_trip_date);
-            }
-
-            public void setAssociatedTripDate(DateTime dateTime) {
-                this.associated_trip_date = dateTime.getMillis();
-            }
-
-            public TripAssociation(DateTime tripDate) {
-                this.associated_trip_date = tripDate.getMillis();
-                this.ownerid = MediUser.getMe().systemuserid;
-                this.ownername = MediUser.getMe().fullname;
-                this.name = this.ownername + " was nearby during a MileBuddy trip";
-            }
-
-            public TripAssociation(JSONObject json) {
-                Log.i(TAG, "MileageReimbursementAssociation " + json);
-
-                try {
-                    if (!json.isNull("etag")) {
-                        this.etag = (json.getString("etag"));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    if (!json.isNull("_ownerid_value")) {
-                        this.ownerid = (json.getString("_ownerid_value"));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    if (!json.isNull("_ownerid_valueFormattedValue")) {
-                        this.ownername = (json.getString("_ownerid_valueFormattedValue"));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    if (!json.isNull("_msus_disposition_value")) {
-                        setTripDisposition(json.getInt("_msus_disposition_value"));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    if (!json.isNull("createdon")) {
-                        this.createdon = (new DateTime(json.getString("createdon")));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    if (!json.isNull("_msus_associated_trip_valueFormattedValue")) {
-                        this.associated_trip_name = (json.getString("_msus_associated_trip_valueFormattedValue"));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    if (!json.isNull("_msus_associated_trip_value")) {
-                        this.associated_trip_id = (json.getString("_msus_associated_trip_value"));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    if (!json.isNull("_msus_associated_account_valueFormattedValue")) {
-                        this.associated_account_name = (json.getString("_msus_associated_account_valueFormattedValue"));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    if (!json.isNull("_msus_associated_account_value")) {
-                        this.associated_account_id = (json.getString("_msus_associated_account_value"));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    if (!json.isNull("_msus_associated_opportunity_valueFormattedValue")) {
-                        this.associated_opportunity_name = (json.getString("_msus_associated_opportunity_valueFormattedValue"));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    if (!json.isNull("_msus_associated_opportunity_value")) {
-                        this.associated_opportunity_id = (json.getString("_msus_associated_opportunity_value"));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    if (!json.isNull("msus_mileageassociationid")) {
-                        this.id = (json.getString("msus_mileageassociationid"));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    if (!json.isNull("msus_name")) {
-                        this.name = (json.getString("msus_name"));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    if (!json.isNull("a_cc3500d91af9ea11810b005056a36b9b_msus_reimbursement")) {
-                        this.associated_trip_reimbursement = (json.getLong("a_cc3500d91af9ea11810b005056a36b9b_msus_reimbursement"));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    if (!json.isNull("a_cc3500d91af9ea11810b005056a36b9b_msus_dt_tripdate")) {
-                        this.associated_trip_date = (new DateTime(json.getString("a_cc3500d91af9ea11810b005056a36b9b_msus_dt_tripdate")).getMillis());
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            public enum TripDisposition {
-                START, END
-            }
-
-            /**
-             * Evaluates whether this association references an existing opportunity.
-             * @return True if an association is found
-             */
-            public boolean hasOpportunity() {
-                return this.associated_opportunity_id != null;
-            }
-
-            /**
-             * Returns a pretty string stipulating whether the association is the beginning or end of a trip.
-             * @return "Start" or "End"
-             */
-            public String getDispositionTitle() {
-                switch (this.tripDisposition) {
-                    case START :
-                        return "Start";
-                    case END :
-                        return "End";
-                    default:
-                        return "0";
-                }
-            }
-
-            public int getDispositioValue() {
-                switch (this.tripDisposition) {
-                    case START :
-                        return 745820000;
-                    case END :
-                        return 745820001;
-                    default:
-                        return 0;
-                }
-            }
-
-            public void setTripDisposition(int optionSetValue) {
-                switch (optionSetValue) {
-                    case 745820000 :
-                        this.tripDisposition = TripDisposition.START;
-                        break;
-                    case 745820001 :
-                        this.tripDisposition = TripDisposition.END;
-                        break;
-                }
-            }
-
-            @Override
-            public String toString() {
-                return this.name + ", " + new DateTime(this.associated_trip_date).toLocalDateTime().toString() +
-                        ", " + this.ownername;
-            }
-
-            public EntityContainer toContainer() {
-                EntityContainer container = new EntityContainer();
-                if (this.name != null) {
-                    container.entityFields.add(new EntityField("msus_name", name));
-                }
-                if (this.associated_trip_id != null) {
-                    container.entityFields.add(new EntityField("msus_associated_trip", this.associated_trip_id));
-                }
-                if (this.associated_account_id != null) {
-                    container.entityFields.add(new EntityField("msus_associated_account", this.associated_account_id));
-                }
-                if (this.associated_opportunity_id != null) {
-                    container.entityFields.add(new EntityField("msus_associated_opportunity", this.associated_opportunity_id));
-                }
-                if (this.tripDisposition != null) {
-                    container.entityFields.add(new EntityField("msus_disposition", Integer.toString(this.getDispositioValue())));
-                }
-                return container;
-            }
-
-
-            protected TripAssociation(Parcel in) {
-                etag = in.readString();
-                name = in.readString();
-                id = in.readString();
-                ownerid = in.readString();
-                ownername = in.readString();
-                createdon = (DateTime) in.readValue(DateTime.class.getClassLoader());
-                associated_trip_name = in.readString();
-                associated_trip_id = in.readString();
-                associated_account_name = in.readString();
-                associated_account_id = in.readString();
-                associated_opportunity_name = in.readString();
-                associated_opportunity_id = in.readString();
-                associated_trip_reimbursement = in.readFloat();
-                associated_trip_date = in.readLong();
-                tripDisposition = (TripDisposition) in.readValue(TripDisposition.class.getClassLoader());
-            }
-
-            @Override
-            public int describeContents() {
-                return 0;
-            }
-
-            @Override
-            public void writeToParcel(Parcel dest, int flags) {
-                dest.writeString(etag);
-                dest.writeString(name);
-                dest.writeString(id);
-                dest.writeString(ownerid);
-                dest.writeString(ownername);
-                dest.writeValue(createdon);
-                dest.writeString(associated_trip_name);
-                dest.writeString(associated_trip_id);
-                dest.writeString(associated_account_name);
-                dest.writeString(associated_account_id);
-                dest.writeString(associated_opportunity_name);
-                dest.writeString(associated_opportunity_id);
-                dest.writeFloat(associated_trip_reimbursement);
-                dest.writeLong(associated_trip_date);
-                dest.writeValue(tripDisposition);
-            }
-
-            @SuppressWarnings("unused")
-            public static final Parcelable.Creator<TripAssociation> CREATOR = new Parcelable.Creator<TripAssociation>() {
-                @Override
-                public TripAssociation createFromParcel(Parcel in) {
-                    return new TripAssociation(in);
-                }
-
-                @Override
-                public TripAssociation[] newArray(int size) {
-                    return new TripAssociation[size];
-                }
-            };
-        }
-
         private static final String TAG = "MileageReimbursementAssociations";
 
         public ArrayList<TripAssociation> list = new ArrayList<>();
@@ -4479,6 +4305,25 @@ public class CrmEntities {
             return this.list.size() + " associations, ";
         }
 
+        public BasicObjects toBasicObjects() {
+            BasicObjects basicObjects = new BasicObjects();
+            for (TripAssociation association : this.list) {
+                BasicObjects.BasicObject object = new BasicObjects.BasicObject(association.associated_opportunity_name,
+                        association.associated_account_name, Helpers.DatesAndTimes
+                        .getPrettyDate2(association.getAssociatedTripDate()), association);
+                object.topRightText = association.tripDispositionFormatted;
+                basicObjects.add(object);
+            }
+            return basicObjects;
+        }
+
+        public String toGson() {
+            return new Gson().toJson(this);
+        }
+
+        public static TripAssociations fromGson(String gson) {
+            return new Gson().fromJson(gson, TripAssociations.class);
+        }
 
         protected TripAssociations(Parcel in) {
             if (in.readByte() == 0x01) {
@@ -4516,6 +4361,298 @@ public class CrmEntities {
                 return new TripAssociations[size];
             }
         };
+
+        public static class TripAssociation extends CrmEntity implements Parcelable {
+            private static final String TAG = "MileageReimbursementAssociation";
+            /*public String etag;
+            public String entityid;*/
+            public String name;
+            public String ownerid;
+            public String ownername;
+            private long createdon;
+            public String associated_trip_name;
+            public String associated_trip_id;
+            public String associated_account_name;
+            public String associated_account_id;
+            public String associated_opportunity_name;
+            public String associated_opportunity_id;
+            public float associated_trip_reimbursement;
+            public float associated_trip_distance;
+            public long associated_trip_date;
+            public String tripDispositionFormatted;
+            public double tripDispositionValue;
+
+            public DateTime getAssociatedTripDate() {
+                return new DateTime(associated_trip_date);
+            }
+
+            public DateTime getCreatedOn() { return new DateTime(this.createdon); }
+
+            public void setAssociatedTripDate(DateTime dateTime) {
+                this.associated_trip_date = dateTime.getMillis();
+            }
+
+            public TripAssociation(DateTime tripDate) {
+                this.associated_trip_date = tripDate.getMillis();
+                this.ownerid = MediUser.getMe().systemuserid;
+                this.ownername = MediUser.getMe().fullname;
+                this.name = this.ownername + " was nearby during a MileBuddy trip";
+            }
+
+            public TripAssociation(JSONObject json) {
+                Log.i(TAG, "MileageReimbursementAssociation " + json);
+
+                try {
+                    if (!json.isNull("etag")) {
+                        this.etag = (json.getString("etag"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_ownerid_value")) {
+                        this.ownerid = (json.getString("_ownerid_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_ownerid_valueFormattedValue")) {
+                        this.ownername = (json.getString("_ownerid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_856aa51bdcf9ea11810b005056a36b9b_ownerid")) {
+                        this.ownerid = (json.getString("a_856aa51bdcf9ea11810b005056a36b9b_ownerid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_856aa51bdcf9ea11810b005056a36b9b_owneridFormattedValue")) {
+                        this.ownername = (json.getString("a_856aa51bdcf9ea11810b005056a36b9b_owneridFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("createdon")) {
+                        this.createdon = (new DateTime(json.getString("createdon")).getMillis());
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_associated_trip_valueFormattedValue")) {
+                        this.associated_trip_name = (json.getString("_msus_associated_trip_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_associated_trip_value")) {
+                        this.associated_trip_id = (json.getString("_msus_associated_trip_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_associated_account_valueFormattedValue")) {
+                        this.associated_account_name = (json.getString("_msus_associated_account_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_associated_account_value")) {
+                        this.associated_account_id = (json.getString("_msus_associated_account_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_associated_opportunity_valueFormattedValue")) {
+                        this.associated_opportunity_name = (json.getString("_msus_associated_opportunity_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_associated_opportunity_value")) {
+                        this.associated_opportunity_id = (json.getString("_msus_associated_opportunity_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("msus_mileageassociationid")) {
+                        this.entityid = (json.getString("msus_mileageassociationid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("msus_name")) {
+                        this.name = (json.getString("msus_name"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_cc3500d91af9ea11810b005056a36b9b_msus_reimbursement")) {
+                        this.associated_trip_reimbursement = (json.getLong("a_cc3500d91af9ea11810b005056a36b9b_msus_reimbursement"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_cc3500d91af9ea11810b005056a36b9b_msus_dt_tripdate")) {
+                        this.associated_trip_date = (new DateTime(json.getString("a_cc3500d91af9ea11810b005056a36b9b_msus_dt_tripdate")).getMillis());
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_eeba8cefdbf9ea11810b005056a36b9b_name")) {
+                        this.associated_opportunity_name = (json.getString("a_eeba8cefdbf9ea11810b005056a36b9b_name"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_856aa51bdcf9ea11810b005056a36b9b_msus_totaldistance")) {
+                        this.associated_trip_distance = (json.getLong("a_856aa51bdcf9ea11810b005056a36b9b_msus_totaldistance"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("msus_disposition")) {
+                        this.tripDispositionValue = json.getDouble("msus_disposition");
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("msus_dispositionFormattedValue")) {
+                        this.tripDispositionFormatted = (json.getString("msus_dispositionFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_856aa51bdcf9ea11810b005056a36b9b_msus_dt_tripdate")) {
+                        this.associated_trip_date = new DateTime(json.getString("a_856aa51bdcf9ea11810b005056a36b9b_msus_dt_tripdate")).getMillis();
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                /*
+
+			"a_eeba8cefdbf9ea11810b005056a36b9b_name": "SSM Health Cardinal Glennon Childrens Opportunity",
+			"a_856aa51bdcf9ea11810b005056a36b9b_msus_totaldistanceFormattedValue": "38.1",
+			"a_856aa51bdcf9ea11810b005056a36b9b_msus_totaldistance": 38.1,
+                 */
+            }
+
+            public enum TripDisposition {
+                START, END
+            }
+
+            /**
+             * Evaluates whether this association references an existing opportunity.
+             * @return True if an association is found
+             */
+            public boolean hasOpportunity() {
+                return this.associated_opportunity_id != null;
+            }
+
+
+            @Override
+            public String toString() {
+                return this.name + ", " + new DateTime(this.associated_trip_date).toLocalDateTime().toString() +
+                        ", " + this.ownername;
+            }
+
+            public EntityContainer toContainer() {
+                EntityContainer container = new EntityContainer();
+                if (this.name != null) {
+                    container.entityFields.add(new EntityField("msus_name", name));
+                }
+                if (this.associated_trip_id != null) {
+                    container.entityFields.add(new EntityField("msus_associated_trip", this.associated_trip_id));
+                }
+                if (this.associated_account_id != null) {
+                    container.entityFields.add(new EntityField("msus_associated_account", this.associated_account_id));
+                }
+                if (this.associated_opportunity_id != null) {
+                    container.entityFields.add(new EntityField("msus_associated_opportunity", this.associated_opportunity_id));
+                }
+                return container;
+            }
+
+
+            protected TripAssociation(Parcel in) {
+                etag = in.readString();
+                name = in.readString();
+                entityid = in.readString();
+                ownerid = in.readString();
+                ownername = in.readString();
+                createdon = in.readLong();
+                associated_trip_name = in.readString();
+                associated_trip_id = in.readString();
+                associated_account_name = in.readString();
+                associated_account_id = in.readString();
+                associated_opportunity_name = in.readString();
+                associated_opportunity_id = in.readString();
+                associated_trip_reimbursement = in.readFloat();
+                associated_trip_date = in.readLong();
+                associated_trip_distance = in.readFloat();
+                tripDispositionFormatted = in.readString();
+                tripDispositionValue = in.readDouble();
+            }
+
+            @Override
+            public int describeContents() {
+                return 0;
+            }
+
+            @Override
+            public void writeToParcel(Parcel dest, int flags) {
+                dest.writeString(etag);
+                dest.writeString(name);
+                dest.writeString(entityid);
+                dest.writeString(ownerid);
+                dest.writeString(ownername);
+                dest.writeLong(createdon);
+                dest.writeString(associated_trip_name);
+                dest.writeString(associated_trip_id);
+                dest.writeString(associated_account_name);
+                dest.writeString(associated_account_id);
+                dest.writeString(associated_opportunity_name);
+                dest.writeString(associated_opportunity_id);
+                dest.writeFloat(associated_trip_reimbursement);
+                dest.writeLong(associated_trip_date);
+                dest.writeFloat(associated_trip_distance);
+                dest.writeString(tripDispositionFormatted);
+                dest.writeDouble(tripDispositionValue);
+            }
+
+            @SuppressWarnings("unused")
+            public static final Parcelable.Creator<TripAssociation> CREATOR = new Parcelable.Creator<TripAssociation>() {
+                @Override
+                public TripAssociation createFromParcel(Parcel in) {
+                    return new TripAssociation(in);
+                }
+
+                @Override
+                public TripAssociation[] newArray(int size) {
+                    return new TripAssociation[size];
+                }
+            };
+        }
     }
 
 }

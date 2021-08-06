@@ -22,6 +22,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.adapters.AccountInventoryRecyclerAdapter;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicEntity;
 import com.fimbleenterprises.medimileage.adapters.BasicObjectRecyclerAdapter;
@@ -33,11 +34,11 @@ import com.fimbleenterprises.medimileage.objects_and_containers.ExcelSpreadsheet
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
-import com.fimbleenterprises.medimileage.MyUnderlineEditText;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
+import com.fimbleenterprises.medimileage.ui.CustomViews.MyUnderlineEditText;
 import com.fimbleenterprises.medimileage.MyViewPager;
 import com.fimbleenterprises.medimileage.adapters.OrderLineRecyclerAdapter;
-import com.fimbleenterprises.medimileage.Queries;
+import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
@@ -67,7 +68,7 @@ import jxl.write.WritableCellFormat;
 import jxl.write.WritableFont;
 
 import static com.fimbleenterprises.medimileage.activities.BasicEntityActivity.GSON_STRING;
-import static com.fimbleenterprises.medimileage.Queries.*;
+import static com.fimbleenterprises.medimileage.CrmQueries.*;
 
 /*import com.anychart.APIlib;
 import com.anychart.AnyChart;
@@ -90,7 +91,7 @@ public class Activity_AccountData extends AppCompatActivity {
     public static PagerTitleStrip mPagerStrip;
     public static SectionsPagerAdapter sectionsPagerAdapter;
     public static androidx.fragment.app.FragmentManager fragMgr;
-    public static MySettingsHelper options;
+    public static MyPreferencesHelper options;
 
     public static final String GO_TO_ACCOUNT = "GO_TO_ACCOUNT";
     public static final String GO_TO_ACCOUNT_OBJECT = "GO_TO_ACCOUNT_OBJECT";
@@ -134,6 +135,7 @@ public class Activity_AccountData extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         context = this;
         activity = this;
+        options = new MyPreferencesHelper(this);
 
         // Log a metric
         // MileBuddyMetrics.updateMetric(this, MileBuddyMetrics.MetricName.LAST_ACCESSED_TERRITORY_DATA, DateTime.now());
@@ -166,7 +168,7 @@ public class Activity_AccountData extends AppCompatActivity {
         mPagerStrip = (PagerTitleStrip) findViewById(R.id.pager_title_strip_sales_perf);
         mViewPager.setAdapter(sectionsPagerAdapter);
         mViewPager.setOffscreenPageLimit(0);
-        mViewPager.setCurrentItem(0);
+        mViewPager.setCurrentItem(options.getDefaultAccountPage());
         mViewPager.setPageCount(6);
         mViewPager.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
@@ -241,16 +243,6 @@ public class Activity_AccountData extends AppCompatActivity {
             }
         }
 
-        if (resultCode == BasicEntityActivity.RESULT_CODE_ENTITY_UPDATED) {
-            if (data != null && data.getStringExtra(GSON_STRING) != null) {
-                Log.i(TAG, "onActivityResult Basic entity was updated!");
-                BasicEntity updatedEntity = new BasicEntity(data.getStringExtra(GSON_STRING));
-                Intent updatedIntent = new Intent(BasicEntityActivity.ENTITY_UPDATED);
-                updatedIntent.putExtra(GSON_STRING, updatedEntity.toGson());
-                sendBroadcast(updatedIntent);
-            }
-        }
-
     }
 
     @Override
@@ -303,21 +295,28 @@ public class Activity_AccountData extends AppCompatActivity {
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
 
-        if (options == null) { options = new MySettingsHelper(context); }
+        if (options == null) { options = new MyPreferencesHelper(context); }
 
         if (curAccount != null) {
             setTitle(curAccount.accountName);
         } else {
             setTitle("Choose an account");
         }
+        MyApp.setIsVisible(true, this);
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        MyApp.setIsVisible(false, this);
     }
 
     @Override
@@ -643,7 +642,7 @@ public class Activity_AccountData extends AppCompatActivity {
             root = inflater.inflate(R.layout.frag_saleslines, container, false);
             txtNoSales = root.findViewById(R.id.txtNoContacts);
             refreshLayout = root.findViewById(R.id.refreshLayout);
-            options = new MySettingsHelper(context);
+            options = new MyPreferencesHelper(context);
             RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
             refreshLayout.setEnableLoadMore(false);
             refreshLayout.setOnRefreshListener(new OnRefreshListener() {
@@ -776,7 +775,7 @@ public class Activity_AccountData extends AppCompatActivity {
 
             lastAccount = curAccount;
 
-            String query = Queries.OrderLines.getOrderLinesByAccount(curAccount.accountid, Operators.DateOperator.LAST_X_MONTHS, 3);
+            String query = CrmQueries.OrderLines.getOrderLinesByAccount(curAccount.entityid, Operators.DateOperator.LAST_X_MONTHS, 3);
 
             txtNoSales.setVisibility(View.GONE);
 
@@ -1044,7 +1043,7 @@ public class Activity_AccountData extends AppCompatActivity {
             txtNoContacts = root.findViewById(R.id.txtNoContacts);
             refreshLayout = root.findViewById(R.id.refreshLayout);
             refreshLayout.setEnableLoadMore(false);
-            options = new MySettingsHelper(context);
+            options = new MyPreferencesHelper(context);
             RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
             refreshLayout.setOnRefreshListener(new OnRefreshListener() {
                 @Override
@@ -1181,7 +1180,7 @@ public class Activity_AccountData extends AppCompatActivity {
                 return;
             }
 
-            String query = Queries.Contacts.getContacts(curAccount.accountid);
+            String query = CrmQueries.Contacts.getContacts(curAccount.entityid);
 
             txtNoContacts.setVisibility(View.GONE);
 
@@ -1294,7 +1293,7 @@ public class Activity_AccountData extends AppCompatActivity {
             root = inflater.inflate(R.layout.frag_opportunities, container, false);
             refreshLayout = root.findViewById(R.id.refreshLayout);
             refreshLayout.setEnableLoadMore(false);
-            options = new MySettingsHelper(context);
+            options = new MyPreferencesHelper(context);
             txtNoOpportunities = root.findViewById(R.id.txtNoOpportunities);
             RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
             refreshLayout.setOnRefreshListener(new OnRefreshListener() {
@@ -1374,21 +1373,27 @@ public class Activity_AccountData extends AppCompatActivity {
         @Override
         public void onStop() {
             super.onStop();
+            getActivity().unregisterReceiver(parentActivityMenuReceiver);
+
+        }
+
+        @Override
+        public void onStart() {
+            super.onStart();
+
+            // Register the options menu selected receiver
+            getActivity().registerReceiver(parentActivityMenuReceiver, intentFilterParentActivity);
+
         }
 
         @Override
         public void onDestroyView() {
             super.onDestroyView();
-
-            getActivity().unregisterReceiver(parentActivityMenuReceiver);
-            Log.i(TAG, "Unregistered the account contacts receiver");
         }
 
         @Override
         public void onResume() {
 
-            // Register the options menu selected receiver
-            getActivity().registerReceiver(parentActivityMenuReceiver, intentFilterParentActivity);
 
             // Hide/show the choose account button
             if (curAccount == null) {
@@ -1404,6 +1409,24 @@ public class Activity_AccountData extends AppCompatActivity {
         @Override
         public void onPause() {
             super.onPause();
+
+        }
+
+        @Override
+        public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+            super.onActivityResult(requestCode, resultCode, data);
+
+            if (resultCode == BasicEntityActivity.RESULT_CODE_ENTITY_UPDATED) {
+                if (data != null && data.getStringExtra(GSON_STRING) != null) {
+                    Log.i(TAG, "onActivityResult Basic entity was updated!");
+                    BasicEntity updatedEntity = new BasicEntity(data.getStringExtra(GSON_STRING));
+                    Intent updatedIntent = new Intent(BasicEntityActivity.ENTITY_UPDATED);
+                    updatedIntent.putExtra(GSON_STRING, updatedEntity.toGson());
+
+                    getAccountOpportunities(true);
+
+                }
+            }
         }
 
         @Override
@@ -1428,7 +1451,7 @@ public class Activity_AccountData extends AppCompatActivity {
                 return;
             }
 
-            String query = Queries.Opportunities.getOpportunitiesByAccount(curAccount.accountid);
+            String query = CrmQueries.Opportunities.getOpportunitiesByAccount(curAccount.entityid);
 
             if (curAccount == null) {
                 Toast.makeText(context, "Please select an account", Toast.LENGTH_SHORT).show();
@@ -1497,7 +1520,7 @@ public class Activity_AccountData extends AppCompatActivity {
                                 (CrmEntities.Opportunities.Opportunity) objects.get(position).object;
                         Intent intent = new Intent(context, BasicEntityActivity.class);
                         intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Opportunity Details");
-                        intent.putExtra(BasicEntityActivity.ENTITYID, selectedOpportunity.opportunityid);
+                        intent.putExtra(BasicEntityActivity.ENTITYID, selectedOpportunity.entityid);
                         intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "opportunity");
                         intent.putExtra(GSON_STRING, selectedOpportunity.toBasicEntity().toGson());
                         startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
@@ -1575,7 +1598,7 @@ public class Activity_AccountData extends AppCompatActivity {
             root = inflater.inflate(R.layout.frag_account_inventory, container, false);
             txtNoInventory = root.findViewById(R.id.txtNoInventory);
             refreshLayout = root.findViewById(R.id.refreshLayout);
-            options = new MySettingsHelper(context);
+            options = new MyPreferencesHelper(context);
             RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
             refreshLayout.setEnableLoadMore(false);
             refreshLayout.setOnRefreshListener(new OnRefreshListener() {
@@ -1775,19 +1798,19 @@ public class Activity_AccountData extends AppCompatActivity {
             switch (productType) {
                 case PROBES:
                     query = Accounts.getAccountInventory(curAccount
-                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_PROBES, statusCode);
+                            .entityid,CrmEntities.AccountProducts.ITEM_GROUP_PROBES, statusCode);
                     break;
                 case FLOWMETERS:
                     query = Accounts.getAccountInventory(curAccount
-                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_FLOWMETERS, statusCode);
+                            .entityid,CrmEntities.AccountProducts.ITEM_GROUP_FLOWMETERS, statusCode);
                     break;
                 case CABLES:
                     query = Accounts.getAccountInventory(curAccount
-                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_LICENSES, statusCode);
+                            .entityid,CrmEntities.AccountProducts.ITEM_GROUP_LICENSES, statusCode);
                     break;
                 case LICENSES:
                     query = Accounts.getAccountInventory(curAccount
-                            .accountid,CrmEntities.AccountProducts.ITEM_GROUP_CABLES, statusCode);
+                            .entityid,CrmEntities.AccountProducts.ITEM_GROUP_CABLES, statusCode);
                     break;
             }
 
@@ -1885,7 +1908,7 @@ public class Activity_AccountData extends AppCompatActivity {
                     public void onItemClick(View view, int position) {
                         Toast.makeText(context, custInventory.get(position).productDescription, Toast.LENGTH_SHORT).show();
                         ArrayList<Requests.Argument> args = new ArrayList<>();
-                        String query = Queries.CustomerInventory.getCustomerInventoryDetails(productList.get(position).customerinventoryid);
+                        String query = CrmQueries.CustomerInventory.getCustomerInventoryDetails(productList.get(position).customerinventoryid);
                         args.add(new Requests.Argument("query", query));
                     }
                 });
@@ -2006,7 +2029,7 @@ public class Activity_AccountData extends AppCompatActivity {
             root = inflater.inflate(R.layout.frag_cases, container, false);
             refreshLayout = root.findViewById(R.id.refreshLayout);
             refreshLayout.setEnableLoadMore(false);
-            options = new MySettingsHelper(context);
+            options = new MyPreferencesHelper(context);
             RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
             refreshLayout.setOnRefreshListener(new OnRefreshListener() {
                 @Override
@@ -2141,7 +2164,7 @@ public class Activity_AccountData extends AppCompatActivity {
                 return;
             }
 
-            String query = Queries.Tickets.getAccountTickets(curAccount.accountid);
+            String query = CrmQueries.Tickets.getAccountTickets(curAccount.entityid);
 
             if (curAccount == null) {
                 Toast.makeText(context, "Please select an account", Toast.LENGTH_SHORT).show();
@@ -2213,7 +2236,7 @@ public class Activity_AccountData extends AppCompatActivity {
                                 (CrmEntities.Tickets.Ticket) objects.get(position).object;
                         Intent intent = new Intent(context, BasicEntityActivity.class);
                         intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Ticket Details");
-                        intent.putExtra(BasicEntityActivity.ENTITYID, selectedTicket.ticketid);
+                        intent.putExtra(BasicEntityActivity.ENTITYID, selectedTicket.entityid);
                         intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "incident");
                         intent.putExtra(GSON_STRING, selectedTicket.toBasicEntity().toGson());
                         startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);

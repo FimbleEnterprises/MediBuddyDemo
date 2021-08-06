@@ -12,6 +12,7 @@ import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -34,6 +35,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.PowerManager;
+import android.os.storage.StorageManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.telephony.SmsManager;
@@ -124,7 +126,10 @@ public abstract class Helpers {
 
             applicationDetailsSettingsIntent.setAction( Settings.ACTION_APPLICATION_DETAILS_SETTINGS );
             applicationDetailsSettingsIntent.setData( packageUri );
+            applicationDetailsSettingsIntent.addCategory(Intent.CATEGORY_DEFAULT);
             applicationDetailsSettingsIntent.addFlags( Intent.FLAG_ACTIVITY_NEW_TASK );
+            applicationDetailsSettingsIntent.addFlags( Intent.FLAG_ACTIVITY_NO_HISTORY );
+            applicationDetailsSettingsIntent.addFlags( Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS );
 
             context.startActivity( applicationDetailsSettingsIntent );
 
@@ -177,6 +182,31 @@ public abstract class Helpers {
                 Log.e(TAG, "Was not able to restart application");
             }
         }
+
+        /**
+         * Shows the application details for the app package name supplied (ex. com.dropbox.android)
+         * @param context A valid context (not sure what valid means in this context if I'm honest...)
+         * @param THE_APP_PACKAGE_NAME Ex: com.microsoft.skydrive
+         */
+        public static void showAppInfo(Context context, String THE_APP_PACKAGE_NAME) {
+            Intent showSettings = new Intent();
+            showSettings.setAction(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            Uri uriAppSettings = Uri.fromParts("package", THE_APP_PACKAGE_NAME, null);
+            showSettings.setData(uriAppSettings);
+            context.startActivity(showSettings);
+        }
+
+        /**
+         * Shows the application details for this app
+         * @param context A valid context (not sure what valid means in this context if I'm honest...)
+         */
+        public static void showAppInfo(Context context) {
+            Intent showSettings = new Intent();
+            showSettings.setAction(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            Uri uriAppSettings = Uri.fromParts("package", MyApp.getAppContext().getPackageName(), null);
+            showSettings.setData(uriAppSettings);
+            context.startActivity(showSettings);
+        }
     }
 
     public static class Bitmaps {
@@ -215,7 +245,7 @@ public abstract class Helpers {
             bmp.eraseColor(Color.BLACK);// just adding black background
             final Canvas canvas = new Canvas(bmp);
             mTextLayout.draw(canvas);
-            File outputFile = new File(Helpers.Files.getAppTempDirectory(), fileName);
+            File outputFile = new File(Helpers.Files.ReceiptTempFiles.getDirectory(), fileName);
             FileOutputStream stream = new FileOutputStream(outputFile); //create your FileOutputStream here
             bmp.compress(Bitmap.CompressFormat.PNG, 85, stream);
             bmp.recycle();
@@ -253,7 +283,7 @@ public abstract class Helpers {
             bmp.eraseColor(Color.BLACK);// just adding black background
             final Canvas canvas = new Canvas(bmp);
             mTextLayout.draw(canvas);
-            File outputFile = new File(Helpers.Files.getAppTempDirectory(), fileName);
+            File outputFile = new File(Helpers.Files.ReceiptTempFiles.getDirectory(), fileName);
             FileOutputStream stream = new FileOutputStream(outputFile); //create your FileOutputStream here
             bmp.compress(Bitmap.CompressFormat.JPEG, 85, stream);
             bmp.recycle();
@@ -1995,6 +2025,14 @@ public abstract class Helpers {
 
         private static final String TAG = "Files";
 
+        public static final String MILEBUDDY_EXTERNAL_FILES_ROOT_DIR = "MileBuddy";
+        public static final String TEMP_DIR_NAME = "temp";
+        public static final String ATTACHMENTS_DIR_NAME = "attachments";
+        public static final String SPREADSHEETS_DIR = "spreadsheets";
+        public static final String RECEIPTS_DIR_NAME = "receipts";
+        public static final String VCARDS_DIR_NAME = "vcards";
+        public static final String APP_VERSIONS_DOWNLOAD_DIR = "updates";
+
         /**
          * Encodes a file to a base64 string.
          * @param filePath The file to encode.
@@ -2328,11 +2366,19 @@ public abstract class Helpers {
             return (path.delete());
         }// END deleteDirectory()
 
+        /**
+         * Gets the main application external storage directory.  It quietly makes the fucking directory
+         * if it doesn't already exist too because we like doing secret filesystem I/O!
+         * @return The main external directory as a File object.
+         */
         public static File getAppDirectory() {
-                makeAppDirectory();
                 Context context = MyApp.getAppContext();
-                File dir = new File(context.getExternalFilesDir(null), "MileBuddy");
-                Log.i(TAG, "getAppDirectory: " + dir.getAbsolutePath());
+                File dir = new File(Environment.getExternalStorageDirectory(), "MileBuddy");
+
+                // Make the fucker if it doesn't exist.
+                if (!dir.exists()) { dir.mkdirs(); }
+
+                Log.w(TAG, "getAppDirectory: " + dir.getAbsolutePath());
                 return dir;
         }
 
@@ -2340,12 +2386,12 @@ public abstract class Helpers {
 
             Context context = MyApp.getAppContext();
 
-            File dir = new File(context.getExternalFilesDir(null).getAbsolutePath());
+            File dir = getAppDirectory();
 
             if (!dir.exists() || !dir.isDirectory()) {
-                Log.i(TAG, "makeAppDirectory: " + dir.mkdirs());
+                Log.w(TAG, "makeAppDirectory: " + dir.mkdirs());
             } else {
-                Log.i(TAG, "makeAppDirectory: App directory exists");
+                Log.w(TAG, "makeAppDirectory: App directory exists");
             }
         }
 
@@ -2392,44 +2438,32 @@ public abstract class Helpers {
         }
         */
 
-        public static File getAppDownloadDirectory() {
-            return new File(MyApp.getAppContext().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString());
-        }
-
-        public static File getAppTempDirectory() {
+        // Commented out in v 1.85 - stopped working sometime in Android 11
+        /*public static File getAppTempDirectory() {
             File tmp = new File(MyApp.getAppContext().getExternalFilesDir(null).toString() + File.separator
-                    + "temp");
+                    + TEMP_DIR_NAME);
             if (!tmp.exists()) {
                 tmp.mkdirs();
             }
             return tmp;
-        }
+        }*/
 
-        public static boolean deleteAppTempDirectory() {
-            boolean result = false;
-
-            File tempDir = getAppTempDirectory();
-            if (tempDir.exists()) {
-                if (tempDir.isDirectory()) {
-                    for (File f : tempDir.listFiles()) {
-                        result = f.delete();
-                        Log.i(TAG, "deleteAppTempDirectory | deleted a file (" + f.getName() + ")");
-                    }
-                    tempDir.delete();
-                }
+        /*public static File getAppTempDirectory() {
+            File tmp = new File(getAppDirectory().getPath() + File.separator + File.separator + TEMP_DIR_NAME);
+            if (!tmp.exists()) {
+                tmp.mkdirs();
             }
-
-            Log.i(TAG, "deleteAppTempDirectory " + !tempDir.exists());
-            return result;
-        }
+            return tmp;
+        }*/
 
         public static class AttachmentTempFiles {
+
             /**
              * Creates a subdirectory to the application's temp directory named, "attachments" if it doesn't
              * already exist.
              */
             public static void makeDirectory() {
-                File tmp = new File(getAppDirectory().getAbsolutePath() + File.separator + "attachments");
+                File tmp = new File(getAppDirectory().getAbsolutePath() + File.separator + ATTACHMENTS_DIR_NAME);
                 if (!tmp.exists()) {
                     Log.i(TAG, "makeDirectory " + tmp.getAbsolutePath() + " doesn't exist, creating...");
                     tmp.mkdirs();
@@ -2443,7 +2477,7 @@ public abstract class Helpers {
              * Clears all files from the application's attachment temp directory (assuming it exists)
              */
             public static void clear() {
-                File tmp = new File(getAppDirectory().getAbsolutePath() + File.separator + "attachments");
+                File tmp = new File(getAppDirectory().getAbsolutePath() + File.separator + ATTACHMENTS_DIR_NAME);
                 Log.i(TAG, "Clearing attachments directory...");
                 if (tmp.exists()) {
                     Log.i(TAG, "clear " + tmp.getAbsolutePath() + " exists!");
@@ -2464,7 +2498,8 @@ public abstract class Helpers {
              */
             public static File getDirectory() {
                 makeDirectory();
-                File file = new File(getAppDirectory().getAbsolutePath() + File.separator + "attachments");
+
+                File file = new File(getAppDirectory().getAbsolutePath() + File.separator + ATTACHMENTS_DIR_NAME);
                 Log.i(TAG, "getDirectory " + file.getAbsolutePath() + " exists: " + file.exists());
                 Log.i(TAG, "getDirectory Attachments directory: " + file.getAbsolutePath());
                 return file;
@@ -2513,16 +2548,17 @@ public abstract class Helpers {
         }
 
         public static class ExcelTempFiles {
+
             /**
-             * Creates a subdirectory to the application's temp directory named, "spreadsheets" if it doesn't
+             * Creates a subdirectory to the application's temp directory named, SPREADSHEETS_DIR if it doesn't
              * already exist.
              */
             public static void makeDirectory() {
-                File tmp = new File(getAppDirectory().getAbsolutePath() + File.separator + "spreadsheets");
+                File tmp = new File(getAppDirectory().getAbsolutePath() + File.separator + SPREADSHEETS_DIR);
                 if (!tmp.exists()) {
                     Log.i(TAG, "makeDirectory " + tmp.getAbsolutePath() + " doesn't exist, creating...");
                     tmp.mkdirs();
-                    Log.i(TAG, "makeDirectory Attachments directory created: " + tmp.exists());
+                    Log.i(TAG, "makeDirectory Spreadsheets directory created: " + tmp.exists());
                 } else {
                     Log.i(TAG, "makeDirectory " + tmp.getAbsolutePath() + " already exists.");
                 }
@@ -2532,7 +2568,7 @@ public abstract class Helpers {
              * Clears all files from the application's attachment temp directory (assuming it exists)
              */
             public static void clear() {
-                File tmp = new File(getAppDirectory().getAbsolutePath() + File.separator + "spreadsheets");
+                File tmp = new File(getDirectory() + File.separator + SPREADSHEETS_DIR);
                 Log.i(TAG, "Clearing spreadsheets directory...");
                 if (tmp.exists()) {
                     Log.i(TAG, "clear " + tmp.getAbsolutePath() + " exists!");
@@ -2553,9 +2589,10 @@ public abstract class Helpers {
              */
             public static File getDirectory() {
                 makeDirectory();
-                File file = new File(getAppDirectory().getAbsolutePath() + File.separator + "spreadsheets");
+                File file = new File(Environment.getExternalStorageDirectory() + File
+                        .separator + MILEBUDDY_EXTERNAL_FILES_ROOT_DIR + File.separator + SPREADSHEETS_DIR);
                 Log.i(TAG, "getDirectory " + file.getAbsolutePath() + " exists: " + file.exists());
-                Log.i(TAG, "getDirectory Attachments directory: " + file.getAbsolutePath());
+                Log.i(TAG, "getDirectory Spreadsheets directory: " + file.getAbsolutePath());
                 return file;
             }
 
@@ -2598,6 +2635,212 @@ public abstract class Helpers {
                 File[] files = tmp.listFiles();
                 Log.i(TAG, "getFiles Found " + files.length + " files in the spreadsheets temp directory.");
                 return files;
+            }
+        }
+
+        public static class ReceiptTempFiles {
+
+            /**
+             * Creates a subdirectory to the application's temp directory named, SPREADSHEETS_DIR if it doesn't
+             * already exist.
+             */
+            public static void makeDirectory() {
+                File tmp = new File(getAppDirectory().getAbsolutePath() + File.separator + RECEIPTS_DIR_NAME);
+                if (!tmp.exists()) {
+                    Log.i(TAG, "makeDirectory " + tmp.getAbsolutePath() + " doesn't exist, creating...");
+                    tmp.mkdirs();
+                    Log.i(TAG, "makeDirectory Receipts directory created: " + tmp.exists());
+                } else {
+                    Log.i(TAG, "makeDirectory " + tmp.getAbsolutePath() + " already exists.");
+                }
+            }
+
+            /**
+             * Clears all files from the application's attachment temp directory (assuming it exists)
+             */
+            public static void clear() {
+                File tmp = new File(getDirectory() + File.separator + RECEIPTS_DIR_NAME);
+                Log.i(TAG, "Clearing receipts directory...");
+                if (tmp.exists()) {
+                    Log.i(TAG, "clear " + tmp.getAbsolutePath() + " exists!");
+                    File[] contents = tmp.listFiles();
+                    for (int i = 0; i < contents.length; i++) {
+                        contents[i].delete();
+                        Log.i(TAG, "clearAttachmentTempDirectory Deleted: " + contents[i].getName());
+                    }
+                } else {
+                    Log.i(TAG, "clear " + tmp.getAbsolutePath() + " didn't exist.");
+                }
+            }
+
+            /**
+             * Returns the spreadsheets temp directory.  The directory will be created if it doesn't
+             * already exist.
+             * @return The application's attachment temp directory.
+             */
+            public static File getDirectory() {
+                makeDirectory();
+                File file = new File(Environment.getExternalStorageDirectory() + File
+                        .separator + MILEBUDDY_EXTERNAL_FILES_ROOT_DIR + File.separator + RECEIPTS_DIR_NAME);
+                Log.i(TAG, "getDirectory " + file.getAbsolutePath() + " exists: " + file.exists());
+                Log.i(TAG, "getDirectory receipts directory: " + file.getAbsolutePath());
+                return file;
+            }
+
+            /**
+             * Searches the application's attachment temp directory for the specified filename
+             * @param filename The name of the file to look for.
+             * @return The file (or null if not found)
+             */
+            public static File retrieve(String filename) {
+                Log.i(TAG, "retrieve Looking for file in receipts temp dir (" + filename + ")");
+                File tmp = getDirectory();
+                File[] files = tmp.listFiles();
+                for (int i = 0; i < files.length; i++) {
+                    File file = files[i];
+                    if (file.getName().equals(filename)) {
+                        Log.i(TAG, file.getAbsolutePath() + " found!");
+                        return file;
+                    }
+                }
+                Log.i(TAG, "retrieve File not found in " + tmp.getAbsolutePath() + "!");
+                return null;
+            }
+
+            /**
+             * Checks if the specified filename exists in the application's attachment temp directory.
+             * @param filename The filenasme to look for.
+             * @return True or false if the file exists.
+             */
+            public static boolean fileExists(String filename) {
+                Log.i(TAG, "fileExists: " + filename + " = " + (retrieve(filename) != null));
+                return retrieve(filename) != null;
+            }
+
+            /**
+             * Returns all files that exist in the application's attachment temp directory.
+             * @return
+             */
+            public static File[] getFiles() {
+                File tmp = getDirectory();
+                File[] files = tmp.listFiles();
+                Log.i(TAG, "getFiles Found " + files.length + " files in the receipts temp directory.");
+                return files;
+            }
+        }
+
+        public static class AppUpdates {
+
+            /**
+             * Creates a subdirectory to the application's temp directory for downloaded app versions if it doesn't
+             * already exist.
+             */
+            public static void makeDirectory() {
+                Log.w(TAG, "makeDirectory: | Making the app versions download directory...");
+                File updateDir = new File(Environment.getExternalStorageDirectory() + File
+                        .separator + MILEBUDDY_EXTERNAL_FILES_ROOT_DIR + File.separator + APP_VERSIONS_DOWNLOAD_DIR);
+                if (!updateDir.exists()) {
+                    updateDir.mkdirs();
+                    Log.w(TAG, "makeDirectory: | Directory had to be created.");
+                } else {
+                    Log.w(TAG, "makeDirectory: | Directory already existed.");
+                }
+            }
+
+            /**
+             * Clears all files from the application's attachment temp directory (assuming it exists)
+             */
+            public static void clear() {
+                File tmp = getDirectory();
+                Log.i(TAG, "Clearing app versions directory...");
+                if (tmp.exists()) {
+                    Log.i(TAG, "clear " + tmp.getAbsolutePath() + " exists!");
+                    File[] contents = tmp.listFiles();
+                    for (int i = 0; i < contents.length; i++) {
+                        contents[i].delete();
+                        Log.i(TAG, "clear() | Deleted: " + contents[i].getName());
+                    }
+                } else {
+                    Log.i(TAG, "clear() | " + tmp.getAbsolutePath() + " didn't exist.");
+                }
+            }
+
+            /**
+             * Returns the app versions temp directory.  The directory will be created if it doesn't
+             * already exist.
+             * @return The application's attachment temp directory.
+             */
+            public static File getDirectory() {
+                makeDirectory();
+                File file = new File(Environment.getExternalStorageDirectory() + File
+                        .separator + MILEBUDDY_EXTERNAL_FILES_ROOT_DIR + File.separator + APP_VERSIONS_DOWNLOAD_DIR);
+                Log.i(TAG, "getDirectory " + file.getAbsolutePath() + " exists: " + file.exists());
+                Log.i(TAG, "getDirectory receipts directory: " + file.getAbsolutePath());
+                return file;
+            }
+
+            /**
+             * Searches the application's attachment temp directory for the specified filename
+             * @param filename The name of the file to look for.
+             * @return The file (or null if not found)
+             */
+            public static File retrieve(String filename) {
+                Log.i(TAG, "retrieve Looking for file (" + filename + ")");
+                File tmp = getDirectory();
+                File[] files = tmp.listFiles();
+                for (int i = 0; i < files.length; i++) {
+                    File file = files[i];
+                    if (file.getName().equals(filename)) {
+                        Log.i(TAG, file.getAbsolutePath() + " found!");
+                        return file;
+                    }
+                }
+                Log.i(TAG, "retrieve File not found in " + tmp.getAbsolutePath() + "!");
+                return null;
+            }
+
+            /**
+             * Checks if the specified filename exists in the application's attachment temp directory.
+             * @param filename The filenasme to look for.
+             * @return True or false if the file exists.
+             */
+            public static boolean fileExists(String filename) {
+                Log.i(TAG, "fileExists: " + filename + " = " + (retrieve(filename) != null));
+                return retrieve(filename) != null;
+            }
+
+            /**
+             * Returns all files that exist in the application's attachment temp directory.
+             * @return
+             */
+            public static File[] getFiles() {
+                File tmp = getDirectory();
+                File[] files = tmp.listFiles();
+                Log.i(TAG, "getFiles Found " + files.length + " files in the receipts temp directory.");
+                return files;
+            }
+
+            /**
+             * Creates a staging directory that the update will be copied into and installed from.
+             * If the directory already exists it will be cleaned out (all files deleted) and returned.
+             * @return The File object representing the staging directory.
+             */
+            public static File createStagingDir() {
+                File stagingdir = new File(Helpers.Files.AppUpdates.getDirectory().getAbsolutePath() + File.separator + "installing");
+                if (!stagingdir.exists()) {
+                    stagingdir.mkdirs();
+                    Log.w(TAG, "createStagingDir: | Directory was created.");
+                } else {
+                    // Dir already exists - clear it out.
+                    Log.w(TAG, "createStagingDir: | Staging directory already exists.");
+                    for (File f : stagingdir.listFiles()) {
+                        f.delete();
+                        Log.w(TAG, "createStagingDir: | Found existing file: " + f.getName()
+                                + " in staging dir.  Deleted it.");
+                    }
+                }
+                Log.w(TAG, "createStagingDir: | Staging dir is ready: " + stagingdir.getPath());
+                return stagingdir;
             }
         }
     }

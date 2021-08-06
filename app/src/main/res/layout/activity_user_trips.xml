@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/masterLayout"
@@ -11,253 +11,341 @@
     tools:context=".ui.mileage.MileageFragment">
 
     <LinearLayout
-        android:id="@+id/ll_top"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/btn_glass_orange_border_white_bg"
-        android:orientation="vertical"
-        tools:visibility="visible">
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <ImageButton
-                android:id="@+id/imageButton2"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_alignParentRight="true"
-                android:background="@drawable/arrow_right2"
-                android:scaleType="center"
-                android:visibility="visible" />
-
-            <TextView
-                android:id="@+id/txtName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginRight="5dp"
-                android:fontFamily="@font/casual"
-                android:gravity="left"
-                android:text="Name"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:textColor="#454545"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-
-        </RelativeLayout>
-
-        <TableLayout
-            android:id="@+id/tableLayout_1"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp">
-
-            <TableRow
-                android:id="@+id/tableRow_0"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-
-                <FrameLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-
-                    <TextView
-                        android:id="@+id/textView_OppTopic"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
-                        android:fontFamily="@font/casual"
-                        android:gravity="left"
-                        android:text="Last Month"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="#454545"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-                </FrameLayout>
-
-                <FrameLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-
-                    <TextView
-                        android:id="@+id/textView_2"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
-                        android:fontFamily="@font/casual"
-                        android:text="This Month"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="#454545"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-                </FrameLayout>
-            </TableRow>
-
-
-            <TableRow
-                android:id="@+id/tableRow_1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-
-                <FrameLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-
-                    <TextView
-                        android:id="@+id/txtTripCountLastMonth"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
-                        android:fontFamily="@font/casual"
-                        android:gravity="left"
-                        android:text="0 trips"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="#454545"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-                </FrameLayout>
-
-                <FrameLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-
-                    <TextView
-                        android:id="@+id/txtTripCountThisMonth"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
-                        android:fontFamily="@font/casual"
-                        android:gravity="left"
-                        android:text="0 trips"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="#454545"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-                </FrameLayout>
-            </TableRow>
-
-            <TableRow
-                android:id="@+id/tableRow_2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-
-                <FrameLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-
-                    <TextView
-                        android:id="@+id/txtReimbursementLastMonth"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
-                        android:fontFamily="@font/casual"
-                        android:text="$0.00"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="#454545"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-
-
-                </FrameLayout>
-
-                <FrameLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-
-                    <TextView
-                        android:id="@+id/txtReimbursementThisMonth"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
-                        android:fontFamily="@font/casual"
-                        android:text="$0.00"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="#454545"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-                </FrameLayout>
-            </TableRow>
-
-            <TableRow
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-
-                <FrameLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-
-                    <TextView
-                        android:id="@+id/txtReimbursementRateThisMonth"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
-                        android:fontFamily="@font/casual"
-                        android:text="$0.00"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="#454545"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-
-
-                </FrameLayout>
-
-                <FrameLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-
-                    <TextView
-                        android:id="@+id/txtReimbursementRateLastMonth"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="5dp"
-                        android:layout_marginRight="5dp"
-                        android:fontFamily="@font/casual"
-                        android:text="$0.00"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="#454545"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-                </FrameLayout>
-            </TableRow>
-
-        </TableLayout>
-
-
-    </LinearLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvUserTrips"
-        style="@style/recyclerview_style"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/ll_top"
-        android:layout_marginTop="10dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:outlineProvider="background"
-        android:padding="3dp"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager">
+        android:orientation="vertical">
+        <LinearLayout
+            android:id="@+id/ll_top"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/btn_glass_orange_border_white_bg"
+            android:orientation="vertical"
+            tools:visibility="visible">
 
-    </androidx.recyclerview.widget.RecyclerView>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-</RelativeLayout>
+                <ImageButton
+                    android:id="@+id/imageButton2"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_alignParentRight="true"
+                    android:background="@drawable/arrow_right2"
+                    android:scaleType="center"
+                    android:visibility="visible" />
+
+                <TextView
+                    android:id="@+id/txtName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginRight="5dp"
+                    android:fontFamily="@font/casual"
+                    android:gravity="left"
+                    android:text="Name"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="#454545"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+
+            </RelativeLayout>
+
+            <TableLayout
+                android:id="@+id/tableLayout_1"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp">
+
+                <TableRow
+                    android:id="@+id/tableRow_0"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <TextView
+                            android:id="@+id/textView_OppTopic"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:fontFamily="@font/casual"
+                            android:gravity="left"
+                            android:text="Last Month"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="#454545"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <TextView
+                            android:id="@+id/textView_2"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:fontFamily="@font/casual"
+                            android:text="This Month"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="#454545"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                    </FrameLayout>
+                </TableRow>
+
+
+                <TableRow
+                    android:id="@+id/tableRow_1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <TextView
+                            android:id="@+id/txtTripCountLastMonth"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:fontFamily="@font/casual"
+                            android:gravity="left"
+                            android:text="0 trips"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="#454545"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <TextView
+                            android:id="@+id/txtTripCountThisMonth"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:fontFamily="@font/casual"
+                            android:gravity="left"
+                            android:text="0 trips"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="#454545"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </FrameLayout>
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/tableRow_2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <TextView
+                            android:id="@+id/txtReimbursementLastMonth"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:fontFamily="@font/casual"
+                            android:text="$0.00"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="#454545"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <TextView
+                            android:id="@+id/txtReimbursementThisMonth"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:fontFamily="@font/casual"
+                            android:text="$0.00"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="#454545"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                    </FrameLayout>
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <TextView
+                            android:id="@+id/txtReimbursementRateThisMonth"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:fontFamily="@font/casual"
+                            android:text="$0.00"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="#454545"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <TextView
+                            android:id="@+id/txtReimbursementRateLastMonth"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:fontFamily="@font/casual"
+                            android:text="$0.00"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="#454545"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                    </FrameLayout>
+                </TableRow>
+
+            </TableLayout>
+
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:id="@+id/associationslayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/ll_top"
+            android:visibility="visible">
+
+            <ProgressBar
+                android:id="@+id/pbAssociations"
+                style="@android:style/Widget.Holo.Light.ProgressBar.Small"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="10dp"
+                android:visibility="visible" />
+
+            <TableLayout
+                android:id="@+id/tableLayout_associations_table"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp">
+
+                <TableRow
+                    android:id="@+id/rowFilesystem"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:visibility="gone">
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <com.fimbleenterprises.medimileage.ui.CustomViews.MyHyperlinkTextview
+                            android:id="@+id/txtNearbyAccounts"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:editable="false"
+                            android:gravity="left"
+                            android:text="3 nearby accounts (last two months)"
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="@color/colorBlue"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </FrameLayout>
+
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/tableRow_02"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:visibility="invisible">
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <com.fimbleenterprises.medimileage.ui.CustomViews.MyHyperlinkTextview
+                            android:id="@+id/txtNearbyOpportunities"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:editable="false"
+                            android:gravity="left"
+                            android:text=""
+                            android:textAppearance="?android:attr/textAppearanceSmall"
+                            android:textColor="@color/colorBlue"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+                    </FrameLayout>
+
+                </TableRow>
+            </TableLayout>
+        </RelativeLayout>
+
+        <com.fimbleenterprises.medimileage.ui.CustomViews.NonScrollRecyclerView
+            android:id="@+id/rvUserTrips"
+            style="@style/recyclerview_style"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/associationslayout"
+            android:layout_marginTop="10dp"
+            android:clickable="true"
+            android:nestedScrollingEnabled="false"
+            android:focusable="true"
+            android:outlineProvider="background"
+            android:padding="3dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager">
+
+        </com.fimbleenterprises.medimileage.ui.CustomViews.NonScrollRecyclerView>
+    </LinearLayout>
+
+</ScrollView>

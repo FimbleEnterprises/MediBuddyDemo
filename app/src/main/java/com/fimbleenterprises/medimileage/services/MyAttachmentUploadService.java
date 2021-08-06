@@ -204,7 +204,7 @@ public class MyAttachmentUploadService extends Service {
                             @Override
                             public void onComplete(Object result) {
                                 CrmEntities.CrmEntityResponse response = new CrmEntities.CrmEntityResponse(result.toString());
-                                annotation.annotationid = response.guid;
+                                annotation.entityid = response.guid;
                                 annotation.documentBody = base64File;
                                 annotation.addAttachment(context, new MyInterfaces.CrmRequestListener() {
                                     @Override

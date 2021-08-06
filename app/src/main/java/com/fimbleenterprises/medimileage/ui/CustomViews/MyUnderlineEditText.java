@@ -1,4 +1,4 @@
-package com.fimbleenterprises.medimileage;
+package com.fimbleenterprises.medimileage.ui.CustomViews;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -6,6 +6,8 @@ import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.View;
 
+import com.fimbleenterprises.medimileage.Helpers;
+import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.dialogs.MyDatePicker;
 
 import org.joda.time.DateTime;

@@ -1,4 +1,4 @@
-package com.fimbleenterprises.medimileage;
+package com.fimbleenterprises.medimileage.activities;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -25,12 +25,17 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.fimbleenterprises.medimileage.activities.Activity_AccountData;
-import com.fimbleenterprises.medimileage.activities.Activity_SalesQuotas;
-import com.fimbleenterprises.medimileage.activities.Activity_TerritoryData;
-import com.fimbleenterprises.medimileage.activities.AggregateStatsActivity;
-import com.fimbleenterprises.medimileage.activities.SearchResultsActivity;
-import com.fimbleenterprises.medimileage.activities.UserTripsActivity;
+import com.fimbleenterprises.medimileage.Crm;
+import com.fimbleenterprises.medimileage.CrmQueries;
+import com.fimbleenterprises.medimileage.CustomTypefaceSpan;
+import com.fimbleenterprises.medimileage.Helpers;
+import com.fimbleenterprises.medimileage.MileBuddyUpdater;
+import com.fimbleenterprises.medimileage.MyApp;
+import com.fimbleenterprises.medimileage.MyInterfaces;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
+import com.fimbleenterprises.medimileage.QueryFactory;
+import com.fimbleenterprises.medimileage.R;
+import com.fimbleenterprises.medimileage.UpdateDownloader;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.services.MyFirebaseMessagingService;
 import com.fimbleenterprises.medimileage.services.MyLocationService;
@@ -80,7 +85,7 @@ import static com.fimbleenterprises.medimileage.ui.mileage.MileageFragment.PERMI
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, DrawerLayout.DrawerListener {
     private static final String TAG = "MainActivity";
     private AppBarConfiguration mAppBarConfiguration;
-    MySettingsHelper options;
+    MyPreferencesHelper options;
     IntentFilter locFilter = new IntentFilter(MyLocationService.LOCATION_EVENT);
     BroadcastReceiver locReceiver;
     NavController navController;
@@ -100,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-        options = new MySettingsHelper(this);
+        options = new MyPreferencesHelper(this);
         Toolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setTitleTextAppearance(this, R.style.CasualTextAppearance);
         setSupportActionBar(toolbar);
@@ -180,7 +185,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 options.getPrettyReimbursementRate() + " to: "
                                 + Helpers.Numbers.convertToCurrency(rate), Toast.LENGTH_SHORT).show();
                     }
-                    MySettingsHelper options = new MySettingsHelper(MyApp.getAppContext());
+                    MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
                     options.setReimbursementRate(rate);
                 }
 
@@ -239,6 +244,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+
 
     }
 
@@ -299,7 +306,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             startActivityForResult(intent, 0);
             // drawer.closeDrawer(navigationView);
         } else if (item.getItemId() == R.id.nav_aggregatedmileagestats) {
-            startActivity(new Intent(activity, AggregateStatsActivity.class));
+            startActivity(new Intent(activity, AggregateMileageStatsActivity.class));
             // drawer.closeDrawer(navigationView);
         } else if (item.getItemId() == R.id.nav_myterritory) {
             startActivity(new Intent(activity, Activity_TerritoryData.class));
@@ -310,6 +317,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (item.getItemId() == R.id.nav_salesquotas) {
             Intent oppIntent = new Intent(activity, Activity_SalesQuotas.class);
             startActivity(oppIntent);
+            // drawer.closeDrawer(navigationView);
+        } else if (item.getItemId() == R.id.nav_usage) {
+            Intent usageIntent = new Intent(activity, UsageMetricsActivity.class);
+            startActivity(usageIntent);
             // drawer.closeDrawer(navigationView);
         } else {
             try {
@@ -325,8 +336,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         return false;
     }
-
-
 
     @Override
     protected void onStart() {
@@ -349,7 +358,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onResume() {
         super.onResume();
-        // makeDrawerTitles();
+        if (MyApp.checkLocationPermission(activity) != MyApp.LocationPermissionResult.FULL ||
+                !MyApp.checkStoragePermission(activity)) {
+            // Helpers.Application.showPermissionsPage(activity);
+        }
+        MyApp.setIsVisible(true, this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        MyApp.setIsVisible(false, this);
     }
 
     @Override
@@ -411,7 +430,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main, menu);
 
-        // Associate searchable configuration with the SearchView
+        // Associate searchable configuration with the SearchView - effectively, prepare the search
+        // for use.  There isn't much else to do in the activity, the SearchResultsActivity will do
+        // the lion's share of the labor.
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         searchView = (SearchView) menu.findItem(R.id.search).getActionView();
         searchView.setSearchableInfo( searchManager.getSearchableInfo(new
@@ -521,6 +542,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     options.logout();
                     navController.navigate(R.id.action_HomeFragment_to_HomeSecondFragment);
                 } else {
+
                     navController.navigate(R.id.action_HomeFragment_to_HomeSecondFragment);
                 }
                 break;
@@ -608,7 +630,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public void checkForUpdate(final boolean silently) {
 
-        Helpers.Files.deleteAppTempDirectory();
+        // getDirectory() also makes the directory if it doesn't exist
+        Helpers.Files.AppUpdates.getDirectory();
 
         // If an update has been previously downloaded prompt the user to install it
         if (options.updateIsAvailableLocally()) {
@@ -662,7 +685,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public void getTripAssociationsByTripId() {
 
-        String query = Queries.TripAssociation.getAssociationsByTripid("26C4B74D-58F8-EA11-810B-005056A36B9B");
+        String query = CrmQueries.TripAssociation.getAssociationsByTripid("26C4B74D-58F8-EA11-810B-005056A36B9B");
 
         Requests.Argument arg = new Requests.Argument("query", query);
         ArrayList<Requests.Argument> args = new ArrayList<>();

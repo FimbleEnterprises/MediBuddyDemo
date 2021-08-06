@@ -14,8 +14,8 @@ import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
-import com.fimbleenterprises.medimileage.Queries;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
+import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.RestResponse;
@@ -45,7 +45,7 @@ public class FullscreenActivityChooseRep extends AppCompatActivity {
     public static final String CHOICE_RESULT = "CHOICE_RESULT";
     public static final String CURRENT_VALUE = "CURRENT_VALUE";
     MediUser currentUser;
-    MySettingsHelper options;
+    MyPreferencesHelper options;
 
     /**
      * Shows a picker for sales reps.  Will return an intent with the selected user as a MediUser object with a tag of: CHOICE_RESULT
@@ -65,7 +65,7 @@ public class FullscreenActivityChooseRep extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.context = this;
-        options = new MySettingsHelper(context);
+        options = new MyPreferencesHelper(context);
         setContentView(R.layout.activity_fullscreen_choose_rep);
         listView = findViewById(R.id.rvBasicObjects);
 
@@ -104,7 +104,7 @@ public class FullscreenActivityChooseRep extends AppCompatActivity {
 
         Crm crm = new Crm();
         ArrayList<Requests.Argument> args = new ArrayList<>();
-        Requests.Argument argument = new Requests.Argument("query", Queries.Users.getUsUsers());
+        Requests.Argument argument = new Requests.Argument("query", CrmQueries.Users.getUsUsers());
         args.add(argument);
         Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
 

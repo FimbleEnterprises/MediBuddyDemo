@@ -15,7 +15,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     private final static String TAG = "MySQLiteHelper.";
     public static final String DATABASE_NAME = "mileagetracking.db";
     private static final int DATABASE_VERSION = 10;
-    private MySettingsHelper options;
+    private MyPreferencesHelper options;
 
     public static final String TABLE_FULL_TRIP = "fulltrips";
     public static final String TABLE_TRIP_ENTRIES = "tripentries";
@@ -305,7 +305,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 
     public MySQLiteHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        options = new MySettingsHelper(context);
+        options = new MyPreferencesHelper(context);
     }
 
     @Override

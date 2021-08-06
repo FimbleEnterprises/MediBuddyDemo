@@ -23,14 +23,15 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.fimbleenterprises.medimileage.Crm;
+import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics;
 import com.fimbleenterprises.medimileage.dialogs.MonthYearPickerDialog;
-import com.fimbleenterprises.medimileage.MySettingsHelper;
-import com.fimbleenterprises.medimileage.MyUnderlineEditText;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
+import com.fimbleenterprises.medimileage.ui.CustomViews.MyUnderlineEditText;
 import com.fimbleenterprises.medimileage.MyViewPager;
-import com.fimbleenterprises.medimileage.Queries;
+import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
@@ -91,7 +92,7 @@ public class Activity_SalesQuotas extends AppCompatActivity {
     public static PagerTitleStrip mPagerStrip;
     public static SectionsPagerAdapter sectionsPagerAdapter;
     public static androidx.fragment.app.FragmentManager fragMgr;
-    public static MySettingsHelper options;
+    public static MyPreferencesHelper options;
     ArrayList<Territory> cachedTerritories = new ArrayList<>();
 
     public static final String MENU_SELECTION = "MENU_SELECTION";
@@ -201,13 +202,20 @@ public class Activity_SalesQuotas extends AppCompatActivity {
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
+        MyApp.setIsVisible(true, this);
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        MyApp.setIsVisible(false, this);
     }
 
     @Override
@@ -340,9 +348,9 @@ public class Activity_SalesQuotas extends AppCompatActivity {
 
     public static String getRegionid() {
         if (isEastRegion) {
-            return Queries.EAST_REGIONID;
+            return CrmQueries.EAST_REGIONID;
         } else {
-            return Queries.WEST_REGIONID;
+            return CrmQueries.WEST_REGIONID;
         }
     }
 
@@ -512,7 +520,7 @@ public class Activity_SalesQuotas extends AppCompatActivity {
             // anyChartView.setVisibility(View.GONE);
             mtdRefreshLayout.autoRefreshAnimationOnly();
 
-            String query = Queries.Goals.getMtdGoalsByRegion(getRegionid(), monthNum, yearNum);
+            String query = CrmQueries.Goals.getMtdGoalsByRegion(getRegionid(), monthNum, yearNum);
             ArrayList<Requests.Argument> args = new ArrayList<>();
             Requests.Argument argument = new Requests.Argument("query", query);
             args.add(argument);
@@ -550,7 +558,7 @@ public class Activity_SalesQuotas extends AppCompatActivity {
             // Create and populate a container to hold the bar entries, labels and colors
             final ArrayList<String> xAxisLabel = new ArrayList<>();
             for(int i = 0; i < goals.size(); i++) {
-                CrmEntities.Goal goal = goals.list.get(i);
+                CrmEntities.Goals.Goal goal = goals.list.get(i);
                 BarEntry entry = new BarEntry(i, goal.pct);
                 entries.add(entry);
                 xAxisLabel.add(goal.ownername + " (" + goal.territoryname + ")");
@@ -616,7 +624,7 @@ public class Activity_SalesQuotas extends AppCompatActivity {
                     Log.i(TAG, "onValueSelected " + e.getData());
 
                     // Get the goal represented by the selected entry
-                    CrmEntities.Goal selectedGoal = goals.list.get((int) e.getX());
+                    CrmEntities.Goals.Goal selectedGoal = goals.list.get((int) e.getX());
 
                     // Show the goal summary for the selected entry
                     chartPopupDialog = new Dialog(context);
@@ -751,7 +759,7 @@ public class Activity_SalesQuotas extends AppCompatActivity {
             // anyChartView.setVisibility(View.GONE);
             ytdRefreshLayout.autoRefreshAnimationOnly();
 
-            String query = Queries.Goals.getYtdGoalsByRegion(getRegionid(),  yearNum);
+            String query = CrmQueries.Goals.getYtdGoalsByRegion(getRegionid(),  yearNum);
             ArrayList<Requests.Argument> args = new ArrayList<>();
             Requests.Argument argument = new Requests.Argument("query", query);
             args.add(argument);
@@ -789,7 +797,7 @@ public class Activity_SalesQuotas extends AppCompatActivity {
             // Create a container to hold the bar entry labels and populate them
             final ArrayList<String> xAxisLabel = new ArrayList<>();
             for(int i = 0; i < goals.size(); i++) {
-                CrmEntities.Goal goal = goals.list.get(i);
+                CrmEntities.Goals.Goal goal = goals.list.get(i);
                 BarEntry entry = new BarEntry(i, goal.pct);
                 entries.add(entry);
                 xAxisLabel.add(goal.ownername + " (" + goal.territoryname + ")");
@@ -850,7 +858,7 @@ public class Activity_SalesQuotas extends AppCompatActivity {
                     Log.i(TAG, "onValueSelected " + e.getData());
 
                     // Get the goal represented by the selected entry
-                    CrmEntities.Goal selectedGoal = goals.list.get((int) e.getX());
+                    CrmEntities.Goals.Goal selectedGoal = goals.list.get((int) e.getX());
 
                     // Show the goal summary for the selected entry
                     chartPopupDialog = new Dialog(context);

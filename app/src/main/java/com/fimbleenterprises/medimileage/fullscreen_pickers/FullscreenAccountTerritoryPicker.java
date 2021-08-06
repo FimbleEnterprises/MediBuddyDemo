@@ -19,7 +19,7 @@ import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.ExpandableBasicObjectListviewAdapter;
 import com.fimbleenterprises.medimileage.MyExpandableListview;
 import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
-import com.fimbleenterprises.medimileage.Queries;
+import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
@@ -86,7 +86,7 @@ public class FullscreenAccountTerritoryPicker extends AppCompatActivity implemen
         final MyProgressDialog progressDialog = new MyProgressDialog(context, "Getting territories...");
         progressDialog.show();
 
-        String query = Queries.Territories.getTerritoriesWithManagersAssigned();
+        String query = CrmQueries.Territories.getTerritoriesWithManagersAssigned();
         ArrayList<Requests.Argument> args = new ArrayList<>();
         args.add(new Requests.Argument("query", query));
         Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
@@ -183,7 +183,7 @@ public class FullscreenAccountTerritoryPicker extends AppCompatActivity implemen
 
                 Territory selectedTerritory = (Territory) parent.parentObject.object;
 
-                String query = Queries.Accounts.getAccountsByTerritory(selectedTerritory.territoryid);
+                String query = CrmQueries.Accounts.getAccountsByTerritory(selectedTerritory.territoryid);
                 ArrayList<Requests.Argument> args = new ArrayList<>();
                 args.add(new Requests.Argument("query", query));
                 Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);

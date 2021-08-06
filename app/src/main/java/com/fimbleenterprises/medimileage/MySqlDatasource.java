@@ -45,6 +45,10 @@ public class MySqlDatasource {
 
     public MySqlDatasource(Context context) {
 
+        if (context == null) {
+            context = MyApp.getAppContext();
+        }
+
         dbHelper = new MySQLiteHelper(context);
         this.context = context;
 
