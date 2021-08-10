@@ -607,6 +607,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             menu.findItem(R.id.nav_myaccounts).setTitle(getString(R.string.menu_account_info_explicit));
             menu.findItem(R.id.nav_salesquotas).setTitle(getString(R.string.menu_salesquotas_explicit));
             menu.findItem(R.id.nav_settings).setTitle(R.string.menu_settings_explicit);
+            menu.findItem(R.id.nav_usage).setTitle("Fucking usage");
             menu.findItem(R.id.nav_user_trips).setTitle(R.string.menu_users_explicit);
         } else {
             menu.findItem(R.id.nav_home).setTitle(R.string.menu_mileage);
@@ -616,8 +617,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             menu.findItem(R.id.nav_myaccounts).setTitle(getString(R.string.menu_account_info));
             menu.findItem(R.id.nav_salesquotas).setTitle(getString(R.string.menu_salesquotas));
             menu.findItem(R.id.nav_settings).setTitle(R.string.menu_settings);
+            menu.findItem(R.id.nav_usage).setTitle("Usage");
             menu.findItem(R.id.nav_user_trips).setTitle(R.string.menu_users);
         }
+
+        // User can hide the usage menu item in preferences and in fact, by default, it is hidden.
+        menu.findItem(R.id.nav_usage).setVisible(options.getShowUsageMenuItem());
 
         getDistinctUsersWithTrips();
     }

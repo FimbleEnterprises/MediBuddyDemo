@@ -302,10 +302,11 @@
     <string name="intial_territory_page_results_summary">The page to start on when viewing territory data.</string>
     <string name="intial_account_page_results_summary">The initial page of the account data pager</string>
     <string name="initial_account_page_pref_title">Initial account data page.</string>
-    <string name="title_activity_metrics">MetricsActivity</string>
+    <string name="title_activity_metrics">Usage Metrics</string>
     <string name="tab_text_1">Tab 1</string>
     <string name="tab_text_2">Tab 2</string>
     <string name="menu_usage">Usage</string>
+    <string name="settings_show_usage_menu_item">Show usage in menu</string>
 
 
 </resources>

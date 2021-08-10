@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="35dp">
+    <!--android:background="@drawable/btn_glass_gray_black_border_label_bg"-->
+
+    <ImageView
+        android:id="@+id/imageView_BasicObjectIcon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="2dp"
+        android:layout_marginRight="10dp"
+        android:focusable="false"
+        android:scaleType="centerInside"
+        android:src="@drawable/av_checkmark" />
+
+    <TextView
+        android:id="@+id/textView_BasicObjectRowSubtext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textView_BasicObjectRowMiddleText"
+        android:layout_marginTop="3dp"
+        android:layout_marginBottom="3dp"
+        android:layout_toLeftOf="@id/textView_BasicObjectBottomRightText"
+        android:layout_toRightOf="@+id/imageView_BasicObjectIcon"
+        android:focusable="false"
+        android:fontFamily="casual"
+        android:text="Subtext"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="#354856"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/textView_BasicObjectRowMiddleText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textView_BasicObjectMainText"
+        android:layout_marginTop="3dp"
+        android:layout_toRightOf="@+id/imageView_BasicObjectIcon"
+        android:focusable="false"
+        android:fontFamily="casual"
+        android:text="Usually Hidden Text"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="#354856"
+        android:textSize="16sp"
+        android:visibility="visible" />
+
+    <TextView
+        android:id="@+id/textView_BasicObjectMainText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/imageView_BasicObjectIcon"
+        android:layout_marginTop="3dp"
+        android:layout_toLeftOf="@id/textView_BasicObjectTopRightText"
+        android:layout_toRightOf="@+id/imageView_BasicObjectIcon"
+        android:focusable="false"
+        android:fontFamily="casual"
+        android:text="Main Text"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="#354856"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/textView_BasicObjectTopRightText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/imageView_BasicObjectIcon"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="3dp"
+        android:layout_marginRight="5dp"
+        android:focusable="false"
+        android:fontFamily="casual"
+        android:text="80%"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="#354856"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/textView_BasicObjectBottomRightText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textView_BasicObjectRowMiddleText"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="3dp"
+        android:layout_marginRight="5dp"
+        android:focusable="false"
+        android:fontFamily="casual"
+        android:text="80%"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="#354856"
+        android:textSize="14sp" />
+
+</RelativeLayout>

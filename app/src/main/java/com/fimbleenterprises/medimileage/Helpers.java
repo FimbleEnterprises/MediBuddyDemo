@@ -61,6 +61,7 @@ import android.widget.Toast;
 import com.google.android.gms.maps.model.LatLng;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Days;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -92,6 +93,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
+import java.util.TimeZone;
 
 
 import androidx.annotation.DrawableRes;
@@ -852,6 +854,74 @@ public abstract class Helpers {
         }
 
         public static String getPrettyDateAndTime(DateTime now) {
+
+            if (now == null) { return null; }
+
+            String day = String.valueOf(now.getDayOfMonth());
+            String month = String.valueOf(now.getMonthOfYear());
+            String year = String.valueOf(now.getYear());
+            String amPm = "am";
+
+            int intHour = now.getHourOfDay();
+            if (intHour == 12) {
+                amPm = "pm";
+            }
+            if (intHour > 12) {
+                intHour = intHour - 12;
+                amPm = "pm";
+            }
+            String hour = String.valueOf(intHour);
+            int intMinutes = now.getMinuteOfHour();
+            String minutes = String.valueOf(intMinutes);
+
+            switch (intMinutes) {
+                case 0:
+                    minutes = "00";
+                    break;
+                case 1:
+                    minutes = "01";
+                    break;
+                case 2:
+                    minutes = "02";
+                    break;
+                case 3:
+                    minutes = "03";
+                    break;
+                case 4:
+                    minutes = "04";
+                    break;
+                case 5:
+                    minutes = "05";
+                    break;
+                case 6:
+                    minutes = "06";
+                    break;
+                case 7:
+                    minutes = "07";
+                    break;
+                case 8:
+                    minutes = "08";
+                    break;
+                case 9:
+                    minutes = "09";
+                    break;
+            }
+
+            return month + "/" + day + "/" + year + " " + hour + ":" + minutes + " " + amPm;
+
+        }
+
+        public static String getPrettyDateAndTime(DateTime now, boolean convertUtcToLocal) {
+
+            // We do nothing with null values
+            if (now == null) { return null; }
+
+            // If the supplied datetime is UTC (which we have to sloppily assume) we can extract
+            // the timezone and use it to convert the supplied datetime to the device's local zone.
+            if (convertUtcToLocal) {
+                DateTimeZone timeZone = now.getZone();
+                now = new DateTime(timeZone.convertUTCToLocal(now.getMillis()));
+            }
 
             String day = String.valueOf(now.getDayOfMonth());
             String month = String.valueOf(now.getMonthOfYear());

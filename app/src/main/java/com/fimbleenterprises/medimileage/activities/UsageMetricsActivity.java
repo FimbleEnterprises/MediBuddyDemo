@@ -11,9 +11,11 @@ import androidx.viewpager.widget.PagerTitleStrip;
 import cz.msebera.android.httpclient.Header;
 
 import android.content.BroadcastReceiver;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ExpandableListAdapter;
@@ -23,6 +25,7 @@ import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.ExpandableBasicObjectListviewAdapter;
+import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.MyViewPager;
 import com.fimbleenterprises.medimileage.QueryFactory;
 import com.fimbleenterprises.medimileage.R;
@@ -56,7 +59,7 @@ public class UsageMetricsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_usage_metrics);
 
         sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-        mViewPager = (MyViewPager) findViewById(R.id.main_pager_usage_metrics);
+        mViewPager = findViewById(R.id.main_pager_usage_metrics);
         mViewPager.onRealPageChangedListener = new MyViewPager.OnRealPageChangedListener() {
             @Override
             public void onPageActuallyFuckingChanged(int pageIndex) {
@@ -75,12 +78,38 @@ public class UsageMetricsActivity extends AppCompatActivity {
             }
         });
 
+        // Set the viewpager font
+        Typeface fontTypeFace = getResources().getFont(R.font.casual);
+        for (int i = 0; i < mViewPager.getChildCount(); ++i) {
+            View nextChild = mViewPager.getChildAt(i);
+            for (int j = 0; j < ((PagerTitleStrip) nextChild).getChildCount(); j++) {
+                View subChild = ((PagerTitleStrip) nextChild).getChildAt(j);
+                if (subChild instanceof TextView) {
+                    TextView textViewToConvert = (TextView) subChild;
+                    textViewToConvert.setTypeface(fontTypeFace, Typeface.BOLD);
+                }
+            }
+        }
+
+        this.setTitle(R.string.title_activity_metrics);
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
@@ -123,7 +152,7 @@ public class UsageMetricsActivity extends AppCompatActivity {
 
             switch (position) {
                 case PAGE_ONE:
-                    return "";
+                    return "Users";
             }
             return null;
         }
@@ -155,7 +184,7 @@ public class UsageMetricsActivity extends AppCompatActivity {
             refreshLayout.setOnRefreshListener(new OnRefreshListener() {
                 @Override
                 public void onRefresh(RefreshLayout refreshlayout) {
-
+                    getStats();
                 }
             });
             refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
@@ -168,7 +197,13 @@ public class UsageMetricsActivity extends AppCompatActivity {
             recyclerView = root.findViewById(R.id.orderLinesRecyclerview);
             super.onCreateView(inflater, container, savedInstanceState);
 
-            getStats();
+            refreshLayout.autoRefreshAnimationOnly();
+            try {
+                getStats();
+            } catch (Exception e) {
+                refreshLayout.finishRefresh();
+                e.printStackTrace();
+            }
 
             return root;
         }
@@ -234,8 +269,37 @@ public class UsageMetricsActivity extends AppCompatActivity {
                     for (UserUsageMetrics.UserUsageMetric metric : metrics.list) {
                         BasicObjectsExpandableListviewAdapter.BasicObjectGroup group = new BasicObjectsExpandableListviewAdapter.BasicObjectGroup();
                         group.title = metric.fullname;
+                        group.rightText = (metric.msus_milebuddy_version != null) ? "ver: " + metric.msus_milebuddy_version : "ver: n/a";
                         if (metric.msus_milebuddy_version != null) {
-                            group.children.add(new BasicObjects.BasicObject("Version", metric.msus_milebuddy_version, null));
+                            group.children.add(new BasicObjects.BasicObject("Version:", metric.msus_milebuddy_version));
+                            group.children.add(new BasicObjects.BasicObject("Trip minder interval:",
+                                    metric.msus_trip_minder_value));
+                            group.children.add(new BasicObjects.BasicObject("Last accessed account data:", metric.msus_last_accessed_account_data == null ? "n/a" :
+                                    Helpers.DatesAndTimes.getPrettyDateAndTime(metric.msus_last_accessed_account_data)));
+                            group.children.add(new BasicObjects.BasicObject("Last accessed app:",  metric.msus_last_accessed_milebuddy == null ? "n/a" :
+                                    Helpers.DatesAndTimes.getPrettyDateAndTime(metric.msus_last_accessed_milebuddy)));
+                            group.children.add(new BasicObjects.BasicObject("Last accessed other user trips:", metric.msus_last_accessed_other_user_trips == null ? "n/a" :
+                                    Helpers.DatesAndTimes.getPrettyDateAndTime(metric.msus_last_accessed_other_user_trips)));
+                            group.children.add(new BasicObjects.BasicObject("Last performed search:",  metric.msus_last_accessed_search == null ? "n/a" :
+                                    Helpers.DatesAndTimes.getPrettyDateAndTime(metric.msus_last_accessed_search)));
+                            group.children.add(new BasicObjects.BasicObject("Last created note:",  metric.msus_last_created_note == null ? "n/a" :
+                                    Helpers.DatesAndTimes.getPrettyDateAndTime(metric.msus_last_created_note)));
+                            group.children.add(new BasicObjects.BasicObject("Last generated receipt:",  metric.msus_last_generated_receipt == null ? "n/a" :
+                                    Helpers.DatesAndTimes.getPrettyDateAndTime(metric.msus_last_generated_receipt)));
+                            group.children.add(new BasicObjects.BasicObject("Last opened opportunity:",  metric.msus_last_opened_opportunity == null ? "n/a" :
+                                    Helpers.DatesAndTimes.getPrettyDateAndTime(metric.msus_last_opened_opportunity)));
+                            group.children.add(new BasicObjects.BasicObject("Last accessed preferences:",  metric.msus_last_opened_settings == null ? "n/a" :
+                                    Helpers.DatesAndTimes.getPrettyDateAndTime(metric.msus_last_opened_settings)));
+                            group.children.add(new BasicObjects.BasicObject("Last opened a ticket:",  metric.msus_last_opened_ticket == null ? "n/a" :
+                                    Helpers.DatesAndTimes.getPrettyDateAndTime(metric.msus_last_opened_ticket)));
+                            group.children.add(new BasicObjects.BasicObject("Last synced mileage:",  metric.msus_last_synced_mileage == null ? "n/a" :
+                                    Helpers.DatesAndTimes.getPrettyDateAndTime(metric.msus_last_synced_mileage)));
+                            group.children.add(new BasicObjects.BasicObject("Last viewed mileage stats:",  metric.msus_last_viewed_mileage_stats == null ? "n/a" :
+                                    Helpers.DatesAndTimes.getPrettyDateAndTime(metric.msus_last_viewed_mileage_stats)));
+                            group.children.add(new BasicObjects.BasicObject("Last accessed territory data:",  metric.msus_milebuddy_last_accessed_territory_data == null ? "n/a" :
+                                    Helpers.DatesAndTimes.getPrettyDateAndTime(metric.msus_milebuddy_last_accessed_territory_data)));
+                            group.children.add(new BasicObjects.BasicObject("Last accessed territory changer:",  metric.msus_milebuddy_last_accessed_territory_changer == null ? "n/a" :
+                                    Helpers.DatesAndTimes.getPrettyDateAndTime(metric.msus_milebuddy_last_accessed_territory_changer)));
                         }
                         groups.add(group);
                     }
@@ -246,14 +310,17 @@ public class UsageMetricsActivity extends AppCompatActivity {
                 @Override
                 public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
                     Toast.makeText(getActivity(), error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                    refreshLayout.finishRefresh();
                 }
             });
 
         }
 
         public void populateList(ArrayList<BasicObjectsExpandableListviewAdapter.BasicObjectGroup> groups) {
+
             ExpandableListView expandableListView = (ExpandableListView) root.findViewById(R.id.expandableListView);
-            BasicObjectsExpandableListviewAdapter expandableListAdapter = new BasicObjectsExpandableListviewAdapter(getContext(), groups);
+            BasicObjectsExpandableListviewAdapter expandableListAdapter = new
+                    BasicObjectsExpandableListviewAdapter(getContext(), groups);
             expandableListView.setAdapter(expandableListAdapter);
             expandableListView.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
                 @Override
@@ -275,6 +342,9 @@ public class UsageMetricsActivity extends AppCompatActivity {
                     return false;
                 }
             });
+
+            refreshLayout.finishRefresh();
+
         }
 
     }
