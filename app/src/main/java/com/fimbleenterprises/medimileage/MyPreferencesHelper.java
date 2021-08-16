@@ -58,6 +58,7 @@ public class MyPreferencesHelper {
     public static final String DEFAULT_SEARCH_PAGE = "DEFAULT_SEARCH_PAGE";
     public static final String DEFAULT_TERRITORY_PAGE = "DEFAULT_TERRITORY_PAGE";
     public static final String DEFAULT_ACCOUNT_PAGE = "DEFAULT_ACCOUNT_PAGE";
+    public static final String SHOW_USAGE_MENU_ITEM = "SHOW_USAGE_MENU_ITEM";
 
     public static final String RECEIPT_FORMAT_PNG = ".png";
     public static final String RECEIPT_FORMAT_JPEG = ".jpeg";
@@ -160,6 +161,14 @@ public class MyPreferencesHelper {
             e.printStackTrace();
             return true;
         }
+    }
+
+    public boolean getShowUsageMenuItem() {
+        return prefs.getBoolean(SHOW_USAGE_MENU_ITEM, false);
+    }
+
+    public void setShowUsageMenuItem(boolean val) {
+        prefs.edit().putBoolean(SHOW_USAGE_MENU_ITEM, val).commit();
     }
 
     public double getDistanceThreshold() {

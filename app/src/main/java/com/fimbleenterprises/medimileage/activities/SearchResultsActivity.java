@@ -6,12 +6,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 /*import com.anychart.APIlib;
@@ -95,6 +97,19 @@ public class SearchResultsActivity extends AppCompatActivity {
 
             }
         });
+
+        // Set the viewpager font
+        Typeface fontTypeFace = getResources().getFont(R.font.casual);
+        for (int i = 0; i < mViewPager.getChildCount(); ++i) {
+            View nextChild = mViewPager.getChildAt(i);
+            for (int j = 0; j < ((PagerTitleStrip) nextChild).getChildCount(); j++) {
+                View subChild = ((PagerTitleStrip) nextChild).getChildAt(j);
+                if (subChild instanceof TextView) {
+                    TextView textViewToConvert = (TextView) subChild;
+                    textViewToConvert.setTypeface(fontTypeFace, Typeface.BOLD);
+                }
+            }
+        }
 
         fragMgr = getSupportFragmentManager();
 

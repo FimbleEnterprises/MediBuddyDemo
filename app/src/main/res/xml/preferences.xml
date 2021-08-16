@@ -173,6 +173,14 @@
         android:title="Other"
         android:fontFamily="casual">
 
+        <SwitchPreference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
+            app:key="SHOW_USAGE_MENU_ITEM"
+            android:fontFamily="casual"
+            app:defaultValue="false"
+            app:title="@string/settings_show_usage_menu_item" />
+
         <ListPreference
             android:foreground="#000000"
             android:theme="@style/AppTheme"

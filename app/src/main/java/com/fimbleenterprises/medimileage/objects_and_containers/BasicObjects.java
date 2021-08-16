@@ -125,7 +125,7 @@ public class BasicObjects implements Parcelable {
         public BasicObject(String name, String subtitle) {
             this.isHeader = false;
             this.title = name;
-            this.subtitle = subtitle;
+            this.middleText = subtitle;
         }
 
         /**

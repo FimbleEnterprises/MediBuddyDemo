@@ -87,6 +87,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String SERVER_BASE_URL = "SERVER_BASE_URL";
     public static final String OPPORTUNITIES_KEY = "updateOpportunities";
     public static final String DEFAULT_SEARCH_PAGE = "DEFAULT_SEARCH_PAGE";
+    public static final String SHOW_USAGE_MENU_ITEM = "SHOW_USAGE_MENU_ITEM";
 
     public static String DEFAULT_DATABASE_NAME = "mileagetracking.db";
 

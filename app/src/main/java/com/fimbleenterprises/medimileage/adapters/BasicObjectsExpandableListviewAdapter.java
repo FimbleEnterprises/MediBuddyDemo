@@ -32,6 +32,7 @@ public class BasicObjectsExpandableListviewAdapter extends BaseExpandableListAda
          * This will be the title of the parent/group list item.
          */
         public String title;
+        public String rightText;
         /**
          * These are the children to be displayed when the parent/group item is expanded.
          */
@@ -76,7 +77,7 @@ public class BasicObjectsExpandableListviewAdapter extends BaseExpandableListAda
         if (convertView == null) {
             LayoutInflater layoutInflater = (LayoutInflater) this.context
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            convertView = layoutInflater.inflate(R.layout.basic_object_row, null);
+            convertView = layoutInflater.inflate(R.layout.expandable_child_row, null);
         }
 
         TextView mainText = (TextView) convertView
@@ -87,19 +88,26 @@ public class BasicObjectsExpandableListviewAdapter extends BaseExpandableListAda
                 .findViewById(R.id.textView_BasicObjectTopRightText);
         TextView middleText = (TextView) convertView
                 .findViewById(R.id.textView_BasicObjectRowMiddleText);
+        TextView bottomRightText = (TextView) convertView
+                .findViewById(R.id.textView_BasicObjectBottomRightText);
         ImageView leftIcon = (ImageView) convertView.findViewById(R.id.imageView_BasicObjectIcon);
+
 
         mainText.setText(data.title);
         subText.setText(data.middleText);
         topRightText.setText(data.topRightText);
         middleText.setText(data.middleText);
-        leftIcon.setImageResource(data.iconResource);
+        if (data.iconResource == -1) {
+            data.iconResource = R.drawable.av_checkmark;
+            leftIcon.setImageResource(data.iconResource);
+        }
 
         mainText.setVisibility(data.title == null ? View.GONE : View.VISIBLE);
         subText.setVisibility(data.subtitle == null ? View.GONE : View.VISIBLE);
         topRightText.setVisibility(data.topRightText == null ? View.GONE : View.VISIBLE);
         middleText.setVisibility(data.middleText == null ? View.GONE : View.VISIBLE);
-        leftIcon.setVisibility(data.iconResource == 0 ? View.GONE : View.VISIBLE);
+        leftIcon.setVisibility(data.iconResource == -1 ? View.GONE : View.VISIBLE);
+        bottomRightText.setVisibility(data.bottomRightText == null ? View.GONE : View.VISIBLE);
 
         return convertView;
     }
@@ -125,10 +133,20 @@ public class BasicObjectsExpandableListviewAdapter extends BaseExpandableListAda
     }
 
     @Override
+    public void onGroupCollapsed(int groupPosition) {
+        super.onGroupCollapsed(groupPosition);
+    }
+
+    @Override
+    public void onGroupExpanded(int groupPosition) {
+        super.onGroupExpanded(groupPosition);
+    }
+
+    @Override
     public View getGroupView(int listPosition, boolean isExpanded,
                              View convertView, ViewGroup parent) {
 
-        String listTitle = getGroup(listPosition).title;
+        BasicObjectGroup group = getGroup(listPosition);
 
         if (convertView == null) {
             LayoutInflater layoutInflater = (LayoutInflater) this.context.
@@ -136,10 +154,15 @@ public class BasicObjectsExpandableListviewAdapter extends BaseExpandableListAda
             convertView = layoutInflater.inflate(R.layout.list_group, null);
         }
 
-        TextView listTitleTextView = (TextView) convertView
-                .findViewById(R.id.listTitle);
-        listTitleTextView.setTypeface(null, Typeface.BOLD);
-        listTitleTextView.setText(listTitle);
+        ImageView leftIcon = convertView.findViewById(R.id.imgLeftIcon);
+        TextView rightText = convertView.findViewById(R.id.rightText);
+
+        TextView listTitleTextView = convertView.findViewById(R.id.listTitle);
+        listTitleTextView.setTypeface(listTitleTextView.getTypeface(), Typeface.BOLD);
+        listTitleTextView.setText(group.title);
+
+        rightText.setText(group.rightText);
+
         return convertView;
     }
 

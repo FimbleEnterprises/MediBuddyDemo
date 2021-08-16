@@ -26,11 +26,10 @@
         android:roundIcon="@mipmap/car2_static_round_tparent_icon"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activities.UsageMetricsActivity"></activity>
         <activity
-            android:name=".activities.MetricsActivity"
+            android:name=".activities.UsageMetricsActivity"
             android:label="@string/title_activity_metrics"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme"></activity>
         <activity
             android:name=".activities.PermissionsActivity"
             android:label="@string/title_activity_permissions"

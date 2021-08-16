@@ -10,6 +10,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
@@ -175,6 +176,20 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 destroyChartDialogIfVisible();
             }
         });
+
+        // Set the viewpager font
+        Typeface fontTypeFace = getResources().getFont(R.font.casual);
+        for (int i = 0; i < mViewPager.getChildCount(); ++i) {
+            View nextChild = mViewPager.getChildAt(i);
+            for (int j = 0; j < ((PagerTitleStrip) nextChild).getChildCount(); j++) {
+                View subChild = ((PagerTitleStrip) nextChild).getChildAt(j);
+                if (subChild instanceof TextView) {
+                    TextView textViewToConvert = (TextView) subChild;
+                    textViewToConvert.setTypeface(fontTypeFace, Typeface.BOLD);
+                }
+            }
+        }
+
         fragMgr = getSupportFragmentManager();
 
         ActionBar actionBar = getSupportActionBar();
