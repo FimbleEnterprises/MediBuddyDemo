@@ -298,6 +298,24 @@
                     app:isPreferenceVisible="true"
                     app:summary="@string/settings_experimental_menu_summary"
                     app:title="@string/settings_experimental_menu_title" />
+
+            <Preference
+                android:foreground="#000000"
+                android:theme="@style/AppTheme"
+                app:key="MASQUERADE_AS"
+                android:fontFamily="casual"
+                app:isPreferenceVisible="true"
+                app:summary="@string/settings_experimental_menu_masquerade_summary"
+                app:title="@string/settings_experimental_menu_masquerade_title" />
+
+            <Preference
+                android:foreground="#000000"
+                android:theme="@style/AppTheme"
+                app:key="CREATE_RECEIPT_FOR_USER"
+                android:fontFamily="casual"
+                app:isPreferenceVisible="true"
+                app:summary="@string/prefs_create_receipt_for_user_description"
+                app:title="@string/prefs_create_receipt_for_user_title" />
         </PreferenceCategory>
     </PreferenceCategory>
 

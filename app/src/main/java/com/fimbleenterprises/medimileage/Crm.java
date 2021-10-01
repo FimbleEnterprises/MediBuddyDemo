@@ -107,6 +107,53 @@ public class Crm {
     }
 
     public RequestHandle makeCrmRequest(Context context, Requests.Request request, Timeout timeout,
+                                        final AsyncHttpResponseHandler responseHandler) {
+
+        String argString = "";
+        for (Requests.Argument arg : request.arguments) {
+            argString = arg.toString() + "\n";
+        }
+
+        Log.i(TAG, "makeCrmRequest: Request function: " + request.function + " Request arguments: " + argString);
+
+        StringEntity payload = null;
+        try {
+            payload = new StringEntity(request.toJson());
+        } catch (Exception e) {
+            e.printStackTrace();
+            responseHandler.onFailure(0, null, null, e);
+        }
+
+        if (timeout == Timeout.LONG) {
+            client.setTimeout(1000000);
+        } else if (timeout == Timeout.SHORT) {
+            client.setTimeout(10000);
+        }
+
+        return client.post(context, options.getServerBaseUrl(), payload, "application/json",
+                new AsyncHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                        Log.i(TAG, "onSuccess : code = " + statusCode);
+                        responseHandler.onSuccess(statusCode, headers, responseBody);
+                    }
+
+                    @Override
+                    public void onProgress(long bytesWritten, long totalSize) {
+                        super.onProgress(bytesWritten, totalSize);
+                        responseHandler.onProgress(bytesWritten, totalSize);
+                        Log.d(TAG, "onProgress | bytesWritten: " + bytesWritten + ", totalSize: " + totalSize);
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                        Log.w(TAG, "onFailure: code: " + statusCode);
+                        responseHandler.onFailure(statusCode, headers, responseBody, error);
+                    }
+                });
+    }
+
+    public RequestHandle makeCrmRequest(Context context, Requests.Request request, Timeout timeout,
                                         final MyInterfaces.CrmRequestListener listener) {
 
         String argString = "";
@@ -182,7 +229,7 @@ public class Crm {
         SHORT, LONG
     }
 
-    public class AsyncProgress {
+    public static class AsyncProgress {
         private double bytesWritten = 1;
         private double totalSize = 1;
 

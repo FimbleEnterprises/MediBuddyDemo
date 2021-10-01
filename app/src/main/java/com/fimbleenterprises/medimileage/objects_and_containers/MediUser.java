@@ -56,6 +56,7 @@ public class MediUser implements Parcelable {
     public String managerbusinessunitname;
     public String salesregionid;
     public String salesregionname;
+    public boolean isMasquerading = false;
     public boolean isMe = true;
 
     // Mark these as transient so that Gson will ignore them.
@@ -494,6 +495,7 @@ public class MediUser implements Parcelable {
         msus_milebuddy_last_accessed_territory_changer = (DateTime) in.readValue(DateTime.class.getClassLoader());
         msus_last_accessed_other_user_trips = (DateTime) in.readValue(DateTime.class.getClassLoader());
         milebuddyVersion = in.readString();
+        isMasquerading = in.readByte() != 0x00;
     }
 
     @Override
@@ -544,6 +546,7 @@ public class MediUser implements Parcelable {
         dest.writeValue(msus_milebuddy_last_accessed_territory_changer);
         dest.writeValue(msus_last_accessed_other_user_trips);
         dest.writeString(milebuddyVersion);
+        dest.writeByte((byte) (isMasquerading ? 0x01 : 0x00));
     }
 
     @SuppressWarnings("unused")

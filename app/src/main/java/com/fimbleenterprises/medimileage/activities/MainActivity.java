@@ -577,7 +577,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // A rep was chosen using the fullscreen rep chooser dialog.  Broadcast that shiz.
         if (data != null && data.getAction().equals(FullscreenActivityChooseRep.CHOICE_RESULT)) {
             Intent repPickerResultIntent = new Intent(FullscreenActivityChooseRep.CHOICE_RESULT);
-            repPickerResultIntent.putExtra(FullscreenActivityChooseRep.CHOICE_RESULT, data.getParcelableExtra(FullscreenActivityChooseRep.CHOICE_RESULT));
+            MediUser chosenUser = data.getParcelableExtra(FullscreenActivityChooseRep.CHOICE_RESULT);
+            repPickerResultIntent.putExtra(FullscreenActivityChooseRep.CHOICE_RESULT, chosenUser);
             sendBroadcast(repPickerResultIntent);
         }
 

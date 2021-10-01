@@ -28,7 +28,6 @@ public class MonthYearPickerDialog extends DialogFragment {
     private Dialog picker;
     private NumberPicker monthPicker;
     private NumberPicker yearPicker;
-    Activity activity;
 
     public void setListener(DatePickerDialog.OnDateSetListener listener) {
         this.listener = listener;

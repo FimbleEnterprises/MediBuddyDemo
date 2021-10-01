@@ -1709,7 +1709,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         // Log a metric
         MileBuddyMetrics.updateMetric(getContext(), MileBuddyMetrics.MetricName.LAST_ACCESSED_MILEAGE_SYNC, DateTime.now());
 
-        crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
+        crm.makeCrmRequest(getContext(), request, Crm.Timeout.LONG, new AsyncHttpResponseHandler() {
             @SuppressLint("StaticFieldLeak")
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
@@ -1738,24 +1738,24 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                             return null;
                         }
 
-                    @Override
-                    protected void onProgressUpdate(String... values) {
-                        int curVal = Integer.parseInt(values[0]);
-                        int totalVal = Integer.parseInt(values[1]);
-                        dialog.setContentText("Updating local trip " + curVal + " of " + totalVal);
-                        if (curVal == totalVal - 1) {
-                            dialog.setContentText("Redrawing the list.  Stand by...");
+                        @Override
+                        protected void onProgressUpdate(String... values) {
+                            int curVal = Integer.parseInt(values[0]);
+                            int totalVal = Integer.parseInt(values[1]);
+                            dialog.setContentText("Updating local trip " + curVal + " of " + totalVal);
+                            if (curVal == totalVal - 1) {
+                                dialog.setContentText("Redrawing the list.  Stand by...");
+                            }
+                            super.onProgressUpdate(values);
                         }
-                        super.onProgressUpdate(values);
-                    }
 
-                    @Override
-                        protected void onPostExecute(String s) {
-                            super.onPostExecute(s);
-                            Log.i(TAG, "onSuccess Local trips were synced");
-                            populateTripList();
-                            dialog.dismiss();
-                        }
+                        @Override
+                            protected void onPostExecute(String s) {
+                                super.onPostExecute(s);
+                                Log.i(TAG, "onSuccess Local trips were synced");
+                                populateTripList();
+                                dialog.dismiss();
+                            }
                     }.execute(null, null, null);
             }
 
@@ -2090,6 +2090,10 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     }
 
     void showReceiptDialog() {
+        showReceiptDialog(MediUser.getMe().systemuserid);
+    }
+
+    void showReceiptDialog(String userid) {
         final Dialog dialog = new Dialog(getContext());
         final Context c = getContext();
         dialog.setContentView(R.layout.make_receipt);
@@ -2154,6 +2158,8 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                     , Toast.LENGTH_SHORT).show();
         }
     }
+
+
 
     public File makeReceiptFile(int monthNum, int year) {
         MySqlDatasource ds = new MySqlDatasource();

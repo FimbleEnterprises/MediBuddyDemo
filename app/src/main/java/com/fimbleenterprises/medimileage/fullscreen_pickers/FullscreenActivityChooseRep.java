@@ -52,6 +52,20 @@ public class FullscreenActivityChooseRep extends AppCompatActivity {
      * @param activity An activity that can raise an OnActivityResult event.
      * @param currentUser A MediUser - if null will use the current user.
      */
+    public static void showRepChooser(Activity activity, MediUser currentUser, int requestCode) {
+        if (currentUser == null) {
+            currentUser = MediUser.getMe();
+        }
+        Intent intent = new Intent(activity, FullscreenActivityChooseRep.class);
+        intent.putExtra(CURRENT_VALUE, currentUser);
+        activity.startActivityForResult(intent, requestCode);
+    }
+
+    /**
+     * Shows a picker for sales reps.  Will return an intent with the selected user as a MediUser object with a tag of: CHOICE_RESULT
+     * @param activity An activity that can raise an OnActivityResult event.
+     * @param currentUser A MediUser - if null will use the current user.
+     */
     public static void showRepChooser(Activity activity, MediUser currentUser) {
         if (currentUser == null) {
             currentUser = MediUser.getMe();

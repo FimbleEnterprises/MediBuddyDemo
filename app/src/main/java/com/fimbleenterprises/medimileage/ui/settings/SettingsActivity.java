@@ -1,20 +1,30 @@
 package com.fimbleenterprises.medimileage.ui.settings;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View;
+import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.Toast;
 
+import com.fimbleenterprises.medimileage.dialogs.MonthYearPickerDialog;
 import com.fimbleenterprises.medimileage.objects_and_containers.AccountAddresses;
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.fullscreen_pickers.FullscreenActivityChooseRep;
 import com.fimbleenterprises.medimileage.Helpers;
+import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyUpdate;
@@ -33,12 +43,16 @@ import com.loopj.android.http.AsyncHttpResponseHandler;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.math.RoundingMode;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.List;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
@@ -88,15 +102,17 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String OPPORTUNITIES_KEY = "updateOpportunities";
     public static final String DEFAULT_SEARCH_PAGE = "DEFAULT_SEARCH_PAGE";
     public static final String SHOW_USAGE_MENU_ITEM = "SHOW_USAGE_MENU_ITEM";
+    public static final String MASQUERADE_AS = "MASQUERADE_AS";
+    public static final String CREATE_RECEIPT_FOR_USER = "CREATE_RECEIPT_FOR_USER";
 
     public static String DEFAULT_DATABASE_NAME = "mileagetracking.db";
 
     // if this activity is started with an intent extra representing an existing preference then we will scroll to that preference after preferences are loaded.
     public static Preference initialScrollToPreference;
     public static String PREF_INTENT_TAG = "PREFERENCE";
+    public static final int MAKE_RECEIPT_FOR_USER_CODE = 556;
 
     Context context;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,6 +134,30 @@ public class SettingsActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (data != null && data.hasExtra(FullscreenActivityChooseRep.CHOICE_RESULT) && requestCode == FullscreenActivityChooseRep.REQUESTCODE) {
+            MediUser chosenUser = data.getParcelableExtra(FullscreenActivityChooseRep.CHOICE_RESULT);
+            chosenUser.isMasquerading = true;
+            try {
+                chosenUser.save(getApplicationContext());
+                Toast.makeText(context, "You are now masquerading as: " + chosenUser.fullname, Toast.LENGTH_SHORT).show();
+                MySqlDatasource ds = new MySqlDatasource();
+                // ds.deleteAllTripData();
+            } catch (Exception e) {
+                Toast.makeText(context, "Failed to masquerade!\n" + e.getLocalizedMessage() , Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
+            }
+        }
+
+        if (data != null && data.hasExtra(FullscreenActivityChooseRep.CHOICE_RESULT) && requestCode == MAKE_RECEIPT_FOR_USER_CODE) {
+            MediUser chosenUser = data.getParcelableExtra(FullscreenActivityChooseRep.CHOICE_RESULT);
+            Toast.makeText(context, "Make receipt for " + chosenUser.fullname, Toast.LENGTH_SHORT).show();
+            showReceiptMonthPicker(chosenUser);
+        }
     }
 
     @Override
@@ -159,6 +199,8 @@ public class SettingsActivity extends AppCompatActivity {
             Preference prefUpdateMyUserInfo;
             Preference prefExplicitMode;
             Preference prefSetDefaults;
+            Preference prefMasqueradeAs;
+            Preference prefCreateReceiptFor;
 
             final Preference prefSetServerBaseUrl;
             Preference prefUpdateOpportunities;
@@ -468,6 +510,30 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             });
 
+            prefMasqueradeAs = findPreference(MASQUERADE_AS);
+            if (MediUser.getMe().email.equals("matt.weber@medistimusa.com") || MediUser.getMe().isMasquerading) {
+                prefMasqueradeAs.setEnabled(true);
+            } else {
+                prefMasqueradeAs.setEnabled(false);
+            }
+            prefMasqueradeAs.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    // Show the rep picker.  Obtain the result by overriding onActivityResult()
+                    FullscreenActivityChooseRep.showRepChooser(getActivity(), MediUser.getMe());
+                    return false;
+                }
+            });
+
+            prefCreateReceiptFor = findPreference(CREATE_RECEIPT_FOR_USER);
+            prefCreateReceiptFor.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    FullscreenActivityChooseRep.showRepChooser(getActivity(), MediUser.getMe(), MAKE_RECEIPT_FOR_USER_CODE);
+                    return false;
+                }
+            });
+
             // We do not want to backup or restore the db while a trip is running.
             if (MyLocationService.isRunning) {
                 prefBackupDb.setEnabled(false);
@@ -666,5 +732,185 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
+    void showReceiptDialog() {
+        // showReceiptDialog(MediUser.getMe().systemuserid);
+    }
+
+    /*void showReceiptDialog(String userid) {
+        final Dialog dialog = new Dialog(context);
+        final Context c = context;
+        dialog.setContentView(R.layout.make_receipt);
+        dialog.setCancelable(true);
+        Button btnThisMonth = dialog.findViewById(R.id.btnThisMonth);
+        Button btnLastMonth = dialog.findViewById(R.id.btnLastMonth);
+        Button btnChoose = dialog.findViewById(R.id.btnChooseMonth);
+
+        btnThisMonth.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                doActualReceipt(DateTime.now().getMonthOfYear(), DateTime.now().getYear());
+                dialog.dismiss();
+            }
+        });
+        btnLastMonth.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DateTime lastMonth = DateTime.now().minusMonths(1);
+                doActualReceipt(lastMonth.getMonthOfYear(), lastMonth.getYear());
+                dialog.dismiss();
+            }
+        });
+        btnChoose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showReceiptMonthPicker();
+                dialog.dismiss();
+            }
+        });
+        dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+            @Override
+            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    dialog.dismiss();
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        });
+        dialog.show();
+    }*/
+
+    @SuppressLint("NewApi")
+    private void showReceiptMonthPicker(final MediUser onBehalfOfUser) {
+        MonthYearPickerDialog mpd = new MonthYearPickerDialog();
+        mpd.setListener(new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                if (month >= 1 && month <= 12) {
+                    makeReceiptOnBehalfOf(onBehalfOfUser, month, year);
+                }
+            }
+        });
+        mpd.show(getSupportFragmentManager(), "MonthYearPickerDialog");
+    }
+
+    void doActualReceipt(File receipt) {
+
+        // Log a metric
+        MileBuddyMetrics.updateMetric(context, MileBuddyMetrics.MetricName
+                .LAST_ACCESSED_GENERATE_RECEIPT, DateTime.now());
+
+        if (receipt != null) {
+            MediUser me = MediUser.getMe();
+            String[] recips = new String[1];
+            recips[0] = me.email;
+            Helpers.Email.sendEmail(recips, getString(R.string.receipt_mail_body),
+                    getString(R.string.receipt_mail_subject_preamble), context, receipt, false);
+        } else {
+            Toast.makeText(context, "No trips found for that month/year."
+                    , Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public File makeReceiptFile(ArrayList<FullTrip> allTrips, int monthNum, int yearNum, MediUser user) {
+        MySqlDatasource ds = new MySqlDatasource();
+
+        String fName = user.fullname + "_mileage_receipt_month_" + Helpers.DatesAndTimes.getMonthName(monthNum) + "_year_" +
+                yearNum + ".txt";
+        File txtFile = new File(Helpers.Files.ReceiptTempFiles.getDirectory(), fName);
+        File finalReceiptFile = null;
+
+        float total = 0f;
+        float tripAmt = 0f;
+        int tripCount = 0;
+        float totalMiles = 0f;
+
+        try {
+            FileOutputStream stream = new FileOutputStream(txtFile);
+            StringBuilder stringBuilder = new StringBuilder();
+            try {
+                stringBuilder.append("----------------------------------------\n");
+                stringBuilder.append(("Mileage Report (" + user.fullname + ")\n"));
+                stringBuilder.append("----------------------------------------\n\n");
+                for (FullTrip trip : allTrips) {
+                    if (trip.getIsSubmitted()) {
+                        tripCount += 1;
+                        tripAmt = trip.calculateReimbursement();
+                        total += tripAmt;
+                        totalMiles += trip.getDistanceInMiles();
+                        stringBuilder.append("* Trip: " + Helpers.DatesAndTimes.getPrettyDate(trip.getDateTime()) + "\n\t" +
+                                "Distance:" + trip.getDistanceInMiles() + "\n\t" +
+                                "Reimbursement: " + Helpers.Numbers.convertToCurrency(tripAmt) + "\n\t" +
+                                "Is edited: " + trip.getIsEdited() + "\n\t" +
+                                "Is manual: " + trip.getIsManualTrip() + "\n\n");
+                    }
+                }
+
+                totalMiles = Helpers.Numbers.formatAsZeroDecimalPointNumber(totalMiles, RoundingMode.HALF_UP);
+                stringBuilder.append("\n\n Trip count: " + tripCount);
+                stringBuilder.append("\n Total reimbursement: " + Helpers.Numbers.convertToCurrency(totalMiles * options.getReimbursementRate()));
+                stringBuilder.append("\n Total miles: " + totalMiles);
+
+                stream.write(stringBuilder.toString().getBytes());
+            } finally {
+                stream.close();
+            }
+
+            try {
+                if (options.getReceiptFormat().equals(MyPreferencesHelper.RECEIPT_FORMAT_PNG)) {
+                    finalReceiptFile = Helpers.Bitmaps.createPngFileFromString(stringBuilder.toString(), fName);
+                } else if (options.getReceiptFormat().equals(MyPreferencesHelper.RECEIPT_FORMAT_JPEG)) {
+                    finalReceiptFile = Helpers.Bitmaps.createJpegFileFromString(stringBuilder.toString(), fName);
+                } else {
+                    finalReceiptFile = txtFile;
+                }
+                return finalReceiptFile;
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(context, "Failed to make an image file.  Text file will have to do!", Toast.LENGTH_SHORT).show();
+                return txtFile;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (tripCount > 0 && finalReceiptFile != null) {
+            return finalReceiptFile;
+        } else if (tripCount > 0 && finalReceiptFile == null) {
+            return txtFile;
+        } else {
+            return null;
+        }
+    }
+
+    void makeReceiptOnBehalfOf(final MediUser user, final int month, final int year) {
+
+        final MyProgressDialog dialog = new MyProgressDialog(context, "Getting user's mileage...");
+        dialog.show();
+
+        String query = CrmQueries.Trips.getAllTripsWithoutEntriesByOwnerByMonthAndYear(year, month, user.systemuserid);
+        Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
+        Requests.Argument arg = new Requests.Argument("query", query);
+        request.arguments.add(arg);
+        new Crm().makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                String response = new String(responseBody);
+                ArrayList<FullTrip> trips = FullTrip.createTripsFromCrmJson(response, true);
+                Toast.makeText(context, "Trip count: " + trips.size(), Toast.LENGTH_SHORT).show();
+                File receipt = makeReceiptFile(trips, month, year, user);
+                doActualReceipt(receipt);
+                dialog.dismiss();
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                Toast.makeText(context, error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            }
+        });
+    }
 
 }

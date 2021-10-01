@@ -143,7 +143,7 @@ public class AuthenticationFragment extends Fragment {
 
                             @Override
                             public void onError(String msg, Throwable exception) {
-                                Toast.makeText(context, "Failed to authenticate\n" + exception.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(context, "Failed to authenticate\n" + msg, Toast.LENGTH_SHORT).show();
                                 dialog.dismiss();
                             }
                         });

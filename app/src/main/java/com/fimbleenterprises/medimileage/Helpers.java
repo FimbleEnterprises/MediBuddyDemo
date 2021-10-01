@@ -1112,7 +1112,24 @@ public abstract class Helpers {
             return days; // <-- the result!
         }
 
-        public static String getLastDayOfMonth(int month, int year) {
+        /**
+         * Returns the last calendar day of the supplied month and year.
+         * @param month The month to evaluate.
+         * @param year The year to evaluate.
+         * @return The last possible day of the month as a DateTime object (as of Midnight of that day).
+         */
+        public static DateTime getLastDayOfMonthAsDateTimeObject(int month, int year) {
+            DateTime dateTime = new DateTime(year, month, 1, 0, 0);
+            return dateTime.dayOfMonth().withMaximumValue();
+        }
+
+        /**
+         * Returns the last calendar day of the supplied month and year.
+         * @param month The month to evaluate.
+         * @param year The year to evaluate.
+         * @return The calendar date as a pretty string (e.g. 12/23/2002)
+         */
+        public static String getLastDayOfMonthAsPrettyString(int month, int year) {
             String result = "";
             // month = month + 1; // Zero based month index
             if (month == 0) {

@@ -307,6 +307,10 @@
     <string name="tab_text_2">Tab 2</string>
     <string name="menu_usage">Usage</string>
     <string name="settings_show_usage_menu_item">Show usage in menu</string>
+    <string name="settings_experimental_menu_masquerade_title">Masquerade as...</string>
+    <string name="settings_experimental_menu_masquerade_summary">Select a user to masquerade as.  Useful for debugging.</string>
+    <string name="prefs_create_receipt_for_user_title">Create receipt for...</string>
+    <string name="prefs_create_receipt_for_user_description">Lets you choose a user and create a mileage reciept on their behalf.</string>
 
 
 </resources>
