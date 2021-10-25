@@ -96,7 +96,6 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -122,7 +121,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     IntentFilter allPurposeFilter = new IntentFilter(GENERIC_RECEIVER_ACTION);
     MySqlDatasource datasource;
     TripListRecyclerAdapter adapter;
-    ArrayList<FullTrip> allTrips = new ArrayList<>();
+    ArrayList<FullTrip> locallySavedTrips = new ArrayList<>();
     RecyclerView recyclerView;
     public static int SERVICE_ID = 200;
     IntentFilter locFilter = new IntentFilter(MyLocationService.LOCATION_EVENT);
@@ -786,7 +785,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
     @Override
     public void onItemClick(View view, int position) {
-        FullTrip clickedTrip = allTrips.get(position);
+        FullTrip clickedTrip = locallySavedTrips.get(position);
         if (clickedTrip.isSeparator) {
             return;
         }
@@ -1263,7 +1262,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         txtMtd.setText("---");
         txtMilesTotal.setText("---");
 
-        allTrips = new ArrayList<>();
+        locallySavedTrips = new ArrayList<>();
         ArrayList<FullTrip> tempList = new ArrayList<>();
         Log.i(TAG, "populateTripList Getting trips from database...");
         tempList = datasource.getTrips();
@@ -1272,11 +1271,11 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         Log.i(TAG, "populateTripList Adding trips to the master list...");
         for (FullTrip trip : tempList) {
             if (!trip.getIsRunning()) {
-                allTrips.add(trip);
+                locallySavedTrips.add(trip);
             }
         }
 
-        Log.i(TAG, "populateTripList Added: " + allTrips.size() + " trips to the master list.");
+        Log.i(TAG, "populateTripList Added: " + locallySavedTrips.size() + " trips to the master list.");
 
         ArrayList<FullTrip> triplist = new ArrayList<>();
 
@@ -1292,10 +1291,10 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         int todayMonthOfYear = Helpers.DatesAndTimes.returnMonthOfYear(DateTime.now());
 
         Log.i(TAG, "populateTripList: Preparing the dividers and trips...");
-        for (int i = 0; i < (allTrips.size()); i++) {
-            int tripDayOfYear = Helpers.DatesAndTimes.returnDayOfYear(allTrips.get(i).getDateTime());
-            int tripWeekOfYear = Helpers.DatesAndTimes.returnWeekOfYear(allTrips.get(i).getDateTime());
-            int tripMonthOfYear = Helpers.DatesAndTimes.returnMonthOfYear(allTrips.get(i).getDateTime());
+        for (int i = 0; i < (locallySavedTrips.size()); i++) {
+            int tripDayOfYear = Helpers.DatesAndTimes.returnDayOfYear(locallySavedTrips.get(i).getDateTime());
+            int tripWeekOfYear = Helpers.DatesAndTimes.returnWeekOfYear(locallySavedTrips.get(i).getDateTime());
+            int tripMonthOfYear = Helpers.DatesAndTimes.returnMonthOfYear(locallySavedTrips.get(i).getDateTime());
 
             // Trip was today
             if (tripDayOfYear == todayDayOfYear) {
@@ -1351,13 +1350,13 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                     Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Older' - This will not be added again!");
                 }
             }
-            triplist.add(allTrips.get(i));
+            triplist.add(locallySavedTrips.get(i));
         }
 
         Log.i(TAG, "populateTripList Finished preparing the dividers and trips.");
 
         // Since the new arraylist now has headers it will throw off the original array's indexes
-        allTrips = triplist;
+        locallySavedTrips = triplist;
         adapter = new TripListRecyclerAdapter(getContext(), triplist, this);
         adapter.setClickListener(this);
         recyclerView.setAdapter(adapter);
@@ -1365,7 +1364,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         // Tally the MTD reimbursement
         float mtdTotal = 0;
         float mtdMilesTotal = 0;
-        for (FullTrip trip : allTrips) {
+        for (FullTrip trip : locallySavedTrips) {
             // Only submitted trips
             if (trip.getIsSubmitted()) {
                 // Only tally this month's trips
@@ -1568,7 +1567,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     void manageDefaultImage() {
         setEditMode(false);
         if (! MyLocationService.isRunning) {
-            emptyTripList.setVisibility((allTrips == null || allTrips.size()
+            emptyTripList.setVisibility((locallySavedTrips == null || locallySavedTrips.size()
                     <= SHOW_CLICK_HERE_TRIP_COUNT_THRESHOLD) ? View.VISIBLE : View.GONE);
         } else {
             emptyTripList.setVisibility(View.GONE);
@@ -1582,7 +1581,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
         String query = CrmQueries.TripAssociation.getAssociationsLastXMonths(3);
 
-        if (allTrips != null && allTrips.size() > 0) {
+        if (locallySavedTrips != null && locallySavedTrips.size() > 0) {
             // String query = Queries.TripAssociation.getAssociationsLastXMonths(3);
             ArrayList<Requests.Argument> args = new ArrayList<>();
             args.add(new Requests.Argument("query", query));
@@ -1594,7 +1593,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                     String response = new String(responseBody);
                     TripAssociations associations = new TripAssociations(response);
-                    for (FullTrip trip : allTrips) {
+                    for (FullTrip trip : locallySavedTrips) {
                         if (associations.getAssociation(trip) != null) {
                             Log.i(TAG, "onSuccess Found an association!");
                             TripAssociation association = associations.getAssociation(trip);
@@ -1603,7 +1602,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                         }
                     }
                     Log.i(TAG, "onSuccess Finished parsing " + associations.list.size() + " associations for " +
-                            allTrips.size() + " trips.");
+                            locallySavedTrips.size() + " trips.");
                     populateTripList();
                 }
 
@@ -1718,6 +1717,18 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
                 Log.i(TAG, "onSuccess Sync returned: " + response);
 
+                // Mark all locals as unsubmitted - this should get corrected when we loop through the server trips...
+                if (responseBody != null && locallySavedTrips != null && locallySavedTrips.size() > 0) {
+                    for (FullTrip trip : locallySavedTrips) {
+                        if (!trip.isSeparator) {
+                            trip.setIsSubmitted(false);
+                            trip.save();
+                            Log.i(TAG, "Unsubmitted local trip: " + trip.getTitle());
+                        }
+                    }
+                }
+
+                // Loop through the server trips and compare to locals.
                 new AsyncTask<String, String, String>() {
                         @Override
                         protected void onPreExecute() {
@@ -1774,7 +1785,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
      * @return A boolean indicating success.
      */
     boolean updateLocalTrip(FullTrip serverTrip) {
-        for (FullTrip trip : allTrips) {
+        for (FullTrip trip : locallySavedTrips) {
             if (trip.getTripcode() == serverTrip.getTripcode()) {
                 trip = serverTrip;
                 trip.save();
@@ -1795,7 +1806,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 MyProgressDialog.PROGRESS_TYPE);
         dialog.show();
 
-        for (final FullTrip trip : allTrips) {
+        for (final FullTrip trip : locallySavedTrips) {
             Toast.makeText(getContext(), "Syncing trip list...", Toast.LENGTH_SHORT).show();
             Log.i(TAG, "syncTrips tripcode: " + trip.getTripcode() + " has guid: " + trip.getTripGuid());
 

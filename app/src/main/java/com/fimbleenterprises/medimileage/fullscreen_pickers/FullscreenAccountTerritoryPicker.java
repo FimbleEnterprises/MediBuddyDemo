@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.Toast;
 
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
@@ -45,17 +46,6 @@ public class FullscreenAccountTerritoryPicker extends AppCompatActivity implemen
 
     CrmEntities.Accounts.Account selectedAccount;
 
-    public static void showPicker(Activity callingActivity) {
-        Intent intent = new Intent(callingActivity, FullscreenAccountTerritoryPicker.class);
-        callingActivity.startActivityForResult(intent, 0);
-    }
-
-    public static void showPicker(Activity callingActivity, ArrayList<Territory> cachedTerritories) {
-        Intent intent = new Intent(callingActivity, FullscreenAccountTerritoryPicker.class);
-        intent.putExtra(CACHED_TERRITORIES, cachedTerritories);
-        callingActivity.startActivityForResult(intent, 0);
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,8 +55,8 @@ public class FullscreenAccountTerritoryPicker extends AppCompatActivity implemen
 
         // Caller can supply an arraylist of Territory objects which will be used instead of querying CRM
         if (getIntent().hasExtra(CACHED_TERRITORIES)) {
-            if (getIntent().getParcelableExtra(CACHED_TERRITORIES) != null) {
-                territories = getIntent().getParcelableExtra(CACHED_TERRITORIES);
+            if (getIntent().getParcelableArrayListExtra(CACHED_TERRITORIES) != null) {
+                territories = getIntent().getParcelableArrayListExtra(CACHED_TERRITORIES);
                 for (Territory t : territories) {
                     BasicObjects.BasicObject parentTerritoryObject = new BasicObjects.BasicObject(t.repName, t.territoryName, t);
                     BasicObjects parent = new BasicObjects(t.territoryName, parentTerritoryObject);
@@ -80,6 +70,19 @@ public class FullscreenAccountTerritoryPicker extends AppCompatActivity implemen
             Log.i(TAG, "onCreate No cached territories were supplied - must retrieve from CRM");
             getListData();
         }
+    }
+
+    public static void showPicker(Activity callingActivity) {
+        Intent intent = new Intent(callingActivity, FullscreenAccountTerritoryPicker.class);
+        callingActivity.startActivityForResult(intent, 0);
+    }
+
+    public static void showPicker(Activity callingActivity, ArrayList<Territory> cachedTerritories) {
+        Intent intent = new Intent(callingActivity, FullscreenAccountTerritoryPicker.class);
+        if (cachedTerritories != null) {
+            intent.putExtra(CACHED_TERRITORIES, cachedTerritories);
+        }
+        callingActivity.startActivityForResult(intent, 0);
     }
 
     void getListData() {

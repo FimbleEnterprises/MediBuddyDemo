@@ -2221,6 +2221,46 @@ public class CrmQueries {
 
     public static class Addresses {
 
+        /**
+         * Gets all addresses on file for the account specified.  Some accounts will not have address
+         * names.  Accounts that do not contain data in the Street1 field will be omitted.
+         * @param accountid The account to query.
+         * @return The fetchXml query to use against the Dynamics API.
+         */
+        public static String getAllAddresses(String accountid) {
+            QueryFactory query = new QueryFactory("customeraddress");
+            query.addColumn("customeraddressid");
+            query.addColumn("name");
+            query.addColumn("line1");
+            query.addColumn("city");
+            query.addColumn("stateorprovince");
+            query.addColumn("postalcode");
+            query.addColumn("customeraddressid");
+            query.addColumn("addresstypecode");
+            query.addColumn("addressnumber");
+            query.addColumn("composite");
+
+            // Only get addresses that have data in the address1 field (non-null)
+            Filter.FilterCondition condition1 = new Filter.FilterCondition
+                    ("line1", Filter.Operator.CONTAINS_DATA);
+            Filter filter = new Filter(AND, condition1);
+            query.setFilter(filter);
+
+            // Link to the account entity using the accountid
+            LinkEntity linkEntity1 = new LinkEntity("account", "accountid", "parentid", "ac");
+            linkEntity1.addColumn(new EntityColumn("accountnumber"));
+            linkEntity1.addColumn(new EntityColumn("new_accountid"));
+            linkEntity1.addColumn(new EntityColumn("accountid"));
+            Filter le1Filter = new Filter(AND);
+            le1Filter.conditions.add(new Filter.FilterCondition("accountid", Filter.Operator.EQUALS, accountid));
+            linkEntity1.addFilter(le1Filter);
+            query.addLinkEntity(linkEntity1);
+
+            // Spit out the encoded query
+            String rslt = query.construct();
+            return rslt;
+        }
+
         public static String getAllAccountAddresses() {
 
             QueryFactory query = new QueryFactory("account");

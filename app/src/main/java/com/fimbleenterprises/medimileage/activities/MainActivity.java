@@ -245,8 +245,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             e.printStackTrace();
         }
 
-
-
+        /* *************************************************************
+                -= PUT EXPERIMENTAL SHIT BETWEEN THESE COMMENTS =-
+         * *************************************************************/
+        // Intent intent = new Intent(this, CreateQuoteScrollingActivity.class);
+        // startActivity(intent);
+        /* *************************************************************
+                -= PUT EXPERIMENTAL SHIT BETWEEN THESE COMMENTS =-
+         * *************************************************************/
     }
 
     @Override
@@ -932,5 +938,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 finish();
             }
         });
+    }
+
+    protected void testPdf() {
+        Toast.makeText(this, "Fuck you!", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, QuoteActivity.class);
+        startActivity(intent);
     }
 }

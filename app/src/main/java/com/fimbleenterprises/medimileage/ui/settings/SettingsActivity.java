@@ -18,6 +18,7 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.Toast;
 
+import com.fimbleenterprises.medimileage.activities.QuoteActivity;
 import com.fimbleenterprises.medimileage.dialogs.MonthYearPickerDialog;
 import com.fimbleenterprises.medimileage.objects_and_containers.AccountAddresses;
 import com.fimbleenterprises.medimileage.Crm;
@@ -487,9 +488,7 @@ public class SettingsActivity extends AppCompatActivity {
                     MyYesNoDialog.show(getContext(), "I don't even know what will run when you click, \"Yes\"\n\nAre you sure?", new MyYesNoDialog.YesNoListener() {
                         @Override
                         public void onYes() {
-                            Intent intent = new Intent(getContext(), FullscreenActivityChooseRep.class);
-                            intent.putExtra(FullscreenActivityChooseRep.CURRENT_VALUE, MediUser.getMe());
-                            startActivity(intent);
+                            testPdf();
                         }
 
                         @Override
@@ -542,6 +541,12 @@ public class SettingsActivity extends AppCompatActivity {
                 prefDeleteEmptyTrips.setEnabled(false);
             }
 
+        }
+
+        protected void testPdf() {
+            Toast.makeText(getContext(), "Fuck you!", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(getContext(), QuoteActivity.class);
+            startActivity(intent);
         }
 
         private void reloadAndScrollTo(String prefName) {

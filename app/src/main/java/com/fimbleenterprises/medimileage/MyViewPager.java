@@ -72,6 +72,18 @@ public class MyViewPager extends ViewPager {
         return pageCount;
     }
 
+    public int getLastPageIndex() {
+        return this.pageCount - 1;
+    }
+
+    public boolean isOnLastPage() {
+        return this.currentPosition == getLastPageIndex();
+    }
+
+    public boolean isOnFirstPage() {
+        return this.currentPosition == 0;
+    }
+
     /**
      * Set the currently selected page. If the ViewPager has already been through its first
      * layout with its current adapter there will be a smooth animated transition between

@@ -377,65 +377,6 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
         }
     }
 
-    private void saveTrip() {
-
-        if (options.getReimbursementRate() == 0) {
-
-        }
-
-        try {
-            // Instantiate a datasource
-            MySqlDatasource ds = new MySqlDatasource();
-            MediUser user = MediUser.getMe();
-            FullTrip fullTrip = new FullTrip(date.getDateSelectedAsDateTime().getMillis(), user.domainname, user.systemuserid, user.email);
-
-            fullTrip.setTitle(title.getText().toString());
-            fullTrip.setDateTime(date.getDateSelectedAsDateTime());
-            fullTrip.setMilis(fullTrip.getTripcode());
-            float distmiles = Float.parseFloat(distance.getText().toString());
-            float dist = Helpers.Geo.convertMilesToMeters(distmiles, 2);
-            fullTrip.setDistance(dist);
-            fullTrip.setIsManualTrip(true);
-            fullTrip.setReimbursementRate((float) options.getReimbursementRate());
-
-            ds.createNewTrip(fullTrip);
-
-            Location lastLoc = null;
-            for (LatLng latLng : polyline.getPoints()) {
-
-                Location location = new Location("gps");
-                location.setLatitude(latLng.latitude);
-                location.setLongitude(latLng.longitude);
-
-                if (lastLoc == null) {
-                    lastLoc = location;
-                }
-
-                TripEntry entry = new TripEntry();
-                entry.setLatitude(location.getLatitude());
-                entry.setLongitude(location.getLongitude());
-                entry.setTripcode(fullTrip.getTripcode());
-                entry.setGuid(user.systemuserid);
-                entry.setDateTime(date.getDateSelectedAsDateTime());
-                entry.setMilis(entry.getDateTime().getMillis());
-                entry.setDistance(location.distanceTo(lastLoc));
-                entry.setSpeed(0);
-                ds.appendTrip(entry);
-
-                lastLoc = location;
-
-            }
-
-            setResult(Activity.RESULT_OK);
-            finish();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            setResult(Activity.RESULT_CANCELED);
-            finish();
-        }
-    }
-
     //region ********************************** TRIP FRAGS *****************************************
 
     public static class Frag_Title extends Fragment {
@@ -582,121 +523,66 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
 
     }
 
-/*    public static class Frag_Submit extends Fragment {
-        public static final String ARG_SECTION_NUMBER = "section_number";
-        private View rootView;
-        Button btnSubmit;
+    //endregion **************************** END TRIP FRAGS ****************************************
 
-        @Nullable
-        @Override
-        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                                 @Nullable Bundle savedInstanceState) {
-            rootView = inflater.inflate(R.layout.man_trip_submit, container, false);
-            btnSubmit = rootView.findViewById(R.id.btn_submit);
-            btnSubmit.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    saveTrip();
-                }
-            });
-            return rootView;
+    private void saveTrip() {
+
+        if (options.getReimbursementRate() == 0) {
+
         }
 
-        private boolean validateEntries() {
-            boolean isValid = true;
+        try {
+            // Instantiate a datasource
+            MySqlDatasource ds = new MySqlDatasource();
+            MediUser user = MediUser.getMe();
+            FullTrip fullTrip = new FullTrip(date.getDateSelectedAsDateTime().getMillis(), user.domainname, user.systemuserid, user.email);
 
-            if (title.getText().length() == 0) {
-                Toast.makeText(context, "Please name this trip.", Toast.LENGTH_SHORT).show();
-                mViewPager.setCurrentItem(0, true);
-                return false;
-            }
+            fullTrip.setTitle(title.getText().toString());
+            fullTrip.setDateTime(date.getDateSelectedAsDateTime());
+            fullTrip.setMilis(fullTrip.getTripcode());
+            float distmiles = Float.parseFloat(distance.getText().toString());
+            float dist = Helpers.Geo.convertMilesToMeters(distmiles, 2);
+            fullTrip.setDistance(dist);
+            fullTrip.setIsManualTrip(true);
+            fullTrip.setReimbursementRate((float) options.getReimbursementRate());
 
-            if (fromLatLng == null) {
-                Toast.makeText(context, "Please set your starting location", Toast.LENGTH_SHORT).show();
-                mViewPager.setCurrentItem(1, true);
-                return false;
-            }
+            ds.createNewTrip(fullTrip);
 
-            if (toLatLng == null) {
-                Toast.makeText(context, "Please set your destination", Toast.LENGTH_SHORT).show();
-                mViewPager.setCurrentItem(2, true);
-                return false;
-            }
+            Location lastLoc = null;
+            for (LatLng latLng : polyline.getPoints()) {
 
-            if (date.getText().length() == 0) {
-                Toast.makeText(context, "Please set the date of this trip", Toast.LENGTH_SHORT).show();
-                mViewPager.setCurrentItem(3, true);
-                return false;
-            }
+                Location location = new Location("gps");
+                location.setLatitude(latLng.latitude);
+                location.setLongitude(latLng.longitude);
 
-            if (distance.getText().length() == 0) {
-                Toast.makeText(context, "Please set the distance travelled", Toast.LENGTH_SHORT).show();
-                mViewPager.setCurrentItem(4, true);
-                return false;
-            }
-
-            return isValid;
-        }
-
-        private void saveTrip() {
-
-            if (options.getReimbursementRate() == 0) {
-
-            }
-
-            try {
-                // Instantiate a datasource
-                MySqlDatasource ds = new MySqlDatasource();
-                MediUser user = MediUser.getMe();
-                FullTrip fullTrip = new FullTrip(date.getDateSelectedAsDateTime().getMillis(),user.domainname, user.systemuserid, user.email);
-
-                fullTrip.setTitle(title.getText().toString());
-                fullTrip.setDateTime(date.getDateSelectedAsDateTime());
-                fullTrip.setMilis(fullTrip.getTripcode());
-                float distmiles = Float.parseFloat(distance.getText().toString());
-                float dist = Helpers.Geo.convertMilesToMeters(distmiles, 2);
-                fullTrip.setDistance(dist);
-                fullTrip.setIsManualTrip(true);
-                fullTrip.setReimbursementRate((float) options.getReimbursementRate());
-
-                ds.createNewTrip(fullTrip);
-
-                Location lastLoc = null;
-                for (LatLng latLng : polyline.getPoints()) {
-
-                    Location location = new Location("gps");
-                    location.setLatitude(latLng.latitude);
-                    location.setLongitude(latLng.longitude);
-
-                    if (lastLoc == null) {
-                        lastLoc = location;
-                    }
-
-                    TripEntry entry = new TripEntry();
-                    entry.setLatitude(location.getLatitude());
-                    entry.setLongitude(location.getLongitude());
-                    entry.setTripcode(fullTrip.getTripcode());
-                    entry.setGuid(user.systemuserid);
-                    entry.setDateTime(date.getDateSelectedAsDateTime());
-                    entry.setMilis(entry.getDateTime().getMillis());
-                    entry.setDistance(location.distanceTo(lastLoc));
-                    entry.setSpeed(0);
-                    ds.appendTrip(entry);
-
+                if (lastLoc == null) {
                     lastLoc = location;
-
                 }
 
-                getActivity().setResult(Activity.RESULT_OK);
-                getActivity().finish();
+                TripEntry entry = new TripEntry();
+                entry.setLatitude(location.getLatitude());
+                entry.setLongitude(location.getLongitude());
+                entry.setTripcode(fullTrip.getTripcode());
+                entry.setGuid(user.systemuserid);
+                entry.setDateTime(date.getDateSelectedAsDateTime());
+                entry.setMilis(entry.getDateTime().getMillis());
+                entry.setDistance(location.distanceTo(lastLoc));
+                entry.setSpeed(0);
+                ds.appendTrip(entry);
 
-            } catch (Exception e) {
-                e.printStackTrace();
-                getActivity().setResult(Activity.RESULT_CANCELED);
-                getActivity().finish();
+                lastLoc = location;
+
             }
+
+            setResult(Activity.RESULT_OK);
+            finish();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            setResult(Activity.RESULT_CANCELED);
+            finish();
         }
-    }*/
+    }
 
     void showProgress(boolean value, String msg) {
         if (pDialog == null) {

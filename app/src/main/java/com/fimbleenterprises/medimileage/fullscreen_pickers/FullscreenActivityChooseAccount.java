@@ -1,5 +1,6 @@
 package com.fimbleenterprises.medimileage.fullscreen_pickers;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.Accounts;
 import com.fimbleenterprises.medimileage.Helpers;
+import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics;
 import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
 import com.fimbleenterprises.medimileage.CrmQueries;
@@ -57,6 +59,7 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
     Territory currentTerritory;
     Accounts.Account currentAccount;
     ArrayList<Accounts.Account> accounts;
+    ArrayList<Territory> cachedTerritories;
     SmartRefreshLayout refreshLayout;
 
     @Override
@@ -135,6 +138,32 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
     public boolean onSupportNavigateUp() {
         onBackPressed();
         return true;
+    }
+
+    /**
+     * Shows a picker for accounts.  Will return an intent with the selected account as an object with a tag of: CHOICE_RESULT
+     * @param activity An activity that can raise an OnActivityResult event.
+     * @param currentAccount The current account if applicable.
+     * @param territory The territory to limit the results to.
+     */
+    public static void showPicker(Activity activity, Accounts.Account currentAccount, Territory territory, int requestCode) {
+
+        Intent intent = new Intent(activity, FullscreenActivityChooseAccount.class);
+        intent.putExtra(CURRENT_ACCOUNT, currentAccount);
+        intent.putExtra(CURRENT_TERRITORY, territory);
+        activity.startActivityForResult(intent, requestCode);
+    }
+
+    /**
+     * Shows a picker for accounts.  Will return an intent with the selected account as an object with a tag of: CHOICE_RESULT
+     * @param activity An activity that can raise an OnActivityResult event.
+     * @param territory The territory to limit the results to.
+     */
+    public static void showPicker(Activity activity, Territory territory, int requestCode) {
+
+        Intent intent = new Intent(activity, FullscreenActivityChooseAccount.class);
+        intent.putExtra(CURRENT_TERRITORY, territory);
+        activity.startActivityForResult(intent, requestCode);
     }
 
     void getAccounts() {

@@ -31,11 +31,16 @@ public class Requests {
         public static final String SET_STATE_MANY = "setstatemany";
         public static final String CAN_AUTHENTICATE = "usercangetproxy";
         public static final String SEARCHSP = "searchsp";
+        public static final String UPDATEQUOTE = "updatequote";
+        public static final String CREATEQUOTE = "createquote";
+        public static final String ADD_QUOTE_PRODUCTS = "addquoteproducts";
+        public static final String ADD_QUOTE_FINANCIAL_SOLUTIONS = "addquotefinsolutions";
         // endregion
 
         public enum Function {
             GET, CREATE, CREATE_MANY, UPDATE, UPDATE_MANY, UPSERT, UPSERT_MANY, ASSIGN, ASSIGN_MANY, ASSOCIATE, ASSOCIATE_MANY,
-            DELETE, DELETE_MANY, DISASSOCIATE, DISASSOCIATE_MANY, SET_STATE, SET_STATE_MANY, CAN_AUTHENTICATE, CREATE_NOTE, SEARCHSP
+            DELETE, DELETE_MANY, DISASSOCIATE, DISASSOCIATE_MANY, SET_STATE, SET_STATE_MANY, CAN_AUTHENTICATE, CREATE_NOTE, SEARCHSP,
+            UPDATEQUOTE, CREATEQUOTE, ADD_QUOTE_FINANCIAL_SOLUTIONS, ADD_QUOTE_PRODUCTS;
         }
 
         private String getFunctionName(Enum<Function> function) {
@@ -78,9 +83,16 @@ public class Requests {
                     return CREATE_NOTE;
                 case 19 :
                     return SEARCHSP;
+                case 20 :
+                    return UPDATEQUOTE;
+                case 21 :
+                    return CREATEQUOTE;
+                case 22 :
+                    return ADD_QUOTE_FINANCIAL_SOLUTIONS;
+                case 23 :
+                    return ADD_QUOTE_PRODUCTS;
                 default:
                     return GET;
-
             }
         }
 

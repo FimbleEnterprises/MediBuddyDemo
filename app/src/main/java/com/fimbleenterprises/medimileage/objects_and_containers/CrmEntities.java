@@ -1828,6 +1828,157 @@ public class CrmEntities {
         }
     }
 
+    /**
+     * Typically used to contain addresses for a single account.  Note that this is from the CUSTOMERADDRESS
+     * entity directly!  This is NOT an address constructed from reading values from the ACCOUNT entity.
+     */
+    public static class CustomerAddresses {
+
+        /**
+         * This value is not retrieved from the Dynamics API.  It must be populated manually if
+         * it is to be used.  The only parent account values returned are in the children (list)
+         * and are: parentaccountnumber and parentaccountid.  I do not believe either of those values
+         * can ever be null.
+         */
+        @Nullable
+        public Accounts.Account baseAccount;
+        public ArrayList<CustomerAddress> list = new ArrayList<>();
+
+        /**
+         * Constructs the addresses for a customer.
+         * @param crmJson The JSON returned directly from the Dynamics API
+         */
+        public CustomerAddresses(String crmJson) {
+            try {
+                JSONObject rootObject = new JSONObject(crmJson);
+                JSONArray rootArray = rootObject.getJSONArray("value");
+                for (int i = 0; i < rootArray.length(); i++) {
+                    this.list.add(new CustomerAddress(rootArray.getJSONObject(i)));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public String toString() {
+            return this.list.size() + " addresses (act name [may be null] " + baseAccount.accountName +")";
+        }
+
+        /**
+         * Represents a single customer address entity from CRM.  Note that this is from the CUSTOMERADDRESS
+         * entity directly!  This is NOT an address constructed from reading values from the ACCOUNT entity.
+         */
+        public static class CustomerAddress extends CrmEntity {
+            public String name;
+            public String parentaccountnumber;
+            public String parentaccountid;
+            public String line1;
+            public String city;
+            public String stateorprovince;
+            public String postalcode;
+            public String addressnumberFormattedValue;
+            public int addressnumber;
+            public String composite;
+
+            public CustomerAddress(JSONObject json) {
+                try {
+                    if (!json.isNull("name")) {
+                        this.name = (json.getString("name"));
+                    } else {
+                        this.name = "(no name)";
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("etag")) {
+                        this.etag = (json.getString("etag"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("line1")) {
+                        this.line1 = (json.getString("line1"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("city")) {
+                        this.city = (json.getString("city"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("stateorprovince")) {
+                        this.stateorprovince = (json.getString("stateorprovince"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("postalcode")) {
+                        this.postalcode = (json.getString("postalcode"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("customeraddressid")) {
+                        this.entityid = (json.getString("customeraddressid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("addressnumberFormattedValue")) {
+                        this.addressnumberFormattedValue = (json.getString("addressnumberFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("addressnumber")) {
+                        this.addressnumber = (json.getInt("addressnumber"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("composite")) {
+                        this.composite = (json.getString("composite"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("ac_x002e_accountnumber")) {
+                        this.parentaccountnumber = (json.getString("ac_x002e_accountnumber"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("ac_x002e_accountid")) {
+                        this.parentaccountid = (json.getString("ac_x002e_accountid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public String toString() {
+                return this.addressnumberFormattedValue + " | " + this.composite;
+            }
+
+        }
+
+    }
+
     public static class Opportunities {
         private static final String TAG = "Opportunities";
         public ArrayList<Opportunity> list = new ArrayList<>();

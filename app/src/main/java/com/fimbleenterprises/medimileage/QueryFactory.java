@@ -557,6 +557,7 @@ public class QueryFactory {
         public static final String NOTE = "annotation";
         public static final String CUSTOMER_INVENTORY = "col_customerinventory";
         public static final String TERRITORY = "territory";
+        public static final String CUSTOMERADDRESS = "customeraddress";
         public static final String CONTACT = "contact";
         public static final String ONHAND_INVENTORY = "msus_onhandinventory";
         public static final String ORDER_LINES = "salesorderdetail";
@@ -598,6 +599,8 @@ public class QueryFactory {
                 return "salesliteratureitems";
             } else if (entityLogicalName.equals(EntityNames.TERRITORY)) {
                 return "territories";
+            } else if (entityLogicalName.equals(EntityNames.CUSTOMERADDRESS)) {
+                return "customeraddresses";
             } else {
                 return entityLogicalName + "s";
             }
