@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    android:background="@drawable/btn_glass_gray_orange_border">
+
+    <TextView
+        android:id="@+id/txtIsAutoStopped"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@id/txtSubtext"
+        android:layout_alignParentTop="false"
+        android:layout_alignParentBottom="false"
+        android:layout_centerHorizontal="false"
+        android:layout_marginStart="1dp"
+        android:layout_marginTop="1dp"
+        android:layout_marginEnd="1dp"
+        android:layout_marginRight="3dp"
+        android:layout_marginBottom="1dp"
+        android:layout_toLeftOf="@id/btnDeleteTrip"
+        android:background="@drawable/btn_glass_gray_black_border_toggle_orange_on"
+        android:fontFamily="casual"
+        android:padding="2dp"
+        android:text="AUTO-STOPPED"
+        android:textColor="#EB4A17"
+        android:textSize="11sp"
+        android:visibility="invisible" />
+
+    <ImageView
+        android:id="@+id/leftIcon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:layout_margin="15dp"
+        android:focusable="false"
+        android:scaleType="fitXY"
+        android:soundEffectsEnabled="true"
+        android:src="@drawable/car2_static"
+        tools:srcCompat="@drawable/car2_static"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/txtSubtext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txtMainText"
+        android:layout_marginTop="3dp"
+        android:layout_marginBottom="3dp"
+        android:layout_toRightOf="@+id/leftIcon"
+        android:focusable="false"
+        android:fontFamily="casual"
+        android:text="TRIP DISTANCE"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="#354856"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/txtMainText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/leftIcon"
+        android:layout_marginTop="3dp"
+        android:layout_toRightOf="@id/leftIcon"
+        android:focusable="false"
+        android:fontFamily="casual"
+        android:text="TRIP NAME"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="#354856"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <ImageButton
+        android:id="@+id/btnDeleteTrip"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginBottom="5dp"
+        android:background="@drawable/delete_icon"
+        android:contentDescription="DELETE"
+        android:focusable="false"
+        android:fontFamily="casual"
+        android:visibility="visible" />
+
+    <TextView
+        android:id="@+id/txtIsEditedOrManual"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@id/txtMainText"
+        android:layout_alignParentTop="false"
+        android:layout_centerHorizontal="false"
+        android:layout_marginStart="1dp"
+        android:layout_marginEnd="1dp"
+        android:layout_marginRight="3dp"
+        android:layout_marginBottom="1dp"
+        android:layout_toLeftOf="@id/btnDeleteTrip"
+        android:background="@drawable/btn_glass_gray_black_border_toggle_orange_on"
+        android:fontFamily="casual"
+        android:padding="2dp"
+        android:text="MANUAL"
+        android:textColor="#EB4A17"
+        android:textSize="11sp"
+        android:visibility="invisible" />
+
+</RelativeLayout>

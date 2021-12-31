@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_margin="2dp"
-    android:background="#EEEEEE"
+    android:background="#00FFFFFF"
     android:orientation="vertical">
 
     <LinearLayout
@@ -17,7 +17,7 @@
         android:layout_marginStart="2dp"
         android:layout_marginTop="2dp"
         android:layout_marginEnd="2dp"
-        android:background="#FDFAFA"
+        android:background="#00FFFFFF"
         android:padding="3dp"
         android:weightSum=".1">
 
@@ -26,7 +26,7 @@
             android:layout_width="match_parent"
             android:layout_height="220dp"
             android:layout_marginTop="10dp"
-            android:background="#FFFFFF"
+            android:background="#00FFFFFF"
             android:overScrollMode="ifContentScrolls"
             tools:mContext=".Activity_ManualTrip">
 
@@ -52,7 +52,7 @@
         android:layout_marginLeft="2dp"
         android:layout_marginRight="2dp"
         android:layout_marginBottom="2dp"
-        android:background="#FFFFFF"
+        android:background="#00FFFFFF"
         android:padding="5dp">
 
         <TableLayout
@@ -87,8 +87,28 @@
 
                 <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight=".33"></FrameLayout>
+                    android:layout_height="match_parent"
+                    android:layout_weight=".33">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+                        <com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyHyperlinkTextview
+                            android:id="@+id/btnRecents"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_centerInParent="true"
+                            android:layout_marginLeft="20dp"
+                            android:layout_marginRight="20dp"
+                            android:text="History"
+                            android:textAlignment="center"
+                            android:textColor="@color/colorBlue"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+                    </RelativeLayout>
+
+                </FrameLayout>
 
                 <FrameLayout
                     android:layout_width="match_parent"
@@ -107,6 +127,30 @@
                         android:textSize="17sp" />
                 </FrameLayout>
             </TableRow>
+
+            <TableRow
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".5">
+
+                    <!-- put views here -->
+
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight=".5">
+
+                    <!-- put views here -->
+
+                </FrameLayout>
+            </TableRow>
+
         </TableLayout>
 
     </LinearLayout>
@@ -119,7 +163,6 @@
         android:layout_marginStart="2dp"
         android:layout_marginEnd="2dp"
         android:layout_marginBottom="2dp"
-        android:background="#00FAF8F8"
         android:weightSum=".75">
 
         <ProgressBar
@@ -130,11 +173,30 @@
             android:layout_centerInParent="true"
             android:layout_weight="1" />
 
-        <fragment
-            android:id="@+id/map"
-            android:name="com.google.android.gms.maps.MapFragment"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:layout_margin="3dp"
+            android:layout_marginStart="3dp"
+            android:layout_marginTop="3dp"
+            android:layout_marginEnd="3dp"
+            android:layout_marginBottom="3dp"
+            android:background="@drawable/round_container_black_border">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="Loading map..."/>
+
+            <fragment
+                android:id="@+id/map"
+                android:name="com.google.android.gms.maps.MapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="3dp"
+                android:background="#00FFFFFF" />
+        </RelativeLayout>
     </RelativeLayout>
 
 

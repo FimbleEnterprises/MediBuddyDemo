@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.fimbleenterprises.medimileage.objects_and_containers.RecentOrSavedTrip;
 import com.fimbleenterprises.medimileage.services.MyLocationService;
 import com.fimbleenterprises.medimileage.objects_and_containers.AccountAddresses;
 import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
@@ -386,6 +387,95 @@ public class MySqlDatasource {
         return fullTrip;
     }
 
+    /**
+     * Converts a data row to a RecentOrSavedTrip object.
+     * @param cursor A cursor from a SQLite database.
+     * @return A RecentOrSavedTrip object.
+     */
+    public RecentOrSavedTrip datarowToRecentOrSavedTrip(Cursor cursor) {
+        RecentOrSavedTrip recentOrSavedTrip = new RecentOrSavedTrip();
+        recentOrSavedTrip.id = cursor.getDouble(getColumnIndex(COLUMN_ID, cursor));
+        recentOrSavedTrip.name = cursor.getString(getColumnIndex(COLUMN_NAME, cursor));
+
+        recentOrSavedTrip.distanceInMiles = cursor.getFloat(getColumnIndex(COLUMN_DISTANCE, cursor));
+        recentOrSavedTrip.fromLat = cursor.getDouble(getColumnIndex(COLUMN_FROM_LAT, cursor));
+        recentOrSavedTrip.fromLon = cursor.getDouble(getColumnIndex(COLUMN_FROM_LON, cursor));
+        recentOrSavedTrip.toLat = cursor.getDouble(getColumnIndex(COLUMN_TO_LAT, cursor));
+        recentOrSavedTrip.toLon = cursor.getDouble(getColumnIndex(COLUMN_TO_LON, cursor));
+        return recentOrSavedTrip;
+    }
+
+    /**
+     * Returns all RecentOrSavedTrip entries in the database.
+     * @return Ordered by ID desc.
+     */
+    public ArrayList<RecentOrSavedTrip> getAllRecentOrSavedTrips() {
+        ArrayList<RecentOrSavedTrip> trips = new ArrayList<>();
+
+        String sql = "" +
+                "select *, (select count(*) from " + TABLE_RECENT_OR_SAVED_TRIPS + " b  where a." + COLUMN_ID + " >= b." + COLUMN_ID + ") as rownum " +
+                "from " + TABLE_RECENT_OR_SAVED_TRIPS + " a " +
+                "order by " + COLUMN_ID + " desc ";
+
+        Cursor c = database.rawQuery(sql, null);
+
+        while (c.moveToNext()) {
+            RecentOrSavedTrip trip = datarowToRecentOrSavedTrip(c);
+            trips.add(trip);
+        }
+
+        c.close();
+        return trips;
+    }
+
+    /**
+     * Creates a new RecentOrSavedTrip in the database.
+     * @param trip A valid RecentOrSavedTrip object.
+     * @return True if successful.
+     */
+    public boolean createNewRecentOrSavedTrip(RecentOrSavedTrip trip) {
+        boolean result = true;
+        try {
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_NAME, trip.name);
+            values.put(COLUMN_DIST, trip.distanceInMiles);
+            values.put(COLUMN_TO_LAT, trip.toLat);
+            values.put(COLUMN_TO_LON, trip.toLon);
+            values.put(COLUMN_FROM_LAT, trip.fromLat);
+            values.put(COLUMN_FROM_LON, trip.fromLon);
+
+            result = (database.insert(TABLE_RECENT_OR_SAVED_TRIPS, null, values) > 0);
+            Log.i(TAG, "RecentOrSavedTrip row was created.");
+
+        } catch (SQLException e) {
+            result = false;
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    /**
+     * Deletes all RecentOrSavedTrip entries in the recent trips table.
+     * @return The amount of rows removed.
+     */
+    public int deleteAllRecentOrSavedTripEntries() {
+        return database.delete(TABLE_RECENT_OR_SAVED_TRIPS, null, null);
+    }
+
+    /**
+     * Deletes a row from the recent trips table.
+     * @param id The id of the row to remove.
+     * @return True if successful.
+     */
+    public boolean deleteRecentOrSavedtrip(double id) {
+        boolean result;
+        String whereClause = COLUMN_ID + " = ?";
+        String[] whereArgs = {String.valueOf(id)};
+        result = (database.delete(TABLE_RECENT_OR_SAVED_TRIPS, whereClause, whereArgs)) > 0;
+        Log.i(TAG, "deleteRecentOrSavedtrip " + result);
+        return result;
+    }
+
     public boolean deleteAllTripData() {
         int fulltrips = database.delete(TABLE_FULL_TRIP, null, null);
         int entries = database.delete(TABLE_TRIP_ENTRIES, null, null);
@@ -404,6 +494,18 @@ public class MySqlDatasource {
     }
 
     /**
+     * Returns the latest non-manual, recorded trip based on tripcode.
+     * @return
+     */
+    public FullTrip getLatestNonManualTrip() {
+        ArrayList<FullTrip> trips = getNonManualTrips();
+        if (trips != null && trips.size() > 0) {
+            return trips.get(0);
+        }
+        return null;
+    }
+
+    /**
      * Pass null to add nothing to the top of the list
      **/
     public ArrayList<FullTrip> getTrips() {
@@ -412,6 +514,29 @@ public class MySqlDatasource {
         String sql = "" +
                 "select *, (select count(*) from fulltrips b  where a._id >= b._id) as rownum " +
                 "from fulltrips a " +
+                "order by tripcode desc ";
+
+        Cursor c = database.rawQuery(sql, null);
+
+        while (c.moveToNext()) {
+            FullTrip trip = datarowToFullTrip(c);
+            trips.add(trip);
+        }
+
+        c.close();
+        return trips;
+    }
+
+    /**
+     * Pass null to add nothing to the top of the list
+     **/
+    public ArrayList<FullTrip> getNonManualTrips() {
+        ArrayList<FullTrip> trips = new ArrayList<>();
+
+        String sql = "" +
+                "select *, (select count(*) from fulltrips b  where a._id >= b._id) as rownum " +
+                "from fulltrips a " +
+                "where " + COLUMN_IS_MANUAL + " = 0 " +
                 "order by tripcode desc ";
 
         Cursor c = database.rawQuery(sql, null);
@@ -820,6 +945,11 @@ public class MySqlDatasource {
         return result;
     }
 
+    /**
+     * Creates the full trip in the database but NOT the entries.  This is a fast operation.
+     * @param trip
+     * @return
+     */
     public boolean createNewTrip(FullTrip trip) {
         boolean result = true;
         try {

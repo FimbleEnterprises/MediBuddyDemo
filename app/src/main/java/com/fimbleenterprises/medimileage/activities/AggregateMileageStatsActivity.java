@@ -266,7 +266,7 @@ public class AggregateMileageStatsActivity extends AppCompatActivity {
                 try {
                     file.createNewFile();
                     file = Helpers.Bitmaps.bitmapToFile(image, file);
-                    Helpers.Files.shareFile(activity, file, "Share mileage stats");
+                    Helpers.Files.shareFileProperly(activity, file);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

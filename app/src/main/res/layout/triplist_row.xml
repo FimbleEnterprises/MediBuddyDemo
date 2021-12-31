@@ -12,7 +12,7 @@
         android:id="@+id/txtIsAutoStopped"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBaseline="@id/textView_FullTripRowSubtext"
+        android:layout_alignBaseline="@id/txtSubtext"
         android:layout_alignParentTop="false"
         android:layout_alignParentBottom="false"
         android:layout_centerHorizontal="false"
@@ -21,7 +21,7 @@
         android:layout_marginEnd="1dp"
         android:layout_marginRight="3dp"
         android:layout_marginBottom="1dp"
-        android:layout_toLeftOf="@id/checkBox_selectTrip"
+        android:layout_toLeftOf="@id/btnDeleteTrip"
         android:background="@drawable/btn_glass_gray_black_border_toggle_orange_on"
         android:fontFamily="casual"
         android:padding="2dp"
@@ -31,7 +31,7 @@
         android:visibility="visible" />
 
     <ImageView
-        android:id="@+id/imageView_FullTripRowLeftIcon"
+        android:id="@+id/leftIcon"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_alignParentLeft="true"
@@ -44,13 +44,13 @@
         tools:visibility="visible" />
 
     <TextView
-        android:id="@+id/textView_FullTripRowSubtext"
+        android:id="@+id/txtSubtext"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/textView_FullTripRowMainText"
+        android:layout_below="@id/txtMainText"
         android:layout_marginTop="3dp"
         android:layout_marginBottom="3dp"
-        android:layout_toRightOf="@+id/imageView_FullTripRowLeftIcon"
+        android:layout_toRightOf="@+id/leftIcon"
         android:focusable="false"
         android:fontFamily="casual"
         android:text="Travelled 4.6 miles"
@@ -59,12 +59,12 @@
         android:textSize="14sp" />
 
     <TextView
-        android:id="@+id/textView_FullTripRowMainText"
+        android:id="@+id/txtMainText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/imageView_FullTripRowLeftIcon"
+        android:layout_alignTop="@+id/leftIcon"
         android:layout_marginTop="3dp"
-        android:layout_toRightOf="@id/imageView_FullTripRowLeftIcon"
+        android:layout_toRightOf="@id/leftIcon"
         android:focusable="false"
         android:fontFamily="casual"
         android:text="Trip in progress..."
@@ -73,7 +73,7 @@
         android:textSize="14sp" />
 
     <CheckBox
-        android:id="@+id/checkBox_selectTrip"
+        android:id="@+id/btnDeleteTrip"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
@@ -88,14 +88,14 @@
         android:id="@+id/txtIsEditedOrManual"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBaseline="@id/textView_FullTripRowMainText"
+        android:layout_alignBaseline="@id/txtMainText"
         android:layout_alignParentTop="false"
         android:layout_centerHorizontal="false"
         android:layout_marginStart="1dp"
         android:layout_marginEnd="1dp"
         android:layout_marginRight="3dp"
         android:layout_marginBottom="1dp"
-        android:layout_toLeftOf="@id/checkBox_selectTrip"
+        android:layout_toLeftOf="@id/btnDeleteTrip"
         android:background="@drawable/btn_glass_gray_black_border_toggle_orange_on"
         android:fontFamily="casual"
         android:padding="2dp"

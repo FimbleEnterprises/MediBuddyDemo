@@ -12,7 +12,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -23,6 +25,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,6 +37,7 @@ import com.anychart.chart.common.dataentry.ValueDataEntry;
 import com.anychart.charts.Cartesian;*/
 import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.adapters.BasicObjectRecyclerAdapter;
+import com.fimbleenterprises.medimileage.objects_and_containers.BasicEntity;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 import com.fimbleenterprises.medimileage.dialogs.ContactActions;
 import com.fimbleenterprises.medimileage.Crm;
@@ -44,17 +48,18 @@ import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics
 import com.fimbleenterprises.medimileage.dialogs.MonthYearPickerDialog;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.MyPreferencesHelper;
-import com.fimbleenterprises.medimileage.ui.CustomViews.MyUnderlineEditText;
+import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyUnderlineEditText;
 import com.fimbleenterprises.medimileage.MyViewPager;
 import com.fimbleenterprises.medimileage.adapters.OrderLineRecyclerAdapter;
 import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
-import com.fimbleenterprises.medimileage.fullscreen_pickers.FullscreenActivityChooseTerritory;
+import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityChooseTerritory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
 import com.scwang.smart.refresh.layout.listener.OnLoadMoreListener;
@@ -71,12 +76,13 @@ import static com.fimbleenterprises.medimileage.objects_and_containers.CrmEntiti
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -85,6 +91,8 @@ import androidx.viewpager.widget.PagerTitleStrip;
 import cz.msebera.android.httpclient.Header;
 
 public class Activity_TerritoryData extends AppCompatActivity {
+
+    private static final String FAB_CLICKED = "FAB_CLICKED";
     public static Activity activity;
     public static EditText title;
     public static MyUnderlineEditText date;
@@ -101,6 +109,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
     public static androidx.fragment.app.FragmentManager fragMgr;
     public static MyPreferencesHelper options;
     public ArrayList<Territory> cachedTerritories = new ArrayList<>();
+    BroadcastReceiver fabClickReceiver;
+    IntentFilter fabClickIntentFilter = new IntentFilter(FAB_CLICKED);
     SearchView searchView;
 
     public static final String MENU_SELECTION = "MENU_SELECTION";
@@ -111,6 +121,12 @@ public class Activity_TerritoryData extends AppCompatActivity {
     // vars for the date ranges
     public static int monthNum;
     public static int yearNum;
+
+    // vars for service agreement filters
+    public enum ServiceAgreementFilter {
+        EXPIRED, EXPIRING, CURRENT
+    }
+    public static ServiceAgreementFilter serviceAgreementFilter = ServiceAgreementFilter.EXPIRING;
 
     // vars for case status
     public static int case_status = NOT_RESOLVED;
@@ -163,12 +179,13 @@ public class Activity_TerritoryData extends AppCompatActivity {
             @Override
             public void onPageActuallyFuckingChanged(int pageIndex) {
                 setTitle(sectionsPagerAdapter.getPageTitle(pageIndex));
+                options.setLastTerritoryTab(pageIndex);
             }
         };
         mPagerStrip = (PagerTitleStrip) findViewById(R.id.pager_title_strip_sales_perf);
         mViewPager.setAdapter(sectionsPagerAdapter);
         mViewPager.setOffscreenPageLimit(0);
-        mViewPager.setCurrentItem(options.getDefaultTerritoryPage());
+        mViewPager.setCurrentItem(options.getLastTerritoryTab());
         mViewPager.setPageCount(6);
         mViewPager.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
@@ -192,10 +209,18 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
         fragMgr = getSupportFragmentManager();
 
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-        }
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar2);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+
+        fabClickReceiver = new BroadcastReceiver() {
+            @SuppressLint("RestrictedApi") // Apparently a bug causes method: .openOptionsMenu() to raise a lint warning (https://stackoverflow.com/a/44926919/2097893).
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Objects.requireNonNull(getSupportActionBar()).openOptionsMenu();
+            }
+        };
     }
 
     @Override
@@ -273,17 +298,19 @@ public class Activity_TerritoryData extends AppCompatActivity {
     @Override
     public boolean onSupportNavigateUp() {
         onBackPressed();
-        return super.onSupportNavigateUp();
+        return true;
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        registerReceiver(fabClickReceiver, fabClickIntentFilter);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        unregisterReceiver(fabClickReceiver);
     }
 
     @Override
@@ -361,6 +388,10 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 menu.findItem(R.id.action_case_status).setVisible(false);
 
                 menu.findItem(R.id.action_account_type).setVisible(false);
+
+                menu.findItem(R.id.action_expired_service_agreements).setVisible(false);
+                menu.findItem(R.id.action_expiring_service_agreements).setVisible(false);
+                menu.findItem(R.id.action_current_service_agreements).setVisible(false);
                 break;
             case SectionsPagerAdapter.LEADS_PAGE: // Sales lines
             case SectionsPagerAdapter.OPPORTUNITIES_PAGE: // Opportunities
@@ -378,6 +409,10 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 menu.findItem(R.id.action_case_status).setVisible(false);
 
                 menu.findItem(R.id.action_account_type).setVisible(false);
+
+                menu.findItem(R.id.action_expired_service_agreements).setVisible(false);
+                menu.findItem(R.id.action_expiring_service_agreements).setVisible(false);
+                menu.findItem(R.id.action_current_service_agreements).setVisible(false);
                 break;
 
             case SectionsPagerAdapter.CASES_PAGE: // Cases
@@ -394,6 +429,30 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 menu.findItem(R.id.action_account_type).setVisible(false);
 
                 menu.findItem(R.id.action_case_status).setVisible(true);
+
+                menu.findItem(R.id.action_expired_service_agreements).setVisible(false);
+                menu.findItem(R.id.action_expiring_service_agreements).setVisible(false);
+                menu.findItem(R.id.action_current_service_agreements).setVisible(false);
+                break;
+
+            case SectionsPagerAdapter.SERVICE_AGREEMENTS_PAGE:
+                menu.findItem(R.id.action_choose_territory).setVisible(true);
+                menu.findItem(R.id.action_west_region).setVisible(false);
+                menu.findItem(R.id.action_east_region).setVisible(false);
+                menu.findItem(R.id.action_this_year).setVisible(false);
+                menu.findItem(R.id.action_last_year).setVisible(false);
+
+                menu.findItem(R.id.action_this_month).setVisible(false);
+                menu.findItem(R.id.action_last_month).setVisible(false);
+                menu.findItem(R.id.action_choose_month).setVisible(false);
+
+                menu.findItem(R.id.action_account_type).setVisible(false);
+
+                menu.findItem(R.id.action_case_status).setVisible(false);
+
+                menu.findItem(R.id.action_expired_service_agreements).setVisible(true);
+                menu.findItem(R.id.action_expiring_service_agreements).setVisible(true);
+                menu.findItem(R.id.action_current_service_agreements).setVisible(true);
                 break;
 
         }
@@ -462,6 +521,25 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(true);
+                break;
+        }
+
+        // Set service agreement values
+        switch (serviceAgreementFilter) {
+            case CURRENT:
+                menu.findItem(R.id.action_current_service_agreements).setChecked(true);
+                menu.findItem(R.id.action_expired_service_agreements).setChecked(false);
+                menu.findItem(R.id.action_expiring_service_agreements).setChecked(false);
+                break;
+            case EXPIRED:
+                menu.findItem(R.id.action_current_service_agreements).setChecked(false);
+                menu.findItem(R.id.action_expired_service_agreements).setChecked(true);
+                menu.findItem(R.id.action_expiring_service_agreements).setChecked(false);
+                break;
+            case EXPIRING:
+                menu.findItem(R.id.action_current_service_agreements).setChecked(false);
+                menu.findItem(R.id.action_expired_service_agreements).setChecked(false);
+                menu.findItem(R.id.action_expiring_service_agreements).setChecked(true);
                 break;
         }
 
@@ -545,6 +623,18 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 case_status = CrmEntities.Tickets.PROBLEM_SOLVED;
                 sendMenuSelectionBroadcast();
                 break;
+            case R.id.action_current_service_agreements:
+                serviceAgreementFilter = ServiceAgreementFilter.CURRENT;
+                sendMenuSelectionBroadcast();
+                break;
+            case R.id.action_expiring_service_agreements:
+                serviceAgreementFilter = ServiceAgreementFilter.EXPIRING;
+                sendMenuSelectionBroadcast();
+                break;
+            case R.id.action_expired_service_agreements:
+                serviceAgreementFilter = ServiceAgreementFilter.EXPIRED;
+                sendMenuSelectionBroadcast();
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -587,6 +677,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public static final int OPPORTUNITIES_PAGE = 2;
         public static final int CASES_PAGE = 3;
         public static final int ACCOUNTS_PAGE = 4;
+        public static final int SERVICE_AGREEMENTS_PAGE = 5;
 
         public SectionsPagerAdapter(androidx.fragment.app.FragmentManager fm) {
             super(fm);
@@ -639,12 +730,20 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 return fragment;
             }
 
+            if (position == SERVICE_AGREEMENTS_PAGE) {
+                Fragment fragment = new Frag_ServiceAgreements();
+                Bundle args = new Bundle();
+                args.putInt(Frag_ServiceAgreements.ARG_SECTION_NUMBER, position + 1);
+                fragment.setArguments(args);
+                return fragment;
+            }
+
             return null;
         }
 
         @Override
         public int getCount() {
-            return 5;
+            return 6;
         }
         
         public String getCaseCriteriaTitleAddendum() {
@@ -691,6 +790,15 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     return "Cases (" + globalTerritory.territoryName + ")" + getCaseCriteriaTitleAddendum();
                 case ACCOUNTS_PAGE:
                     return "Accounts (" + globalTerritory.territoryName + ")";
+                case SERVICE_AGREEMENTS_PAGE:
+                    switch (serviceAgreementFilter) {
+                        case CURRENT:
+                            return "Active Service Agreements (" + globalTerritory.territoryName + ")";
+                        case EXPIRED:
+                            return "Expired Service Agreements (" + globalTerritory.territoryName + ")";
+                        case EXPIRING:
+                            return "Expiring Service Agreements (" + globalTerritory.territoryName + ")";
+                    }
             }
             return null;
         }
@@ -708,6 +816,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         ArrayList<OrderProducts.OrderProduct> allOrders = new ArrayList<>();
         TextView txtNoSales;
         BroadcastReceiver salesLinesReceiver;
+        FloatingActionButton fab;
 
         @Nullable
         @Override
@@ -735,6 +844,15 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
             recyclerView = root.findViewById(R.id.orderLinesRecyclerview);
             super.onCreateView(inflater, container, savedInstanceState);
+
+            fab = root.findViewById(R.id.floatingActionButton);
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(FAB_CLICKED);
+                    getActivity().sendBroadcast(intent);
+                }
+            });
 
             salesLinesReceiver = new BroadcastReceiver() {
                 @Override
@@ -954,6 +1072,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         BasicObjectRecyclerAdapter adapter;
         BroadcastReceiver leadsReceiver;
         BroadcastReceiver territoryChangedReceiver;
+        FloatingActionButton fab;
 
         @Nullable
         @Override
@@ -971,6 +1090,16 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
             refreshLayout.setEnableLoadMore(false);
             super.onCreateView(inflater, container, savedInstanceState);
+
+            fab = rootView.findViewById(R.id.floatingActionButton);
+            fab.setVisibility(View.GONE); // Nothing to filter (yet) so hide.
+            /*fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(FAB_CLICKED);
+                    getActivity().sendBroadcast(intent);
+                }
+            });*/
 
             // Gifts from Santa - open present and do stuff with what we got!
             leadsReceiver = new BroadcastReceiver() {
@@ -1187,6 +1316,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
         BasicObjectRecyclerAdapter adapter;
         BroadcastReceiver opportunitiesReceiver;
+        FloatingActionButton fab;
 
         @Nullable
         @Override
@@ -1234,6 +1364,17 @@ public class Activity_TerritoryData extends AppCompatActivity {
             }
 
             super.onCreateView(inflater, container, savedInstanceState);
+
+            fab = rootView.findViewById(R.id.floatingActionButton);
+            fab.setVisibility(View.GONE); // Nothing to filter (yet) so hide.
+            /*fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(FAB_CLICKED);
+                    getActivity().sendBroadcast(intent);
+                }
+            });*/
+
             return rootView;
         }
 
@@ -1283,6 +1424,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 BasicObjects.BasicObject object = new BasicObjects.BasicObject(opp.name, opp.dealTypePretty, opp);
                 object.middleText = opp.accountname;
                 object.topRightText = opp.probabilityPretty;
+                object.iconResource = R.drawable.opportunity_icon4_32x32;
                 objects.add(object);
             }
 
@@ -1418,6 +1560,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         BasicObjectRecyclerAdapter adapter;
         BroadcastReceiver territoryChangeReceiver;
         TextView txtNoTickets;
+        FloatingActionButton fab;
 
         @Nullable
         @Override
@@ -1433,6 +1576,15 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 }
             });
             super.onCreateView(inflater, container, savedInstanceState);
+
+            fab = rootView.findViewById(R.id.floatingActionButton);
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(FAB_CLICKED);
+                    getActivity().sendBroadcast(intent);
+                }
+            });
 
             casesReceiver = new BroadcastReceiver() {
                 @Override
@@ -1525,6 +1677,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     object.middleText = ticket.customerFormatted;
                     object.topRightText = Helpers.DatesAndTimes.getPrettyDateAndTime(ticket.modifiedon);
                     object.bottomRightText = ticket.statusFormatted;
+                    object.iconResource = R.drawable.settings_hammer_wrench;
                     objects.add(object);
                 }
             }
@@ -1599,6 +1752,9 @@ public class Activity_TerritoryData extends AppCompatActivity {
         BasicObjectRecyclerAdapter adapter;
         BroadcastReceiver territoryChangedReceiver;
         TextView txtNoAccounts;
+        FloatingActionButton fab;
+        RelativeLayout layoutFilter;
+        EditText txtFilter;
 
         @Nullable
         @Override
@@ -1615,6 +1771,18 @@ public class Activity_TerritoryData extends AppCompatActivity {
             });
             super.onCreateView(inflater, container, savedInstanceState);
 
+            fab = rootView.findViewById(R.id.floatingActionButton);
+            fab.setVisibility(View.GONE); // Nothing to filter (yet) so hide.
+            /*fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(FAB_CLICKED);
+                    getActivity().sendBroadcast(intent);
+                }
+            });*/
+
+            layoutFilter = rootView.findViewById(R.id.layoutFilter);
+
             accountsReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
@@ -1623,6 +1791,56 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     getAccounts();
                 }
             };
+
+            txtFilter = rootView.findViewById(R.id.edittextFilter);
+            txtFilter.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+
+                @Override
+                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                    // NPE if we don't have a populated adapter!
+                    if (adapter == null || adapter.mData == null) {
+                        Log.w(TAG, "onTextChanged: No data in adapter - cannot filter!");
+                        return;
+                    }
+
+                    String filter;
+
+                    // Clear the adapter's data
+                    adapter.mData.clear();
+
+                    // Filter text present
+                    if (charSequence != null && charSequence.length() > 0) {
+                        filter = charSequence.toString().toLowerCase();
+
+                        for (CrmEntities.Accounts.Account account : accounts.list) {
+                            if (account.accountName.toLowerCase().contains(filter) || account.accountnumber.contains(filter)) {
+                                BasicObjects.BasicObject object = new BasicObjects.BasicObject(account.accountnumber, account.customerTypeFormatted, account);
+                                object.middleText = account.accountName;
+                                object.iconResource = R.drawable.maps_hospital_32x37;
+                                adapter.mData.add(object);
+                            }
+                        }
+                    } else { // No filter text so add everything
+                        for (CrmEntities.Accounts.Account account : accounts.list) {
+                            BasicObjects.BasicObject object = new BasicObjects.BasicObject(account.accountnumber, account.customerTypeFormatted, account);
+                            object.middleText = account.accountName;
+                            object.iconResource = R.drawable.maps_hospital_32x37;
+                            adapter.mData.add(object);
+                        }
+                    }
+                }
+
+                @Override
+                public void afterTextChanged(Editable editable) {
+                    // Notify the list that the data has changed
+                    if (adapter != null && adapter.mData != null) {
+                        adapter.notifyDataSetChanged();
+                    }
+                }
+            });
 
             territoryChangedReceiver = new BroadcastReceiver() {
                 @Override
@@ -1639,13 +1857,20 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 populateList();
             }
 
-            txtNoAccounts = rootView.findViewById(R.id.txtNoAccounts);
+            txtNoAccounts = rootView.findViewById(R.id.txtNoAgreements);
 
             return rootView;
         }
 
         void getAccounts() {
             refreshLayout.autoRefreshAnimationOnly();
+            try {
+                layoutFilter.setEnabled(false);
+                txtFilter.setEnabled(false);
+                txtFilter.setText("");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             String query = CrmQueries.Accounts.getAccountsByTerritory(globalTerritory.territoryid);
 
@@ -1671,6 +1896,10 @@ public class Activity_TerritoryData extends AppCompatActivity {
         }
 
         void populateList() {
+            populateList(null);
+        }
+
+        void populateList(String filter) {
 
             objects.clear();
 
@@ -1683,6 +1912,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     // Add the ticket as a BasicObject
                     BasicObjects.BasicObject object = new BasicObjects.BasicObject(account.accountnumber, account.customerTypeFormatted, account);
                     object.middleText = account.accountName;
+                    object.iconResource = R.drawable.maps_hospital_32x37;
                     objects.add(object);
                 }
             }
@@ -1707,6 +1937,11 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
             try {
                 refreshLayout.finishRefresh();
+                layoutFilter.setEnabled(true);
+                txtFilter.setEnabled(true);
+                if (mViewPager.getCurrentItem() == SectionsPagerAdapter.ACCOUNTS_PAGE) {
+                    Helpers.Application.showKeyboard(txtFilter, context);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -1732,6 +1967,182 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public void onDestroyView() {
             super.onDestroyView();
             getActivity().unregisterReceiver(accountsReceiver);
+            getActivity().unregisterReceiver(territoryChangedReceiver);
+            Log.i(TAG, "onPause Unregistered the cases receiver");
+        }
+    }
+
+    public static class Frag_ServiceAgreements extends Fragment {
+        public static final String ARG_SECTION_NUMBER = "section_number";
+        public View rootView;
+        public RecyclerView listview;
+        RefreshLayout refreshLayout;
+        BroadcastReceiver agreementFilterReceiver;
+        Territory curTerritory;
+        CrmEntities.ServiceAgreements serviceAgreements;
+        ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
+        BasicObjectRecyclerAdapter adapter;
+        BroadcastReceiver territoryChangedReceiver;
+        TextView txtNoAgreements;
+        FloatingActionButton fab;
+
+        @Nullable
+        @Override
+        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            rootView = inflater.inflate(R.layout.frag_service_agreements, container, false);
+            listview = rootView.findViewById(R.id.casesRecyclerview);
+            refreshLayout = rootView.findViewById(R.id.refreshLayout);
+            refreshLayout.setEnableLoadMore(false);
+            fab = rootView.findViewById(R.id.floatingActionButton);
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(FAB_CLICKED);
+                    getActivity().sendBroadcast(intent);
+                }
+            });
+            refreshLayout.setOnRefreshListener(new OnRefreshListener() {
+                @Override
+                public void onRefresh(@NonNull RefreshLayout refreshLayout) {
+                    getServiceAgreements();
+                }
+            });
+            super.onCreateView(inflater, container, savedInstanceState);
+
+            agreementFilterReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Log.i(TAG, "onReceive Received an agreements filter broadcast! (service agreements frag)");
+                    mViewPager.getAdapter().notifyDataSetChanged();
+                    getServiceAgreements();
+                }
+            };
+
+            territoryChangedReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    if (intent.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT) != null) {
+                        curTerritory = globalTerritory;
+                    }
+                }
+            };
+
+            if (objects == null || objects.size() == 0 || curTerritory != globalTerritory) {
+                getServiceAgreements();
+            } else {
+                populateList();
+            }
+
+            txtNoAgreements = rootView.findViewById(R.id.txtNoAgreements);
+            return rootView;
+        }
+
+        void getServiceAgreements() {
+
+            refreshLayout.autoRefreshAnimationOnly();
+
+            String query = "";
+
+            switch (serviceAgreementFilter) {
+                case CURRENT:
+                    query = CrmQueries.Accounts.getActiveServiceAgreementsByTerritory(globalTerritory.territoryid);
+                    break;
+                case EXPIRED:
+                    query = CrmQueries.Accounts.getExpiredServiceAgreementsByTerritory(globalTerritory.territoryid);
+                    break;
+                case EXPIRING:
+                    query = CrmQueries.Accounts.getExpiringServiceAgreementsByTerritory(globalTerritory.territoryid);
+                    break;
+            }
+
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            args.add(new Requests.Argument("query", query));
+            Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
+
+            Crm crm = new Crm();
+            crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    String response = new String(responseBody);
+                    Log.i(TAG, "onSuccess " + response);
+                    serviceAgreements = new CrmEntities.ServiceAgreements(response);
+                    populateList();
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    refreshLayout.finishRefresh();
+                }
+            });
+        }
+
+        void populateList() {
+
+            objects.clear();
+
+            if (serviceAgreements != null) {
+
+                int lastStatusCode = -1;
+
+                for (CrmEntities.ServiceAgreements.ServiceAgreement agreement : serviceAgreements.list) {
+
+                    // Add the ticket as a BasicObject
+                    BasicObjects.BasicObject object = new BasicObjects.BasicObject(agreement._msus_customer_valueFormattedValue,
+                            agreement._msus_product_valueFormattedValue + "\ns/n: " + agreement.msus_serialnumber, agreement);
+                    object.middleText = "Expires: " + agreement.getPrettyEnddate();
+                    object.iconResource = R.drawable.contract32;
+                    objects.add(object);
+                }
+            }
+
+            adapter = new BasicObjectRecyclerAdapter(context, objects);
+            listview.setLayoutManager(new LinearLayoutManager(context));
+            listview.setAdapter(adapter);
+            adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
+                @Override
+                public void onItemClick(View view, int position) {
+                    BasicObjects.BasicObject object = objects.get(position);
+                    CrmEntities.ServiceAgreements.ServiceAgreement agreement = (CrmEntities.ServiceAgreements.ServiceAgreement) object.object;
+                    Intent intent = new Intent(context, BasicEntityActivity.class);
+                    intent.putExtra(BasicEntityActivity.GSON_STRING, agreement.toBasicEntity().toGson());
+                    intent.putExtra(BasicEntityActivity.ENTITYID, agreement.entityid);
+                    // intent.putExtra(BasicEntityActivity.HIDE_MENU, true);
+                    intent.putExtra(BasicEntityActivity.CURRENT_TERRITORY, globalTerritory);
+                    intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "msus_medistimserviceagreement");
+                    intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Service agreement " + agreement.msus_name);
+                    startActivityForResult(intent, REQUEST_BASIC);
+                }
+            });
+
+            txtNoAgreements.setVisibility(objects.size() == 0 ? View.VISIBLE : View.GONE);
+
+            try {
+                refreshLayout.finishRefresh();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            IntentFilter filter = new IntentFilter(MENU_SELECTION);
+            filter.addAction(MENU_SELECTION);
+            getActivity().registerReceiver(agreementFilterReceiver, filter);
+            getActivity().registerReceiver(territoryChangedReceiver, new IntentFilter(MENU_SELECTION));
+            Log.i(TAG, "onResume Registered the cases receiver");
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+        }
+
+        @Override
+        public void onDestroyView() {
+            super.onDestroyView();
+            getActivity().unregisterReceiver(agreementFilterReceiver);
             getActivity().unregisterReceiver(territoryChangedReceiver);
             Log.i(TAG, "onPause Unregistered the cases receiver");
         }

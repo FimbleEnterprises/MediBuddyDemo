@@ -162,6 +162,22 @@ public class CrmEntities {
 
         }
 
+        public ArrayList<BasicObjects.BasicObject> toBasicObjects() {
+            ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
+            for (Annotation annotation : this.list) {
+                BasicObjects.BasicObject object = new BasicObjects.BasicObject();
+                object.object = annotation;
+                object.iconResource = R.drawable.text_message_icon_32x;
+                object.title = annotation.subject;
+                object.middleText = annotation.notetext;
+                object.subtitle = annotation.createdByName;
+                object.bottomRightText = Helpers.DatesAndTimes.getPrettyDateAndTime(annotation.createdon);
+                object.dateTime = annotation.createdon;
+                objects.add(object);
+            }
+            return objects;
+        }
+
         public static class Annotation extends CrmEntity implements Parcelable {
 
             private static final String TAG = "Annotation";
@@ -1724,7 +1740,7 @@ public class CrmEntities {
                 BasicObjects.BasicObject object = new BasicObjects.BasicObject(this.subject, this.firstname + " " + this.lastname, this);
                 object.middleText = this.statuscodeFormatted;
                 object.topRightText = this.leadQualityFormatted;
-                object.iconResource = R.drawable.lead_icon2;
+                object.iconResource = R.drawable.lead_icon2_32x32;
                 return object;
             }
 
@@ -1825,6 +1841,293 @@ public class CrmEntities {
                 return this.fullname + ", " + this.congressidFormatted + " - " + this.leadQualityFormatted;
             }
 
+        }
+    }
+
+    public static class ServiceAgreements {
+        public ArrayList<ServiceAgreement> list = new ArrayList<>();
+
+        public ServiceAgreements(String crmServerResponse) {
+            try {
+                JSONObject rootObject = new JSONObject(crmServerResponse);
+                JSONArray rootArray = rootObject.getJSONArray("value");
+                for (int i = 0; i < rootArray.length(); i++) {
+                    this.list.add(new ServiceAgreement(rootArray.getJSONObject(i)));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public static class ServiceAgreement extends CrmEntity {
+
+            public int msus_serialnumber;
+            public String msus_name;
+            public DateTime msus_enddate;
+            public DateTime msus_startdate;
+            public boolean msus_declined;
+            public boolean msus_imaging;
+            public String _msus_product_valueFormattedValue;
+            public String _msus_product_value;
+            public int msus_termlengthyears;
+            public String _msus_customer_valueFormattedValue;
+            public String _msus_customer_value;
+            public String _ownerid_valueFormattedValue;
+            public String _ownerid_value;
+            public String msus_warrantytypeFormattedValue;
+            public int msus_warrantytype;
+            public String a_963da520835eec11811d005056a36b9b_territoryidFormattedValue;
+            public String a_963da520835eec11811d005056a36b9b_territoryid;
+            public String modifiedByFormatted;
+            public String modifiedBy;
+            public DateTime modifiedOn;
+
+            public ServiceAgreement(JSONObject json) {
+                try {
+                    if (!json.isNull("msus_medistimserviceagreementid")) {
+                        this.entityid = (json.getString("msus_medistimserviceagreementid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("etag")) {
+                        this.etag = (json.getString("etag"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("msus_serialnumber")) {
+                        this.msus_serialnumber = (json.getInt("msus_serialnumber"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("msus_name")) {
+                        this.msus_name = (json.getString("msus_name"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                   if (!json.isNull("msus_enddate")) {
+                       this.msus_enddate = (new DateTime(json.getString("msus_enddate")));
+                   }
+                } catch (JSONException e) {
+                   e.printStackTrace();
+                }
+                try {
+                   if (!json.isNull("msus_startdate")) {
+                       this.msus_startdate = (new DateTime(json.getString("msus_startdate")));
+                   }
+                } catch (JSONException e) {
+                   e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("msus_declined")) {
+                        this.msus_declined = (json.getBoolean("msus_declined"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("msus_imaging")) {
+                        this.msus_imaging = (json.getBoolean("msus_imaging"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_product_valueFormattedValue")) {
+                        this._msus_product_valueFormattedValue = (json.getString("_msus_product_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_product_value")) {
+                        this._msus_product_value = (json.getString("_msus_product_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("msus_termlengthyears")) {
+                        this.msus_termlengthyears = (json.getInt("msus_termlengthyears"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_customer_valueFormattedValue")) {
+                        this._msus_customer_valueFormattedValue = (json.getString("_msus_customer_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_msus_customer_value")) {
+                        this._msus_customer_value = (json.getString("_msus_customer_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_ownerid_value")) {
+                        this._ownerid_value = (json.getString("_ownerid_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_ownerid_valueFormattedValue")) {
+                        this._ownerid_valueFormattedValue = (json.getString("_ownerid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("msus_warrantytype")) {
+                        this.msus_warrantytype = (json.getInt("msus_warrantytype"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("msus_warrantytypeFormattedValue")) {
+                        this.msus_warrantytypeFormattedValue = (json.getString("msus_warrantytypeFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_963da520835eec11811d005056a36b9b_territoryidFormattedValue")) {
+                        this.a_963da520835eec11811d005056a36b9b_territoryidFormattedValue = (json.getString("a_963da520835eec11811d005056a36b9b_territoryidFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("a_963da520835eec11811d005056a36b9b_territoryid")) {
+                        this.a_963da520835eec11811d005056a36b9b_territoryid = (json.getString("a_963da520835eec11811d005056a36b9b_territoryid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("modifiedby")) {
+                        this.modifiedBy = (json.getString("modifiedby"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("modifiedbyFormatted")) {
+                        this.modifiedByFormatted = (json.getString("modifiedbyFormatted"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                   if (!json.isNull("modifiedon")) {
+                       this.modifiedOn = (new DateTime(json.getString("modifiedon")));
+                   }
+                } catch (JSONException e) {
+                   e.printStackTrace();
+                }
+            }
+
+            public String getYesNo(boolean val) {
+                return val ? "Yes" : "No";
+            }
+
+            public String getPrettyEnddate() {
+                return Helpers.DatesAndTimes.getPrettyDate(this.msus_enddate);
+            }
+
+            public BasicEntity toBasicEntity() {
+
+                BasicEntity entity = new BasicEntity();
+
+                BasicEntity.EntityBasicField name = new BasicEntity.EntityBasicField("Name:", this.msus_name, "msus_name");
+                name.isReadOnly = false;
+                entity.fields.add(name);
+
+                BasicEntity.EntityBasicField custy = new BasicEntity.EntityBasicField("Customer:", this._msus_customer_valueFormattedValue, "msus_customer");
+                custy.isReadOnly = false;
+                custy.isAccountField = true;
+                custy.account = new Accounts.Account(this._msus_customer_value, this._msus_customer_valueFormattedValue);
+                entity.fields.add(custy);
+
+                BasicEntity.EntityBasicField product = new BasicEntity.EntityBasicField("Product:", this._msus_product_valueFormattedValue, "msus_product");
+                product.isReadOnly = true;
+                entity.fields.add(product);
+
+                BasicEntity.EntityBasicField serialnumber = new BasicEntity.EntityBasicField("Serial number:", Integer.toString(this.msus_serialnumber), "msus_serialnumber");
+                serialnumber.isReadOnly = false;
+                serialnumber.isNumber = true;
+                entity.fields.add(serialnumber);
+
+                BasicEntity.EntityBasicField startdate = new BasicEntity.EntityBasicField("Start date:", Helpers.DatesAndTimes.getPrettyDate(this.msus_startdate), "msus_startdate");
+                startdate.isReadOnly = false;
+                startdate.isDateField = true;
+                entity.fields.add(startdate);
+
+                BasicEntity.EntityBasicField enddate = new BasicEntity.EntityBasicField("End date:", Helpers.DatesAndTimes.getPrettyDate(this.msus_enddate), "msus_enddate");
+                enddate.isReadOnly = false;
+                enddate.isDateField = true;
+                entity.fields.add(enddate);
+
+                BasicEntity.EntityBasicField termlength = new BasicEntity.EntityBasicField("Term length:", Integer.toString(msus_termlengthyears), "msus_termlengthyears");
+                termlength.isReadOnly = false;
+                termlength.isNumber = true;
+                entity.fields.add(termlength);
+
+                BasicEntity.EntityBasicField modifiedBy = new BasicEntity.EntityBasicField("Modified by:", this.modifiedByFormatted);
+                modifiedBy.isReadOnly = true;
+                entity.fields.add(modifiedBy);
+
+                BasicEntity.EntityBasicField modifiedon = new BasicEntity.EntityBasicField("Modified on:", this.modifiedOn);
+                modifiedon.isReadOnly = true;
+                entity.fields.add(modifiedon);
+
+                // warranty type options set
+                ArrayList<BasicEntity.EntityBasicField.OptionSetValue> warrantyTypeOptionset = new ArrayList<>();
+                warrantyTypeOptionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Warranty", "745820000"));
+                warrantyTypeOptionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Extended warranty", "745820001"));
+                BasicEntity.EntityBasicField warrantyTypeOptionsetField = new BasicEntity.EntityBasicField("Warranty type: ", msus_warrantytypeFormattedValue);
+                warrantyTypeOptionsetField.crmFieldName = "msus_warrantytype";
+                warrantyTypeOptionsetField.optionSetValues = warrantyTypeOptionset;
+                warrantyTypeOptionsetField.isOptionSet = true;
+                warrantyTypeOptionsetField.isReadOnly = false;
+                entity.fields.add(warrantyTypeOptionsetField);
+
+                // Declined warranty options set
+                ArrayList<BasicEntity.EntityBasicField.OptionSetValue> custyDeclinedOptionset = new ArrayList<>();
+                custyDeclinedOptionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Yes", "true"));
+                custyDeclinedOptionset.add(new BasicEntity.EntityBasicField.OptionSetValue("No", "false"));
+                BasicEntity.EntityBasicField custyDeclinedEntityField = new BasicEntity.EntityBasicField("Customer declined extended warranty: ", getYesNo(msus_declined));
+                custyDeclinedEntityField.crmFieldName = "msus_declined";
+                custyDeclinedEntityField.optionSetValues = custyDeclinedOptionset;
+                custyDeclinedEntityField.isOptionSet = true;
+                custyDeclinedEntityField.isReadOnly = false;
+                entity.fields.add(custyDeclinedEntityField);
+
+                // Imaging options set
+                ArrayList<BasicEntity.EntityBasicField.OptionSetValue> imagingOptionset = new ArrayList<>();
+                imagingOptionset.add(new BasicEntity.EntityBasicField.OptionSetValue("Yes", "true"));
+                imagingOptionset.add(new BasicEntity.EntityBasicField.OptionSetValue("No", "false"));
+                BasicEntity.EntityBasicField imagingOptionsetEntityField = new BasicEntity.EntityBasicField("Imaging: ", getYesNo(msus_imaging));
+                imagingOptionsetEntityField.crmFieldName = "msus_imaging";
+                imagingOptionsetEntityField.optionSetValues = imagingOptionset;
+                imagingOptionsetEntityField.isOptionSet = true;
+                imagingOptionsetEntityField.isReadOnly = false;
+                entity.fields.add(imagingOptionsetEntityField);
+
+                return entity;
+            }
         }
     }
 
@@ -1973,6 +2276,19 @@ public class CrmEntities {
             @Override
             public String toString() {
                 return this.addressnumberFormattedValue + " | " + this.composite;
+            }
+
+            /**
+             * For some reason, occasionally an address will not have a composite property despite
+             * having all the ingredients to build one.  I think this is a CRM issue.  So we build
+             * one here.  No null checking here - just builds a string using the four address properties.
+             * @return
+             */
+            public String buildCompositeAddress() {
+                String c = "";
+                c = this.line1 +"\n" +
+                            this.city + ", " + this.stateorprovince + " " + this.postalcode;
+                return c;
             }
 
         }
@@ -4804,6 +5120,222 @@ public class CrmEntities {
                 }
             };
         }
+    }
+
+    public static class Emails {
+
+        public ArrayList<Email> list;
+
+        public Emails(String crmServerResponse) {
+
+            this.list = new ArrayList<>();
+
+            try {
+                JSONObject root = new JSONObject(crmServerResponse);
+                JSONArray rootArray = root.getJSONArray("value");
+                for (int i = 0; i < rootArray.length(); i++) {
+                    this.list.add(new Email(rootArray.getJSONObject(i)));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public static class Email extends CrmEntity implements Parcelable {
+
+            public String description;
+            public String subject;
+            public String statusCodeFormatted;
+            public int statusCode;
+            public String senderid;
+            public String senderFormatted;
+            public String createdByid;
+            public String createdByFormatted;
+            public String regardingid;
+            public String regardingFormatted;
+            public String activityTypeCodeFormatted;
+            public int priorityCode;
+            public String priorityCodeFormatted;
+            public DateTime createdOn;
+            public String createdOnFormatted;
+
+            public Email(JSONObject json) {
+                try {
+                    if (!json.isNull("etag")) {
+                        this.etag = (json.getString("etag"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("activityid")) {
+                        this.entityid = (json.getString("activityid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("description")) {
+                        this.description = (json.getString("description"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("subject")) {
+                        this.subject = (json.getString("subject"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("statuscodeFormattedValue")) {
+                        this.statusCodeFormatted = (json.getString("statuscodeFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("statuscode")) {
+                        this.statusCode = (json.getInt("statuscode"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_emailsender_valueFormattedValue")) {
+                        this.senderFormatted = (json.getString("_emailsender_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_emailsender_value")) {
+                        this.senderid = (json.getString("_emailsender_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_createdby_valueFormattedValue")) {
+                        this.createdByFormatted = (json.getString("_createdby_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_createdby_value")) {
+                        this.createdByid = (json.getString("_createdby_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_regardingobjectid_valueFormattedValue")) {
+                        this.regardingFormatted = (json.getString("_regardingobjectid_valueFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("_regardingobjectid_value")) {
+                        this.regardingid = (json.getString("_regardingobjectid_value"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("activitytypecodeFormattedValue")) {
+                        this.activityTypeCodeFormatted = (json.getString("activitytypecodeFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("prioritycode")) {
+                        this.priorityCode = (json.getInt("prioritycode"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("prioritycodeFormattedValue")) {
+                        this.priorityCodeFormatted = (json.getString("prioritycodeFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                   if (!json.isNull("createdon")) {
+                       this.createdOn = (new DateTime(json.getString("createdon")));
+                   }
+                } catch (JSONException e) {
+                   e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("createdonFormattedValue")) {
+                        this.createdOnFormatted = (json.getString("createdonFormattedValue"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public int describeContents() {
+                return 0;
+            }
+
+            @Override
+            public void writeToParcel(Parcel dest, int flags) {
+                dest.writeString(this.description);
+                dest.writeString(this.subject);
+                dest.writeString(this.statusCodeFormatted);
+                dest.writeInt(this.statusCode);
+                dest.writeString(this.senderid);
+                dest.writeString(this.senderFormatted);
+                dest.writeString(this.createdByid);
+                dest.writeString(this.createdByFormatted);
+                dest.writeString(this.regardingid);
+                dest.writeString(this.regardingFormatted);
+                dest.writeString(this.activityTypeCodeFormatted);
+                dest.writeInt(this.priorityCode);
+                dest.writeString(this.priorityCodeFormatted);
+                dest.writeSerializable(this.createdOn);
+                dest.writeString(this.createdOnFormatted);
+            }
+
+            protected Email(Parcel in) {
+                this.description = in.readString();
+                this.subject = in.readString();
+                this.statusCodeFormatted = in.readString();
+                this.statusCode = in.readInt();
+                this.senderid = in.readString();
+                this.senderFormatted = in.readString();
+                this.createdByid = in.readString();
+                this.createdByFormatted = in.readString();
+                this.regardingid = in.readString();
+                this.regardingFormatted = in.readString();
+                this.activityTypeCodeFormatted = in.readString();
+                this.priorityCode = in.readInt();
+                this.priorityCodeFormatted = in.readString();
+                this.createdOn = (DateTime) in.readSerializable();
+                this.createdOnFormatted = in.readString();
+            }
+
+            public static final Parcelable.Creator<Email> CREATOR = new Parcelable.Creator<Email>() {
+                @Override
+                public Email createFromParcel(Parcel source) {
+                    return new Email(source);
+                }
+
+                @Override
+                public Email[] newArray(int size) {
+                    return new Email[size];
+                }
+            };
+        }
+
     }
 
 }

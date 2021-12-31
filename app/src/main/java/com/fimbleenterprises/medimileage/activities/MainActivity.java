@@ -10,11 +10,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.InputType;
-import android.text.Spannable;
-import android.text.SpannableString;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuInflater;
@@ -27,7 +24,6 @@ import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.CrmQueries;
-import com.fimbleenterprises.medimileage.CustomTypefaceSpan;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.MileBuddyUpdater;
 import com.fimbleenterprises.medimileage.MyApp;
@@ -42,8 +38,8 @@ import com.fimbleenterprises.medimileage.services.MyLocationService;
 import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
 import com.fimbleenterprises.medimileage.dialogs.MyRatingDialog;
 import com.fimbleenterprises.medimileage.dialogs.MyTwoChoiceDialog;
-import com.fimbleenterprises.medimileage.fullscreen_pickers.FullscreenAccountTerritoryPicker;
-import com.fimbleenterprises.medimileage.fullscreen_pickers.FullscreenActivityChooseRep;
+import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenAccountTerritoryPicker;
+import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityChooseRep;
 import com.fimbleenterprises.medimileage.objects_and_containers.AggregateStats;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.ExcelSpreadsheet;
@@ -51,8 +47,8 @@ import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyUpdate;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileageUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
-import com.fimbleenterprises.medimileage.ui.mileage.MileageFragment;
-import com.fimbleenterprises.medimileage.ui.settings.SettingsActivity;
+import com.fimbleenterprises.medimileage.activities.ui.mileage.MileageFragment;
+import com.fimbleenterprises.medimileage.activities.ui.settings.SettingsActivity;
 import com.google.android.material.navigation.NavigationView;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
@@ -80,7 +76,7 @@ import androidx.appcompat.widget.Toolbar;
 import cz.msebera.android.httpclient.Header;
 
 import static com.fimbleenterprises.medimileage.QueryFactory.*;
-import static com.fimbleenterprises.medimileage.ui.mileage.MileageFragment.PERMISSION_UPDATE;
+import static com.fimbleenterprises.medimileage.activities.ui.mileage.MileageFragment.PERMISSION_UPDATE;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, DrawerLayout.DrawerListener {
     private static final String TAG = "MainActivity";
@@ -248,8 +244,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         /* *************************************************************
                 -= PUT EXPERIMENTAL SHIT BETWEEN THESE COMMENTS =-
          * *************************************************************/
-        // Intent intent = new Intent(this, CreateQuoteScrollingActivity.class);
-        // startActivity(intent);
+        if (options.getDebugMode()) {
+           /* Intent intent = new Intent(this, CreateQuoteScrollingActivity.class);
+            startActivity(intent);*/
+
+        }
         /* *************************************************************
                 -= PUT EXPERIMENTAL SHIT BETWEEN THESE COMMENTS =-
          * *************************************************************/
@@ -260,6 +259,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         //Called when a drawer's position changes.
     }
 
+
+
     @Override
     public void onDrawerOpened(@NonNull View drawerView) {
         try {
@@ -268,6 +269,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 drawer.close();
                 Toast.makeText(activity, "You must login.", Toast.LENGTH_SHORT).show();
                 return;
+            }
+
+            try {
+                navigationView.getMenu().getItem(1).setTitle(MyLocationService.isRunning ? "Stop Trip" : "Start New Trip");
+            } catch (Exception e) {
+                e.printStackTrace();
             }
 
             TextView txtUserName = navigationView.getHeaderView(0).findViewById(R.id.textViewUser);
@@ -296,11 +303,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             return true;
         }
 
+        if (item.getItemId() == R.id.nav_start_new_trip) {
+            Intent intent = new Intent(MileageFragment.GENERIC_RECEIVER_ACTION);
+            intent.putExtra(MileageFragment.START_STOP_TRIP_INTENT, true);
+            sendBroadcast(intent);
+            drawer.close();
+        }
+
         if (item.getTitle().equals(getString(R.string.retry))) {
             Log.i(TAG, "onNavigationItemSelected Retrying user populate...");
             drawer.closeDrawer(navigationView);
             Menu m = navigationView.getMenu();
-            SubMenu subMenu = m.getItem(3).getSubMenu();
+                SubMenu subMenu = m.getItem(3).getSubMenu();
             subMenu.getItem(0).setTitle(getString(R.string.loading));
             try {
                 makeDrawerTitles();
@@ -328,14 +342,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Intent usageIntent = new Intent(activity, UsageMetricsActivity.class);
             startActivity(usageIntent);
             // drawer.closeDrawer(navigationView);
+        } else if (item.getItemId() == R.id.nav_parking) {
+            Intent usageIntent = new Intent(activity, Activity_ParkingMap.class);
+            startActivity(usageIntent);
+            // drawer.closeDrawer(navigationView);
         } else {
             try {
                 Log.i(TAG, "onNavigationItemSelected index:" + item.getItemId());
                 Log.i(TAG, "onNavigationItemSelected fullname:" + users.get(item.getItemId()).fullname);
-                drawer.closeDrawer(navigationView);
                 Intent intent = new Intent(getApplicationContext(), UserTripsActivity.class);
                 intent.putExtra(UserTripsActivity.MILEAGE_USER, users.get(item.getItemId()));
                 startActivity(intent);
+                // drawer.closeDrawer(navigationView);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -470,21 +488,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             login.setTitle(options.isExplicitMode() ? getString(R.string.login_explicit) : getString(R.string.login));
         }
 
-        Typeface typeface = getResources().getFont(R.font.casual);
 
-        for (int i = 0; i < menu.size(); i++) {
-            MenuItem mi = menu.getItem(i);
-            //for aapplying a font to subMenu ...
-            SubMenu subMenu = mi.getSubMenu();
-            if (subMenu != null && subMenu.size() > 0) {
-                for (int j = 0; j < subMenu.size(); j++) {
-                    MenuItem subMenuItem = subMenu.getItem(j);
-                    applyFontToMenuItem(subMenuItem, typeface);
-                }
-            }
-            //the method we have create in activity
-            applyFontToMenuItem(mi, typeface);
-        }
+
+        Helpers.Strings.applyFontToMenuItem(this, menu);
 
         return super.onPrepareOptionsMenu(menu);
     }
@@ -605,6 +611,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public void makeDrawerTitles() {
         Menu menu = navigationView.getMenu();
+
         
         if (options.isExplicitMode()) {
             menu.findItem(R.id.nav_home).setTitle(R.string.menu_mileage_explicit);
@@ -619,7 +626,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else {
             menu.findItem(R.id.nav_home).setTitle(R.string.menu_mileage);
             menu.findItem(R.id.nav_aggregatedmileagestats).setTitle(R.string.menu_aggregated_mileage_stats);
-            menu.findItem(R.id.nav_data).setTitle(R.string.menu_data);
+            menu.findItem(R.id.nav_data).setTitle(R.string.menu_my_data);
             menu.findItem(R.id.nav_myterritory).setTitle(R.string.menu_territory_info);
             menu.findItem(R.id.nav_myaccounts).setTitle(getString(R.string.menu_account_info));
             menu.findItem(R.id.nav_salesquotas).setTitle(getString(R.string.menu_salesquotas));
@@ -777,7 +784,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         factory.addLinkEntity(linkEntity);
 
         Filter.FilterCondition condition1 = new Filter.FilterCondition("msus_dt_tripdate",
-                Filter.Operator.THIS_MONTH);
+                Filter.Operator.LAST_X_MONTHS, "2");
         Filter filter = new Filter(Filter.FilterType.OR, condition1);
         Filter.FilterCondition condition2 = new Filter.FilterCondition("msus_dt_tripdate",
                 Filter.Operator.LAST_MONTH);
@@ -798,7 +805,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Log.i(TAG, "getDistinctUsersWithTrips The users array is empty or null.  Need to rebuild it from CRM!");
 
             Menu m = navigationView.getMenu();
-            SubMenu subMenu = m.getItem(2).getSubMenu();
+            SubMenu subMenu = m.getItem(5).getSubMenu();
             subMenu.clear();
             subMenu.add("Loading...");
             subMenu.getItem(0).setTitle("Loading...");
@@ -814,15 +821,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         JSONArray array = json.getJSONArray("value");
                         users = MileageUser.makeMany(array);
                         Menu m = navigationView.getMenu();
-                        SubMenu subMenu = m.getItem(2).getSubMenu();
+                        SubMenu subMenu = m.getItem(5).getSubMenu();
                         subMenu.removeItem(subMenu.getItem(0).getItemId());
 
                         for (int i = 0; i < users.size(); i++) {
                             MileageUser user = users.get(i);
                             if (user.isDriving()) {
-                                subMenu.add(0, i, i, user.fullname + " (driving now)");
+                                subMenu.add(0, i, i, user.fullname + " (driving)").setIcon(R.drawable.notification_small_car);
                             } else {
-                                subMenu.add(0, i, i, options.isExplicitMode() ? user.fullFuckingName() : user.fullname);
+                                subMenu.add(0, i, i, options.isExplicitMode() ? user.fullFuckingName() : user.fullname).setIcon(R.drawable.arrow_right2);
                             }
                         }
                     } catch (Exception e) {
@@ -835,7 +842,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     Log.w(TAG, "onFailure: " + error.getMessage());
                     try {
                         Menu m = navigationView.getMenu();
-                        SubMenu subMenu = m.getItem(3).getSubMenu();
+                        SubMenu subMenu = m.getItem(5).getSubMenu();
                         subMenu.getItem(0).setTitle("Retry");
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -843,10 +850,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             });
         } else {
-            Log.i(TAG, "getDistinctUsersWithTrips FOund a cached users list.  Will use it instead of going to CRM for a rebuild.");
+            Log.i(TAG, "getDistinctUsersWithTrips Found a cached users list.  Will use it instead of going to CRM for a rebuild.");
 
             Menu m = navigationView.getMenu();
-            SubMenu subMenu = m.getItem(2).getSubMenu();
+            SubMenu subMenu = m.getItem(5).getSubMenu();
             subMenu.clear();
             subMenu.add("Loading...");
             subMenu.getItem(0).setTitle("Loading...");
@@ -855,9 +862,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             for (int i = 0; i < users.size(); i++) {
                 MileageUser user = users.get(i);
                 if (user.isDriving()) {
-                    subMenu.add(0, i, i, user.fullname + " (driving now)");
+                    subMenu.add(0, i, i, user.fullname + " (driving)").setIcon(R.drawable.notification_small_car);
                 } else {
-                    subMenu.add(0, i, i, options.isExplicitMode() ? user.fullFuckingName() : user.fullname);
+                    subMenu.add(0, i, i, options.isExplicitMode() ? user.fullFuckingName() : user.fullname).setIcon(R.drawable.arrow_right2);
                 }
             }
 
@@ -875,12 +882,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
         return false;
-    }
-
-    private void applyFontToMenuItem(MenuItem mi, Typeface font) {
-        SpannableString mNewTitle = new SpannableString(mi.getTitle());
-        mNewTitle.setSpan(new CustomTypefaceSpan("", font), 0, mNewTitle.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-        mi.setTitle(mNewTitle);
     }
 
     void getAndExportAggregateStats() {
@@ -928,7 +929,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 String filename = "milebuddy_aggregate_mileage_export_" + monthYear + "_"
                         + MediUser.getMe().fullname.replace(" ","_") + ".xls";
                 ExcelSpreadsheet spreadsheet = stats.exportToExcel(filename.toLowerCase());
-                spreadsheet.share(activity);
+                Helpers.Files.shareFileProperly(activity, spreadsheet.file);
+                // spreadsheet.share(activity);
             }
 
             @Override

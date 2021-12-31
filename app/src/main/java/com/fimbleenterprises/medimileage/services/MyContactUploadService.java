@@ -24,6 +24,7 @@ import com.fimbleenterprises.medimileage.objects_and_containers.MyVcard;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -78,8 +79,7 @@ public class MyContactUploadService extends Service {
 
             // Check if this is just plain text being shared.  If so we don't want to try to find a
             // file and read it (because it obviously won't exist and that would be stupid.
-            if (intent.getAction().equals(UPDATE_EXISTING_CONTACT)) {
-
+            if (Objects.equals(intent.getAction(), UPDATE_EXISTING_CONTACT)) {
                 notification = getNotification("Updating Contact",
                         "Your contact is being updated in the background.", false, true);
 
@@ -119,10 +119,6 @@ public class MyContactUploadService extends Service {
 
         Intent onClickIntent = new Intent();
 
-        if (onClickGoesToOpportunity) {
-
-        }
-
         // The PendingIntent to launch our activity if the user selects
         // this notification
         PendingIntent contentIntent = PendingIntent.getActivity(this,
@@ -159,6 +155,50 @@ public class MyContactUploadService extends Service {
 
         NotificationManager mNotificationManager=(NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationManager.notify(START_ID,notification);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        Log.e(TAG, "onDestroy");
+
+        releaseWakelock();
+
+        isRunning = false;
+
+    }
+
+    private void getWakelock() {
+        Log.d(TAG, "getWakelock Acquiring wakelock...");
+        PowerManager mgr = (PowerManager) this.getSystemService(Context.POWER_SERVICE);
+        wakeLock = mgr.newWakeLock(
+                PowerManager.PARTIAL_WAKE_LOCK |
+                        PowerManager.ACQUIRE_CAUSES_WAKEUP,
+                "MediBuddy:MyWakeLock");
+        wakeLock.acquire();
+        Log.d(TAG, "getWakelock Wakelock is held = " + wakeLock.isHeld());
+
+        if (wakeLock.isHeld()) {
+            Intent intent = new Intent(CREATE_NEW_CONTACT);
+            intent.putExtra(WAKELOCK_ACQUIRED, true);
+            sendBroadcast(intent);
+        } else {
+            if (! wakeLock.isHeld()) {
+                Log.i(TAG, "getWakelock NOT HELD!");
+                wakeLock.acquire();
+            }
+        }
+    }
+
+    private void releaseWakelock() {
+        if (wakeLock == null) return;
+
+        Log.d(TAG, "releaseWakelock Wakelock is held = " + wakeLock.isHeld());
+
+        if (wakeLock.isHeld()) {
+            wakeLock.release();
+        }
     }
 
     void createManyContacts(String accountid, ArrayList<MyVcard> vCards) {
@@ -213,54 +253,6 @@ public class MyContactUploadService extends Service {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-
-        Log.e(TAG, "onDestroy");
-
-        releaseWakelock();
-
-        /*NotificationManager mgr = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
-        mgr.cancel(NOTIFICATION_ID);
-        mgr.cancelAll();*/
-
-        isRunning = false;
-
-    }
-
-    private void getWakelock() {
-        Log.d(TAG, "getWakelock Acquiring wakelock...");
-        PowerManager mgr = (PowerManager) this.getSystemService(Context.POWER_SERVICE);
-        wakeLock = mgr.newWakeLock(
-                PowerManager.PARTIAL_WAKE_LOCK |
-                        PowerManager.ACQUIRE_CAUSES_WAKEUP,
-                "MediBuddy:MyWakeLock");
-        wakeLock.acquire();
-        Log.d(TAG, "getWakelock Wakelock is held = " + wakeLock.isHeld());
-
-        if (wakeLock.isHeld()) {
-            Intent intent = new Intent(CREATE_NEW_CONTACT);
-            intent.putExtra(WAKELOCK_ACQUIRED, true);
-            sendBroadcast(intent);
-        } else {
-            if (! wakeLock.isHeld()) {
-                Log.i(TAG, "getWakelock NOT HELD!");
-                wakeLock.acquire();
-            }
-        }
-    }
-
-    private void releaseWakelock() {
-        if (wakeLock == null) return;
-
-        Log.d(TAG, "releaseWakelock Wakelock is held = " + wakeLock.isHeld());
-
-        if (wakeLock.isHeld()) {
-            wakeLock.release();
-        }
     }
 
 }

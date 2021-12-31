@@ -25,6 +25,14 @@
         <item name="android:fontFamily">@font/casual</item>
     </style>
 
+    <style name="AppThemeBasicCustomToolbar" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorGreen</item>
+        <item name="colorPrimaryDark">@color/colorGreen</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:fontFamily">@font/casual</item>
+    </style>
+
     <style name="AppThemeAlt" parent="Theme.MaterialComponents.Light.Bridge">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimaryAlt</item>

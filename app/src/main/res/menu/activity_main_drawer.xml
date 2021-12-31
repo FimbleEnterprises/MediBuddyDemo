@@ -8,8 +8,17 @@
         android:menuCategory="container" android:id="@+id/top">
         <item
             android:id="@+id/nav_home"
-            android:icon="@drawable/house_icon_black_36x"
+            android:visible="false"
+            android:icon="@drawable/condensedlogo_white_32"
             android:title="@string/menu_mileage" />
+        <item
+            android:id="@+id/nav_start_new_trip"
+            android:icon="@drawable/unselected_car_icon_circular"
+            android:title="@string/menu_start_new_trip" />
+        <item
+            android:id="@+id/nav_parking"
+            android:icon="@drawable/car_map_icon_32x32"
+            android:title="Parking Buddy" />
     </group>
 
     <group android:checkableBehavior="single"
@@ -18,33 +27,44 @@
         <item
             android:id="@+id/nav_data"
             android:icon="@drawable/house_icon_black_36x"
-            android:title="@string/menu_data">
+            android:title="@string/menu_my_data">
             <menu>
                 <item
-                    android:id="@+id/nav_aggregatedmileagestats"
-                    android:icon="@drawable/ic_carot_right"
-                    android:title="@string/menu_aggregated_mileage_stats" />
-                <item
                     android:id="@+id/nav_myterritory"
-                    android:icon="@drawable/ic_carot_right"
+                    android:icon="@drawable/territory1"
                     android:title="@string/menu_territory_info" />
                 <item
                     android:id="@+id/nav_myaccounts"
-                    android:icon="@drawable/ic_carot_right"
+                    android:icon="@drawable/territory1"
                     android:title="@string/menu_account_info" />
                 <item
                     android:id="@+id/nav_salesquotas"
-                    android:icon="@drawable/ic_carot_right"
+                    android:icon="@drawable/bpo_50x50"
                     android:title="@string/menu_salesquotas" />
+            </menu>
+        </item>
+    </group>
+    <group android:checkableBehavior="single"
+        android:menuCategory="container" android:id="@+id/bottom2">
+
+        <item
+            android:id="@+id/other"
+            android:enabled="true"
+            android:title="Other">
+            <menu>
+                <item
+                    android:id="@+id/nav_aggregatedmileagestats"
+                    android:icon="@drawable/highway_icon32x32_disabled"
+                    android:title="@string/menu_aggregated_mileage_stats" />
+                <item
+                    android:id="@+id/nav_settings"
+                    android:icon="@drawable/settings_32x32"
+                    android:title="Settings" />
                 <item
                     android:id="@+id/nav_usage"
                     android:icon="@drawable/ic_carot_right"
-                    android:visible="false"
+                    android:visible="true"
                     android:title="@string/menu_usage" />
-                <item
-                    android:id="@+id/nav_settings"
-                    android:icon="@drawable/settings_36x36"
-                    android:title="Settings" />
             </menu>
         </item>
 

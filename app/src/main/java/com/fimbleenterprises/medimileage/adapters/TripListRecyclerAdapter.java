@@ -18,7 +18,7 @@ import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.R;
-import com.fimbleenterprises.medimileage.ui.mileage.MileageFragment;
+import com.fimbleenterprises.medimileage.activities.ui.mileage.MileageFragment;
 
 import java.util.ArrayList;
 
@@ -61,7 +61,7 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = mInflater.inflate(R.layout.triplist_row, parent, false);
-        textView = view.findViewById(R.id.textView_FullTripRowMainText);
+        textView = view.findViewById(R.id.txtMainText);
         originalTypeface = textView.getTypeface();
         return new ViewHolder(view);
     }
@@ -201,13 +201,13 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
         ViewHolder(View itemView) {
             super(itemView);
             layout = itemView.findViewById(R.id.layout);
-            imgSubmitStatus = itemView.findViewById(R.id.imageView_FullTripRowLeftIcon);
-            txtMainText = itemView.findViewById(R.id.textView_FullTripRowMainText);
-            txtSubtext = itemView.findViewById(R.id.textView_FullTripRowSubtext);
+            imgSubmitStatus = itemView.findViewById(R.id.leftIcon);
+            txtMainText = itemView.findViewById(R.id.txtMainText);
+            txtSubtext = itemView.findViewById(R.id.txtSubtext);
             imgHasAssociations = itemView.findViewById(R.id.imageView_has_associations);
             txtIsEditedOrManual = itemView.findViewById(R.id.txtIsEditedOrManual);
             txtIsAutoStoppedTrip = itemView.findViewById(R.id.txtIsAutoStopped);
-            chkbxSelectTrip = itemView.findViewById(R.id.checkBox_selectTrip);
+            chkbxSelectTrip = itemView.findViewById(R.id.btnDeleteTrip);
 
             itemView.setOnClickListener(this);
             itemView.setOnLongClickListener(this);

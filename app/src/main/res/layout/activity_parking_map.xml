@@ -1,276 +1,372 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/layout_master_FindParkingSpot"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_marginTop="1dp"
-    android:background="#EE7420"
-    android:orientation="vertical"
-    tools:mContext=".Activity_MapView" >
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:id="@+id/layout_master_FindParkingSpot"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:layout_margin="1dp"
+	android:layout_marginTop="1dp"
+	android:background="@color/colorPrimary"
+	android:orientation="vertical"
+	tools:mContext=".Activity_MapView">
 
-    <RelativeLayout
-        android:id="@+id/layout_ParkingControlView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="0dp"
-        android:layout_marginLeft="2dp"
-        android:layout_marginRight="2dp"
-        android:layout_marginTop="2dp"
-        android:background="#EEEEEE" >
+	<RelativeLayout
+		android:id="@+id/layout_ParkingControlView"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginLeft="2dp"
+		android:layout_marginTop="2dp"
+		android:layout_marginRight="2dp"
+		android:layout_marginBottom="0dp"
+		android:background="#EEEEEE">
 
-        <ProgressBar
-            android:id="@+id/progressBar_ParkingWaitingOnGps"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_centerInParent="true"
-            android:layout_marginTop="22dp"
-            android:visibility="gone" />
-        
-	    <TableLayout
-	        android:id="@+id/TableLayout_Stats"
-	        android:layout_width="fill_parent"
-	        android:layout_height="wrap_content"
-	        android:layout_alignParentLeft="true"
-	        android:layout_alignParentRight="true"
-	        android:layout_marginTop="1dp"
-	        android:paddingBottom="2dp"
-	        android:paddingTop="2dp" >
-	        <TableRow
-	            android:id="@+id/tableRow1"
-	            android:layout_width="wrap_content"
-	            android:layout_height="wrap_content" >
-	            <FrameLayout 
-	                android:layout_height="wrap_content"
-	                android:layout_width="0dp"
-	                android:layout_weight="1">
+		<ProgressBar
+			android:id="@+id/progressBar_ParkingWaitingOnGps"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_centerInParent="true"
+			android:layout_centerHorizontal="true"
+			android:layout_marginTop="22dp"
+			android:visibility="gone" />
 
-		            <TextView
-		                android:id="@+id/TextView_Parking_DistanceLabel"
-		                android:layout_width="match_parent"
-		                android:layout_height="wrap_content"
-		                android:layout_marginLeft="5dp"
-		                android:layout_marginRight="5dp"
-		                android:gravity="right"
-		                android:text="Absolute Distance:"
-		                android:textAppearance="?android:attr/textAppearanceSmall"
-		                android:textColor="#000000"
-		                android:textSize="13sp"
-		                android:textStyle="bold" />
+		<TableLayout
+			android:id="@+id/TableLayout_Stats"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_alignParentLeft="true"
+			android:layout_alignParentRight="true"
+			android:layout_marginTop="1dp"
+			android:paddingTop="2dp"
+			android:paddingBottom="2dp">
 
-	            </FrameLayout>
-	            <FrameLayout 
-	                android:layout_height="wrap_content"
-	                android:layout_width="0dp"
-	                android:layout_weight="1">
+			<TableRow
+				android:id="@+id/tableRow1"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content">
 
-			        <TextView
-			            android:id="@+id/TextView_Parking_DistanceValue"
-			            android:layout_width="match_parent"
-			            android:layout_height="wrap_content"
-			            android:layout_marginLeft="5dp"
-			            android:layout_marginRight="5dp"
-			            android:text="Calculating..."
-			            android:textAppearance="?android:attr/textAppearanceSmall"
-			            android:textColor="#606060"
-			            android:textSize="13sp" />
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
 
-	            </FrameLayout>        
-	        </TableRow>
-	        <TableRow
-	            android:id="@+id/tableRow_walkDistances"
-	            android:layout_width="wrap_content"
-	            android:layout_height="wrap_content" >
-	            <FrameLayout 
-	                android:layout_height="wrap_content"
-	                android:layout_width="0dp"
-	                android:layout_weight="1">
+					<TextView
+						android:id="@+id/TextView_Parking_DistanceLabel"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:gravity="right"
+						android:text="Absolute Distance:"
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textColor="#000000"
+						android:textSize="16sp"
+						android:textStyle="bold" />
 
-		            <TextView
-		                android:id="@+id/TextView_Parking_WalkingDistanceLabel"
-		                android:layout_width="match_parent"
-		                android:layout_height="wrap_content"
-		                android:layout_marginLeft="5dp"
-		                android:layout_marginRight="5dp"
-		                android:gravity="right"
-		                android:text="Walking Distance:"
-		                android:textAppearance="?android:attr/textAppearanceSmall"
-		                android:textColor="#000000"
-		                android:textSize="13sp"
-		                android:textStyle="bold" />
+				</FrameLayout>
 
-	            </FrameLayout>
-	            <FrameLayout 
-	                android:layout_height="wrap_content"
-	                android:layout_width="0dp"
-	                android:layout_weight="1">
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
 
-			        <TextView
-			            android:id="@+id/TextView_Parking_WalkingDistanceValue"
-			            android:layout_width="match_parent"
-			            android:layout_height="wrap_content"
-			            android:layout_marginLeft="5dp"
-			            android:layout_marginRight="5dp"
-			            android:text="Calculating..."
-			            android:textAppearance="?android:attr/textAppearanceSmall"
-			            android:textColor="#606060"
-			            android:textSize="13sp" />
+					<TextView
+						android:id="@+id/TextView_Parking_DistanceValue"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:text="Calculating..."
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textColor="#606060"
+						android:textSize="16sp" />
 
-	            </FrameLayout>        
-	        </TableRow>
-            <TableRow
-	            android:id="@+id/tableRow34323"
-	            android:layout_width="wrap_content"
-	            android:layout_height="wrap_content" >
-		        <FrameLayout 
-	                android:layout_height="wrap_content"
-	                android:layout_width="0dp"
-	                android:layout_weight="1">
+				</FrameLayout>
+			</TableRow>
 
-			        <TextView
-			            android:id="@+id/TextView_Parking_TimestampLabel"
-			            android:layout_width="match_parent"
-			            android:layout_height="wrap_content"
-			            android:layout_marginLeft="5dp"
-			            android:layout_marginRight="5dp"
-			            android:gravity="right"
-			            android:text="Date created:"
-			            android:textAppearance="?android:attr/textAppearanceSmall"
-			            android:textColor="#000000"
-			            android:textSize="13sp"
-			            android:textStyle="bold" />
+			<TableRow
+				android:id="@+id/tableRow_walkDistances"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content">
 
-	            </FrameLayout>
-            	<FrameLayout 
-	                android:layout_height="wrap_content"
-	                android:layout_width="0dp"
-	                android:layout_weight="1">
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
 
-			        <TextView
-			            android:id="@+id/TextView_Parking_Timestamp"
-			            android:layout_width="match_parent"
-			            android:layout_height="wrap_content"
-			            android:layout_marginLeft="5dp"
-			            android:layout_marginRight="5dp"
-			            android:text="Calculating..."
-			            android:textAppearance="?android:attr/textAppearanceSmall"
-			            android:textColor="#606060"
-			            android:textSize="13sp" />
-	            </FrameLayout>	
-            </TableRow>	    
-            <TableRow
-	            android:id="@+id/tableRow3432223"
-	            android:layout_width="wrap_content"
-	            android:layout_height="wrap_content" >
-		        <FrameLayout 
-	                android:layout_height="wrap_content"
-	                android:layout_width="0dp"
-	                android:layout_weight="1">
+					<TextView
+						android:id="@+id/TextView_Parking_WalkingDistanceLabel"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:gravity="right"
+						android:text="Walking Distance:"
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textColor="#000000"
+						android:textSize="16sp"
+						android:textStyle="bold" />
 
-			        <TextView
-			            android:id="@+id/TextView_Parking_DirectionLabel"
-			            android:layout_width="match_parent"
-			            android:layout_height="wrap_content"
-			            android:layout_marginLeft="5dp"
-			            android:layout_marginRight="5dp"
-			            android:gravity="right"
-			            android:text="Current GPS Accuracy:"
-			            android:textAppearance="?android:attr/textAppearanceSmall"
-			            android:textColor="#000000"
-			            android:textSize="13sp"
-			            android:textStyle="bold" />
+				</FrameLayout>
 
-	            </FrameLayout>
-            	<FrameLayout 
-	                android:layout_height="wrap_content"
-	                android:layout_width="0dp"
-	                android:layout_weight="1">
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
 
-			        <TextView
-			            android:id="@+id/TextView_Parking_GPS_Acc"
-			            android:layout_width="match_parent"
-			            android:layout_height="wrap_content"
-			            android:layout_marginLeft="5dp"
-			            android:layout_marginRight="5dp"
-			            android:text="Calculating..."
-			            android:textAppearance="?android:attr/textAppearanceSmall"
-			            android:textColor="#606060"
-			            android:textSize="13sp" />
-	            </FrameLayout>	
-            </TableRow>	    
-	    </TableLayout>
-  	</RelativeLayout>
-  	
-    <LinearLayout
-        android:id="@+id/ParkingMap_LinearLayout04"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/TableLayout_Stats"
-        android:layout_marginBottom="1dp"
-        android:layout_marginLeft="2dp"
-        android:layout_marginRight="2dp"
-        android:layout_marginTop="1dp"
-        android:background="#FFFFFF"
-        android:paddingBottom="3dp"
-        android:paddingRight="3dp"
-        android:paddingTop="3dp"
-        android:weightSum="1.0" >
+					<TextView
+						android:id="@+id/TextView_Parking_WalkingDistanceValue"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:text="Calculating..."
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textColor="#606060"
+						android:textSize="16sp" />
 
-			<Button
-			    android:id="@+id/btn_ParkingMapOverlay_toggleMap"
-			    android:layout_width="25dp"
-			    android:layout_height="30dp"
-			    android:layout_alignParentLeft="true"
-			    android:layout_alignTop="@+id/map"
-			    android:layout_marginLeft="5dp"
-			    android:layout_weight=".5"
-			    android:background="@drawable/btn_glass_gray_black_border"
-			    android:contentDescription="Locks the camera on your position when pressed"
-			    android:drawableLeft="@drawable/ic_map_tiny"
-			    android:drawablePadding="0dp"
-			    android:onClick="toggleMap"
-			    android:paddingLeft="10dp"
-			    android:text="Street"
-			    android:textColor="#717171"
-			    android:textSize="14sp" />
-						
-			<Button
-			    android:id="@+id/btn_ParkingMapOverlay_toggleLock"
-			    android:layout_width="25dp"
-			    android:layout_height="30dp"
-			    android:layout_alignParentLeft="true"
-			    android:layout_alignTop="@+id/map"
-			    android:layout_marginLeft="5dp"
-			    android:layout_weight=".5"
-			    android:background="@drawable/btn_glass_gray_black_border"
-			    android:contentDescription="Locks the camera on your position when pressed"
-			    android:drawableLeft="@drawable/ic_padlock_unlocked"
-			    android:drawablePadding="0dp"
-			    android:onClick="toggleLock"
-			    android:paddingLeft="10dp"
-			    android:text="Camera"
-			    android:textColor="#717171"
-			    android:textSize="14sp" />
+				</FrameLayout>
+			</TableRow>
 
-		</LinearLayout>
-    
-    <RelativeLayout
-        android:id="@+id/layout_MapView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight=".28"  >
+			<TableRow
+				android:id="@+id/tableRow34323"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content">
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+					<TextView
+						android:id="@+id/TextView_Parking_TimestampLabel"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:gravity="right"
+						android:text="Date created:"
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textColor="#000000"
+						android:textSize="16sp"
+						android:textStyle="bold" />
+
+				</FrameLayout>
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+					<TextView
+						android:id="@+id/TextView_Parking_Timestamp"
+						android:layout_width="match_parent"
+						android:layout_height="match_parent"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:gravity="center_vertical"
+						android:text="Calculating..."
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textColor="#606060"
+						android:textSize="13sp" />
+				</FrameLayout>
+			</TableRow>
+
+			<TableRow
+				android:id="@+id/tableRow3432223"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content">
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+					<TextView
+						android:id="@+id/TextView_Parking_DirectionLabel"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:gravity="right"
+						android:text="Current GPS Accuracy:"
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textColor="#000000"
+						android:textSize="16sp"
+						android:textStyle="bold" />
+
+				</FrameLayout>
+
+				<FrameLayout
+					android:layout_width="0dp"
+					android:layout_height="wrap_content"
+					android:layout_weight="1">
+
+					<TextView
+						android:id="@+id/TextView_Parking_GPS_Acc"
+						android:layout_width="match_parent"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="5dp"
+						android:layout_marginRight="5dp"
+						android:text="Calculating..."
+						android:textAppearance="?android:attr/textAppearanceSmall"
+						android:textColor="#606060"
+						android:textSize="16sp" />
+				</FrameLayout>
+			</TableRow>
+		</TableLayout>
+	</RelativeLayout>
+
+	<LinearLayout
+		android:id="@+id/map_controls"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_below="@id/layout_ParkingControlView"
+		android:layout_marginLeft="2dp"
+		android:layout_marginTop="1dp"
+		android:layout_marginRight="2dp"
+		android:layout_marginBottom="1dp"
+		android:background="#FFFFFF"
+		android:paddingTop="3dp"
+		android:paddingRight="3dp"
+		android:paddingBottom="3dp"
+		android:weightSum="1.0">
+
+		<Button
+			android:id="@+id/btnMapStyle"
+			android:layout_width="25dp"
+			android:layout_height="30dp"
+			android:layout_alignTop="@+id/map"
+			android:layout_alignParentLeft="true"
+			android:layout_marginLeft="5dp"
+			android:layout_weight=".5"
+			android:background="@drawable/btn_glass_gray_black_border"
+			android:contentDescription="Change map style."
+			android:drawableLeft="@drawable/ic_map_tiny"
+			android:drawablePadding="0dp"
+			android:paddingLeft="10dp"
+			android:text="Map Style"
+			android:textColor="#717171"
+			android:textSize="16sp" />
+
+		<Button
+			android:id="@+id/btnToggleCameraLock"
+			android:layout_width="25dp"
+			android:layout_height="30dp"
+			android:layout_alignTop="@+id/map"
+			android:layout_alignParentLeft="true"
+			android:layout_marginLeft="5dp"
+			android:layout_weight=".5"
+			android:background="@drawable/btn_glass_gray_black_border"
+			android:contentDescription="Locks the camera on your position when pressed"
+			android:drawableLeft="@drawable/ic_padlock_unlocked"
+			android:drawablePadding="0dp"
+			android:paddingLeft="10dp"
+			android:text="VIEW"
+			android:textColor="#717171"
+			android:textSize="16sp" />
+
+	</LinearLayout>
+
+
+	<RelativeLayout
+		android:id="@+id/layout_MapView"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_above="@id/parking_spot_controls"
+		android:layout_below="@id/map_controls"
+		android:layout_weight=".28">
 
 		<fragment
-		    android:id="@+id/map"
-		    android:layout_width="match_parent"
-		    android:layout_height="match_parent"
-		    android:layout_marginBottom="2dp"
-		    android:layout_marginLeft="2dp"
-		    android:layout_marginRight="2dp"
-		    class="com.google.android.gms.maps.SupportMapFragment" />
+			android:id="@+id/map"
+			class="com.google.android.gms.maps.SupportMapFragment"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:layout_marginLeft="2dp"
+			android:layout_marginRight="2dp"
+			android:layout_marginBottom="2dp" />
 
-		
+		<com.google.android.material.floatingactionbutton.FloatingActionButton
+			android:id="@+id/fabNavigate"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_alignParentRight="true"
+			android:layout_alignParentBottom="true"
+			android:layout_marginEnd="20dp"
+			android:layout_marginBottom="20dp"
+			android:clickable="true"
+			android:foregroundTint="#FFFFFF"
+			android:scaleType="matrix"
+			app:backgroundTint="#FFFFFF"
+			app:borderWidth="0dp"
+			app:fabSize="auto"
+			app:fab_colorDisabled="#00656565"
+			app:fab_colorPressed="#FF8000"
+			app:maxImageSize="42dp"
+			app:srcCompat="@drawable/maps_icon_1_96x96" />
 
-    </RelativeLayout>
-    
-</LinearLayout>
+
+	</RelativeLayout>
+
+	<TableLayout
+		android:id="@+id/parking_spot_controls"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:layout_alignParentBottom="true"
+		android:layout_marginLeft="1dp"
+		android:layout_marginTop="0dp"
+		android:layout_marginRight="1dp"
+		android:layout_marginBottom="1dp"
+		android:background="#FFFFFF">
+
+		<TableRow
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content">
+
+			<FrameLayout
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight=".35">
+
+				<Button
+					android:id="@+id/btnClearSpot"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:layout_margin="4dp"
+					android:background="@drawable/btn_glass_gray"
+					android:text="@string/clear_parking_spot_button" />
+
+			</FrameLayout>
+
+			<FrameLayout
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight=".15">
+
+				<Button
+					android:id="@+id/btnStreetviewSpot"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:layout_margin="4dp"
+					android:background="@drawable/btn_glass_gray"
+					android:text="@string/view_streetview_parking_spot_button" />
+
+			</FrameLayout>
+
+			<FrameLayout
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight=".35">
+
+				<Button
+					android:id="@+id/btnSaveSpot"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:layout_margin="4dp"
+					android:background="@drawable/btn_glass_gray"
+					android:text="@string/save_parking_spot_button" />
+
+			</FrameLayout>
+		</TableRow>
+	</TableLayout>
+
+</RelativeLayout>

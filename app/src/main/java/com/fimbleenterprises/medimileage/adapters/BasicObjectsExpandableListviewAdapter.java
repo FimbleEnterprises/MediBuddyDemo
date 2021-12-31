@@ -81,15 +81,15 @@ public class BasicObjectsExpandableListviewAdapter extends BaseExpandableListAda
         }
 
         TextView mainText = (TextView) convertView
-                .findViewById(R.id.textView_BasicObjectMainText);
+                .findViewById(R.id.txtTop);
         TextView subText = (TextView) convertView
-                .findViewById(R.id.textView_BasicObjectRowSubtext);
+                .findViewById(R.id.txtBottom);
         TextView topRightText = (TextView) convertView
-                .findViewById(R.id.textView_BasicObjectTopRightText);
+                .findViewById(R.id.txtTopRight);
         TextView middleText = (TextView) convertView
-                .findViewById(R.id.textView_BasicObjectRowMiddleText);
+                .findViewById(R.id.txtMiddle);
         TextView bottomRightText = (TextView) convertView
-                .findViewById(R.id.textView_BasicObjectBottomRightText);
+                .findViewById(R.id.txtBottomRight);
         ImageView leftIcon = (ImageView) convertView.findViewById(R.id.imageView_BasicObjectIcon);
 
 

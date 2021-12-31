@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
+import com.fimbleenterprises.medimileage.objects_and_containers.custom_exceptions.CrmRequestExceptions;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestHandle;
@@ -69,6 +70,13 @@ public class Crm {
                                         final AsyncHttpResponseHandler responseHandler) {
 
         String argString = "";
+
+        if (request == null) {
+            responseHandler.onFailure(0,
+                    null,
+                    "Request was null!".getBytes(),
+                    new CrmRequestExceptions.NullRequestException("The fucking request itself cannot be fucking null!"));
+        }
         for (Requests.Argument arg : request.arguments) {
             argString = arg.toString() + "\n";
         }
@@ -171,7 +179,7 @@ public class Crm {
         }
 
         if (timeout == Timeout.LONG) {
-            client.setTimeout(1000000);
+            client.setTimeout(9000000);
         } else if (timeout == Timeout.SHORT) {
             client.setTimeout(10000);
         }

@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -35,25 +36,28 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.MyApp;
-import com.fimbleenterprises.medimileage.adapters.AnnotationsAdapter;
+import com.fimbleenterprises.medimileage.adapters.EmailsAndAnnotationsAdapter;
+import com.fimbleenterprises.medimileage.dialogs.MyDatePicker;
+import com.fimbleenterprises.medimileage.dialogs.MyYesNoDialog;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicEntity;
 import com.fimbleenterprises.medimileage.adapters.BasicEntityActivityObjectRecyclerAdapter;
 import com.fimbleenterprises.medimileage.dialogs.ContactActions;
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.CustomTypefaceSpan;
+import com.fimbleenterprises.medimileage.objects_and_containers.EmailsOrAnnotations;
 import com.fimbleenterprises.medimileage.objects_and_containers.EntityContainers;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
 import com.fimbleenterprises.medimileage.MyPreferencesHelper;
-import com.fimbleenterprises.medimileage.ui.CustomViews.NonScrollRecyclerView;
+import com.fimbleenterprises.medimileage.activities.ui.CustomViews.NonScrollRecyclerView;
 import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
-import com.fimbleenterprises.medimileage.fullscreen_pickers.FullscreenActivityChooseAccount;
+import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityChooseAccount;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.jaiselrahman.filepicker.activity.FilePickerActivity;
@@ -66,6 +70,7 @@ import org.joda.time.DateTime;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class BasicEntityActivity extends AppCompatActivity {
@@ -95,19 +100,20 @@ public class BasicEntityActivity extends AppCompatActivity {
     String entityid;
     String entityLogicalName;
     String activityTitle;
+    final EmailsOrAnnotations emailsOrAnnotations = new EmailsOrAnnotations();
     BasicEntityActivityObjectRecyclerAdapter adapter;
     FloatingActionButton fab;
     NonScrollRecyclerView notesListView;
     CrmEntities.Annotations.Annotation newImageBaseAnnotation;
     Dialog dialogNoteOptions;
     public static final int PERM_REQUEST_CAMERA_ADD_ATTACHMENT = 11;
-    AnnotationsAdapter adapterNotes;
+    EmailsAndAnnotationsAdapter emailsAndAnnoationsAdapter;
     String pendingNote;
     RefreshLayout refreshLayout;
     CrmEntities.Annotations.Annotation lastClickedNote;
     TextView txtNotesLoading;
     ProgressBar pbNotesLoading;
-    Button btnAddNote;
+    Button btnViewMails;
     TableLayout tblNotes;
     BasicEntity basicEntity;
     MyPreferencesHelper options;
@@ -125,7 +131,7 @@ public class BasicEntityActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         context = this;
         activity = this;
-        setContentView(R.layout.basic_entity_activity);
+        setContentView(R.layout.basic_entity_activity_with_emails);
         options = new MyPreferencesHelper(context);
 
         try {
@@ -143,7 +149,8 @@ public class BasicEntityActivity extends AppCompatActivity {
         notesListView = findViewById(R.id.notesRecyclerView);
         txtNotesLoading = findViewById(R.id.textViewopportunityNotesLoading);
         pbNotesLoading = findViewById(R.id.progressBarWorking);
-        btnAddNote = findViewById(R.id.btnAddNote);
+        btnViewMails = findViewById(R.id.btnViewEmails);
+        btnViewMails.setEnabled(false);
         /*
         -= Switched to a floating action button (v1.85)=-
         btnAddNote.setOnClickListener(new View.OnClickListener() {
@@ -198,6 +205,7 @@ public class BasicEntityActivity extends AppCompatActivity {
             // See if notes should be loaded (default is yes)
             if (getIntent() != null && getIntent().getBooleanExtra(LOAD_NOTES, true)) {
                 getNotes();
+                getEmails();
                 tblNotes.setVisibility(View.VISIBLE);
                 // Show the floating action button since this entity has notes
                 fab.setVisibility(View.VISIBLE);
@@ -236,7 +244,22 @@ public class BasicEntityActivity extends AppCompatActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (this.isEditMode) {
+            if (updatePending) {
+                MyYesNoDialog.show(context, "You have pending changes.  Would you like to save them?", new MyYesNoDialog.YesNoListener() {
+                    @Override
+                    public void onYes() {
+                        updateEntity();
+                    }
+
+                    @Override
+                    public void onNo() {
+                        isEditMode = false;
+                        updatePending = false;
+                        populateForm();
+                    }
+                });
+                return false;
+            } else if (this.isEditMode) {
                 this.isEditMode = false;
                 populateForm(basicEntity.toGson(), false);
                 return true;
@@ -352,7 +375,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                 newImageBaseAnnotation = lastClickedNote;
                 dialogNoteOptions.dismiss();
                 lastClickedNote.inUse = true;
-                adapterNotes.notifyDataSetChanged();
+                emailsAndAnnoationsAdapter.notifyDataSetChanged();
                 dialogNoteOptions.dismiss();
             }
         }
@@ -377,7 +400,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                     newImageBaseAnnotation.mimetype = file.getMimeType();
                     newImageBaseAnnotation.isDocument = true;
                     newImageBaseAnnotation.inUse = true;
-                    adapterNotes.notifyDataSetChanged();
+                    emailsAndAnnoationsAdapter.notifyDataSetChanged();
                     newImageBaseAnnotation.addAttachment(context, new MyInterfaces.CrmRequestListener() {
                         @Override
                         public void onComplete(Object result) {
@@ -388,7 +411,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                             }
                             newImageBaseAnnotation.inUse = false;
                             newImageBaseAnnotation.filename = file.getName();
-                            adapterNotes.notifyDataSetChanged();
+                            emailsAndAnnoationsAdapter.notifyDataSetChanged();
                         }
 
                         @Override
@@ -403,7 +426,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                             newImageBaseAnnotation.documentBody = null;
                             newImageBaseAnnotation.filename = null;
                             newImageBaseAnnotation.inUse = false;
-                            adapterNotes.notifyDataSetChanged();
+                            emailsAndAnnoationsAdapter.notifyDataSetChanged();
                             Toast.makeText(context, "Failed!\n" + error, Toast.LENGTH_SHORT).show();
                         }
                     });
@@ -414,7 +437,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                     newImageBaseAnnotation.documentBody = "";
                     newImageBaseAnnotation.isDocument = true;
                     newImageBaseAnnotation.inUse = true;
-                    adapterNotes.notifyDataSetChanged();
+                    emailsAndAnnoationsAdapter.notifyDataSetChanged();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -527,7 +550,7 @@ public class BasicEntityActivity extends AppCompatActivity {
         adapter.setButtonClickListener(new BasicEntityActivityObjectRecyclerAdapter.ItemButtonClickListener() {
             @Override
             public void onItemButtonClick(View view, int position) {
-                BasicEntity.EntityBasicField field = basicEntity.fields.get(position);
+                final BasicEntity.EntityBasicField field = basicEntity.fields.get(position);
                 if (field.isAccountField) {
                     if (basicEntity.fields.get(position).account != null) {
                         if (isEditMode) {
@@ -572,6 +595,26 @@ public class BasicEntityActivity extends AppCompatActivity {
                             }
                         });
                     }
+                } else if (field.isDateField) {
+                    // Try to parse out the date from the field's value - no promises!
+                    DateTime dtValue = DateTime.now();
+                    try {
+                        dtValue = Helpers.DatesAndTimes.parseDate(field.value);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    MyDatePicker datePicker = new MyDatePicker(context, dtValue, new MyInterfaces.DateSelector() {
+                        @Override
+                        public void onDateSelected(DateTime selectedDate, String selectedDateStr) {
+                            field.value = Helpers.DatesAndTimes.getPrettyDate(selectedDate);
+                            adapter.mData = basicEntity.fields;
+                            adapter.notifyDataSetChanged();
+                            updatePending = true;
+                        }
+                    });
+                    datePicker.show();
+                } else if (field.isDateTimeField) {
+                    // DOn't have a date time picker yet.
                 }
             }
         });
@@ -596,6 +639,7 @@ public class BasicEntityActivity extends AppCompatActivity {
             }
         });
 
+        adapter.isEditMode = isEditMode;
         recyclerView.setAdapter(null);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setNestedScrollingEnabled(false); // Disables scrolling
@@ -833,7 +877,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                 dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
                 // addEditNoteProgressDialog.show();
                 clickedNote.inUse = true;
-                adapterNotes.notifyDataSetChanged();
+                emailsAndAnnoationsAdapter.notifyDataSetChanged();
                 clickedNote.submit(context, new MyInterfaces.CrmRequestListener() {
                     @Override
                     public void onComplete(Object result) {
@@ -862,13 +906,13 @@ public class BasicEntityActivity extends AppCompatActivity {
                                 clickedNote.modifedByName = MediUser.getMe().fullname;
                                 clickedNote.createdByName = MediUser.getMe().fullname;
                                 adapterNotes.mData.add(0, clickedNote);*/
-                                adapterNotes.notifyDataSetChanged();
+                                emailsAndAnnoationsAdapter.notifyDataSetChanged();
                             } else {
                                 Toast.makeText(context, "Note was updated!", Toast.LENGTH_SHORT).show();
-                                adapterNotes.updateAnnotationAndReload(clickedNote);
+                                emailsAndAnnoationsAdapter.updateAnnotationAndReload(clickedNote);
                             }
                         }
-                        adapterNotes.notifyDataSetChanged();
+                        emailsAndAnnoationsAdapter.notifyDataSetChanged();
 
                         // Clearing the notetext cache since this operation succeeded.
                         pendingNote = null;
@@ -877,7 +921,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                     @Override
                     public void onProgress(Crm.AsyncProgress progress) {
                         // clickedNote.filename = "uploading... " + progress.getCompletedMb() + ")";
-                        adapterNotes.notifyDataSetChanged();
+                        emailsAndAnnoationsAdapter.notifyDataSetChanged();
                     }
 
                     @Override
@@ -894,7 +938,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                 if (isEditing) {
                     clickedNote.subject = "(UPDATING) " + clickedNote.subject;
                     clickedNote.inUse = true;
-                    adapterNotes.notifyDataSetChanged();
+                    emailsAndAnnoationsAdapter.notifyDataSetChanged();
                 } else {
                     clickedNote.subject = "(ADDING) " + clickedNote.subject;
                     clickedNote.inUse = true;
@@ -905,8 +949,8 @@ public class BasicEntityActivity extends AppCompatActivity {
                     clickedNote.modifiedByValue = MediUser.getMe().systemuserid;
                     clickedNote.modifedByName = MediUser.getMe().fullname;
                     clickedNote.createdByName = MediUser.getMe().fullname;
-                    adapterNotes.mData.add(0, clickedNote);
-                    adapterNotes.notifyDataSetChanged();
+                    emailsAndAnnoationsAdapter.mData.add(0, new EmailsOrAnnotations.EmailOrAnnotation(clickedNote));
+                    emailsAndAnnoationsAdapter.notifyDataSetChanged();
                 }
 
             }
@@ -937,25 +981,21 @@ public class BasicEntityActivity extends AppCompatActivity {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 String response = new String(responseBody);
+
+                // Convert CRM server response to an arraylist of Annotations
                 final CrmEntities.Annotations annotations = new CrmEntities.Annotations(response);
-                adapterNotes = new AnnotationsAdapter(getApplicationContext(), annotations.list);
-                notesListView.setLayoutManager(new LinearLayoutManager(context));
-                notesListView.setAdapter(adapterNotes);
-                /*notesListView.addItemDecoration(new DividerItemDecoration(getApplicationContext(),
-                        DividerItemDecoration.VERTICAL));*/
-                adapterNotes.setClickListener(new AnnotationsAdapter.ItemClickListener() {
-                    @Override
-                    public void onItemClick(View view, int position) {
-                        CrmEntities.Annotations.Annotation note = annotations.list.get(position);
-                        // If the note belongs to the user or if it has an attachment, show the note
-                        // options dialog
-                        if (note.belongsTo(MediUser.getMe().systemuserid) || (note.isDocument) ) {
-                            showNoteOptions(note);
-                        } else {
-                            Toast.makeText(context, "No", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
+
+                // Iterate the arraylist and build the class-wide EmailsOrAnnotations object
+                for (CrmEntities.Annotations.Annotation annotation : annotations.list) {
+                    emailsOrAnnotations.upsert(annotation);
+                }
+
+                // Sort the array
+                Collections.sort(emailsOrAnnotations.list, Collections.<EmailsOrAnnotations.EmailOrAnnotation>reverseOrder());
+
+                // attach adapter
+                setAdapter();
+
                 // refreshLayout.finishRefresh();
                 txtNotesLoading.setVisibility(View.GONE);
                 pbNotesLoading.setVisibility(View.GONE);
@@ -972,6 +1012,94 @@ public class BasicEntityActivity extends AppCompatActivity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+            }
+        });
+    }
+
+    void getActivities() {
+        String query = CrmQueries.Activities.getCaseActivities(this.entityid);
+        Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
+        request.arguments.add(new Requests.Argument("query", query));
+        // Not implemented yet - copy logic from getEmails() or getNotes() if intend to implement.
+    }
+    
+    void getEmails() {
+        String query = CrmQueries.Emails.getEmailsRegarding(this.entityid);
+        Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
+        request.arguments.add(new Requests.Argument("query", query));
+        new Crm().makeCrmRequest(this, request, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                String serverResponse = new String(responseBody);
+                try {
+
+                    // Convert server json to an Emails object
+                    final CrmEntities.Emails emails = new CrmEntities.Emails(serverResponse);
+
+                    // Iterate the Emails and create an arraylist of EmailOrAnnotation objects
+                    for (CrmEntities.Emails.Email email : emails.list) {
+                        emailsOrAnnotations.upsert(email);
+                    }
+
+                    // Sort the EmailOrAnnotation array by date
+                    Collections.sort(emailsOrAnnotations.list, Collections.<EmailsOrAnnotations.EmailOrAnnotation>reverseOrder());
+
+                    // Attach the adapter
+                    setAdapter();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                Log.i(TAG, "onSuccess ");
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                Toast.makeText(BasicEntityActivity.this, error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /**
+     * Attaches the adapter to the recyclerview and configures onClick, onLongClick etc.
+     */
+    void setAdapter() {
+        emailsAndAnnoationsAdapter = new EmailsAndAnnotationsAdapter(context, emailsOrAnnotations);
+        notesListView.setLayoutManager(new LinearLayoutManager(context));
+        notesListView.setAdapter(emailsAndAnnoationsAdapter);
+                /*notesListView.addItemDecoration(new DividerItemDecoration(getApplicationContext(),
+                        DividerItemDecoration.VERTICAL));*/
+        emailsAndAnnoationsAdapter.setClickListener(new EmailsAndAnnotationsAdapter.ItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                EmailsOrAnnotations.EmailOrAnnotation item = emailsOrAnnotations.list.get(position);
+                if (item.isAnnotation()) {
+                    // If the note belongs to the user or if it has an attachment, show the note
+                    // options dialog
+                    if (item.annotation.belongsTo(MediUser.getMe().systemuserid) || (item.annotation.isDocument) ) {
+                        showNoteOptions(item.annotation);
+                    } else {
+                        Toast.makeText(context, "Not your note to edit.", Toast.LENGTH_SHORT).show();
+                    }
+                } else if (item.isEmail()) {
+                    Toast.makeText(BasicEntityActivity.this, "I'm an email!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        emailsAndAnnoationsAdapter.setOnLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                try {
+                    TextView txtView = (TextView) view.findViewById(R.id.txt_NoteBody);
+                    txtView.setTextIsSelectable(!txtView.isTextSelectable());
+                    if (txtView.isTextSelectable()) {
+                        Toast.makeText(context, "Long press again to enable text copying.", Toast.LENGTH_SHORT).show();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return false;
             }
         });
     }
@@ -1004,14 +1132,14 @@ public class BasicEntityActivity extends AppCompatActivity {
                 Toast.makeText(context, "Removing note...", Toast.LENGTH_SHORT).show();
                 clickedNote.subject = "(deleting...) " + clickedNote.subject;
                 clickedNote.inUse = true;
-                adapterNotes.notifyDataSetChanged();
+                emailsAndAnnoationsAdapter.notifyDataSetChanged();
                 dialogNoteOptions.dismiss();
 
                 clickedNote.delete(context, new MyInterfaces.YesNoResult() {
                     @Override
                     public void onYes(@Nullable Object object) {
                         Toast.makeText(context, "Note was deleted.", Toast.LENGTH_SHORT).show();
-                        adapterNotes.removeAnnotationAndReload(clickedNote);
+                        emailsAndAnnoationsAdapter.removeAnnotationAndReload(clickedNote);
                     }
 
                     @Override
@@ -1029,11 +1157,13 @@ public class BasicEntityActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if (!Helpers.Files.AttachmentTempFiles.fileExists(clickedNote.filename)) {
-                    final MyProgressDialog getNoteProgress = new MyProgressDialog(context, "Retrieving attachment...");
+                    final MyProgressDialog getNoteProgress = new MyProgressDialog(context
+                            , "Retrieving attachment...");
                     getNoteProgress.show();
                     clickedNote.inUse = true;
-                    adapterNotes.notifyDataSetChanged();
-                    CrmEntities.Annotations.getAnnotationFromCrm(clickedNote.entityid, true, new MyInterfaces.CrmRequestListener() {
+                    emailsAndAnnoationsAdapter.notifyDataSetChanged();
+                    CrmEntities.Annotations.getAnnotationFromCrm(clickedNote.entityid, true
+                            , new MyInterfaces.CrmRequestListener() {
                         @Override
                         public void onComplete(Object result) {
                             String response = result.toString();
@@ -1050,12 +1180,15 @@ public class BasicEntityActivity extends AppCompatActivity {
                                 Helpers.Files.openFile(attachment, annotation.mimetype);
                             }
                             clickedNote.inUse = false;
-                            adapterNotes.notifyDataSetChanged();
+                            emailsAndAnnoationsAdapter.notifyDataSetChanged();
                         }
 
                         @Override
                         public void onProgress(Crm.AsyncProgress progress) {
-                            getNoteProgress.setTitleText("Retrieving attachment (" + progress.getCompletedMb() + " mb)");
+
+                            if (progress.getCompletedKb() % 2 == 1) {
+                                getNoteProgress.setTitleText("Retrieving (" + progress.getCompletedMb() + " MB)");
+                            }
                         }
 
                         @Override
@@ -1063,7 +1196,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                             Toast.makeText(context, "Failed to retrieve note!\nError: " + error, Toast.LENGTH_SHORT).show();
                             getNoteProgress.dismiss();
                             clickedNote.inUse = false;
-                            adapterNotes.notifyDataSetChanged();
+                            emailsAndAnnoationsAdapter.notifyDataSetChanged();
                         }
                     });
                 } else {
@@ -1080,7 +1213,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                     final MyProgressDialog getNoteProgress = new MyProgressDialog(context, "Retrieving attachment...");
                     getNoteProgress.show();
                     clickedNote.inUse = true;
-                    adapterNotes.notifyDataSetChanged();
+                    emailsAndAnnoationsAdapter.notifyDataSetChanged();
                     CrmEntities.Annotations.getAnnotationFromCrm(clickedNote.entityid, true, new MyInterfaces.CrmRequestListener() {
                         @Override
                         public void onComplete(Object result) {
@@ -1095,10 +1228,10 @@ public class BasicEntityActivity extends AppCompatActivity {
                                 File attachment = Helpers.Files.base64Decode(annotation.documentBody,
                                         new File(Helpers.Files.AttachmentTempFiles.getDirectory() + File.separator +
                                                 annotation.filename));
-                                Helpers.Files.shareFile(context, attachment);
+                                Helpers.Files.shareFileProperly(context, attachment);
                             }
                             clickedNote.inUse = false;
-                            adapterNotes.notifyDataSetChanged();
+                            emailsAndAnnoationsAdapter.notifyDataSetChanged();
                         }
 
                         @Override
@@ -1111,14 +1244,14 @@ public class BasicEntityActivity extends AppCompatActivity {
                             Toast.makeText(context, "Failed to retrieve note!\nError: " + error, Toast.LENGTH_SHORT).show();
                             getNoteProgress.dismiss();
                             clickedNote.inUse = false;
-                            adapterNotes.notifyDataSetChanged();
+                            emailsAndAnnoationsAdapter.notifyDataSetChanged();
                         }
                     });
                 } else {
                     File attachment = Helpers.Files.base64Decode(clickedNote.documentBody,
                             new File(Helpers.Files.AttachmentTempFiles.getDirectory() + File.separator +
                                     clickedNote.filename));
-                    Helpers.Files.shareFile(context, attachment);
+                    Helpers.Files.shareFileProperly(context, attachment);
                 }
                 dialogNoteOptions.dismiss();
             }
@@ -1133,10 +1266,10 @@ public class BasicEntityActivity extends AppCompatActivity {
                 clickedNote.filename = null;
                 clickedNote.filesize = 0;
                 clickedNote.documentBody = null;
-                adapterNotes.notifyDataSetChanged();
+                emailsAndAnnoationsAdapter.notifyDataSetChanged();
                 Toast.makeText(context, "Updating server...", Toast.LENGTH_SHORT).show();
                 clickedNote.inUse = true;
-                adapterNotes.notifyDataSetChanged();
+                emailsAndAnnoationsAdapter.notifyDataSetChanged();
                 clickedNote.removeAttachment(context, new MyInterfaces.YesNoResult() {
                     @Override
                     public void onYes(@Nullable Object object) {
@@ -1147,7 +1280,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                         clickedNote.filesize = 0;
                         clickedNote.documentBody = null;
                         clickedNote.inUse = false;
-                        adapterNotes.notifyDataSetChanged();
+                        emailsAndAnnoationsAdapter.notifyDataSetChanged();
                     }
 
                     @Override
@@ -1155,7 +1288,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                         Log.i(TAG, "onNo ");
                         Toast.makeText(context, "Failed to remove attachment\nError: " + object.toString(), Toast.LENGTH_SHORT).show();
                         clickedNote.inUse = false;
-                        adapterNotes.notifyDataSetChanged();
+                        emailsAndAnnoationsAdapter.notifyDataSetChanged();
                         getNotes();
                     }
                 });
@@ -1163,7 +1296,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                 clickedNote.filename = "removing attachment...";
                 clickedNote.filesize = 0;
                 clickedNote.documentBody = "";
-                adapterNotes.notifyDataSetChanged();
+                emailsAndAnnoationsAdapter.notifyDataSetChanged();
                 dialogNoteOptions.dismiss();
             }
         });
@@ -1194,7 +1327,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                 newImageBaseAnnotation = clickedNote;
                 dialogNoteOptions.dismiss();
                 clickedNote.inUse = true;
-                adapterNotes.notifyDataSetChanged();
+                emailsAndAnnoationsAdapter.notifyDataSetChanged();
                 dialogNoteOptions.dismiss();
             }
         });

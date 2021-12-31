@@ -1,8 +1,8 @@
 package com.fimbleenterprises.medimileage;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
+import android.location.Location;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -10,7 +10,7 @@ import com.fimbleenterprises.medimileage.objects_and_containers.AccountAddresses
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyUpdate;
-import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
+import com.fimbleenterprises.medimileage.objects_and_containers.SavedParkingSpot;
 import com.fimbleenterprises.medimileage.objects_and_containers.UserAddresses;
 import com.google.gson.Gson;
 
@@ -19,7 +19,6 @@ import org.joda.time.Days;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
 
@@ -33,6 +32,8 @@ public class MyPreferencesHelper {
     public static final String SHOW_GOOGLE_SUGGESTED = "SHOW_GOOGLE_SUGGESTED";
     public static final String REIMBURSEMENT_RATE = "REIMBURSEMENT_RATE";
     public static final String LAST_PAGE = "LAST_PAGE";
+    public static final String PARKING_SPOT = "PARKING_SPOT";
+    public static final String AUTO_SAVE_PARKING_SPOT = "AUTO_SAVE_PARKING_SPOT";
     public static final String AUTH_SHOWING = "AUTH_SHOWING";
     public static final String SUBMIT_ON_END = "SUBMIT_ON_END";
     public static final String TRIP_MINDER = "TRIP_MINDER";
@@ -61,6 +62,8 @@ public class MyPreferencesHelper {
     public static final String DEFAULT_TERRITORY_PAGE = "DEFAULT_TERRITORY_PAGE";
     public static final String DEFAULT_ACCOUNT_PAGE = "DEFAULT_ACCOUNT_PAGE";
     public static final String SHOW_USAGE_MENU_ITEM = "SHOW_USAGE_MENU_ITEM";
+    public static final String LAST_SEARCH_TAB = "LAST_SEARCH_TAB";
+    public static final String LAST_TERRITORY_TAB = "LAST_TERRITORY_TAB";
 
     public static final String RECEIPT_FORMAT_PNG = ".png";
     public static final String RECEIPT_FORMAT_JPEG = ".jpeg";
@@ -108,6 +111,22 @@ public class MyPreferencesHelper {
     }*/
 
     /**
+     * Sets the last used page of the search results pager.
+     * @param val The index to save.
+     */
+    public void setLastSearchTab(int val) {
+        prefs.edit().putInt(LAST_SEARCH_TAB, val).commit();
+    }
+
+    /**
+     * Gets the last used page of the search results pager.
+     * @return The index of the last used page.
+     */
+    public int getLastSearchTab() {
+        return prefs.getInt(LAST_SEARCH_TAB, 2);
+    }
+
+    /**
      * Allows SharePoint to be one of the search clients.
      * @param val
      */
@@ -127,8 +146,48 @@ public class MyPreferencesHelper {
         return prefs.getString(SERVER_BASE_URL, context.getString(R.string.default_base_server_url));
     }
 
+    /**
+     * Saves a parking spot to shared preferences.  Pass null to remove the saved spot.
+     * @param spot The spot to be saved (will be serialized and saved as a string).
+     */
+    public void setParkingSpot(SavedParkingSpot spot) {
+        if (spot == null) {
+            prefs.edit().remove(PARKING_SPOT).commit();
+        } else {
+            prefs.edit().putString(PARKING_SPOT, new Gson().toJson(spot)).commit();
+        }
+    }
+
+    /**
+     * Gets the last saved parking spot.
+     * @return A Location object parsed from saved JSON.
+     */
+    public SavedParkingSpot getParkingSpot() {
+        String json = prefs.getString(PARKING_SPOT, null);
+        if (json != null) {
+            return new Gson().fromJson(json, SavedParkingSpot.class);
+        }
+        return null;
+    }
+
     public boolean isExplicitMode() {
         return prefs.getBoolean(EXPLICIT_MODE, false);
+    }
+
+    /**
+     * If enabled the MyLocationService will constantly save the last recorded location as a parking spot.
+     * @return
+     */
+    public boolean getAutoSaveParkingSpots() {
+        return prefs.getBoolean(AUTO_SAVE_PARKING_SPOT, false);
+    }
+
+    /**
+     * Enables the automatic saving of the last trip's last entry as a parking spot.
+     * @param value
+     */
+    public void setAutoSaveParkingSpot(Boolean value) {
+        prefs.edit().putBoolean(AUTO_SAVE_PARKING_SPOT, value).commit();
     }
 
     public boolean showOpportunityOptions() {
@@ -184,18 +243,18 @@ public class MyPreferencesHelper {
     }
 
     public int getDefaultSearchPage() {
-        return Integer.parseInt(prefs.getString(DEFAULT_SEARCH_PAGE, "0"));
+        return prefs.getInt(DEFAULT_SEARCH_PAGE, 0);
     }
 
     public void setDefaultSearchPage(int pageindex) {
-        prefs.edit().putString(DEFAULT_SEARCH_PAGE, Integer.toString(pageindex)).commit();
+        prefs.edit().putInt(DEFAULT_SEARCH_PAGE, pageindex).commit();
     }
 
     /**
      * Gets the initial starting pager page for the TerritoryData activity.
      */
     public int getDefaultTerritoryPage() {
-        return Integer.parseInt(prefs.getString(DEFAULT_TERRITORY_PAGE, "2"));
+        return prefs.getInt(DEFAULT_TERRITORY_PAGE, 0);
     }
 
     /**
@@ -203,15 +262,7 @@ public class MyPreferencesHelper {
      * @param val
      */
     public void setDefaultTerritoryPage(int val) {
-        prefs.edit().putString(DEFAULT_TERRITORY_PAGE, Integer.toString(val)).commit();
-    }
-
-    /**
-     * Sets the initial starting pager page for the TerritoryData activity.
-     * @param val
-     */
-    public void setDefaultTerritoryPage(String val) {
-        prefs.edit().putString(DEFAULT_TERRITORY_PAGE, val).commit();
+        prefs.edit().putInt(DEFAULT_TERRITORY_PAGE, val).commit();
     }
 
     /**
@@ -550,6 +601,30 @@ public class MyPreferencesHelper {
 
     public boolean getDebugMode() {
         return prefs.getBoolean(DEBUG_MODE, false);
+    }
+
+    /**
+     * Sets the last selected page of the territory data activity.
+     * @param pageIndex
+     */
+    public void setLastTerritoryTab(int pageIndex) {
+        prefs.edit().putInt(LAST_TERRITORY_TAB, pageIndex).commit();
+        Log.i(TAG, "setLastTerritoryTab | Set to: " + pageIndex);
+    }
+
+    /**
+     * Gets the last selected page of the territory data activity.  Defaults to the user's (now kinda
+     * deprecated) default territory page.
+     * @return
+     */
+    public int getLastTerritoryTab() {
+        int defaultTerrPage = 0;
+        try {
+            prefs.getInt(DEFAULT_TERRITORY_PAGE, 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return prefs.getInt(LAST_TERRITORY_TAB, defaultTerrPage);
     }
 }
 

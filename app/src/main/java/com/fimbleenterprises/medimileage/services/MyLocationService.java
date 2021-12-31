@@ -1,5 +1,7 @@
 package com.fimbleenterprises.medimileage.services;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -7,9 +9,11 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -43,13 +47,17 @@ import com.fimbleenterprises.medimileage.objects_and_containers.EntityContainers
 import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
 import com.fimbleenterprises.medimileage.objects_and_containers.LocationContainer;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
+import com.fimbleenterprises.medimileage.objects_and_containers.SavedParkingSpot;
 import com.fimbleenterprises.medimileage.objects_and_containers.TripEntry;
 import com.fimbleenterprises.medimileage.objects_and_containers.UserAddresses;
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.joda.time.DateTime;
@@ -66,9 +74,11 @@ import java.io.UnsupportedEncodingException;
 import java.nio.channels.FileChannel;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.concurrent.Executor;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import cz.msebera.android.httpclient.Header;
 
@@ -267,6 +277,8 @@ public class MyLocationService extends Service implements LocationListener {
         if (Helpers.Geo.convertMetersToMiles(fullTrip.getDistance(), 0) < 1.1) {
             datasource.deleteFulltrip(fullTrip.getTripcode(), true);
             Toast.makeText(this, "Trip was too short to save.", Toast.LENGTH_SHORT).show();
+        } else {
+
         }
 
         releaseWakelock();
@@ -291,7 +303,8 @@ public class MyLocationService extends Service implements LocationListener {
 
         try {
             notMovingHandler.removeCallbacks(tripMinderRunner);
-            tripMinderHandler.removeCallbacks(tripMinderRunner);;
+            tripMinderHandler.removeCallbacks(tripMinderRunner);
+            ;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -330,7 +343,7 @@ public class MyLocationService extends Service implements LocationListener {
                 Log.d(TAG, "network provider does not exist, " + ex.getMessage());
             }
         } else {
-            if (! wakeLock.isHeld()) {
+            if (!wakeLock.isHeld()) {
                 Log.i(TAG, "getWakelock NOT HELD!");
                 wakeLock.acquire();
             }
@@ -514,8 +527,7 @@ public class MyLocationService extends Service implements LocationListener {
         mNotificationManager = (NotificationManager) getApplicationContext()
                 .getSystemService(getApplicationContext().NOTIFICATION_SERVICE);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-        {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             String channelId = NOTIFICATION_CHANNEL_REMINDER;
             NotificationChannel channel = new NotificationChannel(
                     channelId,
@@ -645,7 +657,7 @@ public class MyLocationService extends Service implements LocationListener {
     /**
      * This maintains an overwrittable database backup.
      */
-    public void exportDB(){
+    public void exportDB() {
         try {
             File sd = Environment.getExternalStorageDirectory();
             File data = Environment.getDataDirectory();
@@ -680,7 +692,7 @@ public class MyLocationService extends Service implements LocationListener {
                     }
                 }
             }
-        } catch  (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -712,11 +724,11 @@ public class MyLocationService extends Service implements LocationListener {
                 }
             }
 
-                @Override
-                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                    callback.onFailure(error.getMessage());
-                }
-            });
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                callback.onFailure(error.getMessage());
+            }
+        });
     }
 
     public static int getTripDuration() {
@@ -744,13 +756,13 @@ public class MyLocationService extends Service implements LocationListener {
                     return;
                 }
 
-            long interval = System.currentTimeMillis() - mLastLocation.getTime();
-            if (isRunning && interval > LAST_MOVED_THRESHOLD && isMoving == true) {
-                isMoving = false;
-                sendNotMovingBroadcast();
-                Log.i(TAG, "isMovingChecker.run: Detected stopped user.");
-            }
-            notMovingHandler.postDelayed(this, 250);
+                long interval = System.currentTimeMillis() - mLastLocation.getTime();
+                if (isRunning && interval > LAST_MOVED_THRESHOLD && isMoving == true) {
+                    isMoving = false;
+                    sendNotMovingBroadcast();
+                    Log.i(TAG, "isMovingChecker.run: Detected stopped user.");
+                }
+                notMovingHandler.postDelayed(this, 250);
             }
         };
 
@@ -771,7 +783,7 @@ public class MyLocationService extends Service implements LocationListener {
         int count = tripEntries.size();
         if (count < 3) {
             this.lastLocationChangedTimeInMilis = System.currentTimeMillis();
-                    Log.v(TAG + "", "Haven't travelled far enough to check yet...");
+            Log.v(TAG + "", "Haven't travelled far enough to check yet...");
             return;
         }
 
@@ -952,6 +964,64 @@ public class MyLocationService extends Service implements LocationListener {
         Log.e(TAG, "onStatusChanged: " + provider);
     }
 
+    /**
+     * Returns the last known location from the OS if available.
+     * @param context A context valid for confirming permissions and accessing the location manager.
+     * @return Null if not available.
+     */
+    public static Location getLastKnownCachedLocationFromOS(Context context) {
+        LocationManager locationManager = (LocationManager) context.getSystemService(LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION);
+        }
+        Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
+        if (location != null) {
+            double lat = location.getLatitude();
+            double longi = location.getLongitude();
+            LatLng latLng = new LatLng(lat, longi);
+            Log.d(TAG, "zoomMyCuurentLocation: location not null");
+            return location;
+        }
+        return null;
+    }
+
+    /**
+     * Attempts to get the last known location from the OS and if not available attempts to find the
+     * current location now using FusedLocationProvider.
+     * @param context A context valid for confirming permissions and accessing the location manager.
+     * @param onSuccessListener A listener for reporting the results when operation has finished.
+     */
+    @SuppressLint("MissingPermission")
+    public static void getLastKnownCachedLocationFromOS(Context context, OnSuccessListener<Location> onSuccessListener) {
+
+        // See if the OS has a last known loc already and use that if so.
+        if (getLastKnownCachedLocationFromOS(context) != null) {
+            onSuccessListener.onSuccess(getLastKnownCachedLocationFromOS(context));
+            return;
+        }
+
+        // Leave if no permission.
+        if (!Helpers.Permissions.isGranted(Helpers.Permissions.PermissionType.ACCESS_COARSE_LOCATION)
+                || !Helpers.Permissions.isGranted(Helpers.Permissions.PermissionType.ACCESS_FINE_LOCATION)) {
+            return;
+        }
+
+        // Determine the current location manually.
+        Log.d(TAG, "setMyLastLocation: excecute, and get last location");
+        FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(context);
+        fusedLocationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                if (location != null) {
+                    double lat = location.getLatitude();
+                    double longi = location.getLongitude();
+                    LatLng latLng = new LatLng(lat, longi);
+                    Log.d(TAG, "MyLastLocation coordinat :" + latLng);
+                }
+            }
+        });
+    }
 
 /*
 switch (value.Function.ToLower()) {

@@ -62,6 +62,7 @@ public class SearchResultsActivity extends AppCompatActivity {
 
     private static final String TAG = "SearchResultsActivity";
     public Context context;
+    MyPreferencesHelper prefs;
     public static final int CALL_PHONE_REQ = 123;
     public static final String SEARCH_INITIATED = "SEARCH_INITIATED";
     public static final String SEARCH_QUERY = "SEARCH_QUERY";
@@ -78,6 +79,7 @@ public class SearchResultsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = this;
+        prefs = new MyPreferencesHelper(context);
         setContentView(R.layout.activity_search_results);
         this.context = this;
 
@@ -86,16 +88,26 @@ public class SearchResultsActivity extends AppCompatActivity {
         mViewPager.onRealPageChangedListener = new MyViewPager.OnRealPageChangedListener() {
             @Override
             public void onPageActuallyFuckingChanged(int pageIndex) {
-                setTitle("Search (" + sectionsPagerAdapter.getPageTitle(pageIndex) + ")");
+                if (query != null) {
+                    setTitle("Search: " + query.toUpperCase());
+                } else {
+                    setTitle("Search (" + sectionsPagerAdapter.getPageTitle(pageIndex) + ")");
+                }
+
+                // If the query is not a serial number then set the last used tab.  We want s/n
+                // searches to always end up on the cust inv. tab but not necessarily set that tab
+                // as the initial tab for the next search.
+                if (query != null && !Helpers.Numbers.isNumeric(query)) {
+                    prefs.setLastSearchTab(pageIndex);
+                }
+
             }
         };
         mPagerStrip = findViewById(R.id.pager_title_strip_search_results);
         mViewPager.setAdapter(sectionsPagerAdapter);
         mViewPager.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
-            public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-
-            }
+            public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) { }
         });
 
         // Set the viewpager font
@@ -210,14 +222,15 @@ public class SearchResultsActivity extends AppCompatActivity {
             newIntent.putExtra(SEARCH_QUERY, query);
             sendBroadcast(newIntent);
 
-            // If the query is numeric we can pretty safely assume the user is interested in
-            // customer inventory (though account numbers are a real possibility).  As such,
-            // we instruct the pager to go to the customer inventory page.  Otherwise we go
-            // to the page specified in settings as the default search page.
-            if (Helpers.Numbers.isNumeric(query)) {
+            // If the query starts with 400 we assume that the user is looking up an account number.
+            // If the query is numeric (and doesn't start with "400") we can pretty safely assume the
+            // user is interested in customer inventory.  Otherwise we go to their last used search page.
+            if (query.startsWith("400")) {
+                mViewPager.setCurrentItem(SectionsPagerAdapter.ACCOUNTS, true);
+            } else if (Helpers.Numbers.isNumeric(query)) {
                 mViewPager.setCurrentItem(SectionsPagerAdapter.CUSTOMER_INVENTORY, true);
             } else {
-                mViewPager.setCurrentItem(new MyPreferencesHelper().getDefaultSearchPage(), true);
+                mViewPager.setCurrentItem(new MyPreferencesHelper().getLastSearchTab(), true);
             }
 
         }
@@ -329,6 +342,7 @@ public class SearchResultsActivity extends AppCompatActivity {
     public static class Frag_SearchCustomerInventory extends Fragment {
         private static final String TAG = "Frag_CustomerInventory";
         public static final String ARG_SECTION_NUMBER = "section_number";
+        TextView txtNoResults;
         public View root;
         public RecyclerView recyclerView;
         RefreshLayout refreshLayout;
@@ -343,6 +357,7 @@ public class SearchResultsActivity extends AppCompatActivity {
                                  @Nullable Bundle savedInstanceState) {
             root = inflater.inflate(R.layout.frag_search_custinventory, container, false);
             this.context = getContext();
+
             refreshLayout = root.findViewById(R.id.refreshLayout);
             RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
             refreshLayout.setEnableLoadMore(false);
@@ -384,6 +399,10 @@ public class SearchResultsActivity extends AppCompatActivity {
 
         @Override
         public void onResume() {
+
+            txtNoResults = root.findViewById(R.id.txtNoResults);
+            txtNoResults.setVisibility(adapter != null && adapter.mData != null && adapter.mData.size() > 0 ? View.INVISIBLE : View.VISIBLE);
+
             getActivity().registerReceiver(searchReceiver, searchFilter);
             super.onResume();
         }
@@ -454,6 +473,8 @@ public class SearchResultsActivity extends AppCompatActivity {
             recyclerView.setAdapter(adapter);
 
             refreshLayout.finishRefresh();
+
+            txtNoResults.setVisibility(adapter != null && adapter.mData != null && adapter.mData.size() > 0 ? View.INVISIBLE : View.VISIBLE);
         }
     }
 
@@ -461,6 +482,7 @@ public class SearchResultsActivity extends AppCompatActivity {
         private static final String TAG = "Frag_CustomerInventory";
         public static final String ARG_SECTION_NUMBER = "section_number";
         public View root;
+        TextView txtNoResults;
         public RecyclerView recyclerView;
         RefreshLayout refreshLayout;
         BroadcastReceiver searchReceiver;
@@ -472,6 +494,7 @@ public class SearchResultsActivity extends AppCompatActivity {
         public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                                  @Nullable Bundle savedInstanceState) {
             root = inflater.inflate(R.layout.frag_search_results_generic, container, false);
+
             refreshLayout = root.findViewById(R.id.refreshLayout);
             RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
             refreshLayout.setEnableLoadMore(false);
@@ -513,6 +536,10 @@ public class SearchResultsActivity extends AppCompatActivity {
 
         @Override
         public void onResume() {
+
+            txtNoResults = root.findViewById(R.id.txtNoResults);
+            txtNoResults.setVisibility(adapter != null && adapter.mData != null && adapter.mData.size() > 0 ? View.INVISIBLE : View.VISIBLE);
+
             getActivity().registerReceiver(searchReceiver, searchFilter);
             super.onResume();
         }
@@ -579,6 +606,8 @@ public class SearchResultsActivity extends AppCompatActivity {
                 }
             });
             refreshLayout.finishRefresh();
+
+            txtNoResults.setVisibility(adapter != null && adapter.mData != null && adapter.mData.size() > 0 ? View.INVISIBLE : View.VISIBLE);
         }
     }
 
@@ -586,6 +615,7 @@ public class SearchResultsActivity extends AppCompatActivity {
         private static final String TAG = "Frag_CustomerInventory";
         public static final String ARG_SECTION_NUMBER = "section_number";
         public View root;
+        TextView txtNoResults;
         public RecyclerView recyclerView;
         RefreshLayout refreshLayout;
         BroadcastReceiver searchReceiver;
@@ -597,6 +627,7 @@ public class SearchResultsActivity extends AppCompatActivity {
         public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                                  @Nullable Bundle savedInstanceState) {
             root = inflater.inflate(R.layout.frag_search_results_generic, container, false);
+
             refreshLayout = root.findViewById(R.id.refreshLayout);
             RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
             refreshLayout.setEnableLoadMore(false);
@@ -638,6 +669,10 @@ public class SearchResultsActivity extends AppCompatActivity {
 
         @Override
         public void onResume() {
+
+            txtNoResults = root.findViewById(R.id.txtNoResults);
+            txtNoResults.setVisibility(adapter != null && adapter.mData != null && adapter.mData.size() > 0 ? View.INVISIBLE : View.VISIBLE);
+
             getActivity().registerReceiver(searchReceiver, searchFilter);
             super.onResume();
         }
@@ -718,6 +753,8 @@ public class SearchResultsActivity extends AppCompatActivity {
                 }
             });
             refreshLayout.finishRefresh();
+
+            txtNoResults.setVisibility(adapter != null && adapter.mData != null && adapter.mData.size() > 0 ? View.INVISIBLE : View.VISIBLE);
         }
     }
 
@@ -725,6 +762,7 @@ public class SearchResultsActivity extends AppCompatActivity {
         private static final String TAG = "Frag_CustomerInventory";
         public static final String ARG_SECTION_NUMBER = "section_number";
         public View root;
+        TextView txtNoResults;
         public RecyclerView recyclerView;
         RefreshLayout refreshLayout;
         BroadcastReceiver searchReceiver;
@@ -736,6 +774,7 @@ public class SearchResultsActivity extends AppCompatActivity {
         public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                                  @Nullable Bundle savedInstanceState) {
             root = inflater.inflate(R.layout.frag_search_results_generic, container, false);
+
             refreshLayout = root.findViewById(R.id.refreshLayout);
             RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
             refreshLayout.setEnableLoadMore(false);
@@ -776,6 +815,8 @@ public class SearchResultsActivity extends AppCompatActivity {
 
         @Override
         public void onResume() {
+            txtNoResults = root.findViewById(R.id.txtNoResults);
+            txtNoResults.setVisibility(adapter != null && adapter.mData != null && adapter.mData.size() > 0 ? View.INVISIBLE : View.VISIBLE);
             getActivity().registerReceiver(searchReceiver, searchFilter);
             super.onResume();
         }
@@ -856,6 +897,8 @@ public class SearchResultsActivity extends AppCompatActivity {
                 }
             });
             refreshLayout.finishRefresh();
+
+            txtNoResults.setVisibility(adapter != null && adapter.mData != null && adapter.mData.size() > 0 ? View.INVISIBLE : View.VISIBLE);
         }
     }
 
@@ -865,6 +908,7 @@ public class SearchResultsActivity extends AppCompatActivity {
         private static final String TAG = "Frag_CustomerInventory";
         public static final String ARG_SECTION_NUMBER = "section_number";
         public View root;
+        TextView txtNoResults;
         public RecyclerView recyclerView;
         RefreshLayout refreshLayout;
         BroadcastReceiver searchReceiver;
@@ -919,6 +963,10 @@ public class SearchResultsActivity extends AppCompatActivity {
 
         @Override
         public void onResume() {
+
+            txtNoResults = root.findViewById(R.id.txtNoResults);
+            txtNoResults.setVisibility(adapter != null && adapter.mData != null && adapter.mData.size() > 0 ? View.INVISIBLE : View.VISIBLE);
+
             getActivity().registerReceiver(searchReceiver, searchFilter);
             Log.i(TAG, "onResume | Registered the search receiver!");
             super.onResume();
@@ -1009,6 +1057,8 @@ public class SearchResultsActivity extends AppCompatActivity {
                 }
             });
             refreshLayout.finishRefresh();
+
+            txtNoResults.setVisibility(adapter != null && adapter.mData != null && adapter.mData.size() > 0 ? View.INVISIBLE : View.VISIBLE);
         }
     }
 
@@ -1016,6 +1066,7 @@ public class SearchResultsActivity extends AppCompatActivity {
         private static final String TAG = "Frag_CustomerInventory";
         public static final String ARG_SECTION_NUMBER = "section_number";
         public View root;
+        TextView txtNoResults;
         public RecyclerView recyclerView;
         RefreshLayout refreshLayout;
         BroadcastReceiver searchReceiver;
@@ -1069,6 +1120,10 @@ public class SearchResultsActivity extends AppCompatActivity {
 
         @Override
         public void onResume() {
+
+            txtNoResults = root.findViewById(R.id.txtNoResults);
+            txtNoResults.setVisibility(adapter != null && adapter.mData != null && adapter.mData.size() > 0 ? View.INVISIBLE : View.VISIBLE);
+
             getActivity().registerReceiver(searchReceiver, searchFilter);
             super.onResume();
         }
@@ -1148,6 +1203,8 @@ public class SearchResultsActivity extends AppCompatActivity {
                 }
             });
             refreshLayout.finishRefresh();
+
+            txtNoResults.setVisibility(adapter != null && adapter.mData != null && adapter.mData.size() > 0 ? View.INVISIBLE : View.VISIBLE);
         }
     }
 

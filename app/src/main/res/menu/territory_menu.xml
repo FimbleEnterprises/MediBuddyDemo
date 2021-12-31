@@ -52,6 +52,26 @@
         android:title="@string/action_change_date"
         app:showAsAction="never" />
 
+    <!-- SERVICE AGREEMENTS -->
+    <item
+        android:id="@+id/action_current_service_agreements"
+        android:orderInCategory="100"
+        android:checkable="true"
+        android:title="@string/action_current_service_agreements"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_expiring_service_agreements"
+        android:orderInCategory="99"
+        android:checkable="true"
+        android:title="@string/action_expiring_service_agreements"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_expired_service_agreements"
+        android:orderInCategory="98"
+        android:checkable="true"
+        android:title="@string/action_expired_service_agreements"
+        app:showAsAction="never" />
+
     <!--********************* CASE STUFF *********************-->
 
     <!--

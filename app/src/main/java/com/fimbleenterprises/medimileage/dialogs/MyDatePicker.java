@@ -47,7 +47,7 @@ public class MyDatePicker implements DatePickerDialog.OnDateSetListener {
 
     }
 
-    MyDatePicker(@NonNull Context context, DateTime dateTime, MyInterfaces.DateSelector callback) {
+    public MyDatePicker(@NonNull Context context, DateTime dateTime, MyInterfaces.DateSelector callback) {
         this.context = context;
         final Calendar calendar = Calendar.getInstance();
         this.callback = callback;

@@ -44,25 +44,41 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="1dp"
             android:layout_marginBottom="1dp">
-            <FrameLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="left"
                 android:layout_weight="1">
 
                 <EditText
                     android:id="@+id/textView_distance_value"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="5dp"
                     android:layout_marginRight="5dp"
                     android:fontFamily="casual"
                     android:inputType="number"
-                    android:text=""
+                    android:text="0.0"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                     android:textColor="#454545"
-                    android:textSize="15sp" />
-            </FrameLayout>
+                    android:textSize="25sp" />
+
+                <TextView
+                    android:id="@+id/textView_milesLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBottom="@id/textView_distance_value"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_marginBottom="10dp"
+                    android:layout_toRightOf="@id/textView_distance_value"
+                    android:fontFamily="casual"
+                    android:gravity="left"
+                    android:text="miles"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="#454545"
+                    android:textSize="20sp" />
+            </RelativeLayout>
+
         </TableRow>
     </TableLayout>
 </LinearLayout>

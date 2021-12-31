@@ -127,11 +127,11 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
         ViewHolder(View itemView) {
             super(itemView);
             layout = itemView.findViewById(R.id.layout);
-            txtMainText = itemView.findViewById(R.id.textView_BasicObjectMainText);
-            txtMiddleText = itemView.findViewById(R.id.textView_BasicObjectRowMiddleText);
-            txtSubtext = itemView.findViewById(R.id.textView_BasicObjectRowSubtext);
-            txtTopRightText = itemView.findViewById(R.id.textView_BasicObjectTopRightText);
-            txtBottomRightText = itemView.findViewById(R.id.textView_BasicObjectBottomRightText);
+            txtMainText = itemView.findViewById(R.id.txtTop);
+            txtMiddleText = itemView.findViewById(R.id.txtMiddle);
+            txtSubtext = itemView.findViewById(R.id.txtBottom);
+            txtTopRightText = itemView.findViewById(R.id.txtTopRight);
+            txtBottomRightText = itemView.findViewById(R.id.txtBottomRight);
             img = itemView.findViewById(R.id.imageView_BasicObjectIcon);
 
             itemView.setOnClickListener(this);

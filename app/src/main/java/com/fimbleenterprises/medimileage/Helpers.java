@@ -10,6 +10,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -24,6 +25,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -40,13 +42,17 @@ import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.telephony.SmsManager;
 import android.text.Layout;
+import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.text.style.UnderlineSpan;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.SubMenu;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.AlphaAnimation;
@@ -54,7 +60,9 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
 import android.view.animation.AnimationUtils;
 import android.view.animation.TranslateAnimation;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.MimeTypeMap;
+import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.Toast;
 
@@ -100,6 +108,7 @@ import androidx.annotation.DrawableRes;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.FileProvider;
 
 import static android.content.Context.MODE_PRIVATE;
 import static android.content.Context.NOTIFICATION_SERVICE;
@@ -208,6 +217,31 @@ public abstract class Helpers {
             Uri uriAppSettings = Uri.fromParts("package", MyApp.getAppContext().getPackageName(), null);
             showSettings.setData(uriAppSettings);
             context.startActivity(showSettings);
+        }
+
+        /**
+         * Attempts to focus and show the keyboard for an edittext.
+         * @param editText The edittext to focus.
+         * @param context
+         */
+        public static void showKeyboard(EditText editText, Context context) {
+            try {
+                editText.requestFocus();
+                InputMethodManager imm = (InputMethodManager) context.getSystemService(Activity.INPUT_METHOD_SERVICE);
+                imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        public static void hideSoftKeyboard(EditText editText, Context context) {
+            try {
+                editText.clearFocus();
+                InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -842,8 +876,19 @@ public abstract class Helpers {
 
         }
 
-        public static DateTime parseDate(String strDate) {
+        public static DateTime parseDateTime(String strDate) {
             DateTimeFormatter df = DateTimeFormat.forPattern("M/d/yyyy h:mm a");
+            try {
+                DateTime dateTime = df.parseDateTime(strDate);
+                return dateTime;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return new DateTime();
+        }
+
+        public static DateTime parseDate(String strDate) {
+            DateTimeFormatter df = DateTimeFormat.forPattern("M/d/yyyy");
             try {
                 DateTime dateTime = df.parseDateTime(strDate);
                 return dateTime;
@@ -1232,6 +1277,28 @@ public abstract class Helpers {
     }
 
     public static class Geo {
+
+        /**
+         * Sends the supplied location as a navigation intent to whatever apps subscribe to such intents.
+         * @param context A context capable of launching an activity.
+         * @param position The lat/lon to navigate to.
+         */
+        public static void launchNavigationApp(Context context, LatLng position) {
+            Uri.Builder builder = new Uri.Builder();
+            builder.scheme("https")
+                    .authority("www.google.com")
+                    .appendPath("maps")
+                    .appendPath("dir")
+                    .appendPath("")
+                    .appendQueryParameter("api", "1")
+                    .appendQueryParameter("destination", position.latitude + "," + position.longitude);
+            String url = builder.build().toString();
+            Log.d("Directions", url);
+            Intent i = new Intent(Intent.ACTION_VIEW);
+            i.setData(Uri.parse(url));
+            context.startActivity(i);
+        }
+
         /**
          * Returns a Location object from the supplied LatLng object.
          * Note that only lat and lng are really populated.
@@ -1543,6 +1610,54 @@ public abstract class Helpers {
             loc2.setLongitude(locB.getLongitude());
 
             return loc1.distanceTo(loc2);
+        }
+
+        /**
+         * Calculates the distance between two points
+         *
+         * @param p Point A (LatLng)
+         * @param p1 Point B (LatLng)
+         * @return Distance in meters (as the crow flies)
+         */
+        public static float getDistanceBetweenInMeters(LatLng p, LatLng p1) {
+            Location loc1 = new Location("");
+            loc1.setLatitude(p.latitude);
+            loc1.setLongitude(p.longitude);
+
+            Location loc2 = new Location("");
+            loc2.setLatitude(p1.latitude);
+            loc2.setLongitude(p1.longitude);
+
+            return loc1.distanceTo(loc2);
+        }
+
+        public static void launchGoogleMaps(Activity activity, LatLng latLng) {
+            String url = "https://www.google.com/maps/dir/?api=1&destination=" + latLng.latitude + "," + latLng.longitude + "&travelmode=driving";
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            activity.startActivity(intent);
+        }
+
+        public static void launchDirections(Activity activity, LatLng latLng) {
+            String uri = "http://maps.google.com/maps?travelmode=walking&daddr=" + latLng.latitude + "," + latLng
+                    .longitude + " (" + "Parking spot" + ")";
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+            intent.setPackage("com.google.android.apps.maps");
+            try
+            {
+                activity.startActivity(intent);
+            }
+            catch(ActivityNotFoundException ex)
+            {
+                try
+                {
+                    Intent unrestrictedIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+                    activity.startActivity(unrestrictedIntent);
+                }
+                catch(ActivityNotFoundException innerEx)
+                {
+                    Toast.makeText(activity, "Please install a maps application", Toast.LENGTH_LONG).show();
+                }
+            }
         }
     }
 
@@ -2300,40 +2415,32 @@ public abstract class Helpers {
             }
         }
 
-        public static void shareFile(Context context, File file) {
+        public static void shareFileProperly(Context activity, File file) {
             Intent intentShareFile = new Intent(Intent.ACTION_SEND);
-            File fileWithinMyDir = file;
 
-            if(fileWithinMyDir.exists()) {
-                intentShareFile.setType(getMimetype(file));
-                intentShareFile.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://"+file));
+            if(file.exists()) {
+                String mimeType = getMimetype(file);
+                String[] mimeTypeArray = new String[] { mimeType };
+
+                intentShareFile.setType(mimeType);
+                Uri uri = FileProvider.getUriForFile(activity, BuildConfig.APPLICATION_ID
+                        + ".provider", file);
+
+                // Add the uri as a ClipData
+                intentShareFile.setClipData(new ClipData(
+                        "Mileage data export, fun!!",
+                        mimeTypeArray,
+                        new ClipData.Item(uri)
+                ));
+
+                // EXTRA_STREAM is kept for compatibility with old applications
+                intentShareFile.putExtra(Intent.EXTRA_STREAM, uri);
 
                 intentShareFile.putExtra(Intent.EXTRA_SUBJECT,
                         "Sharing File...");
                 intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...");
-
-                context.startActivity(Intent.createChooser(intentShareFile, "Share File"));
-            }
-        }
-
-        /**
-         * Shares a file.  You may have to supply an activity as context if it is failing.
-         * @param context A valid context, this may have to be an activity if a basic context is failing.
-         * @param file
-         * @param subject
-         */
-        public static void shareFile(Context context, File file, String subject) {
-            Intent intentShareFile = new Intent(Intent.ACTION_SEND);
-            File fileWithinMyDir = file;
-
-            if(fileWithinMyDir.exists()) {
-                intentShareFile.setType(getMimetype(file));
-                intentShareFile.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://"+file));
-                intentShareFile.putExtra(Intent.EXTRA_SUBJECT,
-                        subject);
-                intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...");
-                intentShareFile.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(Intent.createChooser(intentShareFile, "Share File"));
+                intentShareFile.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                activity.startActivity(Intent.createChooser(intentShareFile, "Share File"));
             }
         }
 
@@ -2964,6 +3071,25 @@ public abstract class Helpers {
         public static String encodeBase64(String encodeMe){
             byte[] encodedBytes = Base64.getEncoder().encode(encodeMe.getBytes());
             return new String(encodedBytes) ;
+        }
+
+        public static void applyFontToMenuItem(Context context, Menu menu) {
+
+            Typeface font = context.getResources().getFont(R.font.casual);
+
+            for (int i = 0; i < menu.size(); i++) {
+                MenuItem mi = menu.getItem(i);
+                //for aapplying a font to subMenu ...
+                SubMenu subMenu = mi.getSubMenu();
+                if (subMenu != null && subMenu.size() > 0) {
+                    for (int j = 0; j < subMenu.size(); j++) {
+                        MenuItem subMenuItem = subMenu.getItem(j);
+                        SpannableString mNewTitle = new SpannableString(mi.getTitle());
+                        mNewTitle.setSpan(new CustomTypefaceSpan("", font), 0, mNewTitle.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                        mi.setTitle(mNewTitle);
+                    }
+                }
+            }
         }
 
     }

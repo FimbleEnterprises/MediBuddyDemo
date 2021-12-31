@@ -2,23 +2,42 @@ package com.fimbleenterprises.medimileage.activities;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.database.DatabaseErrorHandler;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.MultiAutoCompleteTextView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.MyApp;
+import com.fimbleenterprises.medimileage.MyInterfaces;
+import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyAutoCompleteEditText;
+import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyHyperlinkTextview;
+import com.fimbleenterprises.medimileage.dialogs.MyDatePicker;
+import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
+import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityBasicObjectPicker;
+import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityChooseRecentTrip;
+import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
 import com.fimbleenterprises.medimileage.Helpers;
@@ -28,9 +47,10 @@ import com.fimbleenterprises.medimileage.objects_and_containers.MyMapMarker;
 import com.fimbleenterprises.medimileage.MyMapRouteHelper;
 import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.MySqlDatasource;
-import com.fimbleenterprises.medimileage.ui.CustomViews.MyUnderlineEditText;
+import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyUnderlineEditText;
 import com.fimbleenterprises.medimileage.MyViewPager;
 import com.fimbleenterprises.medimileage.R;
+import com.fimbleenterprises.medimileage.objects_and_containers.RecentOrSavedTrip;
 import com.fimbleenterprises.medimileage.objects_and_containers.TripEntry;
 import com.fimbleenterprises.medimileage.objects_and_containers.UserAddresses;
 import com.google.android.gms.common.api.Status;
@@ -56,13 +76,16 @@ import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.model.RectangularBounds;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
+import com.google.rpc.Help;
 
 import org.joda.time.DateTime;
 import org.w3c.dom.Document;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -77,45 +100,57 @@ import cn.pedant.SweetAlert.SweetAlertDialog;
 
 public class Activity_ManualTrip extends AppCompatActivity implements OnMapReadyCallback {
 
+    public static final String ADD_MANUAL_TRIP = "ADD_MANUAL_TRIP";
+    public static final String ERROR_MESSAGE = "ERROR_MESSAGE";
+    public static final String DATE_INVALID_ACTION = "DATE_INVALID_ACTION";
     public static AutocompleteSupportFragment autoCompleteFrag_From;
     public static AutocompleteSupportFragment autoCompleteFrag_To;
     public static Activity activity;
-    public static EditText title;
-    public static MyUnderlineEditText date;
-    public static EditText distance;
+
+    public static final String INTENT_TRIP_CHANGED = "INTENT_TRIP_CHANGED";
+
+    // Editable views
+    public static MyAutoCompleteEditText titleField;
+    // public static MyUnderlineEditText dateField;
+    public static Button dateButton;
+    public static EditText distanceField;
+
     public static GoogleMap map;
     public static MapFragment mapFragment;
     public static Marker fromMarker;
     public static Marker toMarker;
     public static Context context;
+    public static String tripTitle;
+    public static DateTime tripDate;
     public static Polyline polyline;
+    public static String distanceStr;
     public static LatLng fromLatLng;
     public static LatLng toLatLng;
     public static String toTitle;
     public static String fromTitle;
     public static SweetAlertDialog pDialog;
     public static Button btnPrev;
+    public static MyHyperlinkTextview btnRecents;
     public static Button btnNext;
     public static MyViewPager mViewPager;
     public static PagerTitleStrip mPagerStrip;
     public static SectionsPagerAdapter sectionsPagerAdapter;
     public static androidx.fragment.app.FragmentManager fragMgr;
     public static RectangularBounds bounds;
-    public static String distanceStr;
     public static MyPreferencesHelper options;
+    static List<LatLng> points = new ArrayList<>();
     ProgressBar prog;
 
     public static final int TAG_FROM = 0;
     public static final int TAG_TO = 1;
     public final static String TAG = "ManualTrip";
-    public static final String TAG_TITLE = "TAG_TITLE";
-    public static final String TAG_DATE = "TAG_DATE";
-    public static final String TAG_DISTANCE = "TAG_DISTANCE";
-    public static final String TAG_TO_LOC = "TAG_TO_MARKER";
-    public static final String TAG_FROM_LOC = "TAG_FROM_MARKER";
-    public static final String TAG_TO_TITLE = "TAG_TO_TITLE";
-    public static final String TAG_FROM_TITLE = "TAG_FROM_TITLE";
-    private ArrayList<MyMapMarker> myMapMarkers;
+    private static final String TAG_TITLE = "TAG_TITLE";
+    private static final String TAG_DATE = "TAG_DATE";
+    private static final String TAG_DISTANCE = "TAG_DISTANCE";
+    private static final String TAG_TO_LOC = "TAG_TO_MARKER";
+    private static final String TAG_FROM_LOC = "TAG_FROM_MARKER";
+    private static final String TAG_TO_TITLE = "TAG_TO_TITLE";
+    private static final String TAG_FROM_TITLE = "TAG_FROM_TITLE";
     private MyInfoWindowAdapter infoWindowAdapter;
 
     @Override
@@ -136,6 +171,18 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
         mViewPager.onRealPageChangedListener = new MyViewPager.OnRealPageChangedListener() {
             @Override
             public void onPageActuallyFuckingChanged(int pageIndex) {
+
+                if (pageIndex > 0) {
+                    if (tripTitle == null && tripDate != null) {
+                        tripTitle = Helpers.DatesAndTimes.getPrettyDate(tripDate);
+                        Log.w(TAG, "onPageActuallyFuckingChanged | Set trip title to: " + Helpers.DatesAndTimes.getPrettyDate(tripDate));
+                    } else if (tripTitle == null && tripDate == null) {
+                        tripDate = DateTime.now();
+                        tripTitle = Helpers.DatesAndTimes.getPrettyDate(tripDate);
+                        Log.w(TAG, "onPageActuallyFuckingChanged | Set trip title to: " + Helpers.DatesAndTimes.getPrettyDate(tripDate));
+                    }
+                }
+
                 if (pageIndex == 4) {
                     btnNext.setText("Save");
                     btnNext.setBackgroundResource(R.drawable.btn_glass_gray_orange_border);
@@ -145,6 +192,7 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
                 }
             }
         };
+
         mPagerStrip = (PagerTitleStrip) findViewById(R.id.pager_title_strip);
         mViewPager.setAdapter(sectionsPagerAdapter);
         mViewPager.setOffscreenPageLimit(0);
@@ -159,6 +207,7 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
             }
         });
 
+        clear();
 
         fragMgr = getSupportFragmentManager();
 
@@ -171,6 +220,17 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
                 if (mViewPager.currentPosition != 0) {
                     mViewPager.setCurrentItem(curPos - 1, true);
                 }
+            }
+        });
+
+        btnRecents = findViewById(R.id.btnRecents);
+        btnRecents.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ArrayList<RecentOrSavedTrip> recentOrSavedTrips = new MySqlDatasource().getAllRecentOrSavedTrips();
+                // recentTrips = RecentOrSavedTrip.toBasicObjects(recentOrSavedTrips);
+                // recentTrips.parentObject = new BasicObjects.BasicObject("","", null);
+                FullscreenActivityChooseRecentTrip.showPicker(activity, recentOrSavedTrips, FullscreenActivityChooseRecentTrip.REQUESTCODE);
             }
         });
 
@@ -209,13 +269,16 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
 
         if (savedInstanceState != null) {
             if (savedInstanceState.get(TAG_TITLE) != null) {
-                title.setText(savedInstanceState.getString(TAG_TITLE));
+                tripTitle = savedInstanceState.getString(TAG_TITLE);
+                titleField.setText(savedInstanceState.getString(TAG_TITLE));
             }
             if (savedInstanceState.get(TAG_DATE) != null) {
-                date.setText(savedInstanceState.getString(TAG_DATE));
+                tripDate = new DateTime(savedInstanceState.getLong(TAG_DATE));
+                dateButton.setText(savedInstanceState.getString(TAG_DATE));
             }
             if (savedInstanceState.get(TAG_DISTANCE) != null) {
-                distance.setText(savedInstanceState.getString(TAG_DISTANCE));
+                distanceStr = savedInstanceState.getString(TAG_DISTANCE);
+                distanceField.setText(savedInstanceState.getString(TAG_DISTANCE));
             }
             if (savedInstanceState.get(TAG_FROM_LOC) != null) {
                 fromLatLng = savedInstanceState.getParcelable(TAG_FROM_LOC);
@@ -255,6 +318,22 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
     @Override
     protected void onStart() {
         super.onStart();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (data != null) {
+            if (data.hasExtra(FullscreenActivityChooseRecentTrip.CHOICE_RESULT)) {
+                RecentOrSavedTrip chosenTrip = data.getParcelableExtra(FullscreenActivityChooseRecentTrip.CHOICE_RESULT);
+                if (chosenTrip != null) {
+                    Toast.makeText(activity, "Loading trip: " + chosenTrip.name, Toast.LENGTH_SHORT).show();
+                    loadSavedTrip(chosenTrip);
+                }
+            }
+        }
+
     }
 
     @Override
@@ -388,16 +467,63 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
         public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                                  @Nullable Bundle savedInstanceState) {
             rootView = inflater.inflate(R.layout.man_trip_title, container, false);
-            title = rootView.findViewById(R.id.textView_title_value);
+            titleField = rootView.findViewById(R.id.textView_title_value);
+
+            // Get and set autocomplete entries using existing trip names.
+            // Create the object of ArrayAdapter with String
+            // which hold the data as the list item.
+            String[] tripNames = new MySqlDatasource().getTripNames();
+
+            ArrayAdapter<String> adapter
+                    = new ArrayAdapter<>(
+                    requireContext(),
+                    android.R.layout.select_dialog_item,
+                    tripNames);
+
+            // Give the suggestion after 1 words.
+            titleField.setThreshold(0);
+
+            titleField.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View view, boolean hasFocus) {
+                    if (hasFocus) {
+                        titleField.showDropDown();
+                    } else {
+                        tripTitle = titleField.getText().toString();
+                    }
+
+                }
+            });
+
+            titleField.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (titleField.hasFocus()) {
+                        titleField.showDropDown();
+                    }
+                }
+            });
+
+            // Set the adapter for data as a list
+            titleField.setAdapter(adapter);
+            titleField.setTextColor(Color.BLACK);
 
             return rootView;
         }
 
+        @Override
+        public void onResume() {
+            super.onResume();
+            if (tripTitle != null) {
+                titleField.setText(tripTitle);
+            }
+        }
     }
 
     public static class Frag_From extends Fragment {
         public static final String ARG_SECTION_NUMBER = "section_number";
         public View rootView;
+        BroadcastReceiver tripChangedReceiver;
 
         @Nullable
         @Override
@@ -406,9 +532,9 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
             super.onCreateView(inflater, container, savedInstanceState);
 
             androidx.fragment.app.FragmentManager mgr = getChildFragmentManager();
+
             autoCompleteFrag_From = (AutocompleteSupportFragment)
                     mgr.findFragmentById(R.id.autocomplete_fragment_from);
-
 
             // Specify the types of place data to return.
             autoCompleteFrag_From.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.ADDRESS, Place.Field.LAT_LNG));
@@ -419,8 +545,14 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
                 public void onPlaceSelected(@NonNull com.google.android.libraries.places.api.model.Place place) {
                     if (place.getName() != null && place.getName().length() > 0) {
                         setFromMarker(place.getLatLng(), place.getName().toString());
+                        fromTitle = place.getName();
+                        EditText etPlace = (EditText) autoCompleteFrag_From.getView().findViewById(R.id.places_autocomplete_search_input);
+                        etPlace.setHint(fromTitle);
                     } else {
                         setFromMarker(place.getLatLng());
+                        fromTitle = place.getLatLng().latitude + "/" + place.getLatLng().longitude;
+                        EditText etPlace = (EditText) autoCompleteFrag_From.getView().findViewById(R.id.places_autocomplete_search_input);
+                        etPlace.setHint(fromTitle);
                     }
                 }
 
@@ -433,20 +565,54 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
             // Limit results to the US
             autoCompleteFrag_From.setCountry("US");
 
+            if (fromLatLng != null && fromTitle != null && fromTitle.length() == 0) {
+                fromTitle = "Lat: " + fromLatLng.latitude + "|Lon: " + fromLatLng.longitude;
+            } else if (fromTitle != null) {
+                EditText etPlace = (EditText) autoCompleteFrag_From.getView().findViewById(R.id.places_autocomplete_search_input);
+                etPlace.setHint(fromTitle);
+            }
 
             // Set up the area that the completes are biased towards (if supplied)
             if (bounds != null) {
                 autoCompleteFrag_From.setLocationBias(bounds);
             }
 
+            tripChangedReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    onResume();
+                }
+            };
+
             return rootView;
         }
 
+        @Override
+        public void onResume() {
+            super.onResume();
+
+            getContext().registerReceiver(tripChangedReceiver, new IntentFilter(INTENT_TRIP_CHANGED));
+
+            if (fromTitle != null && fromLatLng != null) {
+                fromTitle = "Lat: " + fromLatLng.latitude + "|Lon: " + fromLatLng.longitude;
+                EditText etPlace = (EditText) autoCompleteFrag_From.getView().findViewById(R.id.places_autocomplete_search_input);
+                etPlace.setHint(fromTitle);
+            }
+        }
+
+        @Override
+        public void onStop() {
+            super.onStop();
+            if (tripChangedReceiver != null) {
+                getContext().unregisterReceiver(tripChangedReceiver);
+            }
+        }
     }
 
     public static class Frag_To extends Fragment {
         public static final String ARG_SECTION_NUMBER = "section_number";
         private View rootView;
+        BroadcastReceiver tripChangedReceiver;
 
         @Nullable
         @Override
@@ -468,8 +634,15 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
                 public void onPlaceSelected(@NonNull com.google.android.libraries.places.api.model.Place place) {
                     if (place.getName() != null && place.getName().length() > 0) {
                         setToMarker(place.getLatLng(), place.getName());
+                        toTitle = place.getName();
+                        EditText etPlace = (EditText) autoCompleteFrag_To.getView().findViewById(R.id.places_autocomplete_search_input);
+                        etPlace.setHint(toTitle);
                     } else {
                         setToMarker(place.getLatLng());
+                        toTitle = place.getLatLng().latitude + "/" + place.getLatLng().longitude;
+                        EditText etPlace = (EditText) autoCompleteFrag_To.getView().findViewById(R.id.places_autocomplete_search_input);
+                        etPlace.setHint(toTitle);
+
                     }
                 }
 
@@ -481,49 +654,243 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
 
             autoCompleteFrag_To.setCountry("US");
 
+            if (toLatLng != null && toTitle != null && toTitle.length() == 0) {
+                toTitle = "Lat: " + toLatLng.latitude + "|Lon: " + toLatLng.longitude;
+            } else if (toTitle != null) {
+                EditText etPlace = (EditText) autoCompleteFrag_To.getView().findViewById(R.id.places_autocomplete_search_input);
+                etPlace.setHint(toTitle);
+            }
+
             if (bounds != null) {
                 autoCompleteFrag_To.setLocationBias(bounds);
             }
 
+            tripChangedReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    onResume();
+                }
+            };
+
             return rootView;
         }
 
+        @Override
+        public void onResume() {
+            super.onResume();
+
+            getContext().registerReceiver(tripChangedReceiver, new IntentFilter(INTENT_TRIP_CHANGED));
+
+            if (toLatLng != null && toTitle != null && toTitle.length() == 0) {
+                toTitle = "Lat: " + toLatLng.latitude + "|Lon: " + toLatLng.longitude;
+            } else if (toTitle != null) {
+                EditText etPlace = (EditText) autoCompleteFrag_To.getView().findViewById(R.id.places_autocomplete_search_input);
+                etPlace.setHint(toTitle);
+            }
+        }
+
+        @Override
+        public void onStop() {
+            super.onStop();
+            if (tripChangedReceiver != null) {
+                getContext().unregisterReceiver(tripChangedReceiver);
+            }
+        }
     }
 
     public static class Frag_Date extends Fragment {
         public static final String ARG_SECTION_NUMBER = "section_number";
         private View rootView;
+        BroadcastReceiver tripChangedReceiver;
 
         @Nullable
         @Override
         public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
             rootView = inflater.inflate(R.layout.man_trip_date, container, false);
-            date = rootView.findViewById(R.id.textView_date_value);
-            date.setAsDatePicker(true);
-            date.setText(Helpers.DatesAndTimes.getPrettyDate(DateTime.now()));
+            // dateField = rootView.findViewById(R.id.textView_date_value);
+            // dateField.setAsDatePicker(true);
+            dateButton = rootView.findViewById(R.id.btnTripDate);
+            dateButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    MyDatePicker datePicker = new MyDatePicker(getContext(), tripDate, new MyInterfaces.DateSelector() {
+                        @Override
+                        public void onDateSelected(DateTime selectedDate, String selectedDateStr) {
+                            tripDate = selectedDate;
+                            dateButton.setText(Helpers.DatesAndTimes.getPrettyDate(selectedDate));
+                        }
+                    });
+                    datePicker.show();
+                }
+            });
+
+            if (tripDate == null) {
+                tripDate = DateTime.now();
+                dateButton.setText(Helpers.DatesAndTimes.getPrettyDate(DateTime.now()));
+            } else {
+                dateButton.setText(Helpers.DatesAndTimes.getPrettyDate(tripDate));
+            }
+
+            tripChangedReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    if (intent.getAction() != null && intent.getAction().equals(DATE_INVALID_ACTION)) {
+                           dateButton.performClick();
+                    } else {
+                        onResume();
+                    }
+                }
+            };
 
             return rootView;
         }
 
+        @Override
+        public void onResume() {
+            super.onResume();
+            IntentFilter filter = new IntentFilter(INTENT_TRIP_CHANGED);
+            filter.addAction(DATE_INVALID_ACTION);
+            getContext().registerReceiver(tripChangedReceiver, filter);
+
+            if (tripDate == null) {
+                dateButton.setText(Helpers.DatesAndTimes.getPrettyDate(DateTime.now()));
+            } else {
+                dateButton.setText(Helpers.DatesAndTimes.getPrettyDate(tripDate));
+            }
+        }
+
+        @Override
+        public void onStop() {
+            super.onStop();
+            if (tripChangedReceiver != null) {
+                getContext().unregisterReceiver(tripChangedReceiver);
+            }
+        }
     }
 
     public static class Frag_Distance extends Fragment {
         public static final String ARG_SECTION_NUMBER = "section_number";
         private View rootView;
-
+        BroadcastReceiver tripChangedReceiver;
 
         @Nullable
         @Override
         public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
             rootView = inflater.inflate(R.layout.man_trip_distance, container, false);
-            distance = rootView.findViewById(R.id.textView_distance_value);
-            distance.setText(distanceStr);
+            distanceField = rootView.findViewById(R.id.textView_distance_value);
+            distanceField.setText(distanceStr);
+
+            tripChangedReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    onResume();
+                }
+            };
+
             return rootView;
         }
 
+        @Override
+        public void onResume() {
+            super.onResume();
+            getContext().registerReceiver(tripChangedReceiver, new IntentFilter(INTENT_TRIP_CHANGED));
+            distanceField.setText(distanceStr);
+        }
+
+        @Override
+        public void onStop() {
+            super.onStop();
+            if (tripChangedReceiver != null) {
+                getContext().unregisterReceiver(tripChangedReceiver);
+            }
+        }
     }
 
     //endregion **************************** END TRIP FRAGS ****************************************
+
+
+    private void clear() {
+        /*
+            public static Marker fromMarker;
+            public static Marker toMarker;
+            public static String tripTitle;
+            public static DateTime tripDate;
+            public static Polyline polyline;
+            public static String distanceStr;
+            public static LatLng fromLatLng;
+            public static LatLng toLatLng;
+            public static String toTitle;
+            public static String fromTitle;
+         */
+
+        fromMarker = null;
+        toMarker = null;
+        tripTitle = null;
+        tripDate = null;
+        polyline = null;
+        distanceStr = null;
+        fromLatLng = null;
+        toLatLng = null;
+        toTitle = null;
+        fromTitle = null;
+
+
+    }
+
+    /**
+     * Adds an entry to the recents table.  This is called by the saveTrip() method assuming that
+     * method completes successfully.
+     */
+    private void saveTripToRecents() {
+        try {
+            RecentOrSavedTrip trip = new RecentOrSavedTrip();
+            trip.name = tripTitle;
+            trip.distanceInMiles = Float.parseFloat(distanceField.getText().toString());
+            trip.fromLat = fromLatLng.latitude;
+            trip.fromLon = fromLatLng.longitude;
+            trip.toLat = toLatLng.latitude;
+            trip.toLon = toLatLng.longitude;
+            new MySqlDatasource().createNewRecentOrSavedTrip(trip);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadSavedTrip(RecentOrSavedTrip recentOrSavedTrip) {
+
+        // Set the trip text.
+        tripTitle = recentOrSavedTrip.name;
+        if (titleField != null)
+            titleField.setText(recentOrSavedTrip.name);
+
+        // Set the date text
+        tripDate = DateTime.now();
+        if (dateButton != null) {
+            dateButton.setText(Helpers.DatesAndTimes.getPrettyDate(tripDate));
+        }
+
+        // Set the distance text
+        distanceStr = Float.toString(recentOrSavedTrip.distanceInMiles);
+        if (distanceField != null)
+            distanceField.setText(Float.toString(recentOrSavedTrip.distanceInMiles));
+
+        // Set the first map marker.
+        LatLng fromLatLng = new LatLng(recentOrSavedTrip.fromLat, recentOrSavedTrip.fromLon);
+        fromTitle = "Lat: " + fromLatLng.latitude + "|Lon: " + fromLatLng.longitude;
+        setFromMarker(fromLatLng);
+
+        // Set the destination map marker.
+        LatLng toLatLng = new LatLng(recentOrSavedTrip.toLat, recentOrSavedTrip.toLon);
+        setToMarker(toLatLng);
+        toTitle = "Lat: " + toLatLng.latitude + "|Lon: " + toLatLng.longitude;
+
+        // Move to the date frag to give the user a chance to put the correct date (defaults to today).
+        mViewPager.setCurrentItem(3, true);
+
+        Intent intent = new Intent(INTENT_TRIP_CHANGED);
+        sendBroadcast(intent);
+
+    }
 
     private void saveTrip() {
 
@@ -533,53 +900,140 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
 
         try {
             // Instantiate a datasource
-            MySqlDatasource ds = new MySqlDatasource();
-            MediUser user = MediUser.getMe();
-            FullTrip fullTrip = new FullTrip(date.getDateSelectedAsDateTime().getMillis(), user.domainname, user.systemuserid, user.email);
+            final MySqlDatasource ds = new MySqlDatasource();
+            final MediUser user = MediUser.getMe();
 
-            fullTrip.setTitle(title.getText().toString());
-            fullTrip.setDateTime(date.getDateSelectedAsDateTime());
+            // This should never be null but just in case.
+            if (tripDate == null) {
+                mViewPager.setCurrentItem(3);
+                Intent setDateIntent = new Intent(DATE_INVALID_ACTION);
+                sendBroadcast(setDateIntent);
+                Toast.makeText(context, "Please set a trip date!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Validate the user's account
+            if (user == null || user.domainname == null || user.systemuserid == null || user.email == null) {
+                // Create a return intent to be received by the calling activity's onActivityResult() method
+                Intent intentCreateFailed = new Intent(ADD_MANUAL_TRIP);
+
+                // Store the error message and add it to the intent as an extra
+                intentCreateFailed.putExtra(ERROR_MESSAGE, "User account is fucked up.  Logout/Login and try again!");
+
+                // Set the result and close this activity
+                setResult(Activity.RESULT_CANCELED, intentCreateFailed);
+                finish();
+                return;
+            }
+
+            // Create the base fulltrip object
+            final FullTrip fullTrip = new FullTrip(new DateTime(tripDate).getMillis()
+                    , user.domainname, user.systemuserid, user.email);
+
+            // Set the title to the trip date if it's null
+            if (tripTitle == null) {
+                tripTitle = Helpers.DatesAndTimes.getPrettyDate(tripDate);
+            }
+
+            // Set title, date and millis
+            fullTrip.setTitle(tripTitle);
+            fullTrip.setDateTime(tripDate);
             fullTrip.setMilis(fullTrip.getTripcode());
-            float distmiles = Float.parseFloat(distance.getText().toString());
+
+            // Finish buliding the trip
+            float distmiles = Float.parseFloat(distanceStr);
             float dist = Helpers.Geo.convertMilesToMeters(distmiles, 2);
             fullTrip.setDistance(dist);
             fullTrip.setIsManualTrip(true);
             fullTrip.setReimbursementRate((float) options.getReimbursementRate());
-
             ds.createNewTrip(fullTrip);
 
-            Location lastLoc = null;
-            for (LatLng latLng : polyline.getPoints()) {
+            // Create an asynctask to write entries to the database
+            AsyncTask<String, String, String> task = new AsyncTask<String, String, String>() {
+                MyProgressDialog progressDialog = new MyProgressDialog(context, "Preparing...");
+                List<LatLng> points = polyline.getPoints();
+                int i = 0;
 
-                Location location = new Location("gps");
-                location.setLatitude(latLng.latitude);
-                location.setLongitude(latLng.longitude);
-
-                if (lastLoc == null) {
-                    lastLoc = location;
+                @Override
+                protected void onPreExecute() {
+                    super.onPreExecute();
+                    progressDialog.setTitleText("Writing trip entries...");
+                    progressDialog.show();
                 }
 
-                TripEntry entry = new TripEntry();
-                entry.setLatitude(location.getLatitude());
-                entry.setLongitude(location.getLongitude());
-                entry.setTripcode(fullTrip.getTripcode());
-                entry.setGuid(user.systemuserid);
-                entry.setDateTime(date.getDateSelectedAsDateTime());
-                entry.setMilis(entry.getDateTime().getMillis());
-                entry.setDistance(location.distanceTo(lastLoc));
-                entry.setSpeed(0);
-                ds.appendTrip(entry);
+                @Override
+                protected String doInBackground(String... args) {
+                    Location lastLoc = null;
 
-                lastLoc = location;
+                    for (int j = 0; j < points.size(); j++) {
+                        if (j % 100 == 0) {
+                            LatLng point = points.get(j);
+                            Location location = new Location("gps");
+                            location.setLatitude(point.latitude);
+                            location.setLongitude(point.longitude);
 
+                            if (lastLoc == null) {
+                                lastLoc = location;
+                            }
+
+                            TripEntry entry = new TripEntry();
+                            entry.setLatitude(location.getLatitude());
+                            entry.setLongitude(location.getLongitude());
+                            entry.setTripcode(fullTrip.getTripcode());
+                            entry.setGuid(user.systemuserid);
+                            entry.setDateTime(tripDate);
+                            entry.setMilis(entry.getDateTime().getMillis());
+                            entry.setDistance(location.distanceTo(lastLoc));
+                            entry.setSpeed(0);
+                            ds.appendTrip(entry);
+
+                            lastLoc = location;
+                            i++;
+                            publishProgress(Integer.toString(i));
+                            Log.i(TAG, "doInBackground | Loop: " + i);
+                        }
+                    }
+                    return null;
+                }
+
+                @Override
+                protected void onProgressUpdate(String... values) {
+                    super.onProgressUpdate(values);
+                    double p = Double.parseDouble(values[0]);
+                    double t = Double.parseDouble(Integer.toString(points.size()));
+                    String progress = Helpers.Numbers.convertToPercentage( (p / t) * 100, true);
+                    progressDialog.setContentText(progress);
+                }
+
+                @Override
+                protected void onPostExecute(String val) {
+                    super.onPostExecute(val);
+                    progressDialog.dismiss();
+                    saveTripToRecents();
+                    setResult(Activity.RESULT_OK);
+                    finish();
+                }
+            };
+
+            // The lack of this check has burned me before.  It's verbose and not always needed for reasons
+            // unknown but I'd leave it!
+            if(Build.VERSION.SDK_INT >= 11/*HONEYCOMB*/) {
+                task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            } else {
+                task.execute();
             }
-
-            setResult(Activity.RESULT_OK);
-            finish();
 
         } catch (Exception e) {
             e.printStackTrace();
-            setResult(Activity.RESULT_CANCELED);
+
+            // Create a return intent to be received by the calling activity's onActivityResult() method
+            Intent intentCreateFailed = new Intent(ADD_MANUAL_TRIP);
+
+            // Store the error message and add it to the intent as an extra
+            intentCreateFailed.putExtra(ERROR_MESSAGE, e.getLocalizedMessage());
+
+            // Set the result and close this activity
+            setResult(Activity.RESULT_CANCELED, intentCreateFailed);
             finish();
         }
     }
@@ -608,13 +1062,23 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
             outState.putParcelable(TAG_FROM_LOC, fromMarker.getPosition());
             outState.putString(TAG_FROM_TITLE, fromMarker.getTitle());
         }
+
         if (toMarker != null) {
             outState.putParcelable(TAG_TO_LOC, toMarker.getPosition());
             outState.putString(TAG_TO_TITLE, toMarker.getTitle());
         }
-        outState.putString(TAG_TITLE, title.getText().toString());
-        outState.putString(TAG_DATE, date.getText().toString());
-        outState.putString(TAG_DISTANCE, date.getText().toString());
+
+        if (tripTitle != null) {
+            outState.putString(TAG_TITLE, tripTitle);
+        }
+
+        if (tripDate != null) {
+            outState.putLong(TAG_DATE, tripDate.getMillis());
+        }
+
+        if (distanceStr != null) {
+            outState.putString(TAG_DISTANCE, distanceStr);
+        }
 
         super.onSaveInstanceState(outState);
     }
@@ -704,7 +1168,7 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
 
     void populateAllAddresses() {
         try {
-            myMapMarkers = new ArrayList<>();
+            ArrayList<MyMapMarker> myMapMarkers = new ArrayList<>();
             UserAddresses userAddresses = UserAddresses.getSavedUserAddys();
             CrmEntities.CrmAddresses crmAddresses = options.getAllSavedCrmAddresses();
 
@@ -793,6 +1257,9 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
      */
     static void setFromMarker(LatLng latLng) {
         setFromMarker(latLng, null);
+        moveCameraToShowMarkers();
+        calculateRoute();
+
     }
 
     /**
@@ -935,25 +1402,45 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
         public String rslt;
         MyMapRouteHelper gmap = new MyMapRouteHelper();
         ArrayList<LatLng> latLngList = new ArrayList<LatLng>();
+        PolylineOptions line = new PolylineOptions();
         Document doc;
         boolean operationFailed = false;
         double distanceVal;
+        // MyProgressDialog mpd;
+        int prog;
+        int total;
 
         @Override
         protected void onPreExecute() {
             Toast.makeText(context, "Calculating route...", Toast.LENGTH_SHORT).show();
+            /*mpd = new MyProgressDialog(context, "Drawing a path - hang tight...");
+            mpd.show();*/
         }
 
         @Override
         protected Boolean doInBackground(LatLng... params) {
             try {
                 MyMapRouteHelper routeHelper = new MyMapRouteHelper();
-                Document document = routeHelper.getDocument(params[0], params[1], MyMapRouteHelper.MODE_DRIVING);
+                Document document = routeHelper.getDocument(params[0], params[1],
+                        MyMapRouteHelper.MODE_DRIVING);
                 latLngList = routeHelper.getDirection(document);
+                points = latLngList;
 
                 int meters = routeHelper.getTotalDistanceInmeters(document);
-                distanceVal = Double.parseDouble(Helpers.Geo.convertMetersToMiles((double)meters, false));
+                distanceVal = Double.parseDouble(Helpers.Geo.convertMetersToMiles((double)meters
+                        , false));
                 distanceStr = Double.toString(distanceVal);
+                prog = 1;
+                total = latLngList.size();
+
+                for (LatLng latLng : latLngList) {
+                    line.add(latLng);
+                    if (prog % 5 == 0) {
+                        publishProgress();
+                    }
+                    prog++;
+                }
+
                 return true;
             } catch (Exception e) {
                 operationFailed = true;
@@ -963,19 +1450,24 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
         }
 
         @Override
+        protected void onProgressUpdate(LatLng... values) {
+            int pct = Helpers.Numbers.formatAsZeroDecimalPointNumber(prog / total);
+
+                /*mpd.setContentText(pct + "%");
+                mpd.setTitleText(pct + "%");*/
+            super.onProgressUpdate(values);
+        }
+
+        @Override
         protected void onPostExecute(Boolean result) {
 
             if (result == false) {
                 return;
             }
 
-            PolylineOptions line = new PolylineOptions();
+
             line.width(5);
             line.color(Color.BLUE);
-
-            for (LatLng latLng : latLngList) {
-                line.add(latLng);
-            }
 
             if (polyline != null) {
                 polyline.remove();
@@ -983,10 +1475,11 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
             polyline = map.addPolyline(line);
             distanceStr = Double.toString(distanceVal);
             try {
-                distance.setText(distanceStr);
+                distanceField.setText(distanceStr);
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            // mpd.dismiss();
         }
     }
 }

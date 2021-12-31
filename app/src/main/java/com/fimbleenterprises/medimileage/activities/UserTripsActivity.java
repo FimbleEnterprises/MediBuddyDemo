@@ -23,8 +23,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.MyApp;
-import com.fimbleenterprises.medimileage.ui.CustomViews.MyHyperlinkTextview;
-import com.fimbleenterprises.medimileage.ui.CustomViews.NonScrollRecyclerView;
+import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyHyperlinkTextview;
+import com.fimbleenterprises.medimileage.activities.ui.CustomViews.NonScrollRecyclerView;
 import com.fimbleenterprises.medimileage.objects_and_containers.AggregateStats;
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.CustomTypefaceSpan;

@@ -73,7 +73,7 @@ public class ExcelSpreadsheet {
     }
 
     public void share(Context context) {
-        Helpers.Files.shareFile(context, this.file, "Share mileage stats");
+        Helpers.Files.shareFileProperly(context, this.file);
     }
 
     public static void test() {

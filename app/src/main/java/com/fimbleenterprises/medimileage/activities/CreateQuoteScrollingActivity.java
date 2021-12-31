@@ -8,7 +8,6 @@ import android.os.Bundle;
 
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.CrmQueries;
-import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.MyViewPager;
 
@@ -27,23 +26,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 
 import com.fimbleenterprises.medimileage.R;
-import com.fimbleenterprises.medimileage.fullscreen_pickers.FullscreenAccountTerritoryPicker;
-import com.fimbleenterprises.medimileage.fullscreen_pickers.FullscreenActivityChooseAccount;
+import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenAccountTerritoryPicker;
+import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityBasicObjectPicker;
+import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
-import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
-import com.fimbleenterprises.medimileage.ui.CustomViews.MyHyperlinkTextview;
-import com.fimbleenterprises.medimileage.ui.CustomViews.MyUnderlineEditText;
+import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyHyperlinkTextview;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import java.util.ArrayList;
 
-import static com.fimbleenterprises.medimileage.fullscreen_pickers.FullscreenAccountTerritoryPicker.ACCOUNT_RESULT;
+import static com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenAccountTerritoryPicker.ACCOUNT_RESULT;
 
 public class CreateQuoteScrollingActivity extends AppCompatActivity {
     private static final String TAG = "CreateQuoteScrollingActivity";
@@ -218,10 +214,12 @@ public class CreateQuoteScrollingActivity extends AppCompatActivity {
         public static final String ARG_SECTION_NUMBER = "section_number";
         MyHyperlinkTextview txtAccount;
         MyHyperlinkTextview txtTerritory;
+        MyHyperlinkTextview txtChangeAddress;
         BroadcastReceiver accountReceiver;
         CrmEntities.Accounts.Account currentAccount;
-        RadioGroup radioGroupAddresses;
+        // RadioGroup radioGroupAddresses;
         EditText editTextSelectedAddress;
+        BasicObjects addressObjects;
 
         @Nullable
         @Override
@@ -234,6 +232,13 @@ public class CreateQuoteScrollingActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View view) {
                     FullscreenAccountTerritoryPicker.showPicker(getActivity(), cachedTerritories);
+                }
+            });
+            txtChangeAddress = rootView.findViewById(R.id.txtChangeAddress);
+            txtChangeAddress.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    FullscreenActivityBasicObjectPicker.showPicker(getActivity(), addressObjects, 555);
                 }
             });
 
@@ -251,7 +256,7 @@ public class CreateQuoteScrollingActivity extends AppCompatActivity {
             // Using onDestroy() seems to work but makes me nervous that it won't be called in fringe cases.  Leaving it for now...
             getActivity().registerReceiver(accountReceiver, new IntentFilter(ACCOUNT_RESULT));
 
-            radioGroupAddresses = rootView.findViewById(R.id.radioGroupAddressNames);
+            // radioGroupAddresses = rootView.findViewById(R.id.radioGroupAddressNames);
             editTextSelectedAddress = rootView.findViewById(R.id.editTextSelectedAddress);
 
             return rootView;
@@ -288,34 +293,19 @@ public class CreateQuoteScrollingActivity extends AppCompatActivity {
             crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                    Log.i(TAG, "onSuccess | Retrieved " + currentAccountAddresses.list.size() + " addresses.");
+                    Log.i(TAG, "onSuccess | Retrieved account addresses");
 
                     // Cache the returned address(s)
                     String json = new String(responseBody);
                     currentAccountAddresses = new CrmEntities.CustomerAddresses(json);
                     currentAccountAddresses.baseAccount = currentAccount;
 
-                    // Clear the radiogroup
-                    radioGroupAddresses.removeAllViews();
-
-                    // Populate the radiobutton group.
-                    for (CrmEntities.CustomerAddresses.CustomerAddress address : currentAccountAddresses.list) {
-                        RadioButton radioButton = new RadioButton(getContext());
-                        radioButton.setText(address.addressnumber + " - " + address.name);
-                        radioGroupAddresses.addView(radioButton);
+                    if (currentAccountAddresses != null && currentAccountAddresses.list.size() > 0) {
+                        addressObjects = new BasicObjects();
+                        for (CrmEntities.CustomerAddresses.CustomerAddress a : currentAccountAddresses.list) {
+                            addressObjects.list.add(new BasicObjects.BasicObject(a.name, a.buildCompositeAddress(), a));
+                        }
                     }
-
-                    if (radioGroupAddresses != null) {
-                        radioGroupAddresses.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-                            @Override
-                            public void onCheckedChanged(RadioGroup radioGroup, int i) {
-                                Log.i(TAG, "onCheckedChanged | Changed the selected address!");
-                                selectedAddress = currentAccountAddresses.list.get(i);
-                                editTextSelectedAddress.setText(selectedAddress.composite);
-                            }
-                        });
-                    }
-
                 }
 
                 @Override

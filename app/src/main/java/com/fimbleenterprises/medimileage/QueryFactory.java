@@ -332,6 +332,7 @@ public class QueryFactory {
     public static class Filter {
         private FilterType type;
         public ArrayList<FilterCondition> conditions;
+        public ArrayList<Filter> filters = new ArrayList<>();
 
         @Override
         public String toString() {
@@ -360,6 +361,10 @@ public class QueryFactory {
 
         public void addCondition(FilterCondition condition) {
             conditions.add(condition);
+        }
+
+        public void addFilter(Filter filter) {
+            this.filters.add(filter);
         }
 
         public enum FilterType {
@@ -392,11 +397,19 @@ public class QueryFactory {
             public static final String LAST_WEEK = "last-week";
             public static final String LAST_X_WEEKS = "last-x-weeks";
             public static final String THIS_MONTH = "this-month";
+            public static final String NEXT_MONTH = "next-month";
             public static final String LAST_MONTH = "last-month";
             public static final String LAST_X_MONTHS = "last-x-months";
             public static final String THIS_YEAR = "this-year";
             public static final String LAST_YEAR = "last-year";
             public static final String LAST_X_YEARS = "last-x-years";
+            public static final String NEXT_X_YEARS = "next-x-years";
+            public static final String OLDER_THAN_X_DAYS = "olderthan-x-days";
+            public static final String OLDER_THAN_X_MONTHS = "olderthan-x-months";
+            public static final String OLDER_THAN_X_YEARS = "olderthan-x-years";
+            public static final String NEXT_X_MONTHS = "next-x-months";
+            public static final String NEXT_X_DAYS = "next-x-days";
+            public static final String NEXT_X_WEEKS = "next-x-weeks";
             public static final String CONTAINS = "like";
             public static final String NOT_CONTAINS = "not-like";
             public static final String CONTAINS_DATA = "not-null";
@@ -537,10 +550,23 @@ public class QueryFactory {
 
         public String toEncodedString() {
             String conditions = "";
+            String filters = "";
+            String subConditions = "";
+
             for (FilterCondition filterCondition : this.conditions) {
                 conditions += filterCondition.toEncodedString();
             }
-            String encoded = "%3Cfilter%20type%3D%22" + getType() + "%22%3E" + conditions + "%3C%2Ffilter%3E";
+
+            for(Filter filter : this.filters) {
+                subConditions += filter.toEncodedString();
+            }
+
+            String encoded = "";
+            if (this.filters != null && this.filters.size() > 0) {
+                encoded = "%3Cfilter%20type%3D%22" + getType() + "%22%3E" + conditions + subConditions + "%3C%2Ffilter%3E";
+            } else {
+                encoded = "%3Cfilter%20type%3D%22" + getType() + "%22%3E" + conditions + "%3C%2Ffilter%3E";
+            }
             return encoded;
         }
     }

@@ -48,20 +48,17 @@
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="left"
                 android:layout_weight="1">
 
-                <com.fimbleenterprises.medimileage.ui.CustomViews.MyUnderlineEditText
-                    android:id="@+id/textView_date_value"
+                <Button
+                    android:id="@+id/btnTripDate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"
-                    android:editable="false"
-                    android:fontFamily="casual"
-                    android:text=""
-                    android:textColor="#454545"
-                    android:textSize="20sp" />
+                    android:layout_margin="5dp"
+                    android:background="@drawable/btn_glass_gray"
+                    android:text="12/29/1978"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
             </FrameLayout>
         </TableRow>
     </TableLayout>

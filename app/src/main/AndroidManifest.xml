@@ -27,9 +27,19 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
+            android:name=".activities.EmailsFullscreenActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_emails_fullscreen"
+            android:theme="@style/FullscreenTheme"></activity>
+        <activity
+            android:name=".StreetViewActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_street_view"
+            android:theme="@style/FullscreenTheme" />
+        <activity
             android:name=".activities.CreateQuoteScrollingActivity"
             android:label="@string/title_activity_create_quote_scrolling"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".activities.QuoteActivity"
             android:label="@string/title_activity_quote"
@@ -47,9 +57,21 @@
             android:label="@string/title_activity_associated_opportunities"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".fullscreen_pickers.FullscreenAccountTerritoryPicker"
+            android:name=".activities.Activity_ParkingMap"
+            android:label="@string/title_activity_parking_buddy"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".dialogs.fullscreen_pickers.FullscreenAccountTerritoryPicker"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_pick_account_territory" />
+        <activity
+            android:name=".dialogs.fullscreen_pickers.FullscreenActivityChooseRecentTrip"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_pick_recent_trip" />
+        <activity
+            android:name=".dialogs.fullscreen_pickers.FullscreenActivityBasicObjectPicker"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_pick_basic_object" />
         <activity
             android:name=".activities.ActivityReceiveContact"
             android:configChanges="orientation|keyboardHidden|screenSize"
@@ -108,23 +130,23 @@
             android:label="@string/title_activity_individual_aggregate_stats"
             android:theme="@style/AppThemeAlt" />
         <activity
-            android:name=".fullscreen_pickers.FullscreenActivityChooseTerritory"
+            android:name=".dialogs.fullscreen_pickers.FullscreenActivityChooseTerritory"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen_choose_territory"
             android:parentActivityName=".activities.MainActivity"
             android:theme="@style/FullscreenAltTheme" />
         <activity
-            android:name=".fullscreen_pickers.FullscreenActivityChooseRep"
+            android:name=".dialogs.fullscreen_pickers.FullscreenActivityChooseRep"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen_choose_territory"
             android:theme="@style/FullscreenAltTheme" />
         <activity
-            android:name=".fullscreen_pickers.FullscreenActivityChooseAccount"
+            android:name=".dialogs.fullscreen_pickers.FullscreenActivityChooseAccount"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen_choose_account"
             android:theme="@style/FullscreenAltTheme" />
         <activity
-            android:name=".fullscreen_pickers.FullscreenActivityChooseOpportunity"
+            android:name=".dialogs.fullscreen_pickers.FullscreenActivityChooseOpportunity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen_choose_opportunity"
             android:theme="@style/FullscreenAltTheme">
@@ -163,14 +185,14 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_widgets"
             android:screenOrientation="portrait"
-            android:theme="@style/FullscreenTheme"
+            android:theme="@style/AppThemeBasicCustomToolbar"
             tools:ignore="LockedOrientationActivity">
             <meta-data
                 android:name="android.app.searchable"
                 android:resource="@xml/searchable" />
         </activity>
         <activity
-            android:name=".ui.settings.SettingsActivity"
+            android:name=".activities.ui.settings.SettingsActivity"
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/title_activity_settings"
             android:screenOrientation="portrait"
@@ -181,7 +203,7 @@
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/title_activity__sales_performance"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme"
+            android:theme="@style/AppThemeBasicCustomToolbar"
             tools:ignore="LockedOrientationActivity" />
         <activity
             android:name=".activities.Activity_SalesQuotas"
@@ -254,6 +276,9 @@
             </intent-filter>
         </service>
         <service
+            android:name=".services.ServerTripSyncService"
+            android:enabled="true" />
+        <service
             android:name=".services.MyAttachmentUploadService"
             android:enabled="true" />
         <service
@@ -269,6 +294,15 @@
 
         <provider
             android:name=".GenericFileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+        <provider
+            android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
             android:exported="false"
             android:grantUriPermissions="true">

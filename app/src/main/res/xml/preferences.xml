@@ -62,6 +62,15 @@
             android:entries="@array/trip_minder_intervals"
             android:entryValues="@array/trip_minder_intervals_values" />
 
+        <!--<SwitchPreference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
+            app:key="AUTO_SAVE_PARKING_SPOT"
+            android:fontFamily="casual"
+            app:defaultValue="true"
+            android:summary="@string/settings_auto_save_parking"
+            app:title="@string/settings_auto_save_parking_title" />-->
+
         <ListPreference
             android:foreground="#000000"
             android:theme="@style/AppTheme"
@@ -126,29 +135,22 @@
 
         <Preference
             android:foreground="#000000"
-            app:key="backupdb"
-            app:summary="Backs up the mileage database."
-            app:isPreferenceVisible="false"
+            android:theme="@style/AppTheme"
+            android:enabled="true"
+            app:key="GET_DB_SIZE"
+            app:summary=""
             android:fontFamily="casual"
-            app:title="Backup database" />
+            app:isPreferenceVisible="true"
+            app:title="Database size:" />
 
         <Preference
             android:foreground="#000000"
             android:theme="@style/AppTheme"
-            app:key="restoredb"
-            app:summary="Restores a mileage database backup."
+            app:key="DELETE_EMPTY_TRIP_DATA"
             android:fontFamily="casual"
-            app:isPreferenceVisible="false"
-            app:title="Restore database" />
-
-        <Preference
-            android:foreground="#000000"
-            android:theme="@style/AppTheme"
-            app:key="DELETE_ALL_BACKUPS"
-            app:summary="Deletes all mileage database backup."
-            android:fontFamily="casual"
-            app:isPreferenceVisible="false"
-            app:title="Delete all databases" />
+            app:isPreferenceVisible="true"
+            app:summary="@string/delete_empty_trips_summary"
+            app:title="@string/delete_empty_trips_title" />
 
         <Preference
             android:foreground="#000000"
@@ -162,11 +164,38 @@
         <Preference
             android:foreground="#000000"
             android:theme="@style/AppTheme"
-            app:key="DELETE_EMPTY_TRIP_DATA"
+            android:enabled="true"
+            app:key="SHARE_DB"
+            app:summary="Allows you to export your raw mileage database."
             android:fontFamily="casual"
             app:isPreferenceVisible="true"
-            app:summary="@string/delete_empty_trips_summary"
-            app:title="@string/delete_empty_trips_title" />
+            app:title="Share my database..." />
+
+        <Preference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
+            app:key="restoredb"
+            app:summary="Restores a mileage database backup."
+            android:fontFamily="casual"
+            app:isPreferenceVisible="true"
+            app:title="Restore database" />
+
+        <Preference
+            android:foreground="#000000"
+            app:key="backupdb"
+            app:summary="Backs up the mileage database."
+            app:isPreferenceVisible="false"
+            android:fontFamily="casual"
+            app:title="Backup database" />
+
+        <Preference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
+            app:key="DELETE_ALL_BACKUPS"
+            app:summary="Deletes all mileage database backup."
+            android:fontFamily="casual"
+            app:isPreferenceVisible="false"
+            app:title="Delete all databases" />
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -181,12 +210,14 @@
             app:defaultValue="false"
             app:title="@string/settings_show_usage_menu_item" />
 
+        <!-- -= NOT USED ANYMORE - USING LAST_ACCESSED_SEARCH_TAB NOW =- -->
         <ListPreference
             android:foreground="#000000"
             android:theme="@style/AppTheme"
             app:key="DEFAULT_SEARCH_PAGE"
             android:fontFamily="casual"
             app:defaultValue="1"
+            app:isPreferenceVisible="false"
             android:summary="@string/intial_search_page_results_summary"
             app:title="Initial search page"
             android:entries="@array/default_search_page_entries"

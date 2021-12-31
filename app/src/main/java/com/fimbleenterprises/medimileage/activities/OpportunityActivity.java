@@ -38,7 +38,7 @@ import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
-import com.fimbleenterprises.medimileage.ui.CustomViews.NonScrollRecyclerView;
+import com.fimbleenterprises.medimileage.activities.ui.CustomViews.NonScrollRecyclerView;
 import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
@@ -294,7 +294,7 @@ public class OpportunityActivity extends AppCompatActivity {
     void populateOppDetails() {
 
         txtNotesLoading = findViewById(R.id.textViewopportunityNotesLoading);
-        btnAddNote = findViewById(R.id.btnAddNote);
+        btnAddNote = findViewById(R.id.btnViewEmails);
         pbNotesLoading = findViewById(R.id.progressBarWorking);
         btnAddNote.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -608,7 +608,7 @@ public class OpportunityActivity extends AppCompatActivity {
                                 File attachment = Helpers.Files.base64Decode(annotation.documentBody,
                                         new File(Helpers.Files.AttachmentTempFiles.getDirectory() + File.separator +
                                                 annotation.filename));
-                                Helpers.Files.shareFile(context, attachment);
+                                Helpers.Files.shareFileProperly(context, attachment);
                             }
                             clickedNote.inUse = false;
                             adapterNotes.notifyDataSetChanged();
@@ -631,7 +631,7 @@ public class OpportunityActivity extends AppCompatActivity {
                     File attachment = Helpers.Files.base64Decode(clickedNote.documentBody,
                             new File(Helpers.Files.AttachmentTempFiles.getDirectory() + File.separator +
                                     clickedNote.filename));
-                    Helpers.Files.shareFile(context, attachment);
+                    Helpers.Files.shareFileProperly(context, attachment);
                 }
                 dialogNoteOptions.dismiss();
             }

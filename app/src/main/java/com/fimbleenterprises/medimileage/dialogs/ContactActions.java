@@ -152,7 +152,7 @@ public class ContactActions {
         btnShare.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Helpers.Files.shareFile(activity, person.toVcard());
+                Helpers.Files.shareFileProperly(activity, person.toVcard());
             }
         });
 

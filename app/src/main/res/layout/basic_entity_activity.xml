@@ -88,7 +88,7 @@
             </TableLayout>
 
             <!-- ENTITY FIELDS -->
-            <com.fimbleenterprises.medimileage.ui.CustomViews.NonScrollRecyclerView
+            <com.fimbleenterprises.medimileage.activities.ui.CustomViews.NonScrollRecyclerView
                 android:id="@+id/rvBasicObjects"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -124,7 +124,7 @@
                             android:orientation="horizontal">
 
                             <Button
-                                android:id="@+id/btnAddNote"
+                                android:id="@+id/btnViewEmails"
                                 android:layout_width="wrap_content"
                                 android:layout_height="48dp"
                                 android:layout_alignParentRight="true"
@@ -188,7 +188,7 @@
             </TableLayout>
 
             <!-- NOTES -->
-            <com.fimbleenterprises.medimileage.ui.CustomViews.NonScrollRecyclerView
+            <com.fimbleenterprises.medimileage.activities.ui.CustomViews.NonScrollRecyclerView
                 android:id="@+id/notesRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"

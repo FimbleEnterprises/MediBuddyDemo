@@ -1,6 +1,9 @@
 package com.fimbleenterprises.medimileage.objects_and_containers;
 
+import com.fimbleenterprises.medimileage.Helpers;
 import com.google.gson.Gson;
+
+import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 
@@ -13,9 +16,7 @@ public class BasicEntity {
     public ArrayList<EntityStatusReason> availableEntityStatusReasons = new ArrayList<>();
     public ArrayList<EntityBasicField> fields = new ArrayList<>();
 
-    public BasicEntity() {
-
-    }
+    public BasicEntity() { }
 
     public BasicEntity(Object baseEntity) {
         this.baseEntity = baseEntity;
@@ -108,6 +109,7 @@ public class BasicEntity {
         public boolean isEditable = false;
         public boolean isAccountField = false;
         public boolean isContactField = false;
+        public boolean isBoolean = false;
         public boolean isOptionSet = false;
         public boolean isReadOnly = false;
         public boolean isDateField = false;
@@ -127,6 +129,12 @@ public class BasicEntity {
         public EntityBasicField(String label, String value) {
             this.label = label;
             this.value = value;
+            this.showLabel = true;
+        }
+
+        public EntityBasicField(String label, DateTime value) {
+            this.label = label;
+            this.value = Helpers.DatesAndTimes.getPrettyDateAndTime(value);
             this.showLabel = true;
         }
 

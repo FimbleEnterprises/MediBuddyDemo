@@ -5,9 +5,11 @@ import android.os.Parcelable;
 
 import com.fimbleenterprises.medimileage.R;
 
+import org.joda.time.DateTime;
+
 import java.util.ArrayList;
 
-public class BasicObjects implements Parcelable {
+public class BasicObjects {
 
     public String title;
     public BasicObject parentObject = new BasicObject();
@@ -40,47 +42,6 @@ public class BasicObjects implements Parcelable {
         return this.title + " | " + this.list.size() + " items.";
     }
 
-    protected BasicObjects(Parcel in) {
-        title = in.readString();
-        parentObject = (BasicObject) in.readValue(BasicObject.class.getClassLoader());
-        if (in.readByte() == 0x01) {
-            list = new ArrayList<BasicObject>();
-            in.readList(list, BasicObject.class.getClassLoader());
-        } else {
-            list = null;
-        }
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(title);
-        dest.writeValue(parentObject);
-        if (list == null) {
-            dest.writeByte((byte) (0x00));
-        } else {
-            dest.writeByte((byte) (0x01));
-            dest.writeList(list);
-        }
-    }
-
-    @SuppressWarnings("unused")
-    public static final Parcelable.Creator<BasicObjects> CREATOR = new Parcelable.Creator<BasicObjects>() {
-        @Override
-        public BasicObjects createFromParcel(Parcel in) {
-            return new BasicObjects(in);
-        }
-
-        @Override
-        public BasicObjects[] newArray(int size) {
-            return new BasicObjects[size];
-        }
-    };
-
     /**
      * A simple, container class useful for listviews.
      */
@@ -104,6 +65,7 @@ public class BasicObjects implements Parcelable {
         public boolean isHeader = false;
         public boolean isEmpty = false;
         public boolean isVisible = true;
+        public DateTime dateTime;
 
         public BasicObject() {
         }

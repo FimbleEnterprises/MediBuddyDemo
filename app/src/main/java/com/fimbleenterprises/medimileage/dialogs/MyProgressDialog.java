@@ -4,13 +4,19 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Typeface;
 import android.os.Build;
+import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.core.view.ViewCompat;
 import cn.pedant.SweetAlert.SweetAlertDialog;
 
 /**
@@ -32,21 +38,21 @@ public class MyProgressDialog extends SweetAlertDialog implements DialogInterfac
         super(context);
         this.setContentText(msg);
         this.changeAlertType(SweetAlertDialog.PROGRESS_TYPE);
-        this.setTitleText("");
+        // this.setTitleText("");
         this.setOnShowListener(this);
     }
 
     public MyProgressDialog(Context context, int alertType) {
         super(context, alertType);
         this.setContentText("Working...");
-        this.setTitleText("");
+        // this.setTitleText("");
         this.setOnShowListener(this);
     }
 
     public MyProgressDialog(Context context, String msg, int alertType) {
         super(context, alertType);
         this.setContentText(msg);
-        this.setTitleText("");
+        // this.setTitleText("");
         this.setOnShowListener(this);
     }
 

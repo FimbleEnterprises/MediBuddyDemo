@@ -33,6 +33,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapter<BasicEntityActivityObjectRecyclerAdapter.ViewHolder> {
     private static final String TAG="BasicObjectRecyclerAdapter";
+    public boolean isEditMode = false;
     public ArrayList<BasicEntity.EntityBasicField> mData;
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
@@ -76,14 +77,15 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         final BasicEntity.EntityBasicField field = mData.get(position);
-        holder.txtMainText.setText(field.value);
 
+        holder.txtLabel.setText(field.label);
+        holder.txtMainText.setText(field.value);
+        holder.btnMainText.setText(field.value);
+
+        // Allow multiline text to have line breaks
         if (field != null && field.value != null && field.value.contains("\n")) {
             holder.txtMainText.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
         }
-
-        holder.btnMainText.setText(field.value);
-        holder.txtLabel.setText(field.label);
 
         // Hide the middle text field if it is null
         holder.txtMainText.setVisibility(field.value == null ? View.GONE : View.VISIBLE);
@@ -109,9 +111,25 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
             holder.spinnerMainText.setVisibility(View.VISIBLE);
             ArrayAdapter arrayAdapter = new ArrayAdapter(context, android.R.layout.simple_spinner_item, field.toOptionsetValueArray());
             holder.spinnerMainText.setAdapter(arrayAdapter);
-
             // Try to find and select the proper item based on the object's value.
             holder.spinnerMainText.setSelection(field.tryGetValueIndexFromName());
+        } else if (field.isDateField) {
+            if (isEditMode) {
+                holder.txtMainText.setVisibility(View.GONE);
+                holder.spinnerMainText.setVisibility(View.GONE);
+                holder.btnMainText.setVisibility(View.VISIBLE);
+                holder.btnMainText.setPaintFlags(holder.btnMainText.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+            } else {
+                holder.txtMainText.setVisibility(View.VISIBLE);
+                holder.spinnerMainText.setVisibility(View.GONE);
+                holder.btnMainText.setVisibility(View.GONE);
+                holder.btnMainText.setPaintFlags(holder.btnMainText.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+            }
+        } else if (field.isDateTimeField) {
+            holder.txtMainText.setVisibility(View.VISIBLE);
+            holder.spinnerMainText.setVisibility(View.GONE);
+            holder.btnMainText.setVisibility(View.GONE);
+            holder.btnMainText.setPaintFlags(holder.btnMainText.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
         } else {
             holder.txtMainText.setVisibility(View.VISIBLE);
             holder.spinnerMainText.setVisibility(View.GONE);

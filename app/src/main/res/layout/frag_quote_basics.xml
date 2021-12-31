@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="10dp">
 
     <TableLayout
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_marginTop="10dp"
         android:paddingTop="2dp"
         android:paddingBottom="2dp">
@@ -40,7 +41,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1">
 
-                <com.fimbleenterprises.medimileage.ui.CustomViews.MyHyperlinkTextview
+                <com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyHyperlinkTextview
                     android:id="@+id/txtAccount"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -61,12 +62,60 @@
                 android:layout_weight="1">
 
                 <TextView
+                    android:id="@+id/blank1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:gravity="start|top"
+                    android:inputType="textMultiLine"
+                    android:lines="1"
+                    android:text=""
+                    android:textStyle="bold"
+                    android:visibility="visible"
+                    tools:visibility="visible" />
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <!-- put views here -->
+
+            </FrameLayout>
+        </TableRow>
+
+
+        <TableRow
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".25">
+
+                <TextView
                     android:id="@+id/txtAddressesLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Address:"
                     android:textStyle="bold" />
 
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".75">
+
+
+                <com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyHyperlinkTextview
+                    android:id="@+id/txtChangeAddress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="(change)" />
             </FrameLayout>
         </TableRow>
 
@@ -77,13 +126,7 @@
             <FrameLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <RadioGroup
-                    android:id="@+id/radioGroupAddressNames"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-            </FrameLayout>
+                android:layout_weight="1"/>
         </TableRow>
 
         <TableRow
@@ -102,7 +145,12 @@
                     android:layout_height="wrap_content"
                     android:ems="10"
                     android:gravity="start|top"
-                    android:inputType="textMultiLine" />
+                    android:inputType="textMultiLine"
+                    android:lines="4"
+                    android:text="Please choose an account"
+                    android:textStyle="bold"
+                    android:visibility="visible"
+                    tools:visibility="visible" />
             </FrameLayout>
         </TableRow>
 

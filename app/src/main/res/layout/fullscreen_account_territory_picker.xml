@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fullscreen_pickers.FullscreenAccountTerritoryPicker">
+    tools:context=".dialogs.fullscreen_pickers.FullscreenAccountTerritoryPicker">
 
     <com.fimbleenterprises.medimileage.MyExpandableListview
         android:id="@+id/expandableListview"

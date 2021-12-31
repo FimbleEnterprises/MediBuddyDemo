@@ -832,6 +832,154 @@ public class CrmQueries {
             return rslt;
         }
 
+        /**
+         * Builds a query to retrieve service agreements that will expire this month or the next.
+         * @param territoryid
+         * @return
+         */
+        public static String getExpiringServiceAgreementsByTerritory(String territoryid) {
+
+            // Instantiate a new constructor for the case entity and add the columns we want to see
+            QueryFactory query = new QueryFactory("msus_medistimserviceagreement");
+            query.addColumn("msus_name");
+            query.addColumn("msus_warrantytype");
+            query.addColumn("msus_startdate");
+            query.addColumn("msus_serialnumber");
+            query.addColumn("msus_product");
+            query.addColumn("msus_enddate");
+            query.addColumn("msus_customer");
+            query.addColumn("modifiedon");
+            query.addColumn("modifiedby");
+            query.addColumn("msus_declined");
+            query.addColumn("msus_termlengthyears");
+            query.addColumn("ownerid");
+            query.addColumn("msus_medistimserviceagreementid");
+
+            Filter mainFilter = new Filter(AND);
+            mainFilter.addCondition(new Filter.FilterCondition("statecode", "eq", "0"));
+
+            // Filter creation to make use of start and end date
+            Filter filter_start_end_dates = new Filter(OR);
+            filter_start_end_dates.addCondition(new Filter.FilterCondition("msus_enddate", Filter.Operator.THIS_MONTH));
+            filter_start_end_dates.addCondition(new Filter.FilterCondition("msus_enddate", Filter.Operator.NEXT_MONTH));
+            mainFilter.addFilter(filter_start_end_dates);
+
+            query.setFilter(mainFilter);
+
+            // Link entity creation to join to the account entity and apply our territory condition
+            LinkEntity linkEntityForGettingTerritoryFromAccount = new LinkEntity("account"
+                    , "accountid", "msus_customer", "a_963da520835eec11811d005056a36b9b");
+            Filter territoryFilter = new Filter(AND);
+            territoryFilter.addCondition(new Filter.FilterCondition("territoryid", "eq", territoryid));
+            linkEntityForGettingTerritoryFromAccount.addFilter(territoryFilter);
+            linkEntityForGettingTerritoryFromAccount.addColumn(new EntityColumn("territoryid"));
+            query.addLinkEntity(linkEntityForGettingTerritoryFromAccount);
+
+            SortClause sortClause1 = new SortClause("msus_enddate", true, SortClause.ClausePosition.ONE);
+            query.addSortClause(sortClause1);
+            SortClause sortClause2 = new SortClause("msus_customer", false, SortClause.ClausePosition.TWO);
+            query.addSortClause(sortClause2);
+
+            // Spit out the encoded query
+            String rslt = query.construct();
+            return rslt;
+        }
+
+        public static String getExpiredServiceAgreementsByTerritory(String territoryid) {
+
+            // Instantiate a new constructor for the case entity and add the columns we want to see
+            QueryFactory query = new QueryFactory("msus_medistimserviceagreement");
+            query.addColumn("msus_name");
+            query.addColumn("msus_warrantytype");
+            query.addColumn("msus_startdate");
+            query.addColumn("msus_serialnumber");
+            query.addColumn("msus_product");
+            query.addColumn("msus_enddate");
+            query.addColumn("msus_customer");
+            query.addColumn("modifiedon");
+            query.addColumn("modifiedby");
+            query.addColumn("msus_declined");
+            query.addColumn("msus_termlengthyears");
+            query.addColumn("ownerid");
+            query.addColumn("msus_medistimserviceagreementid");
+
+            Filter mainFilter = new Filter(AND);
+            mainFilter.addCondition(new Filter.FilterCondition("statecode", "eq", "0"));
+
+            // Filter creation to make use of start and end date
+            Filter filter_start_end_dates = new Filter(OR);
+            filter_start_end_dates.addCondition(new Filter.FilterCondition("msus_enddate", Filter.Operator.OLDER_THAN_X_DAYS, "1"));
+            mainFilter.addFilter(filter_start_end_dates);
+
+            query.setFilter(mainFilter);
+
+            // Link entity creation to join to the account entity and apply our territory condition
+            LinkEntity linkEntityForGettingTerritoryFromAccount = new LinkEntity("account"
+                    , "accountid", "msus_customer", "a_963da520835eec11811d005056a36b9b");
+            Filter territoryFilter = new Filter(AND);
+            territoryFilter.addCondition(new Filter.FilterCondition("territoryid", "eq", territoryid));
+            linkEntityForGettingTerritoryFromAccount.addFilter(territoryFilter);
+            linkEntityForGettingTerritoryFromAccount.addColumn(new EntityColumn("territoryid"));
+            query.addLinkEntity(linkEntityForGettingTerritoryFromAccount);
+
+            SortClause sortClause1 = new SortClause("msus_enddate", true, SortClause.ClausePosition.ONE);
+            query.addSortClause(sortClause1);
+            SortClause sortClause2 = new SortClause("msus_customer", false, SortClause.ClausePosition.TWO);
+            query.addSortClause(sortClause2);
+
+            // Spit out the encoded query
+            String rslt = query.construct();
+            return rslt;
+        }
+
+        public static String getActiveServiceAgreementsByTerritory(String territoryid) {
+
+            // Instantiate a new constructor for the case entity and add the columns we want to see
+            QueryFactory query = new QueryFactory("msus_medistimserviceagreement");
+            query.addColumn("msus_name");
+            query.addColumn("msus_warrantytype");
+            query.addColumn("msus_startdate");
+            query.addColumn("msus_serialnumber");
+            query.addColumn("msus_product");
+            query.addColumn("msus_enddate");
+            query.addColumn("msus_customer");
+            query.addColumn("msus_declined");
+            query.addColumn("modifiedon");
+            query.addColumn("modifiedby");
+            query.addColumn("msus_termlengthyears");
+            query.addColumn("ownerid");
+            query.addColumn("msus_medistimserviceagreementid");
+
+            Filter mainFilter = new Filter(AND);
+            mainFilter.addCondition(new Filter.FilterCondition("statecode", "eq", "0"));
+
+            // Filter creation to make use of start and end date
+            Filter filter_start_end_dates = new Filter(OR);
+            filter_start_end_dates.addCondition(new Filter.FilterCondition("msus_enddate", Filter.Operator.TODAY));
+            filter_start_end_dates.addCondition(new Filter.FilterCondition("msus_enddate", Filter.Operator.NEXT_X_YEARS, "30"));
+            mainFilter.addFilter(filter_start_end_dates);
+
+            query.setFilter(mainFilter);
+
+            // Link entity creation to join to the account entity and apply our territory condition
+            LinkEntity linkEntityForGettingTerritoryFromAccount = new LinkEntity("account"
+                    , "accountid", "msus_customer", "a_963da520835eec11811d005056a36b9b");
+            Filter territoryFilter = new Filter(AND);
+            territoryFilter.addCondition(new Filter.FilterCondition("territoryid", "eq", territoryid));
+            linkEntityForGettingTerritoryFromAccount.addFilter(territoryFilter);
+            linkEntityForGettingTerritoryFromAccount.addColumn(new EntityColumn("territoryid"));
+            query.addLinkEntity(linkEntityForGettingTerritoryFromAccount);
+
+            SortClause sortClause1 = new SortClause("msus_enddate", true, SortClause.ClausePosition.ONE);
+            query.addSortClause(sortClause1);
+            SortClause sortClause2 = new SortClause("msus_customer", false, SortClause.ClausePosition.TWO);
+            query.addSortClause(sortClause2);
+
+            // Spit out the encoded query
+            String rslt = query.construct();
+            return rslt;
+        }
+
         public static String getAccountsByTerritory(String territoryid, int relationshipType) {
 
             // Instantiate a new constructor for the case entity and add the columns we want to see
@@ -1317,6 +1465,86 @@ public class CrmQueries {
             String query = factory.construct();
 
             return query;
+        }
+    }
+
+    public static class Activities {
+        public static String getCaseActivities(String caseid) {
+
+            // Instantiate QueryFactory and set base entity columns
+            QueryFactory query = new QueryFactory("activitypointer");
+            query.addColumn("subject");
+            query.addColumn("ownerid");
+            query.addColumn("activitytypecode");
+            query.addColumn("statecode");
+            query.addColumn("scheduledend");
+            query.addColumn("instancetypecode");
+            query.addColumn("community");
+            query.addColumn("description");
+            query.addColumn("createdon");
+            query.addColumn("activityid");
+            query.addColumn("regardingobjectid");
+
+            // Link entity for owner
+            LinkEntity le1 = new LinkEntity("systemuser", "systemuserid", "owninguser", "activitypointerowningusersystemusersystemuserid");
+            le1.addColumn(new EntityColumn("internalemailaddress"));
+            query.addLinkEntity(le1);
+
+            // Link entity for email
+            LinkEntity le2 = new LinkEntity("email", "activityid", "activityid", "email_engagement");
+            le2.addColumn(new EntityColumn("isemailfollowed"));
+            le2.addColumn(new EntityColumn("lastopenedtime"));
+            le2.addColumn(new EntityColumn("delayedemailsendtime"));
+            query.addLinkEntity(le2);
+
+            // Create a filter
+            Filter filter = new Filter(AND);
+            Filter.FilterCondition condition1 = new Filter.FilterCondition("isregularactivity", Filter.Operator.EQUALS, "1");
+            Filter.FilterCondition condition2 = new Filter.FilterCondition("regardingobjectid", Filter.Operator.EQUALS, caseid);
+            filter.addCondition(condition1);
+            filter.addCondition(condition2);
+            query.setFilter(filter);
+
+            // Sort by
+            SortClause sortClause = new SortClause("createdon",true, SortClause.ClausePosition.ONE);
+            query.addSortClause(sortClause);
+
+            // Spit out the encoded query
+            return query.construct();
+        }
+    }
+
+    public static class Emails {
+        public static String getEmailsRegarding(String regardingid) {
+            // Instantiate QueryFactory and set base entity columns
+            QueryFactory query = new QueryFactory("email");
+            query.addColumn("subject");
+            query.addColumn("regardingobjectid");
+            query.addColumn("from");
+            query.addColumn("to");
+            query.addColumn("cc");
+            query.addColumn("prioritycode");
+            query.addColumn("statuscode");
+            query.addColumn("activityid");
+            query.addColumn("emailsender");
+            query.addColumn("description");
+            query.addColumn("createdon");
+            query.addColumn("createdby");
+            query.addColumn("activitytypecode");
+            query.addColumn("subject");
+
+            // Create a filter
+            Filter filter = new Filter(AND);
+            Filter.FilterCondition condition1 = new Filter.FilterCondition("regardingobjectid", Filter.Operator.EQUALS, regardingid);
+            filter.addCondition(condition1);
+            query.setFilter(filter);
+
+            // Sort by
+            SortClause sortClause = new SortClause("createdon",true, SortClause.ClausePosition.ONE);
+            query.addSortClause(sortClause);
+
+            // Spit out the encoded query
+            return query.construct();
         }
     }
 

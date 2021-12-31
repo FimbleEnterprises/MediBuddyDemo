@@ -473,10 +473,10 @@
                             android:layout_width="match_parent"
                             android:layout_height="55dp"
                             android:layout_margin="15dp"
-                            android:background="@drawable/btn_glass_gray_orange_border"
+                            android:background="@drawable/btn_glass_orange_gradient"
                             android:fontFamily="casual"
                             android:text="GO"
-                            android:textColor="@color/colorPrimary"
+                            android:textColor="@color/design_default_color_background"
                             android:textSize="17sp" />
 
                     </FrameLayout>
