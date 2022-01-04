@@ -27,10 +27,16 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
+            android:name=".activities.ViewEmailActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:exported="false"
+            android:label="@string/title_activity_view_email"
+            android:theme="@style/AppTheme.Fullscreen" />
+        <activity
             android:name=".activities.EmailsFullscreenActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_emails_fullscreen"
-            android:theme="@style/FullscreenTheme"></activity>
+            android:theme="@style/FullscreenTheme" />
         <activity
             android:name=".StreetViewActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"

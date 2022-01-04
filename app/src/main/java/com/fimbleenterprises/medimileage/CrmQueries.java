@@ -1521,6 +1521,8 @@ public class CrmQueries {
             query.addColumn("subject");
             query.addColumn("regardingobjectid");
             query.addColumn("from");
+            query.addColumn("sender");
+            query.addColumn("torecipients");
             query.addColumn("to");
             query.addColumn("cc");
             query.addColumn("prioritycode");

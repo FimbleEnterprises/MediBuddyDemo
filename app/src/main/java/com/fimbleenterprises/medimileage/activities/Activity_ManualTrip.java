@@ -161,7 +161,13 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
         activity = this;
         options = new MyPreferencesHelper(context);
 
-        setContentView(R.layout.activity_manual_trip);
+        try {
+            setContentView(R.layout.activity_manual_trip);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Please try again!", Toast.LENGTH_SHORT).show();
+            finish();
+        }
         // getActionBar().setDisplayHomeAsUpEnabled(true);
         prog = findViewById(R.id.progress_map_loading);
         prog.setVisibility(View.VISIBLE);

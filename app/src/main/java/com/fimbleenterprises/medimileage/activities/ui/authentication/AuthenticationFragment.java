@@ -154,7 +154,7 @@ public class AuthenticationFragment extends Fragment {
             /*txtUsername.setText("matt.weber@medistimusa.com");
             txtPassword.setText("R3dst4ff^^");*/
             txtUsername.setText("matt.weber@medistimusa.com");
-            txtPassword.setText("R3dst4ff**");
+            txtPassword.setText("R3dst4ff****");
         } else {
             txtUsername.setText(options.getCachedUsername());
             txtPassword.setText(options.getCachedPassword());

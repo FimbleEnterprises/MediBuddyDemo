@@ -1074,15 +1074,11 @@ public class BasicEntityActivity extends AppCompatActivity {
             public void onItemClick(View view, int position) {
                 EmailsOrAnnotations.EmailOrAnnotation item = emailsOrAnnotations.list.get(position);
                 if (item.isAnnotation()) {
-                    // If the note belongs to the user or if it has an attachment, show the note
-                    // options dialog
-                    if (item.annotation.belongsTo(MediUser.getMe().systemuserid) || (item.annotation.isDocument) ) {
-                        showNoteOptions(item.annotation);
-                    } else {
-                        Toast.makeText(context, "Not your note to edit.", Toast.LENGTH_SHORT).show();
-                    }
+                    showNoteOptions(item.annotation);
                 } else if (item.isEmail()) {
-                    Toast.makeText(BasicEntityActivity.this, "I'm an email!", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(context, ViewEmailActivity.class);
+                    intent.putExtra(ViewEmailActivity.EMAIL, emailsAndAnnoationsAdapter.mData.get(position).email);
+                    startActivity(intent);
                 }
             }
         });
@@ -1091,7 +1087,7 @@ public class BasicEntityActivity extends AppCompatActivity {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
                 try {
-                    TextView txtView = (TextView) view.findViewById(R.id.txt_NoteBody);
+                    TextView txtView = view.findViewById(R.id.txt_NoteBody);
                     txtView.setTextIsSelectable(!txtView.isTextSelectable());
                     if (txtView.isTextSelectable()) {
                         Toast.makeText(context, "Long press again to enable text copying.", Toast.LENGTH_SHORT).show();

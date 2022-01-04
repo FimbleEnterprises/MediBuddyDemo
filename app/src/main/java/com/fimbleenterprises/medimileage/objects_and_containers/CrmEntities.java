@@ -5146,6 +5146,8 @@ public class CrmEntities {
             public String description;
             public String subject;
             public String statusCodeFormatted;
+            public String toRecipients;
+            public String fromSender;
             public int statusCode;
             public String senderid;
             public String senderFormatted;
@@ -5170,6 +5172,20 @@ public class CrmEntities {
                 try {
                     if (!json.isNull("activityid")) {
                         this.entityid = (json.getString("activityid"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("torecipients")) {
+                        this.toRecipients = (json.getString("torecipients"));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (!json.isNull("sender")) {
+                        this.fromSender = (json.getString("sender"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -5303,6 +5319,8 @@ public class CrmEntities {
                 dest.writeString(this.priorityCodeFormatted);
                 dest.writeSerializable(this.createdOn);
                 dest.writeString(this.createdOnFormatted);
+                dest.writeString(this.toRecipients);
+                dest.writeString(this.fromSender);
             }
 
             protected Email(Parcel in) {
@@ -5321,6 +5339,8 @@ public class CrmEntities {
                 this.priorityCodeFormatted = in.readString();
                 this.createdOn = (DateTime) in.readSerializable();
                 this.createdOnFormatted = in.readString();
+                this.toRecipients = in.readString();
+                this.fromSender = in.readString();
             }
 
             public static final Parcelable.Creator<Email> CREATOR = new Parcelable.Creator<Email>() {

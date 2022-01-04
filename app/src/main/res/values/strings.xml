@@ -425,6 +425,7 @@
     <string name="action_expired_service_agreements">Expired service agreements</string>
     <string name="title_activity_emails_fullscreen">FullscreenActivity</string>
     <string name="notes_activities_emails_label">Activity:</string>
+    <string name="title_activity_view_email">ViewEmailActivity</string>
 
 
 </resources>
