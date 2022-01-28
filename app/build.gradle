@@ -12,7 +12,7 @@ android {
         applicationId "com.fimbleenterprises.medimileage"
         minSdkVersion 26
         targetSdkVersion 29
-        versionCode 51
+        versionCode 51 // 51
         versionName "2.02"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner" 
