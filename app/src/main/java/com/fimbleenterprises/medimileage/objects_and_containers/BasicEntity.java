@@ -15,6 +15,8 @@ public class BasicEntity {
     public EntityStatusReason entityStatusReason;
     public ArrayList<EntityStatusReason> availableEntityStatusReasons = new ArrayList<>();
     public ArrayList<EntityBasicField> fields = new ArrayList<>();
+    public boolean isEditable = true;
+    public String cannotEditReason = null;
 
     public BasicEntity() { }
 
@@ -26,6 +28,17 @@ public class BasicEntity {
         Gson gson = new Gson();
         BasicEntity fromGson = gson.fromJson(gsonString, this.getClass());
         this.fields = fromGson.fields;
+
+        // When the basic entity is generated from GSON if the customer field is effectively null
+        // (no entityid) it actually still makes it an object.  We need this to be null for the
+        // purposes of creating new entities in the BasicEntityActivity.
+        for (int i = 0; i < this.fields.size(); i++) {
+            EntityBasicField field = this.fields.get(i);
+            if (field.isAccountField && field.account != null && field.account.entityid == null) {
+                field.account = null;
+            }
+        }
+
         this.availableEntityStatusReasons = fromGson.availableEntityStatusReasons;
         this.entityStatusReason = fromGson.entityStatusReason;
         this.baseEntity = fromGson.baseEntity;
@@ -41,6 +54,17 @@ public class BasicEntity {
                 field.account = account;
                 field.value = account.accountName;
             }
+
+        }
+    }
+
+    public void setContact(CrmEntities.Contacts.Contact contact) {
+        for (EntityBasicField field : this.fields) {
+            if (field.isContactField) {
+                field.contact = contact;
+                field.value = contact.getFullname();
+            }
+
         }
     }
 

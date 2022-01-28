@@ -152,6 +152,11 @@
             android:label="@string/title_activity_fullscreen_choose_account"
             android:theme="@style/FullscreenAltTheme" />
         <activity
+            android:name=".dialogs.fullscreen_pickers.FullscreenActivityChooseContact"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_fullscreen_choose_contact"
+            android:theme="@style/FullscreenAltTheme" />
+        <activity
             android:name=".dialogs.fullscreen_pickers.FullscreenActivityChooseOpportunity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen_choose_opportunity"
@@ -191,7 +196,18 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_widgets"
             android:screenOrientation="portrait"
-            android:theme="@style/AppThemeBasicCustomToolbar"
+            android:theme="@style/AppThemeBasicAccountDataCustomToolbar"
+            tools:ignore="LockedOrientationActivity">
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
+        </activity>
+        <activity
+            android:name=".activities.Activity_CompanyWideData"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_cpywide"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppThemeBasicCpyWideCustomToolbar"
             tools:ignore="LockedOrientationActivity">
             <meta-data
                 android:name="android.app.searchable"
@@ -209,14 +225,14 @@
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/title_activity__sales_performance"
             android:screenOrientation="portrait"
-            android:theme="@style/AppThemeBasicCustomToolbar"
+            android:theme="@style/AppThemeBasicTerritoryDataCustomToolbar"
             tools:ignore="LockedOrientationActivity" />
         <activity
             android:name=".activities.Activity_SalesQuotas"
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/title_activity__sales_performance"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme"
+            android:theme="@style/AppThemeBasicCustomToolbar"
             tools:ignore="LockedOrientationActivity" />
 
         <uses-library

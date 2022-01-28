@@ -9,26 +9,31 @@
     android:clickable="false"
     android:focusable="false">
 
-    <TextView
-        android:id="@+id/txtLabel"
+    <com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyHyperlinkTextview
+        android:id="@+id/txtLabelLinkButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="false"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentRight="false"
+        android:clickable="false"
         android:text="Label:"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:visibility="visible" />
 
     <EditText
         android:id="@+id/txtValue"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/txtLabel"
+        android:layout_below="@id/txtLabelLinkButton"
         android:editable="true"
         android:enabled="false"
-        android:fadeScrollbars="true"
-        android:inputType="text|textImeMultiLine"
-        android:lines="6"
+        android:gravity="top|left"
+        android:inputType="textMultiLine|textCapSentences"
+        android:lines="35"
+        android:maxLines="50"
+        android:minLines="1"
+        android:scrollHorizontally="false"
         android:visibility="visible" />
 
     <Button
@@ -36,7 +41,7 @@
         style="?android:attr/borderlessButtonStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/txtLabel"
+        android:layout_below="@id/txtLabelLinkButton"
         android:enabled="true"
         android:fadeScrollbars="true"
         android:text="Some value"
@@ -50,7 +55,7 @@
         style="?android:attr/borderlessButtonStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/txtLabel"
+        android:layout_below="@id/txtLabelLinkButton"
         android:enabled="false"
         android:fadeScrollbars="true"
         android:focusable="auto"
@@ -59,5 +64,14 @@
         android:textColor="@color/colorPrimaryAlt"
         android:textSize="18sp"
         android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/imgAsterisk"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_marginLeft="10dp"
+        android:layout_toRightOf="@id/txtLabelLinkButton"
+        android:visibility="gone"
+        app:srcCompat="@drawable/bulletglassred64" />
 
 </RelativeLayout>

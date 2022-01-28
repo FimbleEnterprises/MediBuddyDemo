@@ -1,11 +1,12 @@
 package com.fimbleenterprises.medimileage.adapters;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Typeface;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -13,6 +14,7 @@ import android.widget.TextView;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.R;
+import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyHyperlinkTextview;
 
 import static com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.OrderProducts.OrderProduct;
 
@@ -27,12 +29,14 @@ public class OrderLineRecyclerAdapter extends RecyclerView.Adapter<OrderLineRecy
     private static final String TAG="OrderLineAdapter";
     public ArrayList<OrderProduct> mData;
     private LayoutInflater mInflater;
-    private ItemClickListener mClickListener;
+    private RowClickListener mRowClickListener;
+    private OnLinkButtonClickListener mLinkButtonClickListener;
+    private RowLongClickListener mRowLongClickListener;
     MyPreferencesHelper options;
     Context context;
     Typeface originalTypeface;
     TextView textView;
-
+    boolean linkButtonsEnabled = true;
 
 
     // data is passed into the constructor
@@ -46,7 +50,7 @@ public class OrderLineRecyclerAdapter extends RecyclerView.Adapter<OrderLineRecy
     // inflates the row layout from xml when needed
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = mInflater.inflate(R.layout.row_orderproduct, parent, false);
+        View view = mInflater.inflate(R.layout.row_orderproduct_with_account_button, parent, false);
         textView = view.findViewById(R.id.txt_customerName);
         originalTypeface = textView.getTypeface();
         return new ViewHolder(view);
@@ -64,8 +68,9 @@ public class OrderLineRecyclerAdapter extends RecyclerView.Adapter<OrderLineRecy
 
     // binds the data to the TextView in each row
     @Override
-    public void onBindViewHolder(final ViewHolder holder, final int position) {
+    public void onBindViewHolder( final ViewHolder holder, int position) {
         final OrderProduct orderProduct = mData.get(position);
+        final int pos = position;
 
         if (orderProduct.isSeparator) {
             // Display
@@ -77,6 +82,9 @@ public class OrderLineRecyclerAdapter extends RecyclerView.Adapter<OrderLineRecy
             holder.txtOrderNumber.setVisibility(View.GONE);
             holder.itemView.setLongClickable(false);
             holder.layout.setBackground(null);
+            // These will style the subtotals
+            holder.txtPartNumber.setVisibility(View.VISIBLE);
+            holder.txtPartNumber.setTextColor(Color.BLUE);
         } else {
             // Display
             holder.itemView.setLongClickable(true);
@@ -86,6 +94,7 @@ public class OrderLineRecyclerAdapter extends RecyclerView.Adapter<OrderLineRecy
             holder.txtDate.setVisibility(View.VISIBLE);
             holder.txtOrderNumber.setVisibility(View.VISIBLE);
             holder.imgProductIcon.setVisibility(View.VISIBLE);
+            holder.txtPartNumber.setTextColor(holder.txtCustName.getCurrentTextColor());
 
             ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) holder.layout.getLayoutParams();
             layoutParams.bottomMargin = 6;
@@ -113,13 +122,16 @@ public class OrderLineRecyclerAdapter extends RecyclerView.Adapter<OrderLineRecy
         return mData.size();
     }
 
+    public void disableLinkButtons() {
+    }
+
     // stores and recycles views as they are scrolled off screen
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
+    public class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imgProductIcon;
         TextView txtPartNumber;
         TextView txtQty;
         TextView txtDate;
-        TextView txtCustName;
+        MyHyperlinkTextview txtCustName;
         TextView txtAmount;
         TextView txtOrderNumber;
         RelativeLayout layout;
@@ -136,28 +148,33 @@ public class OrderLineRecyclerAdapter extends RecyclerView.Adapter<OrderLineRecy
             txtAmount = itemView.findViewById(R.id.txt_extendedAmt);
             txtOrderNumber = itemView.findViewById(R.id.txt_salesOrder);
 
-            itemView.setOnClickListener(this);
-            itemView.setOnLongClickListener(this);
-        }
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (mRowClickListener != null) {
+                        mRowClickListener.onItemClick(v, getAdapterPosition());
+                    }
+                }
+            });
 
-        @Override
-        public void onClick(View view) {
+            itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    if (mRowLongClickListener != null) {
+                        mRowLongClickListener.onItemLongClick(itemView,  getAdapterPosition());
+                    }
+                    return true;
+                };
+            });
 
-            if (mData.get(getAdapterPosition()).isSeparator) {
-                return;
-            }
-
-            if (mClickListener != null) mClickListener.onItemClick(view, getAdapterPosition());
-
-        }
-
-        @Override
-        public boolean onLongClick(View view) {
-            OrderProduct orderProduct = mData.get(getAdapterPosition());
-            if (! orderProduct.isSeparator) {
-                Log.i(TAG, "onLongClick " + orderProduct.toString());
-            }
-            return true;
+            txtCustName.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (mLinkButtonClickListener != null) {
+                        mLinkButtonClickListener.onLinkButtonClick(v, getAdapterPosition());
+                    }
+                }
+            });
         }
     }
 
@@ -167,13 +184,29 @@ public class OrderLineRecyclerAdapter extends RecyclerView.Adapter<OrderLineRecy
     }
 
     // allows clicks events to be caught
-    public void setClickListener(ItemClickListener itemClickListener) {
-        this.mClickListener = itemClickListener;
+    public void setOnRowClickListener(RowClickListener rowClickListener) {
+        this.mRowClickListener = rowClickListener;
+    }
+
+    public void setOnRowLongClickListener(RowLongClickListener longClickListener) {
+        mRowLongClickListener = longClickListener;
+    }
+
+    public void setOnLinkButtonClickListener(OnLinkButtonClickListener mLinkButtonClickListener) {
+        this.mLinkButtonClickListener = mLinkButtonClickListener;
     }
 
     // parent activity will implement this method to respond to click events
-    public interface ItemClickListener {
+    public interface RowClickListener {
         void onItemClick(View view, int position);
+    }
+
+    public interface RowLongClickListener {
+        void onItemLongClick(View view, int position);
+    }
+
+    public interface OnLinkButtonClickListener {
+        void onLinkButtonClick(View view, int position);
     }
 }
 

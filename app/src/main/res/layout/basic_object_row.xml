@@ -10,8 +10,8 @@
 
     <ImageView
         android:id="@+id/imageView_BasicObjectIcon"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_alignParentLeft="true"
         android:layout_centerVertical="true"
         android:layout_marginLeft="2dp"
@@ -38,7 +38,7 @@
 
     <TextView
         android:id="@+id/txtMiddle"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/txtTop"
         android:layout_marginTop="3dp"

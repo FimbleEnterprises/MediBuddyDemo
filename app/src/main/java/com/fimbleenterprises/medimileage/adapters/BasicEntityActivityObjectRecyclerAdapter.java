@@ -21,9 +21,12 @@ import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyHyperlinkTextview;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicEntity;
 import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.R;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 
@@ -34,6 +37,7 @@ import androidx.recyclerview.widget.RecyclerView;
 public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapter<BasicEntityActivityObjectRecyclerAdapter.ViewHolder> {
     private static final String TAG="BasicObjectRecyclerAdapter";
     public boolean isEditMode = false;
+    public boolean isCreateMode = false;
     public ArrayList<BasicEntity.EntityBasicField> mData;
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
@@ -78,18 +82,18 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         final BasicEntity.EntityBasicField field = mData.get(position);
 
-        holder.txtLabel.setText(field.label);
+        holder.txtLabelLinkButton.setText(field.label);
         holder.txtMainText.setText(field.value);
         holder.btnMainText.setText(field.value);
 
-        // Allow multiline text to have line breaks
+        /*// Allow multiline text to have line breaks
         if (field != null && field.value != null && field.value.contains("\n")) {
-            holder.txtMainText.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-        }
+            holder.txtMainText.setInputType(InputType.);
+        }*/
 
         // Hide the middle text field if it is null
         holder.txtMainText.setVisibility(field.value == null ? View.GONE : View.VISIBLE);
-        holder.txtLabel.setVisibility(field.showLabel ? View.VISIBLE : View.GONE);
+        holder.txtLabelLinkButton.setVisibility(field.showLabel ? View.VISIBLE : View.GONE);
 
         if (field.isBold) {
             holder.txtMainText.setTypeface(holder.txtMainText.getTypeface(), Typeface.BOLD);
@@ -142,17 +146,18 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
                 holder.txtMainText.setEnabled(true);
                 holder.spinnerMainText.setBackgroundColor(Color.parseColor(editColor));
                 holder.txtMainText.setBackgroundColor(Color.parseColor(editColor));
+                holder.btnMainText.setBackgroundColor(Color.parseColor(editColor));
 
                 if (field.isNumber) {
                     holder.txtMainText.setInputType(InputType.TYPE_CLASS_NUMBER);
                 }
 
+                holder.imgAsterisk.setVisibility(field.isRequired ? View.VISIBLE : View.GONE);
+
             }
         } else {
             holder.spinnerMainText.setEnabled(false);
         }
-
-
 
         // Manage datetime fields
         if (field.isDateField) {
@@ -178,9 +183,10 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
     // stores and recycles views as they are scrolled off screen
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener,
             View.OnLongClickListener, Spinner.OnItemSelectedListener {
-        TextView txtLabel;
+        MyHyperlinkTextview txtLabelLinkButton;
         EditText txtMainText;
         ImageView imgLabelIcon;
+        ImageView imgAsterisk;
         Button btnMainText;
         Spinner spinnerMainText;
         RelativeLayout layout;
@@ -190,6 +196,7 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
             layout = itemView.findViewById(R.id.layout);
             txtMainText = itemView.findViewById(R.id.txtValue);
             btnMainText = itemView.findViewById(R.id.btnValue);
+            imgAsterisk = itemView.findViewById(R.id.imgAsterisk);
             btnMainText.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -268,7 +275,13 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
                 }
             });
 
-            txtLabel = itemView.findViewById(R.id.txtLabel);
+            txtLabelLinkButton = itemView.findViewById(R.id.txtLabelLinkButton);
+            txtLabelLinkButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mClickListener.onItemClick(v, getAdapterPosition());
+                }
+            });
 
             itemView.setOnClickListener(this);
             itemView.setOnLongClickListener(this);

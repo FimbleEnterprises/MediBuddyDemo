@@ -213,6 +213,7 @@ public class QueryFactory {
         String alias;
         String fullString;
         Filter filter;
+        boolean isOuterLink = false;
         ArrayList<EntityColumn> columns = new ArrayList<>();
 
         @Override
@@ -221,9 +222,7 @@ public class QueryFactory {
                     + ", Columns(" + this.columns.size() + ")";
         }
 
-        public LinkEntity() {
-
-        }
+        public LinkEntity() { }
 
         /**
          * Creates a new LinkEntity
@@ -244,31 +243,12 @@ public class QueryFactory {
             this.alias = alias;
         }
 
-        public LinkEntity(String entityName, String from, String to, String alias, Filter filter) {
+        public LinkEntity(String entityName, String from, String to, String alias, boolean isOuterLink) {
             this.entityName = entityName;
             this.from = from;
             this.to = to;
             this.alias = alias;
-        }
-
-        public LinkEntity(String entityName, String from, String to, String alias, Filter filter, EntityColumn column) {
-            this.entityName = entityName;
-            this.from = from;
-            this.to = to;
-            this.alias = alias;
-            this.filter = filter;
-            this.addColumn(column);
-        }
-
-        public LinkEntity(String entityName, String from, String to, String alias, Filter filter, ArrayList<EntityColumn> columns) {
-            this.entityName = entityName;
-            this.from = from;
-            this.to = to;
-            this.alias = alias;
-            this.filter = filter;
-            for (EntityColumn column : columns) {
-                this.addColumn(column);
-            }
+            this.isOuterLink = isOuterLink;
         }
 
         public void addFilter(Filter filter) {
@@ -303,11 +283,18 @@ public class QueryFactory {
             if (fullString != null) {
                 encoded = "%3Clink-entity%20" + this.fullString + "%3E";
             } else {
-
-                encoded = "%3Clink-entity%20name%3D%22" + this.entityName + "%22%20 " +
-                        " from%3D%22" + this.from + "%22%20 " +
-                        " to%3D%22" + this.to + "%22%20 " +
-                        " alias%3D%22" + this.alias + "%22%3E";
+                if (isOuterLink) {
+                    encoded = "%3Clink-entity%20name%3D%22" + this.entityName + "%22%20 " +
+                            " from%3D%22" + this.from + "%22%20 " +
+                            " to%3D%22" + this.to + "%22%20 " +
+                            "link-type%3D%22outer%22 " +
+                            " alias%3D%22" + this.alias + "%22%3E";
+                } else {
+                    encoded = "%3Clink-entity%20name%3D%22" + this.entityName + "%22%20 " +
+                            " from%3D%22" + this.from + "%22%20 " +
+                            " to%3D%22" + this.to + "%22%20 " +
+                            " alias%3D%22" + this.alias + "%22%3E";
+                }
             }
 
             String columns = "";
@@ -490,6 +477,8 @@ public class QueryFactory {
             public String toString() {
                 return "Field: " + this.attribute + ", Operator: " + this.getStrOperator() + ", Value: " + value;
             }
+
+            public FilterCondition() { }
 
             public FilterCondition(String attribute, Operator operator, String value) {
                 this.attribute = attribute;

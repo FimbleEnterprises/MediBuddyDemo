@@ -12,6 +12,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.adapters.BasicObjectRecyclerAdapter;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 import com.fimbleenterprises.medimileage.Crm;
@@ -22,7 +23,7 @@ import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
 import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
-import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
+import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.scwang.smart.refresh.layout.SmartRefreshLayout;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
@@ -59,7 +60,7 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
     public static final int REQUESTCODE = 011;
     public static final String ACCOUNT_RESULT = "ACCOUNT_RESULT";
     public static final String CURRENT_ACCOUNT = "CURRENT_ACCOUNT";
-    public static final String CACHED_ACCOUNTS = "CACHED_ACCOUNTS";
+    // public static final String CACHED_ACCOUNTS = "CACHED_ACCOUNTS";
     Territory currentTerritory;
     Accounts.Account currentAccount;
     ArrayList<Accounts.Account> accounts;
@@ -67,11 +68,13 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
     SmartRefreshLayout refreshLayout;
     AutoCompleteTextView txtFilter;
     String filterString;
+    MyPreferencesHelper options;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.context = this;
+        options = new MyPreferencesHelper(context);
         setContentView(R.layout.activity_fullscreen_choose_account);
         listView = findViewById(R.id.rvBasicObjects);
         mainLayout = findViewById(R.id.main_layout);
@@ -116,9 +119,13 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
         if (intent != null) {
             currentTerritory = intent.getParcelableExtra(CURRENT_TERRITORY);
             currentAccount = intent.getParcelableExtra(CURRENT_ACCOUNT);
-            // See if a cached account list was passed
-            if (intent.getParcelableArrayListExtra(CACHED_ACCOUNTS) != null) {
-                accounts = intent.getParcelableArrayListExtra(CACHED_ACCOUNTS);
+        }
+
+        if (options.hasCachedAccounts()) {
+            try {
+                accounts = options.getCachedAccounts().list;
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
@@ -206,7 +213,8 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
 
         Crm crm = new Crm();
         ArrayList<Requests.Argument> args = new ArrayList<>();
-        Requests.Argument argument = new Requests.Argument("query", CrmQueries.Accounts.getAccountsByTerritory(currentTerritory.territoryid));
+        // Requests.Argument argument = new Requests.Argument("query", CrmQueries.Accounts.getAccountsByTerritory(currentTerritory.territoryid));
+        Requests.Argument argument = new Requests.Argument("query", CrmQueries.Accounts.getAccounts(null));
         args.add(argument);
         Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
 
@@ -214,12 +222,13 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 String result = new String(responseBody);
-                accounts = new Accounts(result).list;
+                Accounts objAccounts = new Accounts(result);
+                accounts = objAccounts.list;
+                options.cacheAccounts(objAccounts);
                 populateAccounts();
                 Log.i(TAG, "onSuccess Response is " + result.length() + " chars long");
                 progressDialog.dismiss();
                 Intent intent = new Intent(ACCOUNT_RESULT);
-                intent.putExtra(CACHED_ACCOUNTS, accounts);
                 setResult(ACCOUNT_CHOSEN_RESULT, intent);
                 refreshLayout.finishRefresh();
             }
@@ -284,13 +293,21 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
             @Override
             public void onItemClick(View view, int position) {
                 try {
-                    Accounts.Account account = (Accounts.Account) objects.get(position).object;
+                    // This started failing as the parcel was too big for an intent.  Need a new approach.
+                    /*Accounts.Account account = (Accounts.Account) objects.get(position).object;
                     Intent intent = new Intent(ACCOUNT_RESULT);
                     intent.putExtra(CACHED_ACCOUNTS, accounts);
                     intent.putExtra(ACCOUNT_RESULT, account);
                     setResult(ACCOUNT_CHOSEN_RESULT, intent);
+                    finishActivity(REQUESTCODE);
+                    Log.i(TAG, "onItemClick Position: " + position);*/
+
+                    Accounts.Account account = (Accounts.Account) objects.get(position).object;
+                    Intent intent = new Intent(ACCOUNT_RESULT);
+                    // intent.putExtra(CACHED_ACCOUNTS, accounts);
+                    intent.putExtra(ACCOUNT_RESULT, account);
+                    setResult(ACCOUNT_CHOSEN_RESULT, intent);
                     finish();
-                    Log.i(TAG, "onItemClick Position: " + position);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

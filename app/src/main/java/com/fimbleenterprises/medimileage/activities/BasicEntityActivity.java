@@ -9,10 +9,10 @@ import cz.msebera.android.httpclient.Header;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -39,6 +39,7 @@ import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.adapters.EmailsAndAnnotationsAdapter;
 import com.fimbleenterprises.medimileage.dialogs.MyDatePicker;
 import com.fimbleenterprises.medimileage.dialogs.MyYesNoDialog;
+import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityChooseContact;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicEntity;
 import com.fimbleenterprises.medimileage.adapters.BasicEntityActivityObjectRecyclerAdapter;
 import com.fimbleenterprises.medimileage.dialogs.ContactActions;
@@ -56,10 +57,12 @@ import com.fimbleenterprises.medimileage.activities.ui.CustomViews.NonScrollRecy
 import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
-import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
+import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
 import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityChooseAccount;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
 import com.jaiselrahman.filepicker.activity.FilePickerActivity;
 import com.jaiselrahman.filepicker.config.Configurations;
 import com.jaiselrahman.filepicker.model.MediaFile;
@@ -89,11 +92,14 @@ public class BasicEntityActivity extends AppCompatActivity {
     public static final int REQUEST_BASIC = 6288;
     public static final String LOAD_NOTES = "LOAD_NOTES";
     public static final String HIDE_MENU = "HIDE_MENU";
+    public static final String CREATE_NEW = "CREATE_NEW";
     private static final String TAG = "BasicEntityActivity";
     private static final int FILE_REQUEST_CODE = 88;
     public static final String CURRENT_TERRITORY = "CURRENT_TERRITORY";
     public static final String ENTITY_UPDATED = "ENTITY_UPDATED";
+    public static final String RESULT_ENTITY_DELETED = "RESULT_ENTITY_DELETED";
     public static final int RESULT_CODE_ENTITY_UPDATED = 111;
+    public static final int RESULT_CODE_ENTITY_DELETED = 222;
 
     Context context;
     Activity activity;
@@ -102,7 +108,8 @@ public class BasicEntityActivity extends AppCompatActivity {
     String activityTitle;
     final EmailsOrAnnotations emailsOrAnnotations = new EmailsOrAnnotations();
     BasicEntityActivityObjectRecyclerAdapter adapter;
-    FloatingActionButton fab;
+    FloatingActionButton fabComment;
+    FloatingActionButton fabEdit;
     NonScrollRecyclerView notesListView;
     CrmEntities.Annotations.Annotation newImageBaseAnnotation;
     Dialog dialogNoteOptions;
@@ -119,6 +126,7 @@ public class BasicEntityActivity extends AppCompatActivity {
     MyPreferencesHelper options;
     boolean hideMenu = false;
     boolean isEditMode = false;
+    boolean isCreateMode = false;
     ArrayList<CrmEntities.Accounts.Account> cachedAccounts;
     Spinner spinnerStatus;
     Territory currentTerritory;
@@ -133,6 +141,7 @@ public class BasicEntityActivity extends AppCompatActivity {
         activity = this;
         setContentView(R.layout.basic_entity_activity_with_emails);
         options = new MyPreferencesHelper(context);
+        updatePending = false;
 
         try {
             if (currentTerritory == null) {
@@ -166,11 +175,10 @@ public class BasicEntityActivity extends AppCompatActivity {
         });*/
 
         // Set up the floating action button and add a click listener for adding notes to the entity.
-        fab = findViewById(R.id.fab_addNote);
-        fab.setOnClickListener(new View.OnClickListener() {
+        fabComment = findViewById(R.id.fab_addNote);
+        fabComment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 CrmEntities.Annotations.Annotation newNote = new CrmEntities.Annotations.Annotation();
                 newNote.subject = "MileBuddy added note";
                 newNote.objectid = entityid;
@@ -178,6 +186,43 @@ public class BasicEntityActivity extends AppCompatActivity {
                 newNote.objectEntityName = entityLogicalName;
                 showAddEditNote(newNote);
                 mainScrollview.smoothScrollTo(0, findViewById(R.id.tableLayout_notes).getTop()); // Scroll to the beginning of the notes
+            }
+        });
+
+        // Set up the floating action button and add a click listener for adding notes to the entity.
+        fabEdit = findViewById(R.id.fab_edit);
+        fabEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                if (!basicEntity.isEditable) {
+                    Toast.makeText(context, basicEntity.cannotEditReason, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (isEditMode) {
+                    if (updatePending) {
+                        MyYesNoDialog.show(context, "You have pending changes.  Would you like to save them?", new MyYesNoDialog.YesNoListener() {
+                            @Override
+                            public void onYes() {
+                                updateEntity();
+                            }
+
+                            @Override
+                            public void onNo() {
+                                isEditMode = false;
+                                updatePending = false;
+                                populateForm();
+                            }
+                        });
+                    } else {
+                        isEditMode = false;
+                        populateForm(basicEntity.toGson(), false);
+                    }
+                } else {
+                    isEditMode = true;
+                    populateForm(basicEntity.toGson(), true);
+                }
             }
         });
 
@@ -189,6 +234,7 @@ public class BasicEntityActivity extends AppCompatActivity {
 
         // Get the gson string from the intent which should absolutely be there
         String gson = getIntent().getStringExtra(GSON_STRING);
+        this.basicEntity = new Gson().fromJson(gson, BasicEntity.class);
         entityid = getIntent().getStringExtra(ENTITYID);
         entityLogicalName = getIntent().getStringExtra(ENTITY_LOGICAL_NAME);
         setTitle(getIntent().getStringExtra(ACTIVITY_TITLE));
@@ -196,10 +242,17 @@ public class BasicEntityActivity extends AppCompatActivity {
         if (getIntent().getParcelableExtra(CURRENT_TERRITORY) != null) {
             currentTerritory = getIntent().getParcelableExtra(CURRENT_TERRITORY);
         }
+        if (getIntent().hasExtra(CREATE_NEW)) {
+            isEditMode = getIntent().getBooleanExtra(CREATE_NEW, false);
+            isCreateMode = getIntent().getBooleanExtra(CREATE_NEW, false);
+            if (entityLogicalName.equals("incident")) {
+
+            }
+        }
 
         // Hide the notes table and the floating add note button button by default
         tblNotes.setVisibility(View.GONE);
-        fab.setVisibility(View.GONE);
+        fabComment.setVisibility(View.GONE);
 
         if (gson != null) {
             // See if notes should be loaded (default is yes)
@@ -208,9 +261,17 @@ public class BasicEntityActivity extends AppCompatActivity {
                 getEmails();
                 tblNotes.setVisibility(View.VISIBLE);
                 // Show the floating action button since this entity has notes
-                fab.setVisibility(View.VISIBLE);
+                fabComment.setVisibility(View.VISIBLE);
             }
-            populateForm(gson, false);
+            if (getIntent().hasExtra(CREATE_NEW)) {
+                if (getIntent().getBooleanExtra(CREATE_NEW, false)) {
+                    populateForm(gson, true);
+                } else {
+                    populateForm(gson, false);
+                }
+            } else {
+                populateForm(gson, isEditMode);
+            }
         } else {
             Toast.makeText(context, "Failed to load!", Toast.LENGTH_SHORT).show();
             finish();
@@ -306,7 +367,7 @@ public class BasicEntityActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 
         switch (item.getItemId()) {
-            case R.id.action_send_email :
+            case R.id.action_send_email:
 
                 try {
                     String emailSuffix = "";
@@ -329,17 +390,35 @@ public class BasicEntityActivity extends AppCompatActivity {
                 }
 
                 break;
-            case R.id.action_edit :
+            case R.id.action_edit:
+                if (!basicEntity.isEditable) {
+                    Toast.makeText(context, basicEntity.cannotEditReason, Toast.LENGTH_SHORT).show();
+                    return true;
+                }
                 isEditMode = true;
                 populateForm(basicEntity.toGson(), true);
                 break;
-            case R.id.action_update :
-                if (updatePending) {
+            case R.id.action_update:
+                if (isCreateMode) {
+                    createEntity();
+                } else if (updatePending) {
                     updateEntity();
                 } else if (statusChangePending) {
                     updateEntityStatus();
                 }
                 break;
+            case R.id.action_delete:
+                MyYesNoDialog.show(context, new MyYesNoDialog.YesNoListener() {
+                    @Override
+                    public void onYes() {
+                        deleteEntity();
+                    }
+
+                    @Override
+                    public void onNo() {
+                        // nothing
+                    }
+                });
         }
 
         return super.onOptionsItemSelected(item);
@@ -450,15 +529,55 @@ public class BasicEntityActivity extends AppCompatActivity {
                 if (data.hasExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT)) {
                     Log.i(TAG, "onActivityResult Account chosen!");
                     CrmEntities.Accounts.Account account = data.getParcelableExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT);
-                    cachedAccounts = data.getParcelableArrayListExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS);
+                    if (options.hasCachedAccounts()) {
+                        cachedAccounts = options.getCachedAccounts().list;
+                    }
                     this.basicEntity.setAccount(account);
                     populateForm(this.basicEntity.toGson(), isEditMode);
+                    updatePending = true;
                     Log.i(TAG, "onActivityResult Chosen account: " + account.accountName);
-                } else if (data.hasExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS)) {
-                    cachedAccounts = data.getParcelableArrayListExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS);
+                }
+            }
+        } else if (requestCode == FullscreenActivityChooseContact.REQUESTCODE) {
+            if (data != null) {
+                if (data.hasExtra(FullscreenActivityChooseContact.CONTACT_RESULT)) {
+                    CrmEntities.Contacts.Contact contact = data.getParcelableExtra(FullscreenActivityChooseContact.CONTACT_RESULT);
+                    this.basicEntity.setContact(contact);
+                    populateForm(this.basicEntity.toGson(), isEditMode);
+                    updatePending = true;
                 }
             }
         }
+
+        if (options.hasCachedAccounts()) {
+            cachedAccounts = options.getCachedAccounts().list;
+        }
+    }
+
+    void deleteEntity() {
+        MyProgressDialog progressDialog = new MyProgressDialog(context, "Deleting...");
+        progressDialog.show();
+
+        Requests.Request request = new Requests.Request(Requests.Request.Function.DELETE);
+        request.arguments.add(new Requests.Argument("entity", this.entityLogicalName));
+        request.arguments.add(new Requests.Argument("entityid", this.entityid));
+        request.arguments.add(new Requests.Argument("asUser", MediUser.getMe(context).systemuserid));
+
+        new Crm().makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                Intent resultIntent = new Intent(ENTITY_UPDATED);
+                resultIntent.putExtra(GSON_STRING, basicEntity.toGson());
+                setResult(RESULT_CODE_ENTITY_DELETED, resultIntent);
+                finish();
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                Toast.makeText(context, error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
     }
 
     void populateForm() {
@@ -466,7 +585,10 @@ public class BasicEntityActivity extends AppCompatActivity {
     }
 
     void populateForm(final String gson, boolean makeEditable) {
-        this.basicEntity = new BasicEntity(gson);
+
+        if (this.basicEntity == null) {
+            return;
+        }
 
         // Check if a status was associated and show that status if so
         View statusTable = findViewById(R.id.tableLayout_status_table);
@@ -509,7 +631,9 @@ public class BasicEntityActivity extends AppCompatActivity {
                     @Override
                     public void onUpdated(ArrayList<BasicEntity.EntityBasicField> fields) {
                         basicEntity.fields = fields;
-                        updatePending = true;
+                        if (isEditMode) {
+                            updatePending = true;
+                        }
                         Log.i(TAG, "onUpdated ");
                     }
                 });
@@ -529,11 +653,35 @@ public class BasicEntityActivity extends AppCompatActivity {
                             f.isEditable = true;
                         }
                     }
+                } else {
+                    if (!field.isAccountField && !field.isContactField && !field.isDateField && !field.isOptionSet) {
+                        // Toast.makeText(context, adapter.mData.get(position).value, Toast.LENGTH_LONG).show();
+                        final Dialog dialog = new Dialog(context);
+                        dialog.setContentView(R.layout.dialog_show_single_field);
+                        dialog.setCancelable(true);
+                        TextView textView = dialog.findViewById(R.id.txtContent);
+                        textView.setText(field.value);
+                        dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+                            @Override
+                            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                                    dialog.dismiss();
+                                    return true;
+                                } else {
+                                    return false;
+                                }
+                            }
+                        });
+                        dialog.show();
+                    }
                 }
 
                 if (field.isAccountField) {
                     if (isEditMode) {
-                        Log.i(TAG, "onItemClick ACCOUNT FIELD WHILE EDITING!");
+                        Intent intent = new Intent(context, FullscreenActivityChooseAccount.class);
+                        intent.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, field.account);
+                        intent.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, currentTerritory);
+                        startActivityForResult(intent, FullscreenActivityChooseAccount.REQUESTCODE);
                     } else {
                         Intent intent = new Intent(context, Activity_AccountData.class);
                         intent.setAction(Activity_AccountData.GO_TO_ACCOUNT);
@@ -552,24 +700,21 @@ public class BasicEntityActivity extends AppCompatActivity {
             public void onItemButtonClick(View view, int position) {
                 final BasicEntity.EntityBasicField field = basicEntity.fields.get(position);
                 if (field.isAccountField) {
-                    if (basicEntity.fields.get(position).account != null) {
-                        if (isEditMode) {
-                            Log.i(TAG, "onItemClick ACCOUNT FIELD WHILE EDITING!");
-                            Intent intent = new Intent(context, FullscreenActivityChooseAccount.class);
-                            intent.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, field.account);
-                            intent.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
-                            intent.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, currentTerritory);
-                            startActivityForResult(intent, FullscreenActivityChooseAccount.REQUESTCODE);
-                        } else {
-                            Intent intent = new Intent(context, Activity_AccountData.class);
-                            intent.setAction(Activity_AccountData.GO_TO_ACCOUNT);
-                            intent.putExtra(Activity_AccountData.GO_TO_ACCOUNT_OBJECT, field.account);
-                            startActivity(intent);
-                        }
+                    if (isEditMode) {
+                        Log.i(TAG, "onItemClick ACCOUNT FIELD WHILE EDITING!");
+                        Intent intent = new Intent(context, FullscreenActivityChooseAccount.class);
+                        intent.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, field.account);
+                        intent.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, currentTerritory);
+                        startActivityForResult(intent, FullscreenActivityChooseAccount.REQUESTCODE);
+                    } else {
+                        Intent intent = new Intent(context, Activity_AccountData.class);
+                        intent.setAction(Activity_AccountData.GO_TO_ACCOUNT);
+                        intent.putExtra(Activity_AccountData.GO_TO_ACCOUNT_OBJECT, field.account);
+                        startActivity(intent);
                     }
                 } else if (field.isContactField) {
                     if (isEditMode) {
-
+                        FullscreenActivityChooseContact.showPicker(activity, currentTerritory, FullscreenActivityChooseContact.REQUESTCODE);
                     } else {
                         final MyProgressDialog progressDialog = new MyProgressDialog(context, "Getting contact info...");
                         progressDialog.show();
@@ -640,6 +785,7 @@ public class BasicEntityActivity extends AppCompatActivity {
         });
 
         adapter.isEditMode = isEditMode;
+        adapter.isCreateMode = isCreateMode;
         recyclerView.setAdapter(null);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setNestedScrollingEnabled(false); // Disables scrolling
@@ -695,6 +841,44 @@ public class BasicEntityActivity extends AppCompatActivity {
             public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
                 Toast.makeText(context, "Failed\n" + error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
                 progressDialog.dismiss();
+            }
+        });
+    }
+
+    void createEntity() {
+        EntityContainers.EntityContainer container = new EntityContainers.EntityContainer();
+        for (BasicEntity.EntityBasicField field : this.basicEntity.fields) {
+            if (field.isRequired) {
+                if (field.isAccountField) {
+                    container.entityFields.add(new EntityContainers.EntityField(field.crmFieldName, field.account.entityid));
+                } else if (field.isContactField) {
+                    container.entityFields.add(new EntityContainers.EntityField(field.crmFieldName, field.contact.entityid));
+                } else {
+                    container.entityFields.add(new EntityContainers.EntityField(field.crmFieldName, field.value));
+                }
+            }
+        }
+
+        final MyProgressDialog dg = new MyProgressDialog(this, "Creating...");
+        dg.show();
+
+        Requests.Request request = new Requests.Request(Requests.Request.Function.CREATE);
+        request.arguments.add(new Requests.Argument("entity", "incident"));
+        request.arguments.add(new Requests.Argument("asuser", MediUser.getMe().systemuserid));
+        request.arguments.add(new Requests.Argument("json", container.toJson()));
+
+        new Crm().makeCrmRequest(this, request, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                dg.dismiss();
+                setResult(RESULT_CODE_ENTITY_UPDATED);
+                finish();
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                dg.dismiss();
+                Toast.makeText(context, error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -767,7 +951,7 @@ public class BasicEntityActivity extends AppCompatActivity {
             if (entityTypeCode == Crm.ETC_INCIDENT) {
                 final MyProgressDialog dialog = new MyProgressDialog(context, "Retrieving ticket with id: " + guid + "...");
 
-                String query = CrmQueries.Tickets.getCase(guid);
+                String query = CrmQueries.Tickets.getIncident(guid);
                 ArrayList<Requests.Argument> args = new ArrayList<>();
                 args.add(new Requests.Argument("query", query));
                 Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);

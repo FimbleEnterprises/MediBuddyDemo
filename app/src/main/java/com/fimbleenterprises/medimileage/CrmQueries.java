@@ -1,10 +1,14 @@
 package com.fimbleenterprises.medimileage;
 
+import android.util.Log;
+
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
+
+import javax.annotation.Nullable;
 
 import static com.fimbleenterprises.medimileage.CrmQueries.Operators.getDateOperator;
 import static com.fimbleenterprises.medimileage.QueryFactory.*;
@@ -227,17 +231,66 @@ public class CrmQueries {
 
     public static class Tickets {
 
-        // status codes
+        /**
+         * Use to not apply a statuscode to the filter.
+         */
+        public static final int ANY = 69;
+        /**
+         * The value is the actual integer value for the statuscode in Dynamics for the incident entity.
+         */
         public static final int IN_PROGRESS = 1;
+        /**
+         * The value is the actual integer value for the statuscode in Dynamics for the incident entity.
+         */
         public static final int ON_HOLD = 2;
+        /**
+         * The value is the actual integer value for the statuscode in Dynamics for the incident entity.
+         */
         public static final int TO_BE_INSPECTED = 100000002;
+        /**
+         * The value is the actual integer value for the statuscode in Dynamics for the incident entity.
+         */
         public static final int WAITING_ON_REP = 3;
+        /**
+         * The value is the actual integer value for the statuscode in Dynamics for the incident entity.
+         */
         public static final int WAITING_FOR_PRODUCT = 4;
+        /**
+         * The value is the actual integer value for the statuscode in Dynamics for the incident entity.
+         */
         public static final int WAITING_ON_CUSTOMER = 100000001;
+        /**
+         * The value is the actual integer value for the statuscode in Dynamics for the incident entity.
+         */
         public static final int TO_BE_BILLED = 100000003;
+        /**
+         * The value is the actual integer value for the statuscode in Dynamics for the incident entity.
+         */
         public static final int PROBLEM_SOLVED = 5;
+        // state codes
+        public static final int OPEN = 0;
+        public static final int CLOSED = 1;
+        public static final int BOTH = -1;
 
-        public static String getCase(String caseid) {
+        // Code to disregard lastXmonths queries
+        public static final int IGNORE_DATE_RANGE = -1;
+
+        /*public enum CaseFilter {
+            ANY, NOT_RESOLVED, IN_PROGRESS, ON_HOLD, TO_BE_INSPECTED, WAITING_FOR_PRODUCT,
+            WAITING_ON_CUSTOMER, PROBLEM_SOLVED, TO_BE_BILLED, WAITING_ON_REP
+        }*/
+
+        // status codes
+        /*static final int IN_PROGRESS = 1;
+        static final int ON_HOLD = 2;
+        static final int TO_BE_INSPECTED = 100000002;
+        static final int WAITING_ON_REP = 3;
+        static final int WAITING_FOR_PRODUCT = 4;
+        static final int WAITING_ON_CUSTOMER = 100000001;
+        static final int TO_BE_BILLED = 100000003;
+        static final int PROBLEM_SOLVED = 5;*/
+
+        public static String getIncident(String caseid) {
 
             // Instantiate a new constructor for the case entity and add the columns we want to see
             QueryFactory query = new QueryFactory("incident");
@@ -290,7 +343,36 @@ public class CrmQueries {
             return rslt;
         }
 
-        public static String getTickets(String territoryid) {
+        /**
+         * Gets all tickets at the specified account from all time.
+         * @param customerid Customer to query
+         * @param statuscode Case status
+         * @return An encoded xml query.
+         */
+        public static String getAccountIncidents(String customerid, int statuscode) {
+            return getAccountIncidents(customerid, statuscode, -1, -1);
+        }
+
+        /**
+         * Gets all tickets at the specified account from all time.
+         * @param customerid Customer to query
+         * @param statuscode Case status
+         * @param statecode Case state
+         * @return An encoded xml query.
+         */
+        public static String getAccountIncidents(String customerid, int statuscode, int statecode) {
+            return getAccountIncidents(customerid, statuscode, statecode, -1);
+        }
+
+        /**
+         * Gets all tickets at the specified account from all time.
+         * @param customerid Customer to query
+         * @param statuscode Case status
+         * @param statecode Case state
+         * @param lastXmonths The amount of months to limit to
+         * @return An encoded xml query.
+         */
+        public static String getAccountIncidents(String customerid, int statuscode, int statecode, int lastXmonths) {
             QueryFactory query = new QueryFactory("incident");
             query.addColumn("ticketnumber");
             query.addColumn("title");
@@ -298,6 +380,7 @@ public class CrmQueries {
             query.addColumn("customerid");
             query.addColumn("ownerid");
             query.addColumn("caseorigincode");
+            query.addColumn("new_mw_contact");
             query.addColumn("statuscode");
             query.addColumn("new_accountnumber");
             query.addColumn("incidentid");
@@ -313,39 +396,57 @@ public class CrmQueries {
             query.addColumn("casetypecode");
             query.addColumn("incidentstagecode");
 
-            Filter.FilterCondition condition = new Filter.FilterCondition("territoryid",
-                    Filter.Operator.EQUALS, territoryid);
-
             LinkEntity linkEntity = new LinkEntity("account", "accountid",
                     "customerid", "a_4b5945b8a4a64613afc1ae1d5e6828c7");
             linkEntity.addColumn(new EntityColumn("territoryid"));
             linkEntity.addColumn(new EntityColumn("msus_salesrep"));
             Filter filter = new Filter(AND);
-            filter.addCondition(condition);
             linkEntity.addFilter(filter);
+            linkEntity.isOuterLink = true;
             query.addLinkEntity(linkEntity);
 
             // Link entity creation to join the contact info
             LinkEntity linkEntity_contact = new LinkEntity("contact", "contactid", "new_mw_contact", "a_b49161e62067e71180d6005056a36b9b");
             linkEntity_contact.addColumn(new EntityColumn("fullname"));
+            linkEntity_contact.addColumn(new EntityColumn("firstname"));
+            linkEntity_contact.addColumn(new EntityColumn("lastname"));
             linkEntity_contact.addColumn(new EntityColumn("emailaddress1"));
             linkEntity_contact.addColumn(new EntityColumn("telephone1"));
             linkEntity_contact.addColumn(new EntityColumn("contactid"));
+            linkEntity_contact.isOuterLink = true;
             query.addLinkEntity(linkEntity_contact);
 
-            SortClause sortClause = new SortClause("createdon", true, SortClause.ClausePosition.ONE);
+            SortClause sortClause = new SortClause("modifiedon", true, SortClause.ClausePosition.ONE);
             query.addSortClause(sortClause);
 
-            Filter.FilterCondition condition1 = new Filter.FilterCondition("createdon",
-                    getDateOperator(Operators.DateOperator.LAST_X_MONTHS), "3");
-            Filter filter1 = new Filter(AND,condition1);
+            Filter.FilterCondition condition1 = new Filter.FilterCondition("modifiedon",
+                    getDateOperator(Operators.DateOperator.LAST_X_MONTHS), Integer.toString(lastXmonths));
+            Filter.FilterCondition condition2 = new Filter.FilterCondition("statuscode",
+                    Filter.Operator.EQUALS, Integer.toString(statuscode));
+            Filter.FilterCondition condition3 = new Filter.FilterCondition("statecode",
+                    Filter.Operator.EQUALS, Integer.toString(statecode));
+            Filter.FilterCondition condition4 = new Filter.FilterCondition("customerid",
+                    Filter.Operator.EQUALS, customerid);
 
+
+            Filter filter1 = new Filter(AND);
+            if (lastXmonths != IGNORE_DATE_RANGE) {
+                filter1.addCondition(condition1);
+            }
+            if (statuscode != ANY) {
+                filter1.addCondition(condition2);
+            }
+            if (statecode != BOTH) {
+                filter1.addCondition(condition3);
+            }
+            filter1.addCondition(condition4);
             query.setFilter(filter1);
 
             return query.construct();
+
         }
 
-        public static String getAccountTickets(String accountid) {
+        public static String getAccountIncidents(String accountid) {
             QueryFactory query = new QueryFactory("incident");
             query.addColumn("ticketnumber");
             query.addColumn("title");
@@ -381,9 +482,10 @@ public class CrmQueries {
             linkEntity_contact.addColumn(new EntityColumn("emailaddress1"));
             linkEntity_contact.addColumn(new EntityColumn("telephone1"));
             linkEntity_contact.addColumn(new EntityColumn("contactid"));
+            linkEntity_contact.isOuterLink = true;
             query.addLinkEntity(linkEntity_contact);
 
-            SortClause sortClause = new SortClause("createdon", true, SortClause.ClausePosition.ONE);
+            SortClause sortClause = new SortClause("modifiedon", true, SortClause.ClausePosition.ONE);
             query.addSortClause(sortClause);
             Filter.FilterCondition condition2 = new Filter.FilterCondition("customerid",
                     Filter.Operator.EQUALS, accountid);
@@ -394,7 +496,7 @@ public class CrmQueries {
             return query.construct();
         }
 
-        public static String getNonResolvedTickets(String territoryid) {
+        public static String getNonResolvedIncidents(String territoryid, int lastXmonths) {
             QueryFactory query = new QueryFactory("incident");
             query.addColumn("ticketnumber");
             query.addColumn("title");
@@ -435,21 +537,25 @@ public class CrmQueries {
             linkEntity_contact.addColumn(new EntityColumn("emailaddress1"));
             linkEntity_contact.addColumn(new EntityColumn("telephone1"));
             linkEntity_contact.addColumn(new EntityColumn("contactid"));
+            linkEntity_contact.isOuterLink = true;
             query.addLinkEntity(linkEntity_contact);
 
-
             SortClause sortClause1 = new SortClause("statuscode", true, SortClause.ClausePosition.ONE);
-            SortClause sortClause2 = new SortClause("createdon", true, SortClause.ClausePosition.TWO);
+            SortClause sortClause2 = new SortClause("modifiedon", true, SortClause.ClausePosition.TWO);
             query.addSortClause(sortClause1);
             query.addSortClause(sortClause2);
 
-            Filter.FilterCondition condition1 = new Filter.FilterCondition("createdon",
-                    getDateOperator(Operators.DateOperator.LAST_X_MONTHS), "3");
+            Filter.FilterCondition condition1 = new Filter.FilterCondition("modifiedon",
+                    getDateOperator(Operators.DateOperator.LAST_X_MONTHS), Integer.toString(lastXmonths));
             Filter.FilterCondition condition2 = new Filter.FilterCondition("statuscode",
                     Filter.Operator.NOT_EQUALS, Integer.toString(PROBLEM_SOLVED));
+            Filter.FilterCondition condition3 = new Filter.FilterCondition("statecode",
+                    Filter.Operator.NOT_EQUALS, Integer.toString(0));
 
             Filter filter1 = new Filter(AND);
-            filter1.addCondition(condition1);
+            if (lastXmonths != IGNORE_DATE_RANGE) {
+                filter1.addCondition(condition1);
+            }
             filter1.addCondition(condition2);
             query.setFilter(filter1);
 
@@ -457,7 +563,70 @@ public class CrmQueries {
 
         }
 
-        public static String getTickets(String territoryid, int statuscode) {
+        public static String getNonResolvedIncidents(int lastXmonths) {
+            QueryFactory query = new QueryFactory("incident");
+            query.addColumn("ticketnumber");
+            query.addColumn("title");
+            query.addColumn("createdon");
+            query.addColumn("customerid");
+            query.addColumn("ownerid");
+            query.addColumn("caseorigincode");
+            query.addColumn("statuscode");
+            query.addColumn("new_accountnumber");
+            query.addColumn("incidentid");
+            query.addColumn("subjectid");
+            query.addColumn("statecode");
+            query.addColumn("stageid");
+            query.addColumn("processid");
+            query.addColumn("prioritycode");
+            query.addColumn("modifiedon");
+            query.addColumn("modifiedby");
+            query.addColumn("description");
+            query.addColumn("createdby");
+            query.addColumn("casetypecode");
+            query.addColumn("incidentstagecode");
+
+            LinkEntity linkEntity = new LinkEntity("account", "accountid",
+                    "customerid", "a_4b5945b8a4a64613afc1ae1d5e6828c7");
+            linkEntity.addColumn(new EntityColumn("territoryid"));
+            linkEntity.addColumn(new EntityColumn("msus_salesrep"));
+            Filter filter = new Filter(AND);
+            linkEntity.addFilter(filter);
+            query.addLinkEntity(linkEntity);
+
+            // Link entity creation to join the contact info
+            LinkEntity linkEntity_contact = new LinkEntity("contact", "contactid", "new_mw_contact", "a_b49161e62067e71180d6005056a36b9b");
+            linkEntity_contact.addColumn(new EntityColumn("fullname"));
+            linkEntity_contact.addColumn(new EntityColumn("emailaddress1"));
+            linkEntity_contact.addColumn(new EntityColumn("telephone1"));
+            linkEntity_contact.addColumn(new EntityColumn("contactid"));
+            linkEntity_contact.isOuterLink = true;
+            query.addLinkEntity(linkEntity_contact);
+
+            SortClause sortClause1 = new SortClause("statuscode", true, SortClause.ClausePosition.ONE);
+            SortClause sortClause2 = new SortClause("modifiedon", true, SortClause.ClausePosition.TWO);
+            query.addSortClause(sortClause1);
+            query.addSortClause(sortClause2);
+
+            Filter.FilterCondition condition1 = new Filter.FilterCondition("modifiedon",
+                    getDateOperator(Operators.DateOperator.LAST_X_MONTHS), Integer.toString(lastXmonths));
+            Filter.FilterCondition condition2 = new Filter.FilterCondition("statuscode",
+                    Filter.Operator.NOT_EQUALS, Integer.toString(PROBLEM_SOLVED));
+            Filter.FilterCondition condition3 = new Filter.FilterCondition("statecode",
+                    Filter.Operator.NOT_EQUALS, Integer.toString(0));
+
+            Filter filter1 = new Filter(AND);
+            if (lastXmonths != IGNORE_DATE_RANGE) {
+                filter1.addCondition(condition1);
+            }
+            filter1.addCondition(condition2);
+            query.setFilter(filter1);
+
+            return query.construct();
+
+        }
+
+        public static String getIncidents(String territoryid, int statuscode, int lastXmonths) {
             QueryFactory query = new QueryFactory("incident");
             query.addColumn("ticketnumber");
             query.addColumn("title");
@@ -501,19 +670,164 @@ public class CrmQueries {
             linkEntity_contact.addColumn(new EntityColumn("emailaddress1"));
             linkEntity_contact.addColumn(new EntityColumn("telephone1"));
             linkEntity_contact.addColumn(new EntityColumn("contactid"));
+            linkEntity_contact.isOuterLink = true;
             query.addLinkEntity(linkEntity_contact);
 
-            SortClause sortClause = new SortClause("createdon", true, SortClause.ClausePosition.ONE);
+            SortClause sortClause = new SortClause("modifiedon", true, SortClause.ClausePosition.ONE);
             query.addSortClause(sortClause);
 
-            Filter.FilterCondition condition1 = new Filter.FilterCondition("createdon",
-                    getDateOperator(Operators.DateOperator.LAST_X_MONTHS), "3");
+            Filter.FilterCondition condition1 = new Filter.FilterCondition("modifiedon",
+                    getDateOperator(Operators.DateOperator.LAST_X_MONTHS), Integer.toString(lastXmonths));
             Filter.FilterCondition condition2 = new Filter.FilterCondition("statuscode",
                     Filter.Operator.EQUALS, Integer.toString(statuscode));
 
             Filter filter1 = new Filter(AND);
-            filter1.addCondition(condition1);
-            filter1.addCondition(condition2);
+            if (lastXmonths != IGNORE_DATE_RANGE) {
+                filter1.addCondition(condition1);
+            }
+            if (statuscode != ANY) {
+                filter1.addCondition(condition2);
+            }
+            query.setFilter(filter1);
+
+            return query.construct();
+
+        }
+
+        public static String getIncidents(int statuscode, int statecode, int lastXmonths) {
+            QueryFactory query = new QueryFactory("incident");
+            query.addColumn("ticketnumber");
+            query.addColumn("title");
+            query.addColumn("createdon");
+            query.addColumn("customerid");
+            query.addColumn("ownerid");
+            query.addColumn("caseorigincode");
+            query.addColumn("new_mw_contact");
+            query.addColumn("statuscode");
+            query.addColumn("new_accountnumber");
+            query.addColumn("incidentid");
+            query.addColumn("subjectid");
+            query.addColumn("statecode");
+            query.addColumn("stageid");
+            query.addColumn("processid");
+            query.addColumn("prioritycode");
+            query.addColumn("modifiedon");
+            query.addColumn("modifiedby");
+            query.addColumn("description");
+            query.addColumn("createdby");
+            query.addColumn("casetypecode");
+            query.addColumn("incidentstagecode");
+
+            LinkEntity linkEntity = new LinkEntity("account", "accountid",
+                    "customerid", "a_4b5945b8a4a64613afc1ae1d5e6828c7");
+            linkEntity.addColumn(new EntityColumn("territoryid"));
+            linkEntity.addColumn(new EntityColumn("msus_salesrep"));
+            Filter filter = new Filter(AND);
+            linkEntity.addFilter(filter);
+            query.addLinkEntity(linkEntity);
+
+            // Link entity creation to join the contact info
+            LinkEntity linkEntity_contact = new LinkEntity("contact", "contactid", "new_mw_contact", "a_b49161e62067e71180d6005056a36b9b");
+            linkEntity_contact.addColumn(new EntityColumn("fullname"));
+            linkEntity_contact.addColumn(new EntityColumn("firstname"));
+            linkEntity_contact.addColumn(new EntityColumn("lastname"));
+            linkEntity_contact.addColumn(new EntityColumn("emailaddress1"));
+            linkEntity_contact.addColumn(new EntityColumn("telephone1"));
+            linkEntity_contact.addColumn(new EntityColumn("contactid"));
+            linkEntity_contact.isOuterLink = true;
+            query.addLinkEntity(linkEntity_contact);
+
+            SortClause sortClause = new SortClause("modifiedon", true, SortClause.ClausePosition.ONE);
+            query.addSortClause(sortClause);
+
+            Filter.FilterCondition condition1 = new Filter.FilterCondition("modifiedon",
+                    getDateOperator(Operators.DateOperator.LAST_X_MONTHS), Integer.toString(lastXmonths));
+            Filter.FilterCondition condition2 = new Filter.FilterCondition("statuscode",
+                    Filter.Operator.EQUALS, Integer.toString(statuscode));
+            Filter.FilterCondition condition3 = new Filter.FilterCondition("statecode",
+                    Filter.Operator.EQUALS, Integer.toString(statecode));
+
+            Filter filter1 = new Filter(AND);
+            if (lastXmonths != IGNORE_DATE_RANGE) {
+                filter1.addCondition(condition1);
+            }
+            if (statuscode != ANY) {
+                filter1.addCondition(condition2);
+            }
+            filter1.addCondition(condition3);
+            query.setFilter(filter1);
+
+            return query.construct();
+
+        }
+
+        public static String getIncidents(String territoryid, int statuscode, int statecode, int lastXmonths) {
+            QueryFactory query = new QueryFactory("incident");
+            query.addColumn("ticketnumber");
+            query.addColumn("title");
+            query.addColumn("createdon");
+            query.addColumn("customerid");
+            query.addColumn("ownerid");
+            query.addColumn("caseorigincode");
+            query.addColumn("new_mw_contact");
+            query.addColumn("statuscode");
+            query.addColumn("new_accountnumber");
+            query.addColumn("incidentid");
+            query.addColumn("subjectid");
+            query.addColumn("statecode");
+            query.addColumn("stageid");
+            query.addColumn("processid");
+            query.addColumn("prioritycode");
+            query.addColumn("modifiedon");
+            query.addColumn("modifiedby");
+            query.addColumn("description");
+            query.addColumn("createdby");
+            query.addColumn("casetypecode");
+            query.addColumn("incidentstagecode");
+
+            Filter.FilterCondition condition = new Filter.FilterCondition("territoryid",
+                    Filter.Operator.EQUALS, territoryid);
+
+            LinkEntity linkEntity = new LinkEntity("account", "accountid",
+                    "customerid", "a_4b5945b8a4a64613afc1ae1d5e6828c7");
+            linkEntity.addColumn(new EntityColumn("territoryid"));
+            linkEntity.addColumn(new EntityColumn("msus_salesrep"));
+            Filter filter = new Filter(AND);
+            filter.addCondition(condition);
+            linkEntity.addFilter(filter);
+            query.addLinkEntity(linkEntity);
+
+            // Link entity creation to join the contact info
+            LinkEntity linkEntity_contact = new LinkEntity("contact", "contactid", "new_mw_contact", "a_b49161e62067e71180d6005056a36b9b");
+            linkEntity_contact.addColumn(new EntityColumn("fullname"));
+            linkEntity_contact.addColumn(new EntityColumn("firstname"));
+            linkEntity_contact.addColumn(new EntityColumn("lastname"));
+            linkEntity_contact.addColumn(new EntityColumn("emailaddress1"));
+            linkEntity_contact.addColumn(new EntityColumn("telephone1"));
+            linkEntity_contact.addColumn(new EntityColumn("contactid"));
+            linkEntity_contact.isOuterLink = true;
+            query.addLinkEntity(linkEntity_contact);
+
+            SortClause sortClause = new SortClause("modifiedon", true, SortClause.ClausePosition.ONE);
+            query.addSortClause(sortClause);
+
+            Filter.FilterCondition condition1 = new Filter.FilterCondition("modifiedon",
+                    getDateOperator(Operators.DateOperator.LAST_X_MONTHS), Integer.toString(lastXmonths));
+            Filter.FilterCondition condition2 = new Filter.FilterCondition("statuscode",
+                    Filter.Operator.EQUALS, Integer.toString(statuscode));
+            Filter.FilterCondition condition3 = new Filter.FilterCondition("statecode",
+                    Filter.Operator.EQUALS, Integer.toString(statecode));
+
+            Filter filter1 = new Filter(AND);
+
+            // If caller passes -1 we do not filter on date
+            if (lastXmonths != IGNORE_DATE_RANGE) {
+                filter1.addCondition(condition1);
+            }
+            if (statuscode != ANY) {
+                filter1.addCondition(condition2);
+            }
+            filter1.addCondition(condition3);
             query.setFilter(filter1);
 
             return query.construct();
@@ -682,6 +996,7 @@ public class CrmQueries {
     }
 
     public static class Leads {
+        private static final String TAG = "LEADS";
         public static String getTerritoryLeads(String territoryid) {
             QueryFactory query = new QueryFactory("lead");
             query.addColumn("fullname");
@@ -737,6 +1052,232 @@ public class CrmQueries {
             query.addLinkEntity(le4);*/
 
             return query.construct();
+        }
+
+        public static String getAllLeads() {
+            QueryFactory query = new QueryFactory("lead");
+            query.addColumn("fullname");
+            query.addColumn("createdon");
+            query.addColumn("subject");
+            query.addColumn("emailaddress1");
+            query.addColumn("ownerid");
+            query.addColumn("leadsourcecode");
+            query.addColumn("leadqualitycode");
+            query.addColumn("msus_leadsource_congress");
+            query.addColumn("preferredcontactmethodcode");
+            query.addColumn("leadid");
+            query.addColumn("col_vascular");
+            query.addColumn("col_transplant");
+            query.addColumn("col_totalproceduresperyear");
+            query.addColumn("statuscode");
+            query.addColumn("statecode");
+            query.addColumn("msus_leadsource");
+            query.addColumn("mobilephone");
+            query.addColumn("lastname");
+            query.addColumn("jobtitle");
+            query.addColumn("firstname");
+            query.addColumn("donotphone");
+            query.addColumn("donotpostalmail");
+            query.addColumn("donotfax");
+            query.addColumn("donotemail");
+            query.addColumn("donotbulkemail");
+            query.addColumn("description");
+            query.addColumn("decisionmaker");
+            query.addColumn("createdby");
+            query.addColumn("parentcontactid");
+            query.addColumn("address1_composite");
+            query.addColumn("msus_account_in_system");
+
+            SortClause sortClause = new SortClause("createdon", true, SortClause.ClausePosition.ONE);
+            query.addSortClause(sortClause);
+
+            LinkEntity le1 = new LinkEntity("account", "accountid", "parentaccountid", "a_e1b9eb98752946799234e25abb9bb751");
+            le1.addColumn(new EntityColumn("name"));
+            le1.addColumn(new EntityColumn("accountnumber"));
+            le1.addColumn(new EntityColumn("accountid"));
+            query.addLinkEntity(le1);
+
+            /*LinkEntity le3 = new LinkEntity("systemuser", "systemuserid", "owninguser", "av");
+            Filter.FilterCondition condition = new Filter.FilterCondition("territoryid", Filter.Operator.EQUALS, territoryid);
+            Filter filter = new Filter(AND, condition);
+            le3.addFilter(filter);
+            query.addLinkEntity(le3);*/
+
+            /*LinkEntity le4 = new LinkEntity("account", "accountid", "customerid", "a_64b8dfc0d53940e082640b6f5dd3707d");
+            le4.addColumn(new EntityColumn("accountnumber"));
+            le4.addColumn(new EntityColumn("name"));
+            query.addLinkEntity(le4);*/
+
+            return query.construct();
+        }
+
+        public static String getTerritoryLeads(String territoryid, LeadFilter leadFilter) {
+            QueryFactory query = new QueryFactory("lead");
+            query.addColumn("fullname");
+            query.addColumn("createdon");
+            query.addColumn("subject");
+            query.addColumn("emailaddress1");
+            query.addColumn("ownerid");
+            query.addColumn("leadsourcecode");
+            query.addColumn("leadqualitycode");
+            query.addColumn("msus_leadsource_congress");
+            query.addColumn("preferredcontactmethodcode");
+            query.addColumn("leadid");
+            query.addColumn("col_vascular");
+            query.addColumn("col_transplant");
+            query.addColumn("col_totalproceduresperyear");
+            query.addColumn("statuscode");
+            query.addColumn("statecode");
+            query.addColumn("msus_leadsource");
+            query.addColumn("telephone1");
+            query.addColumn("mobilephone");
+            query.addColumn("lastname");
+            query.addColumn("jobtitle");
+            query.addColumn("firstname");
+            query.addColumn("donotphone");
+            query.addColumn("donotpostalmail");
+            query.addColumn("donotfax");
+            query.addColumn("donotemail");
+            query.addColumn("donotbulkemail");
+            query.addColumn("description");
+            query.addColumn("decisionmaker");
+            query.addColumn("createdby");
+            query.addColumn("parentcontactid");
+            query.addColumn("address1_composite");
+            query.addColumn("msus_account_in_system");
+
+            SortClause sortClause = new SortClause("createdon", true, SortClause.ClausePosition.ONE);
+            query.addSortClause(sortClause);
+
+            LinkEntity le1 = new LinkEntity("account", "accountid", "parentaccountid", "a_e1b9eb98752946799234e25abb9bb751");
+            le1.addColumn(new EntityColumn("name"));
+            le1.addColumn(new EntityColumn("accountnumber"));
+            le1.addColumn(new EntityColumn("accountid"));
+            query.addLinkEntity(le1);
+
+            LinkEntity le3 = new LinkEntity("systemuser", "systemuserid", "owninguser", "av");
+            Filter.FilterCondition condition = new Filter.FilterCondition("territoryid", Filter.Operator.EQUALS, territoryid);
+            Filter leFilter = new Filter(AND, condition);
+            le3.addFilter(leFilter);
+            query.addLinkEntity(le3);
+
+            Filter coreQueryFilter = new Filter(AND);
+
+            switch (leadFilter) {
+                case QUALIFIED:
+                    coreQueryFilter.addCondition(new Filter.FilterCondition("statuscode", Filter.Operator.EQUALS, "1"));
+                    break;
+                case DISQUALIFIED:
+                    coreQueryFilter.addCondition(new Filter.FilterCondition("statuscode", Filter.Operator.EQUALS, "2"));
+                    break;
+                case LAST_THREE_MONTHS:
+                    coreQueryFilter.addCondition(new Filter.FilterCondition("createdon", Filter.Operator.LAST_X_MONTHS, "3"));
+                    break;
+                default:
+                    break;
+            };
+
+            if (coreQueryFilter.conditions != null && coreQueryFilter.conditions.size() > 0) {
+                query.setFilter(coreQueryFilter);
+            } else {
+                Log.i(TAG, "getAllLeads ANY stipulated, will not filter!");
+            }
+
+            /*LinkEntity le3 = new LinkEntity("systemuser", "systemuserid", "owninguser", "av");
+            Filter.FilterCondition condition = new Filter.FilterCondition("territoryid", Filter.Operator.EQUALS, territoryid);
+            Filter filter = new Filter(AND, condition);
+            le3.addFilter(filter);
+            query.addLinkEntity(le3);*/
+
+            /*LinkEntity le4 = new LinkEntity("account", "accountid", "customerid", "a_64b8dfc0d53940e082640b6f5dd3707d");
+            le4.addColumn(new EntityColumn("accountnumber"));
+            le4.addColumn(new EntityColumn("name"));
+            query.addLinkEntity(le4);*/
+
+            return query.construct();
+        }
+
+        public static String getAllLeads(LeadFilter leadFilter) {
+            QueryFactory query = new QueryFactory("lead");
+            query.addColumn("fullname");
+            query.addColumn("createdon");
+            query.addColumn("subject");
+            query.addColumn("emailaddress1");
+            query.addColumn("ownerid");
+            query.addColumn("leadsourcecode");
+            query.addColumn("leadqualitycode");
+            query.addColumn("msus_leadsource_congress");
+            query.addColumn("preferredcontactmethodcode");
+            query.addColumn("leadid");
+            query.addColumn("col_vascular");
+            query.addColumn("col_transplant");
+            query.addColumn("col_totalproceduresperyear");
+            query.addColumn("statuscode");
+            query.addColumn("statecode");
+            query.addColumn("msus_leadsource");
+            query.addColumn("mobilephone");
+            query.addColumn("lastname");
+            query.addColumn("jobtitle");
+            query.addColumn("firstname");
+            query.addColumn("donotphone");
+            query.addColumn("donotpostalmail");
+            query.addColumn("donotfax");
+            query.addColumn("donotemail");
+            query.addColumn("donotbulkemail");
+            query.addColumn("description");
+            query.addColumn("decisionmaker");
+            query.addColumn("createdby");
+            query.addColumn("parentcontactid");
+            query.addColumn("address1_composite");
+            query.addColumn("msus_account_in_system");
+
+            SortClause sortClause = new SortClause("createdon", true, SortClause.ClausePosition.ONE);
+            query.addSortClause(sortClause);
+
+            LinkEntity le1 = new LinkEntity("account", "accountid", "parentaccountid", "a_e1b9eb98752946799234e25abb9bb751");
+            le1.addColumn(new EntityColumn("name"));
+            le1.addColumn(new EntityColumn("accountnumber"));
+            le1.addColumn(new EntityColumn("accountid"));
+            query.addLinkEntity(le1);
+
+            Filter filter = new Filter(AND);
+            switch (leadFilter) {
+                case QUALIFIED:
+                    filter.addCondition(new Filter.FilterCondition("statuscode", Filter.Operator.EQUALS, "1"));
+                    break;
+                case DISQUALIFIED:
+                    filter.addCondition(new Filter.FilterCondition("statuscode", Filter.Operator.EQUALS, "2"));
+                    break;
+                case LAST_THREE_MONTHS:
+                    filter.addCondition(new Filter.FilterCondition("createdon", Filter.Operator.LAST_X_MONTHS, "3"));
+                    break;
+                default:
+                    break;
+            };
+
+            if (filter.conditions != null && filter.conditions.size() > 0) {
+                query.setFilter(filter);
+            } else {
+                Log.i(TAG, "getAllLeads ANY stipulated, will not filter!");
+            }
+
+            /*LinkEntity le3 = new LinkEntity("systemuser", "systemuserid", "owninguser", "av");
+            Filter.FilterCondition condition = new Filter.FilterCondition("territoryid", Filter.Operator.EQUALS, territoryid);
+            Filter filter = new Filter(AND, condition);
+            le3.addFilter(filter);
+            query.addLinkEntity(le3);*/
+
+            /*LinkEntity le4 = new LinkEntity("account", "accountid", "customerid", "a_64b8dfc0d53940e082640b6f5dd3707d");
+            le4.addColumn(new EntityColumn("accountnumber"));
+            le4.addColumn(new EntityColumn("name"));
+            query.addLinkEntity(le4);*/
+
+            return query.construct();
+        }
+
+        // Leads
+        public enum LeadFilter {
+            ANY, QUALIFIED, DISQUALIFIED, LAST_THREE_MONTHS;
         }
     }
 
@@ -801,7 +1342,7 @@ public class CrmQueries {
             return rslt;
         }
 
-        public static String getAccountsByTerritory(String territoryid) {
+        public static String getAccounts(@Nullable String territoryid) {
 
             // Instantiate a new constructor for the case entity and add the columns we want to see
             QueryFactory query = new QueryFactory("account");
@@ -814,9 +1355,19 @@ public class CrmQueries {
             query.addColumn("col_agreementtype");
             query.addColumn("accountnumber");
 
+
             // Filter creation to make use of our conditions
             Filter filter = new Filter(AND);
-            filter.addCondition(new Filter.FilterCondition("territoryid","eq", territoryid));
+
+            // Only active accounts
+            filter.addCondition(new Filter.FilterCondition("statecode", "eq", "0"));
+            filter.addCondition(new Filter.FilterCondition("accountnumber", Filter.Operator.CONTAINS_DATA));
+
+            if (territoryid != null) {
+                filter.addCondition(new Filter.FilterCondition("territoryid","eq", territoryid));
+            }
+
+            // Apply the filter
             query.setFilter(filter);
 
             // Link entity creation to join to the account entity and apply our territory condition
@@ -980,7 +1531,7 @@ public class CrmQueries {
             return rslt;
         }
 
-        public static String getAccountsByTerritory(String territoryid, int relationshipType) {
+        public static String getAccounts(String territoryid, int relationshipType) {
 
             // Instantiate a new constructor for the case entity and add the columns we want to see
             QueryFactory query = new QueryFactory("account");
@@ -1015,55 +1566,9 @@ public class CrmQueries {
 
     public static class Opportunities {
 
-        /*public static String getAllOpenOpportunities() {
-
-            // Query columns
-            QueryFactory factory = new QueryFactory("opportunity");
-            factory.addColumn("name");
-            factory.addColumn("estimatedvalue");
-            factory.addColumn("estimatedclosedate");
-            factory.addColumn("col_dealtype");
-            factory.addColumn("ownerid");
-            factory.addColumn("parentaccountid");
-            factory.addColumn("stepname");
-            factory.addColumn("createdon");
-            factory.addColumn("msus_probability");
-            factory.addColumn("opportunityid");
-            factory.addColumn("statuscode");
-            factory.addColumn("statecode");
-            factory.addColumn("currentsituation");
-            factory.addColumn("stepname");
-
-            // Link entities
-            LinkEntity linkEntityAccount = new LinkEntity("account", "accountid", "parentaccountid", "ab");
-            linkEntityAccount.addColumn(new EntityColumn("territoryid"));
-            Filter.FilterCondition linkentityAccountCondition = new Filter.FilterCondition(
-                    "statecode", Filter.Operator.EQUALS, "0");
-            linkEntityAccount.addFilter(new Filter(AND, linkentityAccountCondition));
-            factory.addLinkEntity(linkEntityAccount);
-
-            // Filter conditions
-            Filter.FilterCondition condition1 = new Filter
-                    .FilterCondition("statecode", Filter.Operator.EQUALS,
-                    Integer.toString(0));
-
-            ArrayList<Filter.FilterCondition> conditions = new ArrayList<>();
-            conditions.add(condition1);
-
-            // Set filter
-            Filter filter = new Filter(AND, conditions);
-            factory.setFilter(filter);
-
-            // Sort clause
-            SortClause sortClause = new SortClause("createdon",
-                    true, SortClause.ClausePosition.ONE);
-            factory.addSortClause(sortClause);
-
-            // Build query
-            String query = factory.construct();
-
-            return query;
-        }*/
+        public enum DealStatus {
+            ANY, DISCOVERY, STALLED, QUALIFYING, EVALUATING, PENDING, WON, CLOSED, CANCELED, OUT_SOLD, DEAD
+        }
 
         public static String getOpportunitiesByTerritory(String territoryid) {
 
@@ -1124,7 +1629,112 @@ public class CrmQueries {
             return query;
         }
 
-        public static String getOpportunitiesByAccount(String accountid) {
+        /**
+         * Gets opportunities based on deal status (statuscode) and optionally by territory.
+         * @param territoryid Territory GUID to constrain on.
+         * @param dealStatus Deal status to limit by.
+         * @return
+         */
+        public static String getAllOpportunities(@Nullable String territoryid, DealStatus dealStatus) {
+
+            // Query columns
+            QueryFactory factory = new QueryFactory("opportunity");
+            factory.addColumn("name");
+            factory.addColumn("estimatedvalue");
+            factory.addColumn("estimatedclosedate");
+            factory.addColumn("col_dealtype");
+            factory.addColumn("ownerid");
+            factory.addColumn("parentaccountid");
+            factory.addColumn("stepname");
+            factory.addColumn("createdon");
+            factory.addColumn("createdby");
+            factory.addColumn("modifiedon");
+            factory.addColumn("modifiedby");
+            factory.addColumn("msus_probability");
+            factory.addColumn("opportunityid");
+            factory.addColumn("new_monthrevenuepppleasecurrency");
+            factory.addColumn("statuscode");
+            factory.addColumn("statecode");
+            factory.addColumn("currentsituation");
+            factory.addColumn("stepname");
+            factory.addColumn("col_estmrevenuedevices");
+            factory.addColumn("col_estmrevenueprobes");
+            factory.addColumn("estimatedvalue");
+            factory.addColumn("new_territoryrevenue");
+
+            // Link entities
+            LinkEntity linkEntityAccount = new LinkEntity("account", "accountid", "parentaccountid", "ab");
+            linkEntityAccount.addColumn(new EntityColumn("territoryid"));
+            Filter.FilterCondition territoryCondition = new Filter.FilterCondition(
+                    "territoryid", Filter.Operator.EQUALS, territoryid);
+            if (territoryid != null) {
+                linkEntityAccount.addFilter(new Filter(AND, territoryCondition));
+            }
+            factory.addLinkEntity(linkEntityAccount);
+
+            // Filter conditions
+            ArrayList<Filter.FilterCondition> conditions = new ArrayList<>();
+
+            // Active opportunities only
+            Filter.FilterCondition condition1 = new Filter
+                    .FilterCondition("statecode", Filter.Operator.EQUALS,
+                    Integer.toString(0));
+            conditions.add(condition1);
+
+            // Condition based on the deal status and will be configured based on supplied parameter.
+            Filter.FilterCondition condition2 = new Filter.FilterCondition("statuscode", Filter.Operator.EQUALS);
+            switch (dealStatus) {
+                case WON:
+                    condition2.value = "100000007";
+                    break;
+                case CLOSED:
+                    condition2.value = "100000010";
+                    break;
+                case STALLED:
+                    condition2.value = "2";
+                    break;
+                case QUALIFYING:
+                    condition2.value = "100000002";
+                    break;
+                case EVALUATING:
+                    condition2.value = "100000003";
+                    break;
+                case PENDING:
+                    condition2.value = "100000009";
+                    break;
+                case CANCELED:
+                    condition2.value = "4";
+                    break;
+                case OUT_SOLD:
+                    condition2.value = "5";
+                    break;
+                case DEAD:
+                    condition2.value = "100000001";
+                    break;
+                default: // DISCOVERY
+                    condition2.value = "1";
+            }
+
+            // Add the newly constructed status condition if it is anything other than "ANY".
+            if (dealStatus != DealStatus.ANY) {
+                conditions.add(condition2);
+            }
+
+            // Set filter
+            Filter filter = new Filter(AND, conditions);
+            factory.setFilter(filter);
+
+            // Sort clause
+            SortClause sortClause = new SortClause("createdon",
+                    true, SortClause.ClausePosition.ONE);
+            factory.addSortClause(sortClause);
+
+            // Build query
+            String query = factory.construct();
+            return query;
+        }
+
+        public static String getOpportunitiesByAccount(String accountid, DealStatus dealStatus) {
 
             // Query columns
             QueryFactory factory = new QueryFactory("opportunity");
@@ -1167,6 +1777,45 @@ public class CrmQueries {
 
             ArrayList<Filter.FilterCondition> conditions = new ArrayList<>();
             conditions.add(condition1);
+
+            // Condition based on the deal status and will be configured based on supplied parameter.
+            Filter.FilterCondition condition2 = new Filter.FilterCondition("statuscode", Filter.Operator.EQUALS);
+            switch (dealStatus) {
+                case WON:
+                    condition2.value = "100000007";
+                    break;
+                case CLOSED:
+                    condition2.value = "100000010";
+                    break;
+                case STALLED:
+                    condition2.value = "2";
+                    break;
+                case QUALIFYING:
+                    condition2.value = "100000002";
+                    break;
+                case EVALUATING:
+                    condition2.value = "100000003";
+                    break;
+                case PENDING:
+                    condition2.value = "100000009";
+                    break;
+                case CANCELED:
+                    condition2.value = "4";
+                    break;
+                case OUT_SOLD:
+                    condition2.value = "5";
+                    break;
+                case DEAD:
+                    condition2.value = "100000001";
+                    break;
+                default: // DISCOVERY
+                    condition2.value = "1";
+            }
+
+            // Add the newly constructed status condition if it is anything other than "ANY".
+            if (dealStatus != DealStatus.ANY) {
+                conditions.add(condition2);
+            }
 
             // Set filter
             Filter filter = new Filter(AND, conditions);
@@ -1247,6 +1896,14 @@ public class CrmQueries {
 
     public static class CustomerInventory {
 
+        public enum ProductStatus {
+            IN_STOCK, RETURNED, EXPIRED, LOST, ANY
+        }
+
+        public enum ProductType {
+            PROBES, CABLES, FLOWMETERS, CARDS
+        }
+
         public static String getCustomerInventoryDetails(String customerinventoryid) {
             QueryFactory query = new QueryFactory("col_customerinventory");
             query.addColumn("col_name");
@@ -1288,6 +1945,40 @@ public class CrmQueries {
     }
 
     public static class Contacts {
+
+        public static String getContacts() {
+            // Instantiate a new constructor for the case entity and add the columns we want to see
+            QueryFactory query = new QueryFactory("contact");
+            query.addColumn("fullname");
+            query.addColumn("firstname");
+            query.addColumn("lastname");
+            query.addColumn("parentcustomerid");
+            query.addColumn("telephone1");
+            query.addColumn("mobilephone");
+            query.addColumn("address1_telephone1");
+            query.addColumn("emailaddress1");
+            query.addColumn("msus_associated_npi_number");
+            query.addColumn("jobtitle");
+            query.addColumn("msus_department");
+            query.addColumn("contactid");
+            query.addColumn("mobilephone");
+            query.addColumn("createdon");
+            query.addColumn("createdby");
+            query.addColumn("modifiedon");
+            query.addColumn("modifiedby");
+
+            // Create a filter
+            Filter filter = new Filter(AND);
+
+            // Set filter
+            /*Filter.FilterCondition condition1 = new Filter.FilterCondition("parentcustomerid", Filter.Operator.EQUALS, accountid );
+            filter.addCondition(condition1);
+            query.setFilter(filter);*/
+
+            // Spit out the encoded query
+            String rslt = query.construct();
+            return rslt;
+        }
 
         public static String getContacts(String accountid) {
             // Instantiate a new constructor for the case entity and add the columns we want to see
@@ -1552,7 +2243,7 @@ public class CrmQueries {
 
     public static class OrderLines {
 
-        public static String getOrderLines(String territoryid, Operators.DateOperator operator) {
+        public static String getOrderLines(@Nullable String territoryid, Operators.DateOperator operator) {
 
             /************** TESTING *************/
             // repid = "DAA46FDF-5B7C-E711-80D1-005056A32EEA";
@@ -1612,15 +2303,17 @@ public class CrmQueries {
                     "submitdate", getDateOperator(operator));
             salesOrderConditions.add(conditionOrderDate);
 
-            // Create and populate a condition array for a link entity
-            ArrayList<Filter.FilterCondition> customerConditions = new ArrayList<>();
-            Filter.FilterCondition conditionRepId = new Filter.FilterCondition(
-                    "territoryid", Filter.Operator.EQUALS, territoryid);
-            customerConditions.add(conditionRepId);
+            // Limit by territory if territory was supplied.
+            if (territoryid != null) {
+                ArrayList<Filter.FilterCondition> territoryConditions = new ArrayList<>();
+                Filter.FilterCondition territoryCondition = new Filter.FilterCondition(
+                        "territoryid", Filter.Operator.EQUALS, territoryid);
+                territoryConditions.add(territoryCondition);
+                linkEntityAccount.addFilter(new Filter(AND, territoryConditions));
+            }
 
             // Add new filters to the link entities that have filters
             linkEntitySalesOrder.addFilter(new Filter(AND, salesOrderConditions));
-            linkEntityAccount.addFilter(new Filter(AND, customerConditions));
 
             // Create and add a sort clause
             SortClause sortClause = new SortClause("salesorderid",
@@ -1639,7 +2332,7 @@ public class CrmQueries {
             return query;
         }
 
-        public static String getOrderLines(String salesorderid) {
+        public static String getOrderLinesForSalesOrder(String salesorderid) {
 
             /************** TESTING *************/
             // repid = "DAA46FDF-5B7C-E711-80D1-005056A32EEA";
@@ -1714,7 +2407,7 @@ public class CrmQueries {
             return query;
         }
 
-        public static String getOrderLines(String territoryid, Operators.DateOperator operator, int num) {
+        public static String getOrderLines(@Nullable String territoryid, Operators.DateOperator operator, int num) {
 
             /************** TESTING *************/
             // repid = "DAA46FDF-5B7C-E711-80D1-005056A32EEA";
@@ -1774,15 +2467,17 @@ public class CrmQueries {
                     "submitdate", getDateOperator(operator), Integer.toString(num));
             salesOrderConditions.add(conditionOrderDate);
 
-            // Create and populate a condition array for a link entity
-            ArrayList<Filter.FilterCondition> customerConditions = new ArrayList<>();
-            Filter.FilterCondition conditionRepId = new Filter.FilterCondition(
-                    "territoryid", Filter.Operator.EQUALS, territoryid);
-            customerConditions.add(conditionRepId);
+            // Limit by territory if territory is supplied
+            if (territoryid != null) {
+                ArrayList<Filter.FilterCondition> territoryConditions = new ArrayList<>();
+                Filter.FilterCondition conditionRepId = new Filter.FilterCondition(
+                        "territoryid", Filter.Operator.EQUALS, territoryid);
+                territoryConditions.add(conditionRepId);
+                linkEntityAccount.addFilter(new Filter(AND, territoryConditions));
+            }
 
             // Add new filters to the link entities that have filters
             linkEntitySalesOrder.addFilter(new Filter(AND, salesOrderConditions));
-            linkEntityAccount.addFilter(new Filter(AND, customerConditions));
 
             // Create and add a sort clause
             SortClause sortClause = new SortClause("salesorderid",
@@ -1801,7 +2496,7 @@ public class CrmQueries {
             return query;
         }
 
-        public static String getOrderLines(String territoryid, int monthNum) {
+        public static String getOrderLines(String territoryid, int monthNum, int yearNum) {
 
             /************** TESTING *************/
             // repid = "DAA46FDF-5B7C-E711-80D1-005056A32EEA";
@@ -1856,20 +2551,16 @@ public class CrmQueries {
             linkEntityProduct.addColumn(new EntityColumn("col_producfamily"));
 
             // Create and populate a condition array for a link entity
-            ArrayList<Filter.FilterCondition> salesOrderConditions = new ArrayList<>();
-            Filter.FilterCondition conditionOrderDate = new Filter.FilterCondition(
+            ArrayList<Filter.FilterCondition> dateConditions = new ArrayList<>();
+            Filter.FilterCondition conditionFiscalMonth = new Filter.FilterCondition(
                     "submitdate", Filter.Operator.IN_FISCAL_PERIOD, Integer.toString(monthNum));
-            salesOrderConditions.add(conditionOrderDate);
-
-            // Create and populate a condition array for a link entity
-            ArrayList<Filter.FilterCondition> customerConditions = new ArrayList<>();
-            Filter.FilterCondition conditionRepId = new Filter.FilterCondition(
-                    "territoryid", Filter.Operator.EQUALS, territoryid);
-            customerConditions.add(conditionRepId);
+            Filter.FilterCondition conditionFiscalYear = new Filter.FilterCondition(
+                    "submitdate", Filter.Operator.IN_FISCAL_YEAR, Integer.toString(yearNum));
+            dateConditions.add(conditionFiscalMonth);
+            dateConditions.add(conditionFiscalYear);
 
             // Add new filters to the link entities that have filters
-            linkEntitySalesOrder.addFilter(new Filter(AND, salesOrderConditions));
-            linkEntityAccount.addFilter(new Filter(AND, customerConditions));
+            linkEntitySalesOrder.addFilter(new Filter(AND, dateConditions));
 
             // Create and add a sort clause
             SortClause sortClause = new SortClause("createdon",
@@ -2062,7 +2753,7 @@ public class CrmQueries {
             return query;
         }
 
-        public static String getOrderLinesByAccount(String customerid, int monthNum) {
+        public static String getOrderLinesByAccount(String customerid, int monthNum, int yearNum) {
 
             /************** TESTING *************/
             // repid = "DAA46FDF-5B7C-E711-80D1-005056A32EEA";
@@ -2116,11 +2807,16 @@ public class CrmQueries {
             linkEntityProduct.addColumn(new EntityColumn("col_itemgroup"));
             linkEntityProduct.addColumn(new EntityColumn("col_producfamily"));
 
-            // Create and populate a condition array for a link entity
+            // Filter by fiscal month
             ArrayList<Filter.FilterCondition> salesOrderConditions = new ArrayList<>();
-            Filter.FilterCondition conditionOrderDate = new Filter.FilterCondition(
+            Filter.FilterCondition conditionOrderDateMonth = new Filter.FilterCondition(
                     "submitdate", Filter.Operator.IN_FISCAL_PERIOD, Integer.toString(monthNum));
-            salesOrderConditions.add(conditionOrderDate);
+            salesOrderConditions.add(conditionOrderDateMonth);
+
+            // Filter by fiscal year
+            Filter.FilterCondition conditionOrderDateYear = new Filter.FilterCondition(
+                    "submitdate", Filter.Operator.IN_FISCAL_YEAR, Integer.toString(yearNum));
+            salesOrderConditions.add(conditionOrderDateYear);
 
             // Create and populate a condition array for a link entity
             ArrayList<Filter.FilterCondition> customerConditions = new ArrayList<>();

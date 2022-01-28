@@ -27,8 +27,32 @@
 
     <style name="AppThemeBasicCustomToolbar" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorGreen</item>
-        <item name="colorPrimaryDark">@color/colorGreen</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimary</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:fontFamily">@font/casual</item>
+    </style>
+
+    <style name="AppThemeBasicAccountDataCustomToolbar" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorMaroon</item>
+        <item name="colorPrimaryDark">@color/colorMaroon</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:fontFamily">@font/casual</item>
+    </style>
+
+    <style name="AppThemeBasicCpyWideCustomToolbar" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">#00bcd4</item>
+        <item name="colorPrimaryDark">#00bcd4</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:fontFamily">@font/casual</item>
+    </style>
+
+    <style name="AppThemeBasicTerritoryDataCustomToolbar" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/quantum_deeppurple</item>
+        <item name="colorPrimaryDark">@color/quantum_deeppurple</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:fontFamily">@font/casual</item>
     </style>

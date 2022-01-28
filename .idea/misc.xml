@@ -4,13 +4,44 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_account_stuff.xml" value="0.328125" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_cpy_wide_sales_perf.xml" value="0.5421875" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_emails_fullscreen.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_fullscreen_choose_account.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_fullscreen_choose_contact.xml" value="0.325" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_fullscreen_choose_territory.xml" value="0.5421875" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_map_view.xml" value="0.328125" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_quotas.xml" value="0.5541666666666667" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_sales_perf.xml" value="0.5421875" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_view_email.xml" value="0.5541666666666667" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/basic_activity_entry_row.xml" value="0.5421875" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/basic_entity_activity.xml" value="0.328125" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/basic_entity_activity_with_emails.xml" value="0.328125" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/basic_object_row.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/dialog_note.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/dialog_show_single_field.xml" value="0.5421875" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/entity_notes.xml" value="0.328125" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/frag_account_inventory.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/frag_accounts.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/frag_cases.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/frag_dashboard.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/frag_saleslines.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/restore_options.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/row_annotation.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/row_annotation_simple.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/row_cust_inventory_item.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/row_landing_page.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/row_orderproduct.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/row_orderproduct_with_account_button.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/row_recent_trip.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/menu/account_menu.xml" value="0.5505208333333333" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/menu/account_stuff.xml" value="0.5505208333333333" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/menu/activity_main_drawer.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/menu/activity_menu.xml" value="0.5505208333333333" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/menu/cpy_wide_menu.xml" value="0.5541666666666667" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/menu/generic_activity_menu.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/menu/main.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/menu/quota_menu.xml" value="0.5541666666666667" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/menu/territory_menu.xml" value="0.5421875" />
       </map>
     </option>
   </component>

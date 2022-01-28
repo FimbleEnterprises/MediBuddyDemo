@@ -1,6 +1,7 @@
 package com.fimbleenterprises.medimileage.adapters;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -88,14 +89,6 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
         holder.txtSubtext.setVisibility(object.isHeader ? View.GONE : View.VISIBLE);
         holder.img.setVisibility(object.isHeader ? View.GONE : View.VISIBLE);
 
-        if (object.isHeader) {
-            holder.txtMainText.setTypeface(face, Typeface.BOLD);
-            holder.layout.setBackground(null);
-        } else {
-            holder.txtMainText.setTypeface(face, Typeface.BOLD);
-            holder.layout.setBackgroundResource(R.drawable.btn_glass_gray_black_border_label_bg);
-        }
-
         if (object.isEmpty) {
             holder.txtMiddleText.setTypeface(face, Typeface.NORMAL);
             holder.txtMiddleText.setText(object.title);
@@ -103,6 +96,22 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
             holder.img.setVisibility(View.INVISIBLE);
             holder.txtMainText.setVisibility(View.INVISIBLE);
             holder.txtSubtext.setVisibility(View.INVISIBLE);
+        }
+
+        if (object.shouldHighlight) {
+            holder.layout.setBackgroundResource(R.drawable.btn_glass_gray_orange_border);
+        } else {
+            holder.layout.setBackgroundResource(R.drawable.btn_glass_gray_black_border_label_bg);
+        }
+
+        if (object.isHeader) {
+            holder.txtMainText.setTypeface(face, Typeface.BOLD);
+            holder.txtMainText.setTextColor(Color.BLUE);
+            holder.layout.setBackground(null);
+        } else {
+            holder.txtMainText.setTypeface(face, Typeface.BOLD);
+            holder.txtMainText.setTextColor(Color.BLACK);
+            holder.layout.setBackgroundResource(R.drawable.btn_glass_gray_black_border_label_bg);
         }
 
     }

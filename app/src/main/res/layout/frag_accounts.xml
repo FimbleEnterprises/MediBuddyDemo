@@ -13,8 +13,7 @@
         android:layout_marginStart="2dp"
         android:layout_marginTop="2dp"
         android:layout_marginEnd="2dp"
-        android:layout_marginBottom="2dp"
-        android:background="@drawable/round_container_greenborder">
+        android:layout_marginBottom="2dp">
 
         <EditText
             android:id="@+id/edittextFilter"
@@ -24,7 +23,6 @@
             android:layout_marginTop="2dp"
             android:layout_marginEnd="2dp"
             android:layout_marginBottom="2dp"
-            android:backgroundTint="@color/colorGreen"
             android:ems="10"
             android:hint="Filter..."
             android:inputType="textPersonName"

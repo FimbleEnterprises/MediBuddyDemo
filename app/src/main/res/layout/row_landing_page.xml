@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    android:background="@drawable/btn_glass_navy_border">
+
+    <ImageView
+        android:id="@+id/imgLeft"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="15dp"
+        android:layout_marginBottom="15dp"
+        android:background="@drawable/car2"
+        android:focusable="false"
+        android:scaleType="fitXY"
+        android:soundEffectsEnabled="true"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/txtMainText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/imgLeft"
+        android:layout_centerVertical="true"
+        android:layout_marginTop="3dp"
+        android:layout_toRightOf="@id/imgLeft"
+        android:focusable="false"
+        android:fontFamily="casual"
+        android:text="GO TO"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="#354856"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <ImageView
+        android:id="@+id/imgRight"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginBottom="5dp"
+        android:background="@drawable/arrow_right"
+        android:focusable="false"
+        android:fontFamily="casual"
+        android:visibility="visible" />
+
+</RelativeLayout>

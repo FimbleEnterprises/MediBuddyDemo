@@ -37,12 +37,13 @@ import com.anychart.chart.common.dataentry.ValueDataEntry;
 import com.anychart.charts.Cartesian;*/
 import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.adapters.BasicObjectRecyclerAdapter;
-import com.fimbleenterprises.medimileage.objects_and_containers.BasicEntity;
+import com.fimbleenterprises.medimileage.adapters.LandingPageRecyclerAdapter;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 import com.fimbleenterprises.medimileage.dialogs.ContactActions;
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.Helpers;
+import com.fimbleenterprises.medimileage.objects_and_containers.LandingPageItem;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics;
 import com.fimbleenterprises.medimileage.dialogs.MonthYearPickerDialog;
@@ -54,7 +55,7 @@ import com.fimbleenterprises.medimileage.adapters.OrderLineRecyclerAdapter;
 import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
-import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
+import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
 import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityChooseTerritory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -65,13 +66,15 @@ import com.scwang.smart.refresh.layout.api.RefreshLayout;
 import com.scwang.smart.refresh.layout.listener.OnLoadMoreListener;
 import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
+import static com.fimbleenterprises.medimileage.CrmQueries.Tickets.ANY;
+import static com.fimbleenterprises.medimileage.CrmQueries.Tickets.CLOSED;
+import static com.fimbleenterprises.medimileage.CrmQueries.Tickets.OPEN;
 import static com.fimbleenterprises.medimileage.activities.BasicEntityActivity.ENTITYID;
 import static com.fimbleenterprises.medimileage.activities.BasicEntityActivity.ENTITY_LOGICAL_NAME;
 import static com.fimbleenterprises.medimileage.activities.BasicEntityActivity.REQUEST_BASIC;
 import static com.fimbleenterprises.medimileage.activities.BasicEntityActivity.SEND_EMAIL;
 import static com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.OrderProducts;
-import static com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.OrderProducts.OrderProduct;
-import static com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.Tickets.NOT_RESOLVED;
+import static com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.OrderProducts.OrderProduct;;
 
 import org.joda.time.DateTime;
 
@@ -92,6 +95,7 @@ import cz.msebera.android.httpclient.Header;
 
 public class Activity_TerritoryData extends AppCompatActivity {
 
+    public static final String REQUESTED_TERRITORY = "REQUESTED_TERRITORY";
     private static final String FAB_CLICKED = "FAB_CLICKED";
     public static Activity activity;
     public static EditText title;
@@ -108,10 +112,16 @@ public class Activity_TerritoryData extends AppCompatActivity {
     public static SectionsPagerAdapter sectionsPagerAdapter;
     public static androidx.fragment.app.FragmentManager fragMgr;
     public static MyPreferencesHelper options;
+
+    // Cached data
     public ArrayList<Territory> cachedTerritories = new ArrayList<>();
+    public static ArrayList<OrderProducts.OrderProduct> allOrders;
+
     BroadcastReceiver fabClickReceiver;
     IntentFilter fabClickIntentFilter = new IntentFilter(FAB_CLICKED);
     SearchView searchView;
+
+    public static Toolbar toolbar;
 
     public static final String MENU_SELECTION = "MENU_SELECTION";
 
@@ -129,7 +139,12 @@ public class Activity_TerritoryData extends AppCompatActivity {
     public static ServiceAgreementFilter serviceAgreementFilter = ServiceAgreementFilter.EXPIRING;
 
     // vars for case status
-    public static int case_status = NOT_RESOLVED;
+    public static int case_status = ANY;
+    public static int case_state = OPEN;
+
+    public static CrmQueries.Leads.LeadFilter leadFilter = CrmQueries.Leads.LeadFilter.ANY;
+
+    public static CrmQueries.Opportunities.DealStatus dealStatus = CrmQueries.Opportunities.DealStatus.ANY;
 
     // vars for customer type
     public static final int customer_type = CrmEntities.Accounts.ANY;
@@ -165,9 +180,15 @@ public class Activity_TerritoryData extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        globalTerritory = new Territory();
-        globalTerritory.territoryid = MediUser.getMe().territoryid;
-        globalTerritory.territoryName = MediUser.getMe().territoryname;
+        // See if this activity was called with a specific territory intent extra
+        if (getIntent() != null && getIntent().hasExtra(REQUESTED_TERRITORY)) {
+            globalTerritory = (Territory) getIntent().getParcelableExtra(REQUESTED_TERRITORY);
+        } else { // Otherwise use the user's saved territory
+            globalTerritory = new Territory();
+            globalTerritory.territoryid = MediUser.getMe().territoryid;
+            globalTerritory.territoryName = MediUser.getMe().territoryname;
+        }
+
         monthNum = DateTime.now().getMonthOfYear();
         yearNum = DateTime.now().getYear();
 
@@ -186,7 +207,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         mViewPager.setAdapter(sectionsPagerAdapter);
         mViewPager.setOffscreenPageLimit(0);
         mViewPager.setCurrentItem(options.getLastTerritoryTab());
-        mViewPager.setPageCount(6);
+        // mViewPager.setPageCount(6);
         mViewPager.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
@@ -209,7 +230,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
         fragMgr = getSupportFragmentManager();
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar2);
+        toolbar = findViewById(R.id.toolbar2);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
@@ -228,8 +249,11 @@ public class Activity_TerritoryData extends AppCompatActivity {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             if (searchView != null && !searchView.isIconified()) {
                 searchView.setIconified(true);
-            } else {
+            } else if (mViewPager.currentPosition == SectionsPagerAdapter.LANDING_PAGE) {
                 onBackPressed();
+                return true;
+            } else {
+                mViewPager.setCurrentItem(SectionsPagerAdapter.LANDING_PAGE);
             }
             return true;
         }
@@ -297,7 +321,6 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
     @Override
     public boolean onSupportNavigateUp() {
-        onBackPressed();
         return true;
     }
 
@@ -374,6 +397,28 @@ public class Activity_TerritoryData extends AppCompatActivity {
         menu.findItem(R.id.action_west_region).setChecked(!isEastRegion);
 
         switch (mViewPager.currentPosition) {
+            case SectionsPagerAdapter.LANDING_PAGE: // Sales lines
+                menu.findItem(R.id.action_west_region).setVisible(false);
+                menu.findItem(R.id.action_east_region).setVisible(false);
+                menu.findItem(R.id.action_this_year).setVisible(false);
+                menu.findItem(R.id.action_last_year).setVisible(false);
+
+                menu.findItem(R.id.action_this_month).setVisible(false);
+                menu.findItem(R.id.action_last_month).setVisible(false);
+                menu.findItem(R.id.action_choose_month).setVisible(false);
+                menu.findItem(R.id.action_choose_territory).setVisible(true);
+                menu.findItem(R.id.action_lead_type).setVisible(false);
+                menu.findItem(R.id.action_opportunity_status).setVisible(false);
+
+                menu.findItem(R.id.action_case_state).setVisible(false);
+                menu.findItem(R.id.action_case_status).setVisible(false);
+
+                menu.findItem(R.id.action_account_type).setVisible(false);
+
+                menu.findItem(R.id.action_expired_service_agreements).setVisible(false);
+                menu.findItem(R.id.action_expiring_service_agreements).setVisible(false);
+                menu.findItem(R.id.action_current_service_agreements).setVisible(false);
+                break;
             case SectionsPagerAdapter.SALES_PAGE: // Sales lines
                 menu.findItem(R.id.action_west_region).setVisible(false);
                 menu.findItem(R.id.action_east_region).setVisible(false);
@@ -384,7 +429,10 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 menu.findItem(R.id.action_last_month).setVisible(true);
                 menu.findItem(R.id.action_choose_month).setVisible(true);
                 menu.findItem(R.id.action_choose_territory).setVisible(true);
+                menu.findItem(R.id.action_lead_type).setVisible(false);
+                menu.findItem(R.id.action_opportunity_status).setVisible(false);
 
+                menu.findItem(R.id.action_case_state).setVisible(false);
                 menu.findItem(R.id.action_case_status).setVisible(false);
 
                 menu.findItem(R.id.action_account_type).setVisible(false);
@@ -393,9 +441,35 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 menu.findItem(R.id.action_expiring_service_agreements).setVisible(false);
                 menu.findItem(R.id.action_current_service_agreements).setVisible(false);
                 break;
-            case SectionsPagerAdapter.LEADS_PAGE: // Sales lines
+
             case SectionsPagerAdapter.OPPORTUNITIES_PAGE: // Opportunities
-            case SectionsPagerAdapter.ACCOUNTS_PAGE: // Accounts
+                menu.findItem(R.id.action_opportunity_status).setVisible(true);
+                menu.findItem(R.id.action_choose_territory).setVisible(true);
+                menu.findItem(R.id.action_west_region).setVisible(false);
+                menu.findItem(R.id.action_east_region).setVisible(false);
+                menu.findItem(R.id.action_this_year).setVisible(false);
+                menu.findItem(R.id.action_last_year).setVisible(false);
+
+                menu.findItem(R.id.action_this_month).setVisible(false);
+                menu.findItem(R.id.action_last_month).setVisible(false);
+                menu.findItem(R.id.action_choose_month).setVisible(false);
+
+                menu.findItem(R.id.action_account_type).setVisible(false);
+
+                menu.findItem(R.id.action_case_state).setVisible(false);
+                menu.findItem(R.id.action_case_status).setVisible(false);
+                menu.findItem(R.id.action_lead_type).setVisible(false);
+
+                menu.findItem(R.id.action_expired_service_agreements).setVisible(false);
+                menu.findItem(R.id.action_expiring_service_agreements).setVisible(false);
+                menu.findItem(R.id.action_current_service_agreements).setVisible(false);
+                break;
+                
+            case SectionsPagerAdapter.LEADS_PAGE:
+
+                menu.findItem(R.id.action_opportunity_status).setVisible(false);
+                menu.findItem(R.id.action_lead_type).setVisible(true);
+
                 menu.findItem(R.id.action_west_region).setVisible(false);
                 menu.findItem(R.id.action_east_region).setVisible(false);
                 menu.findItem(R.id.action_this_year).setVisible(false);
@@ -406,6 +480,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 menu.findItem(R.id.action_choose_month).setVisible(false);
                 menu.findItem(R.id.action_choose_territory).setVisible(true);
 
+                menu.findItem(R.id.action_case_state).setVisible(false);
                 menu.findItem(R.id.action_case_status).setVisible(false);
 
                 menu.findItem(R.id.action_account_type).setVisible(false);
@@ -413,9 +488,33 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 menu.findItem(R.id.action_expired_service_agreements).setVisible(false);
                 menu.findItem(R.id.action_expiring_service_agreements).setVisible(false);
                 menu.findItem(R.id.action_current_service_agreements).setVisible(false);
+                break;
+
+            case SectionsPagerAdapter.ACCOUNTS_PAGE: // Accounts
+                menu.findItem(R.id.action_opportunity_status).setVisible(false);
+                menu.findItem(R.id.action_west_region).setVisible(false);
+                menu.findItem(R.id.action_east_region).setVisible(false);
+                menu.findItem(R.id.action_this_year).setVisible(false);
+                menu.findItem(R.id.action_last_year).setVisible(false);
+
+                menu.findItem(R.id.action_this_month).setVisible(false);
+                menu.findItem(R.id.action_last_month).setVisible(false);
+                menu.findItem(R.id.action_choose_month).setVisible(false);
+                menu.findItem(R.id.action_choose_territory).setVisible(true);
+
+                menu.findItem(R.id.action_case_state).setVisible(false);
+                menu.findItem(R.id.action_case_status).setVisible(false);
+
+                menu.findItem(R.id.action_account_type).setVisible(false);
+
+                menu.findItem(R.id.action_expired_service_agreements).setVisible(false);
+                menu.findItem(R.id.action_expiring_service_agreements).setVisible(false);
+                menu.findItem(R.id.action_current_service_agreements).setVisible(false);
+                menu.findItem(R.id.action_lead_type).setVisible(false);
                 break;
 
             case SectionsPagerAdapter.CASES_PAGE: // Cases
+                menu.findItem(R.id.action_opportunity_status).setVisible(false);
                 menu.findItem(R.id.action_west_region).setVisible(false);
                 menu.findItem(R.id.action_east_region).setVisible(false);
                 menu.findItem(R.id.action_this_year).setVisible(false);
@@ -428,14 +527,17 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
                 menu.findItem(R.id.action_account_type).setVisible(false);
 
+                menu.findItem(R.id.action_case_state).setVisible(true);
                 menu.findItem(R.id.action_case_status).setVisible(true);
 
                 menu.findItem(R.id.action_expired_service_agreements).setVisible(false);
                 menu.findItem(R.id.action_expiring_service_agreements).setVisible(false);
                 menu.findItem(R.id.action_current_service_agreements).setVisible(false);
+                menu.findItem(R.id.action_lead_type).setVisible(false);
                 break;
 
             case SectionsPagerAdapter.SERVICE_AGREEMENTS_PAGE:
+                menu.findItem(R.id.action_opportunity_status).setVisible(false);
                 menu.findItem(R.id.action_choose_territory).setVisible(true);
                 menu.findItem(R.id.action_west_region).setVisible(false);
                 menu.findItem(R.id.action_east_region).setVisible(false);
@@ -448,79 +550,127 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
                 menu.findItem(R.id.action_account_type).setVisible(false);
 
+                menu.findItem(R.id.action_case_state).setVisible(false);
                 menu.findItem(R.id.action_case_status).setVisible(false);
+                menu.findItem(R.id.action_lead_type).setVisible(false);
 
                 menu.findItem(R.id.action_expired_service_agreements).setVisible(true);
                 menu.findItem(R.id.action_expiring_service_agreements).setVisible(true);
                 menu.findItem(R.id.action_current_service_agreements).setVisible(true);
                 break;
+        }
 
+        // Check/Uncheck deal status
+        menu.findItem(R.id.action_opp_any).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.ANY);
+        menu.findItem(R.id.action_opp_stalled).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.STALLED);
+        menu.findItem(R.id.action_opp_qualifying).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.QUALIFYING);
+        menu.findItem(R.id.action_opp_dead).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.DEAD);
+        menu.findItem(R.id.action_opp_evaluating).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.EVALUATING);
+        menu.findItem(R.id.action_opp_pending).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.PENDING);
+        menu.findItem(R.id.action_opp_closed).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.CLOSED);
+        menu.findItem(R.id.action_opp_canceled).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.CANCELED);
+        menu.findItem(R.id.action_opp_discovery).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.DISCOVERY);
+        menu.findItem(R.id.action_opp_won).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.WON);
+
+        // Check/Uncheck lead filters
+        menu.findItem(R.id.action_lead_any).setChecked(leadFilter == CrmQueries.Leads.LeadFilter.ANY);
+        menu.findItem(R.id.action_lead_qualified).setChecked(leadFilter == CrmQueries.Leads.LeadFilter.QUALIFIED);
+        menu.findItem(R.id.action_lead_disqualified).setChecked(leadFilter == CrmQueries.Leads.LeadFilter.DISQUALIFIED);
+        menu.findItem(R.id.action_lead_created_last_three_months).setChecked(leadFilter == CrmQueries.Leads.LeadFilter.LAST_THREE_MONTHS);
+
+        // Set case state values
+        switch (case_state) {
+            case OPEN:
+                menu.findItem(R.id.action_case_state_open).setChecked(true);
+                menu.findItem(R.id.action_case_state_closed).setChecked(false);
+                break;
+            case CLOSED:
+                menu.findItem(R.id.action_case_state_open).setChecked(false);
+                menu.findItem(R.id.action_case_state_closed).setChecked(true);
+                break;
         }
 
         // Set case status values
         switch (case_status) {
-            case NOT_RESOLVED :
-                menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(true);
+            case ANY:
+                menu.findItem(R.id.action_change_case_status_any).setChecked(true);
                 menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_waiting_on_rep).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
                 break;
-            case CrmEntities.Tickets.IN_PROGRESS :
-                menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
+            case CrmQueries.Tickets.IN_PROGRESS :
+                menu.findItem(R.id.action_change_case_status_any).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_inprogress).setChecked(true);
                 menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_waiting_on_rep).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
                 break;
-            case CrmEntities.Tickets.ON_HOLD :
-                menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
+            case CrmQueries.Tickets.ON_HOLD :
+                menu.findItem(R.id.action_change_case_status_any).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_on_hold).setChecked(true);
                 menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_waiting_on_rep).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
                 break;
-            case CrmEntities.Tickets.TO_BE_INSPECTED :
-                menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
+            case CrmQueries.Tickets.TO_BE_INSPECTED :
+                menu.findItem(R.id.action_change_case_status_any).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(true);
                 menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_waiting_on_rep).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
                 break;
-            case CrmEntities.Tickets.WAITING_FOR_PRODUCT :
-                menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
+            case CrmQueries.Tickets.WAITING_FOR_PRODUCT :
+                menu.findItem(R.id.action_change_case_status_any).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(true);
                 menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_waiting_on_rep).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
                 break;
-            case CrmEntities.Tickets.WAITING_ON_CUSTOMER :
-                menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
+            case CrmQueries.Tickets.WAITING_ON_CUSTOMER :
+                menu.findItem(R.id.action_change_case_status_any).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(true);
+                menu.findItem(R.id.action_change_case_status_waiting_on_rep).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
                 break;
-            case CrmEntities.Tickets.TO_BE_BILLED :
-                menu.findItem(R.id.action_change_case_status_not_resolved).setChecked(false);
+            case CrmQueries.Tickets.TO_BE_BILLED :
+                menu.findItem(R.id.action_change_case_status_any).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_waiting_on_rep).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(true);
+                break;
+            case CrmQueries.Tickets.WAITING_ON_REP :
+                menu.findItem(R.id.action_change_case_status_any).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_to_be_inspected).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_waiting_for_product).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
+                menu.findItem(R.id.action_change_case_status_waiting_on_rep).setChecked(true);
+                menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
                 break;
         }
 
@@ -550,6 +700,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         DateTime now = DateTime.now();
         DateTime aMonthAgo = now.minusMonths(1);
+
         switch (item.getItemId()) {
             case 16908332 :
                 if (searchView.isIconified()) {
@@ -559,7 +710,6 @@ public class Activity_TerritoryData extends AppCompatActivity {
             case R.id.action_choose_territory :
                 Intent intent = new Intent(context, FullscreenActivityChooseTerritory.class);
                 intent.putExtra(FullscreenActivityChooseTerritory.CURRENT_TERRITORY, globalTerritory);
-                intent.putExtra(FullscreenActivityChooseTerritory.CACHED_TERRITORIES, cachedTerritories);
                 startActivityForResult(intent, 0);
                 break;
             case R.id.action_east_region :
@@ -591,36 +741,108 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 yearNum = aMonthAgo.getYear();
                 sendMenuSelectionBroadcast();
                 break;
-            case R.id.action_change_case_status_not_resolved:
-                case_status = NOT_RESOLVED;
+            case R.id.action_lead_any:
+                leadFilter = CrmQueries.Leads.LeadFilter.ANY;
+                sendMenuSelectionBroadcast();
+                break;
+            case R.id.action_lead_disqualified:
+                leadFilter = CrmQueries.Leads.LeadFilter.DISQUALIFIED;
+                sendMenuSelectionBroadcast();
+                break;
+            case R.id.action_lead_qualified:
+                leadFilter = CrmQueries.Leads.LeadFilter.QUALIFIED;
+                sendMenuSelectionBroadcast();
+                break;
+            case R.id.action_lead_created_last_three_months:
+                leadFilter = CrmQueries.Leads.LeadFilter.LAST_THREE_MONTHS;
+                sendMenuSelectionBroadcast();
+                break;
+
+            case R.id.action_opp_any:
+                dealStatus = CrmQueries.Opportunities.DealStatus.ANY;
+                sendMenuSelectionBroadcast();
+                break;
+            case R.id.action_opp_canceled:
+                dealStatus = CrmQueries.Opportunities.DealStatus.CANCELED;
+                sendMenuSelectionBroadcast();
+                break;
+            case R.id.action_opp_closed:
+                dealStatus = CrmQueries.Opportunities.DealStatus.CLOSED;
+                sendMenuSelectionBroadcast();
+                break;
+            case R.id.action_opp_dead:
+                dealStatus = CrmQueries.Opportunities.DealStatus.DEAD;
+                sendMenuSelectionBroadcast();
+                break;
+            case R.id.action_opp_discovery:
+                dealStatus = CrmQueries.Opportunities.DealStatus.DISCOVERY;
+                sendMenuSelectionBroadcast();
+                break;
+            case R.id.action_opp_evaluating:
+                dealStatus = CrmQueries.Opportunities.DealStatus.EVALUATING;
+                sendMenuSelectionBroadcast();
+                break;
+            case R.id.action_opp_pending:
+                dealStatus = CrmQueries.Opportunities.DealStatus.PENDING;
+                sendMenuSelectionBroadcast();
+                break;
+            case R.id.action_opp_qualifying:
+                dealStatus = CrmQueries.Opportunities.DealStatus.QUALIFYING;
+                sendMenuSelectionBroadcast();
+                break;
+            case R.id.action_opp_stalled:
+                dealStatus = CrmQueries.Opportunities.DealStatus.STALLED;
+                sendMenuSelectionBroadcast();
+                break;
+            case R.id.action_opp_won:
+                dealStatus = CrmQueries.Opportunities.DealStatus.WON;
+                sendMenuSelectionBroadcast();
+                break;
+
+            case R.id.action_case_state_open:
+                case_state = OPEN;
+                sendMenuSelectionBroadcast();
+                break;
+
+            case R.id.action_case_state_closed:
+                case_state = CLOSED;
+                sendMenuSelectionBroadcast();
+                break;
+
+            case R.id.action_change_case_status_any:
+                case_status = ANY;
                 sendMenuSelectionBroadcast();
                 break;
             case R.id.action_change_case_status_inprogress:
-                case_status = CrmEntities.Tickets.IN_PROGRESS;
+                case_status = CrmQueries.Tickets.IN_PROGRESS;
                 sendMenuSelectionBroadcast();
                 break;
             case R.id.action_change_case_status_on_hold:
-                case_status = CrmEntities.Tickets.ON_HOLD;
+                case_status = CrmQueries.Tickets.ON_HOLD;
                 sendMenuSelectionBroadcast();
                 break;
             case R.id.action_change_case_status_to_be_inspected:
-                case_status = CrmEntities.Tickets.TO_BE_INSPECTED;
+                case_status = CrmQueries.Tickets.TO_BE_INSPECTED;
                 sendMenuSelectionBroadcast();
                 break;
             case R.id.action_change_case_status_waiting_for_product:
-                case_status = CrmEntities.Tickets.WAITING_FOR_PRODUCT;
+                case_status = CrmQueries.Tickets.WAITING_FOR_PRODUCT;
                 sendMenuSelectionBroadcast();
                 break;
             case R.id.action_change_case_status_waiting_on_customer:
-                case_status = CrmEntities.Tickets.WAITING_ON_CUSTOMER;
+                case_status = CrmQueries.Tickets.WAITING_ON_CUSTOMER;
+                sendMenuSelectionBroadcast();
+                break;
+            case R.id.action_change_case_status_waiting_on_rep:
+                case_status = CrmQueries.Tickets.WAITING_ON_REP;
                 sendMenuSelectionBroadcast();
                 break;
             case R.id.action_change_case_status_to_be_billed:
-                case_status = CrmEntities.Tickets.TO_BE_BILLED;
+                case_status = CrmQueries.Tickets.TO_BE_BILLED;
                 sendMenuSelectionBroadcast();
                 break;
             case R.id.action_change_case_status_problem_solved:
-                case_status = CrmEntities.Tickets.PROBLEM_SOLVED;
+                case_status = CrmQueries.Tickets.PROBLEM_SOLVED;
                 sendMenuSelectionBroadcast();
                 break;
             case R.id.action_current_service_agreements:
@@ -636,6 +858,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 sendMenuSelectionBroadcast();
                 break;
         }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -672,12 +895,13 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-        public static final int SALES_PAGE = 0;
-        public static final int LEADS_PAGE= 1;
-        public static final int OPPORTUNITIES_PAGE = 2;
-        public static final int CASES_PAGE = 3;
-        public static final int ACCOUNTS_PAGE = 4;
-        public static final int SERVICE_AGREEMENTS_PAGE = 5;
+        public static final int LANDING_PAGE = 0;
+        public static final int SALES_PAGE = 1;
+        public static final int LEADS_PAGE= 2;
+        public static final int OPPORTUNITIES_PAGE = 3;
+        public static final int CASES_PAGE = 4;
+        public static final int ACCOUNTS_PAGE = 5;
+        public static final int SERVICE_AGREEMENTS_PAGE = 6;
 
         public SectionsPagerAdapter(androidx.fragment.app.FragmentManager fm) {
             super(fm);
@@ -689,6 +913,14 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
             Log.d("getItem", "Creating Fragment in pager at index: " + position);
             Log.w(TAG, "getItem: PAGER POSITION: " + position);
+
+            if (position == LANDING_PAGE) {
+                Fragment fragment = new Frag_LandingPage();
+                Bundle args = new Bundle();
+                args.putInt(Frag_LandingPage.ARG_SECTION_NUMBER, position + 1);
+                fragment.setArguments(args);
+                return fragment;
+            }
 
             if (position == SALES_PAGE) {
                 Fragment fragment = new Frag_SalesLines();
@@ -743,31 +975,69 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return 6;
+            return 7;
         }
         
         public String getCaseCriteriaTitleAddendum() {
             switch (case_status) {
-                case CrmEntities.Tickets.NOT_RESOLVED :
-                    return " - Not resolved";
-                case CrmEntities.Tickets.IN_PROGRESS :
+                case CrmQueries.Tickets.ANY:
+                    return " - Any";
+                case CrmQueries.Tickets.IN_PROGRESS :
                     return " - In progress";
-                case CrmEntities.Tickets.ON_HOLD :
+                case CrmQueries.Tickets.ON_HOLD :
                     return " - On hold";
-                case CrmEntities.Tickets.TO_BE_BILLED :
+                case CrmQueries.Tickets.TO_BE_BILLED :
                     return " - To be billed";
-                case CrmEntities.Tickets.TO_BE_INSPECTED :
+                case CrmQueries.Tickets.TO_BE_INSPECTED :
                     return " - To be inspected";
-                case CrmEntities.Tickets.WAITING_ON_CUSTOMER :
+                case CrmQueries.Tickets.WAITING_ON_CUSTOMER :
                     return " - Waiting on customer";
-                case CrmEntities.Tickets.WAITING_ON_REP :
+                case CrmQueries.Tickets.WAITING_ON_REP :
                     return " - Waiting on rep";
-                case CrmEntities.Tickets.WAITING_FOR_PRODUCT :
+                case CrmQueries.Tickets.WAITING_FOR_PRODUCT :
                     return " - Waiting for product";
-                case CrmEntities.Tickets.PROBLEM_SOLVED :
+                case CrmQueries.Tickets.PROBLEM_SOLVED :
                     return " - Problem solved";
             }
             return null;
+        }
+
+        public String getOpportunityTitleAddendum() {
+            switch (dealStatus) {
+                case DEAD:
+                    return "Dead";
+                case CANCELED:
+                    return "Canceled";
+                case CLOSED:
+                    return "Closed";
+                case WON:
+                    return "Won";
+                case PENDING:
+                    return "Pending";
+                case EVALUATING:
+                    return "Evaluating";
+                case QUALIFYING:
+                    return "Qualifying";
+                case STALLED:
+                    return "Stalled";
+                case DISCOVERY:
+                    return "Discovery";
+                default:
+                    return "All";
+            }
+        }
+
+        public String getLeadsTitleAddendum() {
+            switch (leadFilter) {
+                case QUALIFIED:
+                    return "Qualified";
+                case DISQUALIFIED:
+                    return "Disqualified";
+                case LAST_THREE_MONTHS:
+                    return "Last 3 months";
+                default:
+                    return "Any";
+            }
         }
 
         @Override
@@ -780,12 +1050,16 @@ public class Activity_TerritoryData extends AppCompatActivity {
             }
 
             switch (position) {
+                case LANDING_PAGE:
+                    return "Territory " + globalTerritory.territoryName;
                 case SALES_PAGE:
-                    return "Sales Lines (" + globalTerritory.territoryName + ")";
+                    String monthName = Helpers.DatesAndTimes.getMonthName(monthNum);
+                    String t = monthName + yearNum;
+                    return "Sales Lines (" + globalTerritory.territoryName + ") " + t;
                 case LEADS_PAGE:
-                    return "Leads (" + globalTerritory.territoryName + ")";
+                    return "Leads (" + globalTerritory.territoryName + ") " + getLeadsTitleAddendum();
                 case OPPORTUNITIES_PAGE:
-                    return "Opportunities (" + globalTerritory.territoryName + ")";
+                    return "Opportunities (" + globalTerritory.territoryName + ") " + getOpportunityTitleAddendum();
                 case CASES_PAGE:
                     return "Cases (" + globalTerritory.territoryName + ")" + getCaseCriteriaTitleAddendum();
                 case ACCOUNTS_PAGE:
@@ -805,6 +1079,124 @@ public class Activity_TerritoryData extends AppCompatActivity {
     }
 
     //region ********************************** FRAGS *****************************************
+    public static class Frag_LandingPage extends Fragment {
+        public static final String ARG_SECTION_NUMBER = "section_number";
+        public View root;
+        public RecyclerView recyclerView;
+        RefreshLayout refreshLayout;
+        LandingPageRecyclerAdapter adapter;
+        RecyclerView listview;
+        Territory curTerritory;
+        BroadcastReceiver territoryChangedReceiver;
+        TextView txtNoData;
+        Button btnGoToSales;
+        BroadcastReceiver menuSelectionReceiver;
+        FloatingActionButton fab;
+        ArrayList<LandingPageItem> landingPageItems;
+
+        @Nullable
+        @Override
+        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                                 @Nullable Bundle savedInstanceState) {
+            root = inflater.inflate(R.layout.frag_dashboard, container, false);
+            super.onCreateView(inflater, container, savedInstanceState);
+
+            /*fab = root.findViewById(R.id.floatingActionButton);
+            fab.setVisibility(View.GONE);
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(FAB_CLICKED);
+                    getActivity().sendBroadcast(intent);
+                }
+            });*/
+
+            menuSelectionReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Log.i(TAG, "onReceive Received month and year broadcast! (sales lines frag)");
+                    monthNum = intent.getIntExtra(MONTH, DateTime.now().getMonthOfYear());
+                    yearNum = intent.getIntExtra(YEAR, DateTime.now().getYear());
+                    // getDashboardData();
+                    sectionsPagerAdapter.notifyDataSetChanged();
+                }
+            };
+
+            territoryChangedReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    curTerritory = globalTerritory;
+                    // getDashboardData();
+                }
+            };
+
+            populateList();
+
+            return root;
+        }
+
+        @Override
+        public void onStop() {
+            super.onStop();
+
+        }
+
+        @Override
+        public void onDestroyView() {
+            super.onDestroyView();
+            getActivity().unregisterReceiver(menuSelectionReceiver);
+            getActivity().unregisterReceiver(territoryChangedReceiver);
+            Log.i(TAG, "onPause Unregistered the sales lines receiver");
+        }
+
+        @Override
+        public void onResume() {
+            IntentFilter filter = new IntentFilter(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
+            filter.addAction(MENU_SELECTION);
+            getActivity().registerReceiver(menuSelectionReceiver, filter);
+            getActivity().registerReceiver(territoryChangedReceiver, new IntentFilter(MENU_SELECTION));
+
+            Log.i(TAG, "onResume Registered the sales lines receiver");
+            super.onResume();
+        }
+
+        @Override
+        public void onPause() {
+
+            super.onPause();
+        }
+
+        void populateList() {
+
+            landingPageItems = new ArrayList<>();
+            landingPageItems.add(new LandingPageItem("Go to sales", SectionsPagerAdapter.SALES_PAGE, R.drawable.dollar6, R.drawable.arrow_right2));
+            landingPageItems.add(new LandingPageItem("Go to leads", SectionsPagerAdapter.LEADS_PAGE, R.drawable.lead2, R.drawable.arrow_right2));
+            landingPageItems.add(new LandingPageItem("Go to opportunities", SectionsPagerAdapter.OPPORTUNITIES_PAGE, R.drawable.opportunity1, R.drawable.arrow_right2));
+            landingPageItems.add(new LandingPageItem("Go to cases", SectionsPagerAdapter.CASES_PAGE, R.drawable.ticket1, R.drawable.arrow_right2));
+            landingPageItems.add(new LandingPageItem("Go to accounts", SectionsPagerAdapter.ACCOUNTS_PAGE, R.drawable.customer2, R.drawable.arrow_right2));
+            landingPageItems.add(new LandingPageItem("Go to service agreements", SectionsPagerAdapter.SERVICE_AGREEMENTS_PAGE, R.drawable.contract32, R.drawable.arrow_right2));
+            landingPageItems.add(new LandingPageItem("Change territory...", LandingPageItem.CHANGE_TERRITORY_CODE));
+            listview = root.findViewById(R.id.recyclerView);
+            adapter = new LandingPageRecyclerAdapter(context, landingPageItems);
+            listview.setLayoutManager(new LinearLayoutManager(context));
+            listview.setAdapter(adapter);
+            adapter.setClickListener(new LandingPageRecyclerAdapter.ItemClickListener() {
+                @Override
+                public void onItemClick(View view, int position) {
+                    LandingPageItem item = adapter.getItem(position);
+                    if (item.pageIndex == LandingPageItem.CHANGE_TERRITORY_CODE) {
+                        Intent intent = new Intent(context, FullscreenActivityChooseTerritory.class);
+                        intent.putExtra(FullscreenActivityChooseTerritory.CURRENT_TERRITORY, globalTerritory);
+                        startActivityForResult(intent, 0);
+                    } else {
+                        mViewPager.setCurrentItem(item.pageIndex, true);
+                    }
+                }
+            });
+        }
+
+    }
+
     public static class Frag_SalesLines extends Fragment {
         public static final String ARG_SECTION_NUMBER = "section_number";
         public View root;
@@ -815,7 +1207,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         BroadcastReceiver territoryChangedReceiver;
         ArrayList<OrderProducts.OrderProduct> allOrders = new ArrayList<>();
         TextView txtNoSales;
-        BroadcastReceiver salesLinesReceiver;
+        BroadcastReceiver menuSelectionReceiver;
         FloatingActionButton fab;
 
         @Nullable
@@ -854,13 +1246,14 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 }
             });
 
-            salesLinesReceiver = new BroadcastReceiver() {
+            menuSelectionReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     Log.i(TAG, "onReceive Received month and year broadcast! (sales lines frag)");
                     monthNum = intent.getIntExtra(MONTH, DateTime.now().getMonthOfYear());
                     yearNum = intent.getIntExtra(YEAR, DateTime.now().getYear());
                     getSalesLines();
+                    sectionsPagerAdapter.notifyDataSetChanged();
                 }
             };
 
@@ -890,7 +1283,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         @Override
         public void onDestroyView() {
             super.onDestroyView();
-            getActivity().unregisterReceiver(salesLinesReceiver);
+            getActivity().unregisterReceiver(menuSelectionReceiver);
             getActivity().unregisterReceiver(territoryChangedReceiver);
             Log.i(TAG, "onPause Unregistered the sales lines receiver");
         }
@@ -899,7 +1292,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public void onResume() {
             IntentFilter filter = new IntentFilter(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
             filter.addAction(MENU_SELECTION);
-            getActivity().registerReceiver(salesLinesReceiver, filter);
+            getActivity().registerReceiver(menuSelectionReceiver, filter);
             getActivity().registerReceiver(territoryChangedReceiver, new IntentFilter(MENU_SELECTION));
 
             Log.i(TAG, "onResume Registered the sales lines receiver");
@@ -924,10 +1317,12 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 query = CrmQueries.OrderLines.getOrderLines(globalTerritory.territoryid,
                         CrmQueries.Operators.DateOperator.LAST_MONTH);
             } else {
-                query = CrmQueries.OrderLines.getOrderLines(globalTerritory.territoryid, monthNum);
+                query = CrmQueries.OrderLines.getOrderLines(globalTerritory.territoryid, monthNum, yearNum);
             }
 
             txtNoSales.setVisibility(View.GONE);
+
+            toolbar.setTitle(sectionsPagerAdapter.getPageTitle(mViewPager.currentPosition));
 
             ArrayList<Requests.Argument> args = new ArrayList<>();
             Requests.Argument argument = new Requests.Argument("query", query);
@@ -965,7 +1360,15 @@ public class Activity_TerritoryData extends AppCompatActivity {
             boolean addedYesterdayHeader = false;
             boolean addedThisWeekHeader = false;
             boolean addedThisMonthHeader = false;
-            boolean addedOlderHeader = false;
+            boolean addedLastMonthHeader = false;
+            boolean otherHeader = false;
+
+            float todaySubtotal = 0;
+            float yesterdaySubtotal = 0;
+            float thisWeekSubtotal = 0;
+            float thisMonthSubtotal = 0;
+            float lastMonthSubtotal = 0;
+            float otherSubtotal = 0;
 
             // Sorting criteria based on date - these will be used when constructing header rows
             int todayDayOfYear = Helpers.DatesAndTimes.returnDayOfYear(DateTime.now());
@@ -974,12 +1377,12 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
             Log.i(TAG, "populateTripList: Preparing the dividers and trips...");
             for (int i = 0; i < (allOrders.size()); i++) {
-                int tripDayOfYear = Helpers.DatesAndTimes.returnDayOfYear(allOrders.get(i).orderDate);
-                int tripWeekOfYear = Helpers.DatesAndTimes.returnWeekOfYear(allOrders.get(i).orderDate);
+                int orderDayOfYear = Helpers.DatesAndTimes.returnDayOfYear(allOrders.get(i).orderDate);
+                int orderWeekOfYear = Helpers.DatesAndTimes.returnWeekOfYear(allOrders.get(i).orderDate);
                 int tripMonthOfYear = Helpers.DatesAndTimes.returnMonthOfYear(allOrders.get(i).orderDate);
-
+                OrderProduct curProduct = allOrders.get(i);
                 // Trip was today
-                if (tripDayOfYear == todayDayOfYear) {
+                if (orderDayOfYear == todayDayOfYear) {
                     if (addedTodayHeader == false) {
                         OrderProducts.OrderProduct headerObj = new OrderProducts.OrderProduct();
                         headerObj.isSeparator = true;
@@ -988,8 +1391,9 @@ public class Activity_TerritoryData extends AppCompatActivity {
                         addedTodayHeader = true;
                         Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Today' - This will not be added again!");
                     }
+                    todaySubtotal += curProduct.extendedAmt;
                     // Trip was yesterday
-                } else if (tripDayOfYear == (todayDayOfYear - 1)) {
+                } else if (orderDayOfYear == (todayDayOfYear - 1)) {
                     if (addedYesterdayHeader == false) {
                         OrderProduct headerObj = new OrderProduct();
                         headerObj.isSeparator = true;
@@ -998,9 +1402,9 @@ public class Activity_TerritoryData extends AppCompatActivity {
                         addedYesterdayHeader = true;
                         Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Yesterday' - This will not be added again!");
                     }
-
+                    yesterdaySubtotal += curProduct.extendedAmt;
                     // Trip was this week
-                } else if (tripWeekOfYear == todayWeekOfYear) {
+                } else if (orderWeekOfYear == todayWeekOfYear) {
                     if (addedThisWeekHeader == false) {
                         OrderProduct headerObj = new OrderProduct();
                         headerObj.isSeparator = true;
@@ -1009,7 +1413,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                         addedThisWeekHeader = true;
                         Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'This week' - This will not be added again!");
                     }
-
+                    thisWeekSubtotal += curProduct.extendedAmt;
                     // Trip was this month
                 } else if (tripMonthOfYear == todayMonthOfYear) {
                     if (addedThisMonthHeader == false) {
@@ -1020,31 +1424,108 @@ public class Activity_TerritoryData extends AppCompatActivity {
                         addedThisMonthHeader = true;
                         Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'This month' - This will not be added again!");
                     }
-
-                    // Trip was older than this month
-                } else if (tripMonthOfYear < todayMonthOfYear) {
-                    if (addedOlderHeader == false) {
+                    thisMonthSubtotal += curProduct.extendedAmt;
+                    // Trip was last month
+                } else if (curProduct.orderDate.getMonthOfYear() == DateTime.now().minusMonths(1).getMonthOfYear() &&
+                    curProduct.orderDate.getYear() == DateTime.now().minusMonths(1).getYear()) {
+                    if (addedLastMonthHeader == false) {
                         OrderProduct headerObj = new OrderProduct();
                         headerObj.isSeparator = true;
-                        headerObj.setTitle("Last month and older");
+                        headerObj.setTitle("Last month");
                         orderList.add(headerObj);
-                        addedOlderHeader = true;
+                        addedLastMonthHeader = true;
+                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'This month' - This will not be added again!");
+                    }
+                    lastMonthSubtotal += curProduct.extendedAmt;
+                    // Trip was older than this month
+                } else {
+                    if (otherHeader == false) {
+                        OrderProduct headerObj = new OrderProduct();
+                        headerObj.isSeparator = true;
+                        headerObj.setTitle("Total");
+                        orderList.add(headerObj);
+                        otherHeader = true;
                         Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Older' - This will not be added again!");
                     }
+                    otherSubtotal += curProduct.extendedAmt;
                 }
 
                 OrderProducts.OrderProduct orderProduct = allOrders.get(i);
                 orderList.add(orderProduct);
             }
 
+            // Sum today, yesterday, this week, etc.
+            // This feels... right but I can't actually logic out if it is or is even necessary.
+            thisMonthSubtotal = thisMonthSubtotal + thisWeekSubtotal + yesterdaySubtotal + todaySubtotal;
+            thisWeekSubtotal = thisWeekSubtotal + yesterdaySubtotal + todaySubtotal;
+
+            // Append the subtotals to the headers
+            for (OrderProducts.OrderProduct product : orderList) {
+                if (todaySubtotal > 0) {
+                    if (product.isSeparator && product.partNumber.equals("Today")) {
+                        product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(todaySubtotal) + ")";
+                    }
+                }
+                if (yesterdaySubtotal > 0) {
+                    if (product.isSeparator && product.partNumber.equals("Yesterday")) {
+                        product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(yesterdaySubtotal) + ")";
+                    }
+                }
+                if (thisWeekSubtotal > 0) {
+                    if (product.isSeparator && product.partNumber.equals("This week")) {
+                        product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(thisWeekSubtotal) + ")";
+                    }
+                }
+                if (thisMonthSubtotal > 0) {
+                    if (product.isSeparator && product.partNumber.equals("This month")) {
+                        product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(thisMonthSubtotal) + ")";
+                    }
+                }
+                if (lastMonthSubtotal > 0) {
+                    if (product.isSeparator && product.partNumber.equals("Last month")) {
+                        product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(lastMonthSubtotal) + ")";
+                    }
+                }
+                if (otherSubtotal > 0) {
+                    if (product.isSeparator && product.partNumber.equals("Total")) {
+                        product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(otherSubtotal) + ")";
+                    }
+                }
+            }
+
             Log.i(TAG, "populateTripList Finished preparing the dividers and trips.");
 
             if (!getActivity().isFinishing()) {
                 adapter = new OrderLineRecyclerAdapter(getContext(), orderList);
-                adapter.setClickListener(new OrderLineRecyclerAdapter.ItemClickListener() {
+                adapter.setOnRowClickListener(new OrderLineRecyclerAdapter.RowClickListener() {
                     @Override
                     public void onItemClick(View view, int position) {
-
+                        /*OrderProduct clickedProduct = adapter.mData.get(position);
+                        Toast.makeText(getContext(), clickedProduct.salesorderidFormatted
+                                + " placed on " + Helpers.DatesAndTimes
+                                .getPrettyDate(clickedProduct.orderDate), Toast.LENGTH_SHORT)
+                                .show();*/
+                        Log.i(TAG, "onLinkButtonClick ");
+                        CrmEntities.Accounts.Account selectedAccount = new CrmEntities.Accounts.Account(
+                                adapter.mData.get(position).customerid, adapter.mData.get(position).customeridFormatted);
+                        Intent intent = new Intent(context, Activity_AccountData.class);
+                        intent.setAction(Activity_AccountData.GO_TO_ACCOUNT);
+                        intent.putExtra(Activity_AccountData.GO_TO_ACCOUNT_OBJECT, selectedAccount);
+                        intent.putExtra(Activity_AccountData.INITIAL_PAGE, Activity_AccountData.SectionsPagerAdapter.SALES_LINE_PAGE);
+                        startActivity(intent);
+                    }
+                });
+                adapter.setOnLinkButtonClickListener(new OrderLineRecyclerAdapter.OnLinkButtonClickListener() {
+                    @Override
+                    public void onLinkButtonClick(View view, int position) {
+                        Log.i(TAG, "onLinkButtonClick ");
+                        CrmEntities.Accounts.Account selectedAccount = new CrmEntities.Accounts.Account(
+                                adapter.mData.get(position).customerid, adapter.mData.get(position).customeridFormatted);
+                        Intent intent = new Intent(context, Activity_AccountData.class);
+                        intent.setAction(Activity_AccountData.GO_TO_ACCOUNT);
+                        intent.putExtra(Activity_AccountData.GO_TO_ACCOUNT_OBJECT, selectedAccount);
+                        intent.putExtra(Activity_AccountData.INITIAL_PAGE, Activity_AccountData.SectionsPagerAdapter.SALES_LINE_PAGE);
+                        startActivity(intent);
                     }
                 });
                 recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -1070,7 +1551,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public CrmEntities.Leads leads;
         ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
         BasicObjectRecyclerAdapter adapter;
-        BroadcastReceiver leadsReceiver;
+        BroadcastReceiver menuSelectionReceiver;
         BroadcastReceiver territoryChangedReceiver;
         FloatingActionButton fab;
 
@@ -1092,17 +1573,17 @@ public class Activity_TerritoryData extends AppCompatActivity {
             super.onCreateView(inflater, container, savedInstanceState);
 
             fab = rootView.findViewById(R.id.floatingActionButton);
-            fab.setVisibility(View.GONE); // Nothing to filter (yet) so hide.
-            /*fab.setOnClickListener(new View.OnClickListener() {
+            fab.setVisibility(View.VISIBLE); // Nothing to filter (yet) so hide.
+            fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Intent intent = new Intent(FAB_CLICKED);
                     getActivity().sendBroadcast(intent);
                 }
-            });*/
+            });
 
             // Gifts from Santa - open present and do stuff with what we got!
-            leadsReceiver = new BroadcastReceiver() {
+            menuSelectionReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     Log.i(TAG, "onReceive Opportunities frag received a broadcast!");
@@ -1113,6 +1594,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                         if (intent.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT) != null) {
                             curTerritory = intent.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
                             getLeads();
+                            sectionsPagerAdapter.notifyDataSetChanged();
                         }
                     }
                 }
@@ -1149,7 +1631,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
         @Override
         public void onDestroyView() {
-            getActivity().unregisterReceiver(leadsReceiver);
+            getActivity().unregisterReceiver(menuSelectionReceiver);
             getActivity().unregisterReceiver(territoryChangedReceiver);
             super.onDestroyView();
         }
@@ -1158,14 +1640,15 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public void onResume() {
             super.onResume();
             IntentFilter intentFilterMenuSelection = new IntentFilter(MENU_SELECTION);
-            getActivity().registerReceiver(leadsReceiver, intentFilterMenuSelection);
+            getActivity().registerReceiver(menuSelectionReceiver, intentFilterMenuSelection);
             getActivity().registerReceiver(territoryChangedReceiver, new IntentFilter(MENU_SELECTION));
             Log.i(TAG, "onResume Registered opportunities receiver");
         }
 
         public void getLeads() {
             refreshLayout.autoRefreshAnimationOnly();
-            CrmEntities.Leads.getCrmLeads(context, curTerritory.territoryid, new MyInterfaces.GetLeadsListener() {
+            toolbar.setTitle(sectionsPagerAdapter.getPageTitle(mViewPager.currentPosition));
+            CrmEntities.Leads.getTerritoryLeads(context, leadFilter, curTerritory.territoryid, new MyInterfaces.GetLeadsListener() {
                 @Override
                 public void onSuccess(CrmEntities.Leads crmLeads) {
                     Log.i(TAG, "onSuccess ");
@@ -1181,7 +1664,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 @Override
                 public void onFailure(String error) {
                     refreshLayout.finishRefresh();
-                    Toast.makeText(context, "Failed to get opportunities!\n" + error, Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, "Failed to get leads!\n" + error, Toast.LENGTH_LONG).show();
                 }
             });
         }
@@ -1310,12 +1793,11 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public RecyclerView listview;
         RefreshLayout refreshLayout;
         TextView txtNoOpportunities;
-        public ArrayList<Territory> cachedTerritories;
         public Territory curTerritory;
         public CrmEntities.Opportunities opportunities;
         ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
         BasicObjectRecyclerAdapter adapter;
-        BroadcastReceiver opportunitiesReceiver;
+        BroadcastReceiver menuReceiver;
         FloatingActionButton fab;
 
         @Nullable
@@ -1334,7 +1816,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
             refreshLayout.setEnableLoadMore(false);
 
             // Gifts from Santa - open present and do stuff with what we got!
-            opportunitiesReceiver = new BroadcastReceiver() {
+            menuReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     Log.i(TAG, "onReceive Opportunities frag received a broadcast!");
@@ -1346,6 +1828,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
                             curTerritory = intent.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
                             getOpportunities();
                         }
+                        getOpportunities();
+                        sectionsPagerAdapter.notifyDataSetChanged();
                     }
                 }
             };
@@ -1366,14 +1850,14 @@ public class Activity_TerritoryData extends AppCompatActivity {
             super.onCreateView(inflater, container, savedInstanceState);
 
             fab = rootView.findViewById(R.id.floatingActionButton);
-            fab.setVisibility(View.GONE); // Nothing to filter (yet) so hide.
-            /*fab.setOnClickListener(new View.OnClickListener() {
+            fab.setVisibility(View.VISIBLE); // Nothing to filter (yet) so hide.
+            fab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Intent intent = new Intent(FAB_CLICKED);
                     getActivity().sendBroadcast(intent);
                 }
-            });*/
+            });
 
             return rootView;
         }
@@ -1387,7 +1871,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
         @Override
         public void onDestroyView() {
-            getActivity().unregisterReceiver(opportunitiesReceiver);
+            getActivity().unregisterReceiver(menuReceiver);
             super.onDestroyView();
         }
 
@@ -1395,18 +1879,18 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public void onResume() {
             super.onResume();
             IntentFilter intentFilterMenuSelection = new IntentFilter(MENU_SELECTION);
-            getActivity().registerReceiver(opportunitiesReceiver, intentFilterMenuSelection);
+            getActivity().registerReceiver(menuReceiver, intentFilterMenuSelection);
             Log.i(TAG, "onResume Registered opportunities receiver");
         }
 
         public void getOpportunities() {
+            toolbar.setTitle(sectionsPagerAdapter.getPageTitle(mViewPager.currentPosition));
             refreshLayout.autoRefresh();
-            CrmEntities.Opportunities.retrieveOpportunities(curTerritory.territoryid, new MyInterfaces.GetOpportunitiesListener() {
+            CrmEntities.Opportunities.retrieveOpportunities(dealStatus, curTerritory.territoryid, new MyInterfaces.GetOpportunitiesListener() {
                 @Override
                 public void onSuccess(CrmEntities.Opportunities crmOpportunities) {
                     opportunities = crmOpportunities;
                     populateList();
-                    // populateOpportunities();
                     refreshLayout.finishRefresh();
                 }
 
@@ -1424,7 +1908,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 BasicObjects.BasicObject object = new BasicObjects.BasicObject(opp.name, opp.dealTypePretty, opp);
                 object.middleText = opp.accountname;
                 object.topRightText = opp.probabilityPretty;
-                object.iconResource = R.drawable.opportunity_icon4_32x32;
+                object.iconResource = R.drawable.opportunity1;
                 objects.add(object);
             }
 
@@ -1592,6 +2076,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     Log.i(TAG, "onReceive Received month and year broadcast! (cases frag)");
                     mViewPager.getAdapter().notifyDataSetChanged();
                     getTickets();
+                    sectionsPagerAdapter.notifyDataSetChanged();
                 }
             };
 
@@ -1622,16 +2107,13 @@ public class Activity_TerritoryData extends AppCompatActivity {
         }
 
         void getTickets() {
+            toolbar.setTitle(sectionsPagerAdapter.getPageTitle(mViewPager.currentPosition));
             refreshLayout.autoRefreshAnimationOnly();
             String query = null;
 
             curTerritory = globalTerritory;
 
-            if (case_status == NOT_RESOLVED) {
-                query = CrmQueries.Tickets.getNonResolvedTickets(globalTerritory.territoryid);
-            } else {
-                query = CrmQueries.Tickets.getTickets(globalTerritory.territoryid, case_status);
-            }
+            query = CrmQueries.Tickets.getIncidents(globalTerritory.territoryid, case_status, case_state, 4);
 
             ArrayList<Requests.Argument> args = new ArrayList<>();
             args.add(new Requests.Argument("query", query));
@@ -1659,61 +2141,39 @@ public class Activity_TerritoryData extends AppCompatActivity {
             objects.clear();
 
             if (tickets != null) {
+                objects = tickets.toBasicObjects();
+                adapter = new BasicObjectRecyclerAdapter(context, objects);
+                listview.setLayoutManager(new LinearLayoutManager(context));
+                listview.setAdapter(adapter);
+                adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
+                    @Override
+                    public void onItemClick(View view, int position) {
+                        BasicObjects.BasicObject object = objects.get(position);
+                        CrmEntities.Tickets.Ticket ticket = (CrmEntities.Tickets.Ticket) object.object;
+                        Intent intent = new Intent(context, BasicEntityActivity.class);
+                        intent.putExtra(BasicEntityActivity.GSON_STRING, ticket.toBasicEntity().toGson());
+                        intent.putExtra(BasicEntityActivity.ENTITYID, ticket.entityid);
+                        intent.putExtra(BasicEntityActivity.CURRENT_TERRITORY, globalTerritory);
+                        intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "incident");
+                        intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Ticket " + ticket.ticketnumber);
+                        startActivityForResult(intent, REQUEST_BASIC);
 
-                int lastStatusCode = -1;
-
-                for (CrmEntities.Tickets.Ticket ticket : tickets.list) {
-
-                    // Logic to create headers denoting newly seen status'
-                    if (ticket.statuscode != lastStatusCode) {
-                        BasicObjects.BasicObject object = new BasicObjects.BasicObject(ticket.statusFormatted, null, null);
-                        object.isHeader = true;
-                        objects.add(object);
-                        lastStatusCode = ticket.statuscode;
+                        try {
+                            MileBuddyMetrics.updateMetric(context, MileBuddyMetrics.MetricName.LAST_OPENED_TICKET, DateTime.now());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
+                });
 
-                    // Add the ticket as a BasicObject
-                    BasicObjects.BasicObject object = new BasicObjects.BasicObject(ticket.title, ticket.ticketnumber, ticket);
-                    object.middleText = ticket.customerFormatted;
-                    object.topRightText = Helpers.DatesAndTimes.getPrettyDateAndTime(ticket.modifiedon);
-                    object.bottomRightText = ticket.statusFormatted;
-                    object.iconResource = R.drawable.settings_hammer_wrench;
-                    objects.add(object);
+                txtNoTickets.setVisibility(objects.size() == 0 ? View.VISIBLE : View.GONE);
+
+                try {
+                    refreshLayout.finishRefresh();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
-
-            adapter = new BasicObjectRecyclerAdapter(context, objects);
-            listview.setLayoutManager(new LinearLayoutManager(context));
-            listview.setAdapter(adapter);
-            adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
-                @Override
-                public void onItemClick(View view, int position) {
-                    BasicObjects.BasicObject object = objects.get(position);
-                    CrmEntities.Tickets.Ticket ticket = (CrmEntities.Tickets.Ticket) object.object;
-                    Intent intent = new Intent(context, BasicEntityActivity.class);
-                    intent.putExtra(BasicEntityActivity.GSON_STRING, ticket.toBasicEntity().toGson());
-                    intent.putExtra(BasicEntityActivity.ENTITYID, ticket.entityid);
-                    intent.putExtra(BasicEntityActivity.CURRENT_TERRITORY, globalTerritory);
-                    intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "incident");
-                    intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Ticket " + ticket.ticketnumber);
-                    startActivityForResult(intent, REQUEST_BASIC);
-
-                    try {
-                        MileBuddyMetrics.updateMetric(context, MileBuddyMetrics.MetricName.LAST_OPENED_TICKET, DateTime.now());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-
-            txtNoTickets.setVisibility(objects.size() == 0 ? View.VISIBLE : View.GONE);
-
-            try {
-                refreshLayout.finishRefresh();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
         }
 
         @Override
@@ -1781,6 +2241,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 }
             });*/
 
+
+            txtNoAccounts = rootView.findViewById(R.id.txtNoAgreements);
             layoutFilter = rootView.findViewById(R.id.layoutFilter);
 
             accountsReceiver = new BroadcastReceiver() {
@@ -1851,13 +2313,13 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 }
             };
 
+            // Reminder, don't use cached accounts (options.getCachedAccounts()) for territory-specific shit!
+
             if (objects == null || objects.size() == 0 || curTerritory != globalTerritory) {
                 getAccounts();
             } else {
                 populateList();
             }
-
-            txtNoAccounts = rootView.findViewById(R.id.txtNoAgreements);
 
             return rootView;
         }
@@ -1872,12 +2334,13 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            String query = CrmQueries.Accounts.getAccountsByTerritory(globalTerritory.territoryid);
+            String query = CrmQueries.Accounts.getAccounts(globalTerritory.territoryid);
 
             ArrayList<Requests.Argument> args = new ArrayList<>();
             args.add(new Requests.Argument("query", query));
             Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
 
+            toolbar.setTitle(sectionsPagerAdapter.getPageTitle(mViewPager.currentPosition));
             Crm crm = new Crm();
             crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
                 @Override
@@ -1912,7 +2375,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     // Add the ticket as a BasicObject
                     BasicObjects.BasicObject object = new BasicObjects.BasicObject(account.accountnumber, account.customerTypeFormatted, account);
                     object.middleText = account.accountName;
-                    object.iconResource = R.drawable.maps_hospital_32x37;
+                    object.iconResource = R.drawable.customer2;
                     objects.add(object);
                 }
             }
@@ -2015,6 +2478,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     Log.i(TAG, "onReceive Received an agreements filter broadcast! (service agreements frag)");
                     mViewPager.getAdapter().notifyDataSetChanged();
                     getServiceAgreements();
+                    sectionsPagerAdapter.notifyDataSetChanged();
                 }
             };
 
@@ -2042,6 +2506,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
             refreshLayout.autoRefreshAnimationOnly();
 
             String query = "";
+            toolbar.setTitle(sectionsPagerAdapter.getPageTitle(mViewPager.currentPosition));
 
             switch (serviceAgreementFilter) {
                 case CURRENT:

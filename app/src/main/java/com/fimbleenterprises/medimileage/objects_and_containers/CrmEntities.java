@@ -2,6 +2,7 @@ package com.fimbleenterprises.medimileage.objects_and_containers;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -18,6 +19,9 @@ import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
+import com.fimbleenterprises.medimileage.activities.Activity_AccountData;
+import com.fimbleenterprises.medimileage.adapters.OrderLineRecyclerAdapter;
+import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects.BasicObject;
 import com.fimbleenterprises.medimileage.objects_and_containers.EntityContainers.EntityContainer;
 import com.fimbleenterprises.medimileage.objects_and_containers.EntityContainers.EntityField;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests.Request.Function;
@@ -38,6 +42,7 @@ import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import cz.msebera.android.httpclient.Header;
 
 public class CrmEntities {
@@ -162,10 +167,10 @@ public class CrmEntities {
 
         }
 
-        public ArrayList<BasicObjects.BasicObject> toBasicObjects() {
-            ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
+        public ArrayList<BasicObject> toBasicObjects() {
+            ArrayList<BasicObject> objects = new ArrayList<>();
             for (Annotation annotation : this.list) {
-                BasicObjects.BasicObject object = new BasicObjects.BasicObject();
+                BasicObject object = new BasicObject();
                 object.object = annotation;
                 object.iconResource = R.drawable.text_message_icon_32x;
                 object.title = annotation.subject;
@@ -1348,9 +1353,75 @@ public class CrmEntities {
             }
         }
 
-        public static void getCrmLeads(Context context, String territoryid, final MyInterfaces.GetLeadsListener listener) {
+        public static void getTerritoryLeads(Context context, String territoryid, final MyInterfaces.GetLeadsListener listener) {
 
             String query = CrmQueries.Leads.getTerritoryLeads(territoryid);
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            args.add(new Requests.Argument("query", query));
+            Requests.Request request = new Requests.Request(Function.GET, args);
+            new Crm().makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    String response = new String(responseBody);
+                    Leads leads = new Leads(response);
+                    listener.onSuccess(leads);
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    listener.onFailure(error.getLocalizedMessage());
+                }
+            });
+
+        }
+
+        public static void getTerritoryLeads(Context context, CrmQueries.Leads.LeadFilter filter, String territoryid, final MyInterfaces.GetLeadsListener listener) {
+
+            String query = CrmQueries.Leads.getTerritoryLeads(territoryid, filter);
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            args.add(new Requests.Argument("query", query));
+            Requests.Request request = new Requests.Request(Function.GET, args);
+            new Crm().makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    String response = new String(responseBody);
+                    Leads leads = new Leads(response);
+                    listener.onSuccess(leads);
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    listener.onFailure(error.getLocalizedMessage());
+                }
+            });
+
+        }
+
+        public static void getAllLeads(Context context, final MyInterfaces.GetLeadsListener listener) {
+
+            String query = CrmQueries.Leads.getAllLeads();
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            args.add(new Requests.Argument("query", query));
+            Requests.Request request = new Requests.Request(Function.GET, args);
+            new Crm().makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    String response = new String(responseBody);
+                    Leads leads = new Leads(response);
+                    listener.onSuccess(leads);
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    listener.onFailure(error.getLocalizedMessage());
+                }
+            });
+
+        }
+
+        public static void getAllLeads(Context context, CrmQueries.Leads.LeadFilter filter, final MyInterfaces.GetLeadsListener listener) {
+
+            String query = CrmQueries.Leads.getAllLeads(filter);
             ArrayList<Requests.Argument> args = new ArrayList<>();
             args.add(new Requests.Argument("query", query));
             Requests.Request request = new Requests.Request(Function.GET, args);
@@ -1736,11 +1807,13 @@ public class CrmEntities {
                 }
             }
 
-            public BasicObjects.BasicObject toBasicObject() {
-                BasicObjects.BasicObject object = new BasicObjects.BasicObject(this.subject, this.firstname + " " + this.lastname, this);
-                object.middleText = this.statuscodeFormatted;
-                object.topRightText = this.leadQualityFormatted;
-                object.iconResource = R.drawable.lead_icon2_32x32;
+            public BasicObject toBasicObject() {
+                BasicObject object = new BasicObject(this.firstname + " " + this.lastname,
+                        this.parentAccountName + "\n" + this.owneridFormatted + "\n" + this.createdOnFormatted, this);
+                object.middleText = subject;
+                object.topRightText = this.leadQualityFormatted + "\n(" + statuscodeFormatted + ")";
+                object.iconResource = R.drawable.lead2;
+                object.bottomRightText = "";
                 return object;
             }
 
@@ -1763,7 +1836,7 @@ public class CrmEntities {
 
                 field = new BasicEntity.EntityBasicField("Account:", this.parentAccountName);
                 field.isAccountField = true;
-                field.crmFieldName = "parentaccountid";
+                field.crmFieldName = "customerid";
                 field.account = new Accounts.Account(this.parentAccountId, this.parentAccountName);
                 entity.fields.add(field);
 
@@ -2403,6 +2476,35 @@ public class CrmEntities {
         }
 
         /**
+         * Will query CRM using the supplied territory id and retrieve all opportunities.
+         * That's it.  That's all it does.
+         * @param listener An interface that constructs a Territories object and returns it on success.
+         */
+        public static void retrieveOpportunities(CrmQueries.Opportunities.DealStatus status,
+                                                 @Nullable String territoryid, final MyInterfaces.GetOpportunitiesListener listener) {
+            String query = CrmQueries.Opportunities.getAllOpportunities(territoryid, status);
+            ArrayList<Requests.Argument> args = new ArrayList<>();
+            Requests.Argument argument = new Requests.Argument("query", query);
+            args.add(argument);
+            Requests.Request request = new Requests.Request(Requests.Request.GET, args);
+            Crm crm = new Crm();
+            crm.makeCrmRequest(MyApp.getAppContext(), request, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    String response = new String(responseBody);
+                    listener.onSuccess(new CrmEntities.Opportunities(response));
+                    Log.i(TAG, "onSuccess " + response);
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
+                    listener.onFailure(error.getLocalizedMessage());
+                }
+            });
+        }
+
+        /**
          * Will query CRM and get an opportunity's details.
          * That's it.  That's all it does.
          * @param listener An interface that constructs a Territories object and returns it on success.
@@ -2583,7 +2685,7 @@ public class CrmEntities {
                 entity.entityStatusReason = new BasicEntity.EntityStatusReason(this.statuscodeFormatted,
                         Integer.toString(this.statuscode), Integer.toString(this.statecode));
 
-                BasicEntity.EntityBasicField dealType = new BasicEntity.EntityBasicField("Case type: ", dealTypePretty);
+                BasicEntity.EntityBasicField dealType = new BasicEntity.EntityBasicField("Deal type: ", dealTypePretty);
                 dealType.crmFieldName = "col_dealtype";
                 ArrayList<BasicEntity.EntityBasicField.OptionSetValue> dealTypes = new ArrayList<>();
                 dealTypes.add(new BasicEntity.EntityBasicField.OptionSetValue("NA", "100000000"));
@@ -2652,12 +2754,25 @@ public class CrmEntities {
                 }
             }
 
+            public String getDealTypePretty() {
+                if (this.dealTypePretty == null) {
+                    return "";
+                } else {
+                    return "Deal type " + this.dealTypePretty;
+                }
+            }
+
             public DateTime getModifiedOn() {
                 return new DateTime(modifiedOn);
             }
 
             public DateTime getEstimatedClose() {
-                return new DateTime(estimatedCloseDate);
+                try {
+                    return new DateTime(estimatedCloseDate);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return null;
+                }
             }
 
             public String getPrettyEstimatedValue() {
@@ -3347,7 +3462,46 @@ public class CrmEntities {
 
         }
 
-        public static class Contact extends CrmEntity {
+        /**
+         * Converts this object's contact list to LITE versions having fewer properties
+         */
+        public void convertToLiteContacts() {
+            ArrayList liteList = new ArrayList();
+            for (Contact c : this.list) {
+                Contact c1 = new Contact();
+                c1.entityid = c.entityid;
+                c1.firstname = c.firstname;
+                c1.lastname = c.lastname;
+                c1.accountid = c.accountid;
+                c1.accountFormatted = c.accountFormatted;
+                liteList.add(c1);
+            }
+            this.list = liteList;
+        }
+
+        /**
+         * Converts the supplied Contacts object's contact list to LITE versions having fewer properties
+         *  (fullname, accountid and account name).
+         * @param listToConvert The list to convert from.
+         * @return
+         */
+        public static Contacts convertToLiteContacts(Contacts listToConvert) {
+            ArrayList liteList = new ArrayList();
+            for (Contact c : listToConvert.list) {
+                Contact c1 = new Contact();
+                c1.entityid = c.entityid;
+                c1.firstname = c.firstname;
+                c1.lastname = c.lastname;
+                c1.accountid = c.accountid;
+                c1.accountFormatted = c.accountFormatted;
+                liteList.add(c1);
+            }
+
+            listToConvert.list = liteList;
+            return listToConvert;
+        }
+
+        public static class Contact extends CrmEntity implements Parcelable {
 
             /*public String etag;
                         public String entityid;*/
@@ -3585,13 +3739,23 @@ public class CrmEntities {
             }
 
             public BasicEntity toBasicEntity() {
+                return toBasicEntity(false);
+            }
+
+            public BasicEntity toBasicEntity(boolean isLead) {
                 BasicEntity entity = new BasicEntity(this);
                 entity.fields.add(new BasicEntity.EntityBasicField("First name:", this.firstname, "firstname"));
                 entity.fields.add(new BasicEntity.EntityBasicField("Last name:", this.lastname, "lastname"));
                 entity.fields.add(new BasicEntity.EntityBasicField("Email:", this.email, "emailaddress1"));
-                entity.fields.add(new BasicEntity.EntityBasicField("Phone:", this.mobile, "telephone1"));
+                entity.fields.add(new BasicEntity.EntityBasicField("Mobile phone:", this.mobile, "mobilephone"));
+                entity.fields.add(new BasicEntity.EntityBasicField("Business phone:", this.telephone1, "telephone1"));
 
-                BasicEntity.EntityBasicField accountField = new BasicEntity.EntityBasicField("Account:", this.accountFormatted, "parentcustomerid");
+                BasicEntity.EntityBasicField accountField = null;
+                if (isLead) {
+                    accountField = new BasicEntity.EntityBasicField("Account:", this.accountFormatted, "customerid");
+                } else {
+                    accountField = new BasicEntity.EntityBasicField("Account:", this.accountFormatted, "parentcustomerid");
+                }
                 accountField.isAccountField = true;
                 accountField.account = new Accounts.Account(this.accountid, this.accountFormatted);
                 entity.fields.add(accountField);
@@ -3687,27 +3851,115 @@ public class CrmEntities {
                 return this.firstname + " " + this.lastname + ", " + this.accountFormatted;
             }
 
+            @Override
+            public int describeContents() {
+                return 0;
+            }
+
+            @Override
+            public void writeToParcel(Parcel dest, int flags) {
+                dest.writeString(this.firstname);
+                dest.writeString(this.lastname);
+                dest.writeString(this.accountid);
+                dest.writeString(this.accountFormatted);
+                dest.writeString(this.mobile);
+                dest.writeString(this.address1composite);
+                dest.writeString(this.telephone1);
+                dest.writeString(this.address1Phone);
+                dest.writeString(this.jobtitle);
+                dest.writeString(this.npiid);
+                dest.writeString(this.npiFormatted);
+                dest.writeString(this.email);
+                dest.writeString(this.createdBy);
+                dest.writeString(this.createdByFormatted);
+                dest.writeSerializable(this.createdOn);
+                dest.writeString(this.createdOnFormatted);
+                dest.writeSerializable(this.modifiedOn);
+                dest.writeString(this.modifiedOnFormatted);
+                dest.writeString(this.modifiedBy);
+                dest.writeString(this.modifiedByFormatted);
+                dest.writeString(this.statecodeformatted);
+                dest.writeString(this.statuscodeformatted);
+                dest.writeInt(this.statecode);
+                dest.writeInt(this.statuscode);
+                dest.writeString(this.entityid);
+            }
+
+            public void readFromParcel(Parcel source) {
+                this.firstname = source.readString();
+                this.lastname = source.readString();
+                this.accountid = source.readString();
+                this.accountFormatted = source.readString();
+                this.mobile = source.readString();
+                this.address1composite = source.readString();
+                this.telephone1 = source.readString();
+                this.address1Phone = source.readString();
+                this.jobtitle = source.readString();
+                this.npiid = source.readString();
+                this.npiFormatted = source.readString();
+                this.email = source.readString();
+                this.createdBy = source.readString();
+                this.createdByFormatted = source.readString();
+                this.createdOn = (DateTime) source.readSerializable();
+                this.createdOnFormatted = source.readString();
+                this.modifiedOn = (DateTime) source.readSerializable();
+                this.modifiedOnFormatted = source.readString();
+                this.modifiedBy = source.readString();
+                this.modifiedByFormatted = source.readString();
+                this.statecodeformatted = source.readString();
+                this.statuscodeformatted = source.readString();
+                this.statecode = source.readInt();
+                this.statuscode = source.readInt();
+                this.entityid = source.readString();
+            }
+
+            protected Contact(Parcel in) {
+                this.firstname = in.readString();
+                this.lastname = in.readString();
+                this.accountid = in.readString();
+                this.accountFormatted = in.readString();
+                this.mobile = in.readString();
+                this.address1composite = in.readString();
+                this.telephone1 = in.readString();
+                this.address1Phone = in.readString();
+                this.jobtitle = in.readString();
+                this.npiid = in.readString();
+                this.npiFormatted = in.readString();
+                this.email = in.readString();
+                this.createdBy = in.readString();
+                this.createdByFormatted = in.readString();
+                this.createdOn = (DateTime) in.readSerializable();
+                this.createdOnFormatted = in.readString();
+                this.modifiedOn = (DateTime) in.readSerializable();
+                this.modifiedOnFormatted = in.readString();
+                this.modifiedBy = in.readString();
+                this.modifiedByFormatted = in.readString();
+                this.statecodeformatted = in.readString();
+                this.statuscodeformatted = in.readString();
+                this.statecode = in.readInt();
+                this.statuscode = in.readInt();
+                this.entityid = in.readString();
+            }
+
+            public static final Parcelable.Creator<Contact> CREATOR = new Parcelable.Creator<Contact>() {
+                @Override
+                public Contact createFromParcel(Parcel source) {
+                    return new Contact(source);
+                }
+
+                @Override
+                public Contact[] newArray(int size) {
+                    return new Contact[size];
+                }
+            };
         }
     }
 
     public static class Tickets {
-
+        private static final String TAG = "";
         public ArrayList<Ticket> list = new ArrayList<>();
 
         // status codes
-        public static final int NOT_RESOLVED = 50;
-        public static final int IN_PROGRESS = 1;
-        public static final int ON_HOLD = 2;
-        public static final int TO_BE_INSPECTED = 100000002;
-        public static final int WAITING_ON_REP = 3;
-        public static final int WAITING_FOR_PRODUCT = 4;
-        public static final int WAITING_ON_CUSTOMER = 100000001;
-        public static final int TO_BE_BILLED = 100000003;
-        public static final int PROBLEM_SOLVED = 5;
-
-        // state codes
-        public static final int OPEN = 0;
-        public static final int RESOLVED = 1;
 
         public Tickets(String crmResponse) {
             try {
@@ -3722,7 +3974,110 @@ public class CrmEntities {
             }
         }
 
-        public static class Ticket extends CrmEntity {
+        /**
+         * Converts to an arraylist suitable for consumption by a BasicObjectRecyclerAdapter.
+         * @return
+         */
+        public ArrayList<BasicObject> toBasicObjects() {
+            ArrayList<BasicObject> objects = new ArrayList<>();
+
+            boolean addedTodayHeader = false;
+            boolean addedYesterdayHeader = false;
+            boolean addedThisWeekHeader = false;
+            boolean addedThisMonthHeader = false;
+            boolean addedLastMonthHeader = false;
+            boolean addedOlderHeader = false;
+            
+            ArrayList<Ticket> tickets = this.list;
+            
+            Log.i(TAG, "populateTripList: Preparing the dividers and trips...");
+            for (int i = 0; i < (tickets.size()); i++) {
+
+                Ticket curTicket = tickets.get(i);
+
+                // Ticket was today
+                if (curTicket.modifiedon.getDayOfMonth() == DateTime.now().getDayOfMonth() &&
+                        curTicket.modifiedon.getMonthOfYear() == DateTime.now().getMonthOfYear() &&
+                        curTicket.modifiedon.getYear() == DateTime.now().getYear()) {
+                    if (addedTodayHeader == false) {
+                        BasicObject headerObj = new BasicObject();
+                        headerObj.isHeader = true;
+                        headerObj.title = ("Today");
+                        objects.add(headerObj);
+                        addedTodayHeader = true;
+                        Log.d(TAG + "populateList", "Added a header object to the array that will eventually be a header childView in the list view named, 'Today' - This will not be added again!");
+                    }
+                    // Ticket was yesterday
+                } else if (curTicket.modifiedon.getDayOfMonth() == DateTime.now().minusDays(1).getDayOfMonth() &&
+                        curTicket.modifiedon.getMonthOfYear() == DateTime.now().minusDays(1).getMonthOfYear() &&
+                        curTicket.modifiedon.getYear() == DateTime.now().minusDays(1).getYear()) {
+                    if (addedYesterdayHeader == false) {
+                        BasicObject headerObj = new BasicObject();
+                        headerObj.isHeader = true;
+                        headerObj.title = ("Yesterday");
+                        objects.add(headerObj);
+                        addedYesterdayHeader = true;
+                        Log.d(TAG + "populateList", "Added a header object to the array that will eventually be a header childView in the list view named, 'Yesterday' - This will not be added again!");
+                    }
+                    // Ticket was this week
+                }  else if (curTicket.modifiedon.getWeekOfWeekyear() == DateTime.now().getWeekOfWeekyear() &&
+                        curTicket.modifiedon.getMonthOfYear() == DateTime.now().getMonthOfYear() &&
+                        curTicket.modifiedon.getYear() == DateTime.now().getYear()) {
+                    if (addedThisWeekHeader == false) {
+                        BasicObject headerObj = new BasicObject();
+                        headerObj.isHeader = true;
+                        headerObj.title = ("This week");
+                        objects.add(headerObj);
+                        addedThisWeekHeader = true;
+                        Log.d(TAG + "populateList", "Added a header object to the array that will eventually be a header childView in the list view named, 'This week' - This will not be added again!");
+                    }
+                    // Ticket was this month
+                } else if (curTicket.modifiedon.getMonthOfYear() == DateTime.now().getMonthOfYear() &&
+                        curTicket.modifiedon.getYear() == DateTime.now().getYear()) {
+                    if (addedThisMonthHeader == false) {
+                        BasicObject headerObj = new BasicObject();
+                        headerObj.isHeader = true;
+                        headerObj.title = ("This month");
+                        objects.add(headerObj);
+                        addedThisMonthHeader = true;
+                        Log.d(TAG + "populateList", "Added a header object to the array that will eventually be a header childView in the list view named, 'This month' - This will not be added again!");
+                    }
+                    // Ticket was last month
+                } else if (curTicket.modifiedon.getMonthOfYear() == DateTime.now().minusMonths(1).getMonthOfYear() &&
+                        curTicket.modifiedon.getYear() == DateTime.now().minusMonths(1).getYear()) {
+                    if (addedLastMonthHeader == false) {
+                        BasicObject headerObj = new BasicObject();
+                        headerObj.isHeader = true;
+                        headerObj.title = ("Last month");
+                        objects.add(headerObj);
+                        addedLastMonthHeader = true;
+                        Log.d(TAG + "populateList", "Added a header object to the array that will eventually be a header childView in the list view named, 'Last month' - This will not be added again!");
+                    }
+                    // Ticket was older than 2 months.
+                } else {
+                    if (addedOlderHeader == false) {
+                        BasicObject headerObj = new BasicObject();
+                        headerObj.isHeader = true;
+                        headerObj.title = ("Total");
+                        objects.add(headerObj);
+                        addedOlderHeader = true;
+                        Log.d(TAG + "populateList", "Added a header object to the array that will eventually be a header childView in the list view named, 'Older' - This will not be added again!");
+                    }
+                }
+
+                // Add the ticket as a BasicObject
+                BasicObjects.BasicObject object = new BasicObjects.BasicObject(curTicket.title,
+                        curTicket.ticketnumber + "\n" + curTicket.ownerName, curTicket);
+                object.middleText = curTicket.customerFormatted + "\nModified on: " + Helpers.DatesAndTimes.getPrettyDateAndTime(curTicket.modifiedon);
+                // object.topRightText = Helpers.DatesAndTimes.getPrettyDateAndTime(ticket.modifiedon);
+                object.bottomRightText = curTicket.statusFormatted;
+                object.iconResource = R.drawable.ticket1;
+                objects.add(object);
+            }
+            return objects;
+        }
+
+        public static class Ticket extends CrmEntity implements Parcelable {
 
             private static final String TAG = "Ticket";
 
@@ -4032,23 +4387,36 @@ public class CrmEntities {
 
                 BasicEntity entity = new BasicEntity(this);
 
+                try {
+                    // Set the created basicentity to non-editable so it cannot be edited on the BasicEntityActivity activity.
+                    if (this.statecode != 0) {
+                        entity.isEditable = false;
+                        entity.cannotEditReason = "Cannot edit a closed/cancelled ticket using MediBuddy (yet).  Sorry!";
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
                 BasicEntity.EntityBasicField ticketNumber = new BasicEntity.EntityBasicField("Ticket number:", this.ticketnumber);
                 ticketNumber.crmFieldName = "ticketnumber";
                 ticketNumber.isReadOnly = true;
                 entity.fields.add(ticketNumber);
 
                 BasicEntity.EntityBasicField titleField = new BasicEntity.EntityBasicField("Title:", this.title);
+                titleField.isRequired = true;
                 titleField.crmFieldName = "title";
                 entity.fields.add(titleField);
 
                 BasicEntity.EntityBasicField descriptionField = new BasicEntity.EntityBasicField("Description:", this.description);
                 descriptionField.crmFieldName = "description";
+                descriptionField.isRequired = true;
                 entity.fields.add(descriptionField);
 
                 BasicEntity.EntityBasicField accountField = new BasicEntity.EntityBasicField("Customer:", this.customerFormatted);
                 accountField.isAccountField = true;
                 accountField.crmFieldName = "customerid";
                 accountField.account = new Accounts.Account(this.customerid, this.customerFormatted);
+                accountField.isRequired = true;
                 entity.fields.add(accountField);
 
                 BasicEntity.EntityBasicField territory = new BasicEntity.EntityBasicField("Territory:", this.territoryFormatted);
@@ -4189,6 +4557,132 @@ public class CrmEntities {
 
 
             }
+
+            @Override
+            public int describeContents() {
+                return 0;
+            }
+
+            @Override
+            public void writeToParcel(Parcel dest, int flags) {
+                dest.writeString(this.statecodeFormatted);
+                dest.writeInt(this.statecode);
+                dest.writeString(this.statusFormatted);
+                dest.writeInt(this.statuscode);
+                dest.writeString(this.caseTypeFormatted);
+                dest.writeString(this.contactid);
+                dest.writeString(this.contactFirstname);
+                dest.writeString(this.contactLastname);
+                dest.writeString(this.contactFullname);
+                dest.writeInt(this.casetype);
+                dest.writeSerializable(this.createdon);
+                dest.writeString(this.ticketnumber);
+                dest.writeString(this.ownerName);
+                dest.writeString(this.ownerid);
+                dest.writeSerializable(this.modifiedon);
+                dest.writeString(this.title);
+                dest.writeString(this.priorityFormatted);
+                dest.writeInt(this.priority);
+                dest.writeString(this.description);
+                dest.writeString(this.modifiedByFormatted);
+                dest.writeString(this.modifiedBy);
+                dest.writeString(this.caseOriginFormatted);
+                dest.writeInt(this.caseorigin);
+                dest.writeString(this.customerFormatted);
+                dest.writeString(this.customerid);
+                dest.writeString(this.subjectid);
+                dest.writeString(this.subjectFormatted);
+                dest.writeString(this.createdby);
+                dest.writeString(this.createdByFormatted);
+                dest.writeString(this.territoryid);
+                dest.writeString(this.territoryFormatted);
+                dest.writeString(this.repFormatted);
+                dest.writeString(this.repid);
+            }
+
+            public void readFromParcel(Parcel source) {
+                this.statecodeFormatted = source.readString();
+                this.statecode = source.readInt();
+                this.statusFormatted = source.readString();
+                this.statuscode = source.readInt();
+                this.caseTypeFormatted = source.readString();
+                this.contactid = source.readString();
+                this.contactFirstname = source.readString();
+                this.contactLastname = source.readString();
+                this.contactFullname = source.readString();
+                this.casetype = source.readInt();
+                this.createdon = (DateTime) source.readSerializable();
+                this.ticketnumber = source.readString();
+                this.ownerName = source.readString();
+                this.ownerid = source.readString();
+                this.modifiedon = (DateTime) source.readSerializable();
+                this.title = source.readString();
+                this.priorityFormatted = source.readString();
+                this.priority = source.readInt();
+                this.description = source.readString();
+                this.modifiedByFormatted = source.readString();
+                this.modifiedBy = source.readString();
+                this.caseOriginFormatted = source.readString();
+                this.caseorigin = source.readInt();
+                this.customerFormatted = source.readString();
+                this.customerid = source.readString();
+                this.subjectid = source.readString();
+                this.subjectFormatted = source.readString();
+                this.createdby = source.readString();
+                this.createdByFormatted = source.readString();
+                this.territoryid = source.readString();
+                this.territoryFormatted = source.readString();
+                this.repFormatted = source.readString();
+                this.repid = source.readString();
+            }
+
+            protected Ticket(Parcel in) {
+                this.statecodeFormatted = in.readString();
+                this.statecode = in.readInt();
+                this.statusFormatted = in.readString();
+                this.statuscode = in.readInt();
+                this.caseTypeFormatted = in.readString();
+                this.contactid = in.readString();
+                this.contactFirstname = in.readString();
+                this.contactLastname = in.readString();
+                this.contactFullname = in.readString();
+                this.casetype = in.readInt();
+                this.createdon = (DateTime) in.readSerializable();
+                this.ticketnumber = in.readString();
+                this.ownerName = in.readString();
+                this.ownerid = in.readString();
+                this.modifiedon = (DateTime) in.readSerializable();
+                this.title = in.readString();
+                this.priorityFormatted = in.readString();
+                this.priority = in.readInt();
+                this.description = in.readString();
+                this.modifiedByFormatted = in.readString();
+                this.modifiedBy = in.readString();
+                this.caseOriginFormatted = in.readString();
+                this.caseorigin = in.readInt();
+                this.customerFormatted = in.readString();
+                this.customerid = in.readString();
+                this.subjectid = in.readString();
+                this.subjectFormatted = in.readString();
+                this.createdby = in.readString();
+                this.createdByFormatted = in.readString();
+                this.territoryid = in.readString();
+                this.territoryFormatted = in.readString();
+                this.repFormatted = in.readString();
+                this.repid = in.readString();
+            }
+
+            public static final Parcelable.Creator<Ticket> CREATOR = new Parcelable.Creator<Ticket>() {
+                @Override
+                public Ticket createFromParcel(Parcel source) {
+                    return new Ticket(source);
+                }
+
+                @Override
+                public Ticket[] newArray(int size) {
+                    return new Ticket[size];
+                }
+            };
         }
     }
 
@@ -4297,6 +4791,17 @@ public class CrmEntities {
             } else {
                 list = null;
             }
+        }
+
+        public ArrayList<BasicObject> toBasicObjects() {
+            ArrayList<BasicObject> objects = new ArrayList<>();
+            for (Account account : this.list) {
+                BasicObjects.BasicObject object = new BasicObjects.BasicObject(account.accountnumber, account.customerTypeFormatted, account);
+                object.middleText = account.accountName;
+                object.iconResource = R.drawable.customer2;
+                objects.add(object);
+            }
+            return objects;
         }
 
         @Override
@@ -4775,7 +5280,7 @@ public class CrmEntities {
         public BasicObjects toBasicObjects() {
             BasicObjects basicObjects = new BasicObjects();
             for (TripAssociation association : this.list) {
-                BasicObjects.BasicObject object = new BasicObjects.BasicObject(association.associated_opportunity_name,
+                BasicObject object = new BasicObject(association.associated_opportunity_name,
                         association.associated_account_name, Helpers.DatesAndTimes
                         .getPrettyDate2(association.getAssociatedTripDate()), association);
                 object.topRightText = association.tripDispositionFormatted;

@@ -35,7 +35,7 @@ import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.ExpandableListDataPump;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
-import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
+import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
 import com.fimbleenterprises.medimileage.objects_and_containers.UserUsageMetrics;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;

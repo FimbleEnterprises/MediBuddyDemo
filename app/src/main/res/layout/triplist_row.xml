@@ -21,7 +21,7 @@
         android:layout_marginEnd="1dp"
         android:layout_marginRight="3dp"
         android:layout_marginBottom="1dp"
-        android:layout_toLeftOf="@id/btnDeleteTrip"
+        android:layout_toLeftOf="@id/imgRight"
         android:background="@drawable/btn_glass_gray_black_border_toggle_orange_on"
         android:fontFamily="casual"
         android:padding="2dp"
@@ -31,7 +31,7 @@
         android:visibility="visible" />
 
     <ImageView
-        android:id="@+id/leftIcon"
+        android:id="@+id/imgLeft"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_alignParentLeft="true"
@@ -50,7 +50,7 @@
         android:layout_below="@id/txtMainText"
         android:layout_marginTop="3dp"
         android:layout_marginBottom="3dp"
-        android:layout_toRightOf="@+id/leftIcon"
+        android:layout_toRightOf="@+id/imgLeft"
         android:focusable="false"
         android:fontFamily="casual"
         android:text="Travelled 4.6 miles"
@@ -62,9 +62,9 @@
         android:id="@+id/txtMainText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/leftIcon"
+        android:layout_alignTop="@+id/imgLeft"
         android:layout_marginTop="3dp"
-        android:layout_toRightOf="@id/leftIcon"
+        android:layout_toRightOf="@id/imgLeft"
         android:focusable="false"
         android:fontFamily="casual"
         android:text="Trip in progress..."
@@ -73,7 +73,7 @@
         android:textSize="14sp" />
 
     <CheckBox
-        android:id="@+id/btnDeleteTrip"
+        android:id="@+id/imgRight"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
@@ -95,7 +95,7 @@
         android:layout_marginEnd="1dp"
         android:layout_marginRight="3dp"
         android:layout_marginBottom="1dp"
-        android:layout_toLeftOf="@id/btnDeleteTrip"
+        android:layout_toLeftOf="@id/imgRight"
         android:background="@drawable/btn_glass_gray_black_border_toggle_orange_on"
         android:fontFamily="casual"
         android:padding="2dp"

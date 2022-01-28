@@ -34,7 +34,7 @@ import com.fimbleenterprises.medimileage.MyViewPager;
 import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
-import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
+import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
 import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityChooseTerritory;
 import com.github.mikephil.charting.charts.HorizontalBarChart;
 import com.github.mikephil.charting.components.XAxis;
@@ -50,6 +50,7 @@ import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.scwang.smart.refresh.footer.ClassicsFooter;
 import com.scwang.smart.refresh.header.MaterialHeader;
@@ -60,11 +61,13 @@ import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.PagerTitleStrip;
@@ -78,6 +81,7 @@ import com.anychart.chart.common.dataentry.ValueDataEntry;
 import com.anychart.charts.Cartesian;*/
 
 public class Activity_SalesQuotas extends AppCompatActivity {
+    private static final String FAB_CLICKED = "FAB_CLICKED";
     public static Activity activity;
     public static EditText title;
     public static MyUnderlineEditText date;
@@ -120,6 +124,10 @@ public class Activity_SalesQuotas extends AppCompatActivity {
 
     public int curPageIndex = 0;
 
+    FloatingActionButton fab;
+    BroadcastReceiver fabClickReceiver;
+    IntentFilter fabClickIntentFilter = new IntentFilter(FAB_CLICKED);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -137,7 +145,16 @@ public class Activity_SalesQuotas extends AppCompatActivity {
         monthNum = DateTime.now().getMonthOfYear();
         yearNum = DateTime.now().getYear();
 
-        setContentView(R.layout.activity_sales_perf);
+        setContentView(R.layout.activity_quotas);
+
+        fab = findViewById(R.id.floatingActionButton);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(FAB_CLICKED);
+                sendBroadcast(intent);
+            }
+        });
 
         sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         mViewPager = (MyViewPager) findViewById(R.id.main_pager_yo_sales_perf);
@@ -151,7 +168,7 @@ public class Activity_SalesQuotas extends AppCompatActivity {
         mViewPager.setAdapter(sectionsPagerAdapter);
         mViewPager.setOffscreenPageLimit(0);
         mViewPager.setCurrentItem(0);
-        mViewPager.setPageCount(6);
+        mViewPager.setPageCount(2);
         mViewPager.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
@@ -160,10 +177,20 @@ public class Activity_SalesQuotas extends AppCompatActivity {
         });
         fragMgr = getSupportFragmentManager();
 
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-        }
+        androidx.appcompat.widget.Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar2);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+
+        setTitle("Sales Quotas");
+
+        fabClickReceiver = new BroadcastReceiver() {
+            @SuppressLint("RestrictedApi") // Apparently a bug causes method: .openOptionsMenu() to raise a lint warning (https://stackoverflow.com/a/44926919/2097893).
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                getSupportActionBar().openOptionsMenu();
+            }
+        };
     }
 
     @Override
@@ -199,11 +226,21 @@ public class Activity_SalesQuotas extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        try {
+            registerReceiver(fabClickReceiver, fabClickIntentFilter);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        try {
+            unregisterReceiver(fabClickReceiver);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -244,7 +281,7 @@ public class Activity_SalesQuotas extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(@NonNull Menu menu) {
-        getMenuInflater().inflate(R.menu.territory_menu, menu);
+        getMenuInflater().inflate(R.menu.quota_menu, menu);
 
         super.onCreateOptionsMenu(menu);
         return true;
@@ -255,14 +292,11 @@ public class Activity_SalesQuotas extends AppCompatActivity {
 
         menu.findItem(R.id.action_east_region).setChecked(isEastRegion);
         menu.findItem(R.id.action_west_region).setChecked(!isEastRegion);
-        menu.findItem(R.id.action_case_status).setVisible(false);
-        menu.findItem(R.id.action_account_type).setVisible(false);
 
         switch (mViewPager.currentPosition) {
             case 0 : // MTD
                 menu.findItem(R.id.action_this_year).setVisible(false);
                 menu.findItem(R.id.action_last_year).setVisible(false);
-                menu.findItem(R.id.action_choose_territory).setVisible(false);
 
                 menu.findItem(R.id.action_west_region).setVisible(true);
                 menu.findItem(R.id.action_east_region).setVisible(true);
@@ -274,7 +308,6 @@ public class Activity_SalesQuotas extends AppCompatActivity {
                 menu.findItem(R.id.action_this_month).setVisible(false);
                 menu.findItem(R.id.action_last_month).setVisible(false);
                 menu.findItem(R.id.action_choose_month).setVisible(false);
-                menu.findItem(R.id.action_choose_territory).setVisible(false);
 
                 menu.findItem(R.id.action_west_region).setVisible(true);
                 menu.findItem(R.id.action_east_region).setVisible(true);

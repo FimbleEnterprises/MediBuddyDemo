@@ -10,6 +10,7 @@ import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.MySqlDatasource;
 import com.google.gson.Gson;
+import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.joda.time.DateTime;

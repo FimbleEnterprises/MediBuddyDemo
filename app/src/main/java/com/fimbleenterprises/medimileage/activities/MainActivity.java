@@ -46,7 +46,7 @@ import com.fimbleenterprises.medimileage.objects_and_containers.ExcelSpreadsheet
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyUpdate;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileageUser;
-import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
+import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
 import com.fimbleenterprises.medimileage.activities.ui.mileage.MileageFragment;
 import com.fimbleenterprises.medimileage.activities.ui.settings.SettingsActivity;
 import com.google.android.material.navigation.NavigationView;
@@ -259,8 +259,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         //Called when a drawer's position changes.
     }
 
-
-
     @Override
     public void onDrawerOpened(@NonNull View drawerView) {
         try {
@@ -328,10 +326,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (item.getItemId() == R.id.nav_aggregatedmileagestats) {
             startActivity(new Intent(activity, AggregateMileageStatsActivity.class));
             // drawer.closeDrawer(navigationView);
-        } else if (item.getItemId() == R.id.nav_myterritory) {
+        } else if (item.getItemId() == R.id.nav_territory_data) {
             startActivity(new Intent(activity, Activity_TerritoryData.class));
             // drawer.closeDrawer(navigationView);
-        } else if (item.getItemId() == R.id.nav_myaccounts) {
+        } else if (item.getItemId() == R.id.nav_cpywidedata) {
+            startActivity(new Intent(activity, Activity_CompanyWideData.class));
+            // drawer.closeDrawer(navigationView);
+        } else if (item.getItemId() == R.id.nav_account_data) {
             startActivity(new Intent(activity, Activity_AccountData.class));
             // drawer.closeDrawer(navigationView);
         } else if (item.getItemId() == R.id.nav_salesquotas) {
@@ -617,8 +618,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             menu.findItem(R.id.nav_home).setTitle(R.string.menu_mileage_explicit);
             menu.findItem(R.id.nav_aggregatedmileagestats).setTitle(R.string.menu_stats_explicit);
             menu.findItem(R.id.nav_data).setTitle(R.string.menu_data_explicit);
-            menu.findItem(R.id.nav_myterritory).setTitle(R.string.menu_other_fucking_sales_shit);
-            menu.findItem(R.id.nav_myaccounts).setTitle(getString(R.string.menu_account_info_explicit));
+            menu.findItem(R.id.nav_territory_data).setTitle(R.string.menu_other_fucking_sales_shit);
+            menu.findItem(R.id.nav_account_data).setTitle(getString(R.string.menu_account_info_explicit));
             menu.findItem(R.id.nav_salesquotas).setTitle(getString(R.string.menu_salesquotas_explicit));
             menu.findItem(R.id.nav_settings).setTitle(R.string.menu_settings_explicit);
             menu.findItem(R.id.nav_usage).setTitle("Fucking usage");
@@ -627,8 +628,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             menu.findItem(R.id.nav_home).setTitle(R.string.menu_mileage);
             menu.findItem(R.id.nav_aggregatedmileagestats).setTitle(R.string.menu_aggregated_mileage_stats);
             menu.findItem(R.id.nav_data).setTitle(R.string.menu_my_data);
-            menu.findItem(R.id.nav_myterritory).setTitle(R.string.menu_territory_info);
-            menu.findItem(R.id.nav_myaccounts).setTitle(getString(R.string.menu_account_info));
+            menu.findItem(R.id.nav_territory_data).setTitle(R.string.menu_territory_info);
+            menu.findItem(R.id.nav_account_data).setTitle(getString(R.string.menu_account_info));
             menu.findItem(R.id.nav_salesquotas).setTitle(getString(R.string.menu_salesquotas));
             menu.findItem(R.id.nav_settings).setTitle(R.string.menu_settings);
             menu.findItem(R.id.nav_usage).setTitle("Usage");

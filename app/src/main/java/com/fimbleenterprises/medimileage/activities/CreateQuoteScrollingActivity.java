@@ -33,7 +33,7 @@ import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenAc
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
-import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
+import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
 import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyHyperlinkTextview;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 

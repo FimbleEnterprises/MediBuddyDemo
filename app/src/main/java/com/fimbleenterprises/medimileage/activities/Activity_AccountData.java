@@ -2,6 +2,7 @@ package com.fimbleenterprises.medimileage.activities;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -10,7 +11,10 @@ import android.content.IntentFilter;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Debug;
 import android.provider.ContactsContract;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -19,12 +23,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.adapters.AccountInventoryRecyclerAdapter;
+import com.fimbleenterprises.medimileage.dialogs.MonthYearPickerDialog;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicEntity;
 import com.fimbleenterprises.medimileage.adapters.BasicObjectRecyclerAdapter;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
@@ -42,7 +49,7 @@ import com.fimbleenterprises.medimileage.adapters.OrderLineRecyclerAdapter;
 import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
-import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
+import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
 import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityChooseAccount;
 import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityChooseTerritory;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -58,7 +65,6 @@ import java.util.Objects;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
@@ -83,6 +89,7 @@ import com.anychart.charts.Cartesian;*/
 
 public class Activity_AccountData extends AppCompatActivity {
 
+    public static final String MENU_SELECTION = "MENU_SELECTION";
     public static final String FAB_CLICKED = "FAB_CLICKED";
     private static CrmEntities.Accounts.Account curAccount;
     private static ArrayList<CrmEntities.Accounts.Account> cachedAccounts;
@@ -98,19 +105,29 @@ public class Activity_AccountData extends AppCompatActivity {
     public static androidx.fragment.app.FragmentManager fragMgr;
     public static MyPreferencesHelper options;
 
+    // Default to current month and year
+    public static int curMonth = 0;
+    public static int curYear = 0;
+
     public static final String GO_TO_ACCOUNT = "GO_TO_ACCOUNT";
     public static final String GO_TO_ACCOUNT_OBJECT = "GO_TO_ACCOUNT_OBJECT";
+    public static final String INITIAL_PAGE = "INITIAL_PAGE";
 
     public static final int PRODUCTFAMILY_MENU_ROOT = 2;
     public static final int PRODUCTSTATUS_MENU_ROOT = 3;
     public static final int CALL_PHONE_REQ = 123;
 
+    public static Activity_CompanyWideData.ServiceAgreementFilter serviceAgreementFilter
+            = Activity_CompanyWideData.ServiceAgreementFilter.CURRENT;
+    public static Opportunities.DealStatus dealStatus = Opportunities.DealStatus.ANY;
+    public static int case_filter = Tickets.ANY;
+    public static int case_state = Tickets.BOTH;
+    public static CrmQueries.CustomerInventory.ProductStatus productStatus = CustomerInventory.ProductStatus.IN_STOCK;
+    public static CrmQueries.CustomerInventory.ProductType productFamily = CustomerInventory.ProductType.PROBES;
+
+
     // public static BroadcastReceiver inventoryMenuItemSelectedReceiver;
     // public static BroadcastReceiver salesMenuItemSelectedReceiver;
-
-    // vars for the date ranges
-    public static int monthNum;
-    public static int yearNum;
 
     // var for territoryid
     public static Territory territory;
@@ -148,20 +165,11 @@ public class Activity_AccountData extends AppCompatActivity {
         // Log a metric
         // MileBuddyMetrics.updateMetric(this, MileBuddyMetrics.MetricName.LAST_ACCESSED_TERRITORY_DATA, DateTime.now());
 
-        if (getIntent() != null && getIntent().getAction() != null) {
-            if (getIntent().getAction().equals(GO_TO_ACCOUNT)) {
-                if (getIntent().getParcelableExtra(GO_TO_ACCOUNT_OBJECT) != null) {
-                    curAccount = getIntent().getParcelableExtra(GO_TO_ACCOUNT_OBJECT);
-                    territoryPageOrigin = true;
-                }
-            }
-        }
+
 
         territory = new Territory();
         territory.territoryid = MediUser.getMe().territoryid;
         territory.territoryName = MediUser.getMe().territoryname;
-        monthNum = DateTime.now().getMonthOfYear();
-        yearNum = DateTime.now().getYear();
 
         setContentView(R.layout.activity_account_stuff);
 
@@ -170,13 +178,13 @@ public class Activity_AccountData extends AppCompatActivity {
         mViewPager.onRealPageChangedListener = new MyViewPager.OnRealPageChangedListener() {
             @Override
             public void onPageActuallyFuckingChanged(int pageIndex) {
-
+                options.setLastAccountPage(pageIndex);
             }
         };
         mPagerStrip = (PagerTitleStrip) findViewById(R.id.pager_title_strip_sales_perf);
         mViewPager.setAdapter(sectionsPagerAdapter);
         mViewPager.setOffscreenPageLimit(0);
-        mViewPager.setCurrentItem(options.getDefaultAccountPage());
+        mViewPager.setCurrentItem(options.getLastAccountPage());
         mViewPager.setPageCount(6);
         mViewPager.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
@@ -207,6 +215,18 @@ public class Activity_AccountData extends AppCompatActivity {
 
         intentFilterParentActivity.addAction(BasicEntityActivity.ENTITY_UPDATED);
 
+        if (getIntent() != null && getIntent().getAction() != null) {
+            if (getIntent().getAction().equals(GO_TO_ACCOUNT)) {
+                if (getIntent().getParcelableExtra(GO_TO_ACCOUNT_OBJECT) != null) {
+                    curAccount = getIntent().getParcelableExtra(GO_TO_ACCOUNT_OBJECT);
+                    territoryPageOrigin = true;
+                }
+                if (getIntent().hasExtra(INITIAL_PAGE)) {
+                    mViewPager.setCurrentItem(getIntent().getIntExtra(INITIAL_PAGE, options.getLastAccountPage()));
+                }
+            }
+        }
+
         try {
             MileBuddyMetrics.updateMetric(context, MileBuddyMetrics.MetricName.LAST_ACCESSED_ACCOUNT_DATA, DateTime.now());
         } catch (Exception e) {
@@ -231,8 +251,7 @@ public class Activity_AccountData extends AppCompatActivity {
 
         if (resultCode == FullscreenActivityChooseAccount.ACCOUNT_CHOSEN_RESULT) {
             curAccount = data.getParcelableExtra(FullscreenActivityChooseAccount.ACCOUNT_RESULT);
-            // Save the account list if it was returned
-            cachedAccounts = data.getParcelableArrayListExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS);
+            cachedAccounts = options.getCachedAccounts().list;
 
             if (curAccount != null) {
                 Intent intentChosenAccount = new Intent(MENU_ACTION);
@@ -261,6 +280,10 @@ public class Activity_AccountData extends AppCompatActivity {
             }
         }
 
+        if (resultCode == BasicEntityActivity.RESULT_CODE_ENTITY_DELETED) {
+
+        }
+
     }
 
     @Override
@@ -286,6 +309,7 @@ public class Activity_AccountData extends AppCompatActivity {
 
             if (curAccount != null) {
                 curAccount = null;
+                setTitle("Choose an account");
                 sendBroadcast(new Intent(MENU_ACTION));
                 return true;
             }
@@ -350,9 +374,7 @@ public class Activity_AccountData extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(@NonNull Menu menu) {
-        getMenuInflater().inflate(R.menu.account_stuff, menu);
-
-        optionsMenu = menu;
+        getMenuInflater().inflate(R.menu.account_menu, menu);
         super.onCreateOptionsMenu(menu);
         return true;
     }
@@ -360,180 +382,272 @@ public class Activity_AccountData extends AppCompatActivity {
     @Override
     public boolean onPreparePanel(int featureId, @Nullable View view, @NonNull Menu menu) {
 
-        switch (mViewPager.currentPosition) {
-            case SectionsPagerAdapter.INVENTORY_PAGE : // Account inventory
-                // Main items
-                menu.findItem(R.id.action_producttype).setVisible(true);
-                menu.findItem(R.id.action_productstatus).setVisible(true);
-                // Sub items
-                menu.findItem(R.id.action_probes).setVisible(true);
-                menu.findItem(R.id.action_flowmeters).setVisible(true);
-                menu.findItem(R.id.action_cables).setVisible(true);
-                menu.findItem(R.id.action_licensing).setVisible(true);
-                menu.findItem(R.id.action_instock).setVisible(true);
-                menu.findItem(R.id.action_returned).setVisible(true);
-                menu.findItem(R.id.action_expired).setVisible(true);
-                menu.findItem(R.id.action_lost).setVisible(true);
-                menu.findItem(R.id.action_any).setVisible(true);
-                // Excel
-                menu.findItem(R.id.action_export_to_excel).setVisible(true);
-                break;
-            case SectionsPagerAdapter.SALES_LINE_PAGE : // Account sales lines
-                // Main items
-                menu.findItem(R.id.action_producttype).setVisible(false);
-                menu.findItem(R.id.action_productstatus).setVisible(false);
-                // Sub items
-                menu.findItem(R.id.action_probes).setVisible(false);
-                menu.findItem(R.id.action_flowmeters).setVisible(false);
-                menu.findItem(R.id.action_cables).setVisible(false);
-                menu.findItem(R.id.action_licensing).setVisible(false);
-                menu.findItem(R.id.action_instock).setVisible(false);
-                menu.findItem(R.id.action_returned).setVisible(false);
-                menu.findItem(R.id.action_expired).setVisible(false);
-                menu.findItem(R.id.action_lost).setVisible(false);
-                menu.findItem(R.id.action_any).setVisible(false);
-                // Excel
-                menu.findItem(R.id.action_export_to_excel).setVisible(true);
-                break;
-            case SectionsPagerAdapter.CONTACTS_PAGE : // Contact lines
-                // Main items
-                menu.findItem(R.id.action_producttype).setVisible(false);
-                menu.findItem(R.id.action_productstatus).setVisible(false);
-                // Sub items
-                menu.findItem(R.id.action_probes).setVisible(false);
-                menu.findItem(R.id.action_flowmeters).setVisible(false);
-                menu.findItem(R.id.action_cables).setVisible(false);
-                menu.findItem(R.id.action_licensing).setVisible(false);
-                menu.findItem(R.id.action_instock).setVisible(false);
-                menu.findItem(R.id.action_returned).setVisible(false);
-                menu.findItem(R.id.action_expired).setVisible(false);
-                menu.findItem(R.id.action_lost).setVisible(false);
-                menu.findItem(R.id.action_any).setVisible(false);
-                // Excel
-                menu.findItem(R.id.action_export_to_excel).setVisible(false);
-            case SectionsPagerAdapter.OPPORTUNITIES_PAGE: // Opportunity lines
-                // Main items
-                menu.findItem(R.id.action_producttype).setVisible(false);
-                menu.findItem(R.id.action_productstatus).setVisible(false);
-                // Sub items
-                menu.findItem(R.id.action_probes).setVisible(false);
-                menu.findItem(R.id.action_flowmeters).setVisible(false);
-                menu.findItem(R.id.action_cables).setVisible(false);
-                menu.findItem(R.id.action_licensing).setVisible(false);
-                menu.findItem(R.id.action_instock).setVisible(false);
-                menu.findItem(R.id.action_returned).setVisible(false);
-                menu.findItem(R.id.action_expired).setVisible(false);
-                menu.findItem(R.id.action_lost).setVisible(false);
-                menu.findItem(R.id.action_any).setVisible(false);
-                // Excel
-                menu.findItem(R.id.action_export_to_excel).setVisible(false);
-                break;
-            case SectionsPagerAdapter.TICKETS_PAGE: // Ticket lines
-                // Main items
-                menu.findItem(R.id.action_producttype).setVisible(false);
-                menu.findItem(R.id.action_productstatus).setVisible(false);
-                // Sub items
-                menu.findItem(R.id.action_probes).setVisible(false);
-                menu.findItem(R.id.action_flowmeters).setVisible(false);
-                menu.findItem(R.id.action_cables).setVisible(false);
-                menu.findItem(R.id.action_licensing).setVisible(false);
-                menu.findItem(R.id.action_instock).setVisible(false);
-                menu.findItem(R.id.action_returned).setVisible(false);
-                menu.findItem(R.id.action_expired).setVisible(false);
-                menu.findItem(R.id.action_lost).setVisible(false);
-                menu.findItem(R.id.action_any).setVisible(false);
-                // Excel
-                menu.findItem(R.id.action_export_to_excel).setVisible(false);
-                break;
-        }
+        // Show/Hide menu options
+        menu.findItem(R.id.action_case_create_new).setVisible(false);
+        // menu.findItem(R.id.action_case_create_new).setVisible(mViewPager.currentPosition == SectionsPagerAdapter.TICKETS_PAGE);
+        menu.findItem(R.id.action_back).setVisible(mViewPager.currentPosition == SectionsPagerAdapter.CONTACTS_PAGE);
+        menu.findItem(R.id.action_last_three_months).setVisible(mViewPager.currentPosition == SectionsPagerAdapter.SALES_LINE_PAGE);
+        menu.findItem(R.id.action_this_month).setVisible(mViewPager.currentPosition == SectionsPagerAdapter.SALES_LINE_PAGE);
+        menu.findItem(R.id.action_last_month).setVisible(mViewPager.currentPosition == SectionsPagerAdapter.SALES_LINE_PAGE);
+        menu.findItem(R.id.action_choose_month).setVisible(mViewPager.currentPosition == SectionsPagerAdapter.SALES_LINE_PAGE);
+        menu.findItem(R.id.action_producttype).setVisible(mViewPager.currentPosition == SectionsPagerAdapter.INVENTORY_PAGE);
+        menu.findItem(R.id.action_productstatus).setVisible(mViewPager.currentPosition == SectionsPagerAdapter.INVENTORY_PAGE);
+        menu.findItem(R.id.action_export_to_excel).setVisible(mViewPager.currentPosition == SectionsPagerAdapter.INVENTORY_PAGE);
+        menu.findItem(R.id.action_case_state).setVisible(mViewPager.currentPosition == SectionsPagerAdapter.TICKETS_PAGE);
+        menu.findItem(R.id.action_case_status).setVisible(mViewPager.currentPosition == SectionsPagerAdapter.TICKETS_PAGE);
+        menu.findItem(R.id.action_opportunity_status).setVisible(mViewPager.currentPosition == SectionsPagerAdapter.OPPORTUNITIES_PAGE);
 
+        // Check/Uncheck date ranges
+        menu.findItem(R.id.action_last_three_months).setChecked(curMonth == 0 && curYear == 0);
+        menu.findItem(R.id.action_this_month).setChecked(curMonth == DateTime.now().getMonthOfYear() && curYear == DateTime.now().getYear());
+        menu.findItem(R.id.action_last_month).setChecked(curMonth == DateTime.now().minusMonths(1).getMonthOfYear() && curYear == DateTime.now().minusMonths(1).getYear());
+
+        // Check/Uncheck product status/family
+        menu.findItem(R.id.action_probes).setChecked(productFamily == CustomerInventory.ProductType.PROBES);
+        menu.findItem(R.id.action_flowmeters).setChecked(productFamily == CustomerInventory.ProductType.FLOWMETERS);
+        menu.findItem(R.id.action_cables).setChecked(productFamily == CustomerInventory.ProductType.CABLES);
+        menu.findItem(R.id.action_licensing).setChecked(productFamily == CustomerInventory.ProductType.CARDS);
+        menu.findItem(R.id.action_instock).setChecked(productStatus == CustomerInventory.ProductStatus.IN_STOCK);
+        menu.findItem(R.id.action_returned).setChecked(productStatus == CustomerInventory.ProductStatus.RETURNED);
+        menu.findItem(R.id.action_expired).setChecked(productStatus == CustomerInventory.ProductStatus.EXPIRED);
+        menu.findItem(R.id.action_lost).setChecked(productStatus == CustomerInventory.ProductStatus.LOST);
+        menu.findItem(R.id.action_any).setChecked(productStatus == CustomerInventory.ProductStatus.ANY);
+        
+        // Check/Uncheck deal status
+        menu.findItem(R.id.action_opp_any).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.ANY);
+        menu.findItem(R.id.action_opp_stalled).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.STALLED);
+        menu.findItem(R.id.action_opp_qualifying).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.QUALIFYING);
+        menu.findItem(R.id.action_opp_dead).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.DEAD);
+        menu.findItem(R.id.action_opp_evaluating).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.EVALUATING);
+        menu.findItem(R.id.action_opp_pending).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.PENDING);
+        menu.findItem(R.id.action_opp_closed).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.CLOSED);
+        menu.findItem(R.id.action_opp_canceled).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.CANCELED);
+        menu.findItem(R.id.action_opp_discovery).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.DISCOVERY);
+        menu.findItem(R.id.action_opp_won).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.WON);
+
+        // Set case state values
+        menu.findItem(R.id.action_case_state_open).setChecked(case_state == Tickets.OPEN);
+        menu.findItem(R.id.action_case_state_closed).setChecked(case_state == Tickets.CLOSED);
+
+        // Set case status values
+        menu.findItem(R.id.action_case_status_any).setChecked(case_filter == Tickets.ANY);
+        menu.findItem(R.id.action_case_status_inprogress).setChecked(case_filter == Tickets.IN_PROGRESS);
+        menu.findItem(R.id.action_case_status_on_hold).setChecked(case_filter == Tickets.ON_HOLD);
+        menu.findItem(R.id.action_case_status_to_be_inspected).setChecked(case_filter == Tickets.TO_BE_INSPECTED);
+        menu.findItem(R.id.action_case_status_waiting_for_product).setChecked(case_filter == Tickets.WAITING_FOR_PRODUCT);
+        menu.findItem(R.id.action_case_status_waiting_on_customer).setChecked(case_filter == Tickets.WAITING_ON_CUSTOMER);
+        menu.findItem(R.id.action_change_case_status_waiting_on_rep).setChecked(case_filter == Tickets.WAITING_ON_REP);
+        menu.findItem(R.id.action_case_status_to_be_billed).setChecked(case_filter == Tickets.TO_BE_BILLED);
+        menu.findItem(R.id.action_case_status_problem_solved).setChecked(case_filter == Tickets.PROBLEM_SOLVED);
+        
         return super.onPreparePanel(featureId, view, menu);
+
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 
-        // Change account or territory selected
         switch (item.getItemId()) {
 
-            case 16908332 :
+            case 16908332: // back arrow (top, left)
                 onBackPressed();
-                return true;
+                break;
 
-            case R.id.action_choose_territory :
-                // change territory
-                Intent intentChangeTerritory = new Intent(context, FullscreenActivityChooseTerritory.class);
-                intentChangeTerritory.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
-                intentChangeTerritory.putExtra(FullscreenActivityChooseTerritory.CACHED_TERRITORIES, cachedTerritories);
-                startActivityForResult(intentChangeTerritory, FullscreenActivityChooseTerritory.REQUESTCODE);
-                // Default to all items as the checked menu item
-                optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).setChecked(true);
-                return true;
+            case R.id.action_back:
+                onBackPressed();
+                break;
 
-            case R.id.action_choose_account :
-                // change account
-                Intent intentChangeAccount = new Intent(context, FullscreenActivityChooseAccount.class);
-                intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
-                intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, curAccount);
-                intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
-                startActivityForResult(intentChangeAccount, FullscreenActivityChooseAccount.REQUESTCODE);
-                // Default to all items as the checked menu item
-                optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).setChecked(true);
-                return true;
+            case R.id.action_last_three_months:
+                // If curMonth and curYear == 0 getSalesLines() will query the last three months.
+                curMonth = 0;
+                curYear = 0;
+                sendMenuItemSelectedBroadcast();
+                break;
 
-            case R.id.action_export_to_excel :
+            case R.id.action_this_month:
+                curMonth = DateTime.now().getMonthOfYear();
+                curYear = DateTime.now().getYear();
+                sendMenuItemSelectedBroadcast();
+                break;
+
+            case R.id.action_last_month:
+                curMonth = DateTime.now().minusMonths(1).getMonthOfYear();
+                curYear = DateTime.now().minusMonths(1).getYear();
+                sendMenuItemSelectedBroadcast();
+                break;
+
+            case R.id.action_choose_month:
+                final MonthYearPickerDialog mpd = new MonthYearPickerDialog();
+                mpd.setListener(new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                        curMonth = month;
+                        curYear = year;
+                        sendMenuItemSelectedBroadcast();
+                        mpd.dismiss();
+                    }
+                });
+                mpd.show(getSupportFragmentManager(), "MonthYearPickerDialog");
+                break;
+
+            case R.id.action_export_to_excel:
                 Intent intentExportInventory = new Intent(MENU_ACTION);
                 intentExportInventory.putExtra(EXPORT_INVENTORY, EXPORT_INVENTORY);
                 intentExportInventory.putExtra(EXPORT_PAGE_INDEX, mViewPager.currentPosition);
                 sendBroadcast(intentExportInventory);
-                return true;
-        }
+                break;
 
-        // We will need these to properly check/uncheck items in the menu
-        boolean isProductType = false, isProductStatus = false;
+            // Set the product family
+            case R.id.action_probes:
+                productFamily = CustomerInventory.ProductType.PROBES;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_flowmeters:
+                productFamily = CustomerInventory.ProductType.FLOWMETERS;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_cables:
+                productFamily = CustomerInventory.ProductType.CABLES;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_licensing:
+                productFamily = CustomerInventory.ProductType.CARDS;
+                sendMenuItemSelectedBroadcast();
+                break;
 
-        // Set the product family item
-        switch (item.getItemId()) {
-            case R.id.action_probes :
-            case R.id.action_flowmeters :
-            case R.id.action_cables :
-            case R.id.action_licensing :
-                isProductType = true;
+            // Set the product status
+            case R.id.action_instock:
+                productStatus = CustomerInventory.ProductStatus.IN_STOCK;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_returned:
+                productStatus = CustomerInventory.ProductStatus.RETURNED;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_expired:
+                productStatus = CustomerInventory.ProductStatus.EXPIRED;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_lost:
+                productStatus = CustomerInventory.ProductStatus.LOST;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_any:
+                productStatus = CustomerInventory.ProductStatus.ANY;
+                sendMenuItemSelectedBroadcast();
+                break;
+
+            case R.id.action_opp_any:
+                dealStatus = Opportunities.DealStatus.ANY;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_opp_canceled:
+                dealStatus = Opportunities.DealStatus.CANCELED;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_opp_closed:
+                dealStatus = Opportunities.DealStatus.CLOSED;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_opp_dead:
+                dealStatus = Opportunities.DealStatus.DEAD;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_opp_discovery:
+                dealStatus = Opportunities.DealStatus.DISCOVERY;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_opp_evaluating:
+                dealStatus = Opportunities.DealStatus.EVALUATING;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_opp_pending:
+                dealStatus = Opportunities.DealStatus.PENDING;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_opp_qualifying:
+                dealStatus = Opportunities.DealStatus.QUALIFYING;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_opp_stalled:
+                dealStatus = Opportunities.DealStatus.STALLED;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_opp_won:
+                dealStatus = Opportunities.DealStatus.WON;
+                sendMenuItemSelectedBroadcast();
+                break;
+
+            case R.id.action_case_state_open:
+                if (case_state == Tickets.OPEN) {
+                    case_state = Tickets.BOTH;
+                } else {
+                    case_state = Tickets.OPEN;
+                }
+                sendMenuItemSelectedBroadcast();
+                break;
+
+            case R.id.action_case_state_closed:
+                if (case_state == Tickets.CLOSED) {
+                    case_state = Tickets.BOTH;
+                } else {
+                    case_state = Tickets.CLOSED;
+                }
+                sendMenuItemSelectedBroadcast();
+                break;
+
+                // Cases
+            case R.id.action_case_create_new:
+                CrmEntities.Tickets.Ticket ticket = new CrmEntities.Tickets.Ticket() ;
+
+
+                Intent intent = new Intent(context, BasicEntityActivity.class);
+                intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Create New Ticket");
+                intent.putExtra(BasicEntityActivity.ENTITYID, ticket.entityid);
+                intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "incident");
+                intent.putExtra(BasicEntityActivity.LOAD_NOTES, false);
+                intent.putExtra(BasicEntityActivity.CREATE_NEW, true);
+                intent.putExtra(GSON_STRING, ticket.toBasicEntity().toGson());
+                startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
+                break;
+            case R.id.action_case_status_inprogress:
+                case_filter = Tickets.IN_PROGRESS;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_case_status_any:
+                case_filter = Tickets.ANY;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_case_status_on_hold:
+                case_filter = Tickets.ON_HOLD;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_case_status_to_be_inspected:
+                case_filter = Tickets.TO_BE_INSPECTED;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_case_status_waiting_for_product:
+                case_filter = Tickets.WAITING_FOR_PRODUCT;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_case_status_waiting_on_customer:
+                case_filter = Tickets.WAITING_ON_CUSTOMER;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_change_case_status_waiting_on_rep:
+                case_filter = Tickets.WAITING_ON_REP;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_case_status_to_be_billed:
+                case_filter = Tickets.TO_BE_BILLED;
+                sendMenuItemSelectedBroadcast();
+                break;
+            case R.id.action_case_status_problem_solved:
+                case_filter = Tickets.PROBLEM_SOLVED;
+                sendMenuItemSelectedBroadcast();
                 break;
         }
-
-        // Set the product status item
-        switch (item.getItemId()) {
-            case R.id.action_instock :
-            case R.id.action_returned :
-            case R.id.action_expired :
-            case R.id.action_lost :
-            case R.id.action_any :
-                isProductStatus = true;
-                break;
-        }
-
-        if (isProductType) {
-            // Uncheck all the product types
-            for (int i = 0; i < optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().size(); i++) {
-                optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().getItem(i).setChecked(false);
-            }
-            // Check the selected product type
-            optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().findItem(item.getItemId()).setChecked(true);
-            sendMenuItemSelectedBroadcast();
-        }
-
-        if (isProductStatus) {
-            // Uncheck all the product status selections
-            for (int i = 0; i < optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().size(); i++) {
-                optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(i).setChecked(false);
-            }
-            // Check the selected product status
-            optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().findItem(item.getItemId()).setChecked(true);
-            sendMenuItemSelectedBroadcast();
-        }
-
-        return true;
+            return true;
     }
 
     public static void destroyChartDialogIfVisible() {
@@ -619,13 +733,24 @@ public class Activity_AccountData extends AppCompatActivity {
         public CharSequence getPageTitle(int position) {
 
             curPageIndex = position;
-
+            String title = "";
             try {
                 switch (position) {
                     case INVENTORY_PAGE:
-                        return Frag_AccountInventory.pageTitle;
+                        title = Frag_AccountInventory.pageTitle;
+                        return title;
                     case SALES_LINE_PAGE:
-                        return Frag_SalesLines.pageTitle;
+                        title = Frag_SalesLines.pageTitle;
+                        if (curMonth == DateTime.now().getMonthOfYear() && curYear == DateTime.now().getYear()) {
+                            title += " - This month";
+                        } else if (curMonth == DateTime.now().minusMonths(1).getMonthOfYear() && curYear == DateTime.now().minusMonths(1).getYear()) {
+                            title += " - Last month";
+                        } else if (curMonth == 0 && curYear == 0) {
+                            title += " - Last 3 months";
+                        } else {
+                            title += " - " + Helpers.DatesAndTimes.getMonthName(curMonth) + " " + curYear;
+                        }
+                        return title;
                     case CONTACTS_PAGE:
                         return Frag_Contacts.pageTitle;
                     case OPPORTUNITIES_PAGE:
@@ -692,7 +817,6 @@ public class Activity_AccountData extends AppCompatActivity {
                     Intent intentChangeAccount = new Intent(context, FullscreenActivityChooseAccount.class);
                     intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
                     intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, curAccount);
-                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
                     startActivityForResult(intentChangeAccount, FullscreenActivityChooseAccount.REQUESTCODE);
                 }
             });
@@ -907,7 +1031,7 @@ public class Activity_AccountData extends AppCompatActivity {
         OrderLineRecyclerAdapter adapter;
         ArrayList<CrmEntities.OrderProducts.OrderProduct> allOrders = new ArrayList<>();
         Button btnChooseAccount;
-        BroadcastReceiver parentActivityMenuReceiver;
+        BroadcastReceiver menuReceiver;
         public static String pageTitle = "Sales";
         TextView txtNoSales;
         CrmEntities.Accounts.Account lastAccount;
@@ -945,8 +1069,17 @@ public class Activity_AccountData extends AppCompatActivity {
                     Intent intentChangeAccount = new Intent(context, FullscreenActivityChooseAccount.class);
                     intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
                     intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, curAccount);
-                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
                     startActivityForResult(intentChangeAccount, FullscreenActivityChooseAccount.REQUESTCODE);
+                }
+            });
+
+            fab = root.findViewById(R.id.floatingActionButton);
+            fab.setVisibility(View.VISIBLE);
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(FAB_CLICKED);
+                    getActivity().sendBroadcast(intent);
                 }
             });
 
@@ -959,7 +1092,7 @@ public class Activity_AccountData extends AppCompatActivity {
             super.onCreateView(inflater, container, savedInstanceState);
 
             // Broadcast received regarding an options menu selection
-            parentActivityMenuReceiver = new BroadcastReceiver() {
+            menuReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     Log.i(TAG, "onReceive Local receiver received broadcast!");
@@ -989,11 +1122,8 @@ public class Activity_AccountData extends AppCompatActivity {
                             allOrders.clear();
                             populateList();
                         }
-
                         btnChooseAccount.setVisibility(curAccount == null ? View.VISIBLE : View.GONE);
-
                         getAccountSales(true);
-
                         mViewPager.getAdapter().notifyDataSetChanged();
                     }
                 }
@@ -1016,7 +1146,7 @@ public class Activity_AccountData extends AppCompatActivity {
         public void onDestroyView() {
             super.onDestroyView();
 
-            getActivity().unregisterReceiver(parentActivityMenuReceiver);
+            getActivity().unregisterReceiver(menuReceiver);
             Log.i(TAG, "Unregistered the account contacts receiver");
         }
 
@@ -1024,7 +1154,7 @@ public class Activity_AccountData extends AppCompatActivity {
         public void onResume() {
 
             // Register the options menu selected receiver
-            getActivity().registerReceiver(parentActivityMenuReceiver, intentFilterParentActivity);
+            getActivity().registerReceiver(menuReceiver, intentFilterParentActivity);
 
             // Hide/show the choose account button
             if (curAccount == null) {
@@ -1055,7 +1185,12 @@ public class Activity_AccountData extends AppCompatActivity {
 
             lastAccount = curAccount;
 
-            String query = CrmQueries.OrderLines.getOrderLinesByAccount(curAccount.entityid, Operators.DateOperator.LAST_X_MONTHS, 3);
+            String query;
+            if (curMonth == 0 || curYear == 0) {
+                query = CrmQueries.OrderLines.getOrderLinesByAccount(curAccount.entityid, Operators.DateOperator.LAST_X_MONTHS, 3);
+            } else {
+                query = CrmQueries.OrderLines.getOrderLinesByAccount(curAccount.entityid, curMonth, curYear);
+            }
 
             txtNoSales.setVisibility(View.GONE);
 
@@ -1063,8 +1198,6 @@ public class Activity_AccountData extends AppCompatActivity {
                 Toast.makeText(context, "Please select an account", Toast.LENGTH_SHORT).show();
                 return;
             }
-
-            getPagerTitle();
 
             refreshLayout.autoRefreshAnimationOnly();
             ArrayList<Requests.Argument> args = new ArrayList<>();
@@ -1095,14 +1228,6 @@ public class Activity_AccountData extends AppCompatActivity {
             });
         }
 
-        String getPagerTitle() {
-            String txtAppend = "";
-
-            pageTitle = "Sales (last 3 months)";
-            mViewPager.getAdapter().notifyDataSetChanged();
-            return pageTitle;
-        }
-
         protected void populateList() {
 
             final ArrayList<CrmEntities.OrderProducts.OrderProduct> orderList = new ArrayList<>();
@@ -1114,19 +1239,16 @@ public class Activity_AccountData extends AppCompatActivity {
             boolean addedLastMonthHeader = false;
             boolean addedOlderHeader = false;
 
-            // Now today's date attributes
-            int todayDayOfYear = Helpers.DatesAndTimes.returnDayOfYear(DateTime.now());
-            int todayWeekOfYear = Helpers.DatesAndTimes.returnWeekOfYear(DateTime.now());
-            int todayMonthOfYear = Helpers.DatesAndTimes.returnMonthOfYear(DateTime.now());
+            float todaySubtotal = 0, yesterdaySubtotal = 0, thisWeekSubtotal = 0, thisMonthSubtotal = 0, lastMonthSubtotal = 0, olderSubtotal = 0;
 
-            Log.i(TAG, "populateTripList: Preparing the dividers and trips...");
+            Log.i(TAG, "populateTripList: Preparing the dividers and orders...");
             for (int i = 0; i < (allOrders.size()); i++) {
-                int orderDayOfYear = Helpers.DatesAndTimes.returnDayOfYear(allOrders.get(i).orderDate);
-                int orderWeekOfYear = Helpers.DatesAndTimes.returnWeekOfYear(allOrders.get(i).orderDate);
-                int orderMonthOfYear = Helpers.DatesAndTimes.returnMonthOfYear(allOrders.get(i).orderDate);
+                CrmEntities.OrderProducts.OrderProduct curProduct = allOrders.get(i);
 
                 // Trip was today
-                if (orderDayOfYear == todayDayOfYear) {
+                if (curProduct.orderDate.getDayOfMonth() == DateTime.now().getDayOfMonth() &&
+                        curProduct.orderDate.getMonthOfYear() == DateTime.now().getMonthOfYear() &&
+                        curProduct.orderDate.getYear() == DateTime.now().getYear()) {
                     if (addedTodayHeader == false) {
                         CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
                         headerObj.isSeparator = true;
@@ -1135,8 +1257,12 @@ public class Activity_AccountData extends AppCompatActivity {
                         addedTodayHeader = true;
                         Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Today' - This will not be added again!");
                     }
-                    // Trip was yesterday
-                } else if (orderDayOfYear == (todayDayOfYear - 1)) {
+                    todaySubtotal += curProduct.extendedAmt;
+
+                    // Order was yesterday
+                } else if (curProduct.orderDate.getDayOfMonth() == DateTime.now().minusDays(1).getDayOfMonth() &&
+                        curProduct.orderDate.getMonthOfYear() == DateTime.now().minusDays(1).getMonthOfYear() &&
+                        curProduct.orderDate.getYear() == DateTime.now().minusDays(1).getYear()) {
                     if (addedYesterdayHeader == false) {
                         CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
                         headerObj.isSeparator = true;
@@ -1145,9 +1271,12 @@ public class Activity_AccountData extends AppCompatActivity {
                         addedYesterdayHeader = true;
                         Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Yesterday' - This will not be added again!");
                     }
+                    yesterdaySubtotal += curProduct.extendedAmt;
 
-                    // Trip was this week
-                } else if (orderWeekOfYear == todayWeekOfYear) {
+                    // Order was this week
+                } else if (curProduct.orderDate.getWeekOfWeekyear() == DateTime.now().getWeekOfWeekyear() &&
+                        curProduct.orderDate.getMonthOfYear() == DateTime.now().getMonthOfYear() &&
+                        curProduct.orderDate.getYear() == DateTime.now().getYear()) {
                     if (addedThisWeekHeader == false) {
                         CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
                         headerObj.isSeparator = true;
@@ -1156,9 +1285,11 @@ public class Activity_AccountData extends AppCompatActivity {
                         addedThisWeekHeader = true;
                         Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'This week' - This will not be added again!");
                     }
+                    thisWeekSubtotal += curProduct.extendedAmt;
 
-                    // Trip was this month
-                } else if (orderMonthOfYear == todayMonthOfYear) {
+                    // Order was this month
+                } else if (curProduct.orderDate.getMonthOfYear() == DateTime.now().getMonthOfYear() &&
+                        curProduct.orderDate.getYear() == DateTime.now().getYear()) {
                     if (addedThisMonthHeader == false) {
                         CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
                         headerObj.isSeparator = true;
@@ -1167,53 +1298,79 @@ public class Activity_AccountData extends AppCompatActivity {
                         addedThisMonthHeader = true;
                         Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'This month' - This will not be added again!");
                     }
-
-                    // Trip was older than this month
-                } else if (orderMonthOfYear < todayMonthOfYear) {
+                    thisMonthSubtotal += curProduct.extendedAmt;
+                // Order was last month
+                } else if (curProduct.orderDate.getMonthOfYear() == DateTime.now().minusMonths(1).getMonthOfYear() &&
+                            curProduct.orderDate.getYear() == DateTime.now().minusMonths(1).getYear()) {
+                    if (addedLastMonthHeader == false) {
+                        CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
+                        headerObj.isSeparator = true;
+                        headerObj.setTitle("Last month");
+                        orderList.add(headerObj);
+                        addedLastMonthHeader = true;
+                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Last month' - This will not be added again!");
+                    }
+                    lastMonthSubtotal += curProduct.extendedAmt;
+                } else {
                     if (addedOlderHeader == false) {
                         CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
                         headerObj.isSeparator = true;
-                        headerObj.setTitle("Last month and older");
+                        headerObj.setTitle("Older than 2 months");
                         orderList.add(headerObj);
                         addedOlderHeader = true;
-                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Older' - This will not be added again!");
+                        Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Total' - This will not be added again!");
                     }
+                    olderSubtotal += curProduct.extendedAmt;
                 }
 
                 CrmEntities.OrderProducts.OrderProduct orderProduct = allOrders.get(i);
                 orderList.add(orderProduct);
             }
 
+            // Sum today, yesterday, this week, etc.
+            // This feels... right but I can't actually logic out if it is or is even necessary.
+            thisMonthSubtotal = thisMonthSubtotal + thisWeekSubtotal + yesterdaySubtotal + todaySubtotal;
+            thisWeekSubtotal = thisWeekSubtotal + yesterdaySubtotal + todaySubtotal;
+
+            // Append the subtotals to the headers (note that the partNumber property is used for the header's text - confusing I know)
+            for (CrmEntities.OrderProducts.OrderProduct product : orderList) {
+                if (todaySubtotal > 0) {
+                    if (product.isSeparator && product.partNumber.equals("Today")) {
+                        product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(todaySubtotal) + ")";
+                    }
+                }
+                if (yesterdaySubtotal > 0) {
+                    if (product.isSeparator && product.partNumber.equals("Yesterday")) {
+                        product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(yesterdaySubtotal) + ")";
+                    }
+                }
+                if (thisWeekSubtotal > 0) {
+                    if (product.isSeparator && product.partNumber.equals("This week")) {
+                        product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(thisWeekSubtotal) + ")";
+                    }
+                }
+                if (thisMonthSubtotal > 0) {
+                    if (product.isSeparator && product.partNumber.equals("This month")) {
+                        product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(thisMonthSubtotal) + ")";
+                    }
+                }
+                if (lastMonthSubtotal > 0) {
+                    if (product.isSeparator && product.partNumber.equals("Last month")) {
+                        product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(lastMonthSubtotal) + ")";
+                    }
+                }
+                if (olderSubtotal > 0) {
+                    if (product.isSeparator && product.partNumber.equals("Older than 2 months")) {
+                        product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(olderSubtotal) + ")";
+                    }
+                }
+            }
+
             Log.i(TAG, "populateTripList Finished preparing the dividers and trips.");
 
             if (!getActivity().isFinishing()) {
                 adapter = new OrderLineRecyclerAdapter(getContext(), orderList);
-                adapter.setClickListener(null);
-                /*adapter.setClickListener(new OrderLineRecyclerAdapter.ItemClickListener() {
-                    @Override
-                    public void onItemClick(View view, int position) {
-                        final MyProgressDialog progressDialog = new MyProgressDialog(context , "Getting order details...");
-                        progressDialog.show();
-                        ArrayList<Requests.Argument> args = new ArrayList<>();
-                        String query = Queries.OrderLines.getOrderLines(orderList.get(position).salesorderid);
-                        args.add(new Requests.Argument("query", query));
-                        Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
-                        new Crm().makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
-                            @Override
-                            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                                String response = new String(responseBody);
-                                CrmEntities.OrderProducts orderLines = new CrmEntities.OrderProducts(response);
-                                progressDialog.dismiss();
-                            }
-
-                            @Override
-                            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                                progressDialog.dismiss();
-                            }
-                        });
-
-                    }
-                });*/
+                adapter.disableLinkButtons();
                 recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
                 recyclerView.setAdapter(adapter);
 
@@ -1308,14 +1465,15 @@ public class Activity_AccountData extends AppCompatActivity {
         AccountInventoryRecyclerAdapter adapter;
         ArrayList<CrmEntities.AccountProducts.AccountProduct> custInventory = new ArrayList<>();
         Button btnChooseAccount;
-        ProductType productType = ProductType.PROBES; // Set a default so our first createview can show data
-        ProductStatus productStatus = ProductStatus.IN_STOCK;
+        /*ProductType productType = ProductType.PROBES; // Set a default so our first createview can show data
+        ProductStatus productStatus = ProductStatus.IN_STOCK;*/
         public static String pageTitle = "Inventory";
         TextView txtNoInventory;
         BroadcastReceiver parentActivityMenuReceiver;
         CrmEntities.Accounts.Account lastAccount;
         FloatingActionButton fab;
-
+        RelativeLayout layoutFilter;
+        EditText txtFilter;
 
         enum ProductType {
             ALL, PROBES, CABLES, FLOWMETERS, LICENSES
@@ -1346,6 +1504,55 @@ public class Activity_AccountData extends AppCompatActivity {
                 }
             });
 
+            layoutFilter = root.findViewById(R.id.layoutFilter);
+            txtFilter = root.findViewById(R.id.edittextFilter);
+            txtFilter.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+
+                @Override
+                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                    // NPE if we don't have a populated adapter!
+                    if (adapter == null || adapter.mData == null) {
+                        Log.w(TAG, "onTextChanged: No data in adapter - cannot filter!");
+                        return;
+                    }
+
+                    String filter;
+
+                    // Clear the adapter's data
+                    adapter.mData.clear();
+
+                    // Filter text present
+                    if (charSequence != null && charSequence.length() > 0) {
+                        filter = charSequence.toString().toLowerCase();
+
+                        for (CrmEntities.AccountProducts.AccountProduct product : custInventory) {
+                            try { // Lazy try/catch
+                                if (product.serialnumber.toLowerCase().contains(filter)) {
+                                    adapter.mData.add(product);
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    } else { // No filter text so add everything
+                        for (CrmEntities.AccountProducts.AccountProduct product : custInventory) {
+                            adapter.mData.add(product);
+                        }
+                    }
+                }
+
+                @Override
+                public void afterTextChanged(Editable editable) {
+                    // Notify the list that the data has changed
+                    if (adapter != null && adapter.mData != null) {
+                        adapter.notifyDataSetChanged();
+                    }
+                }
+            });
+
             txtNoInventory = root.findViewById(R.id.txtNoInventory);
             refreshLayout = root.findViewById(R.id.refreshLayout);
             options = new MyPreferencesHelper(context);
@@ -1371,7 +1578,6 @@ public class Activity_AccountData extends AppCompatActivity {
                     Intent intentChangeAccount = new Intent(context, FullscreenActivityChooseAccount.class);
                     intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
                     intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, curAccount);
-                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
                     startActivityForResult(intentChangeAccount, FullscreenActivityChooseAccount.REQUESTCODE);
                 }
             });
@@ -1416,46 +1622,6 @@ public class Activity_AccountData extends AppCompatActivity {
                             custInventory.clear();
                             populateList();
                         }
-
-                        // *******************************************************************
-                        // *                EVALUATE MENU SELECTIONS                         *
-                        // *******************************************************************
-                        // *                     PRODUCT TYPE                                *
-                        // *******************************************************************
-                        if (optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().getItem(0).isChecked()) {
-                            productType = ProductType.PROBES;
-                        }
-                        if (optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().getItem(1).isChecked()) {
-                            productType = ProductType.FLOWMETERS;
-                        }
-                        if (optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().getItem(2).isChecked()) {
-                            productType = ProductType.CABLES;
-                        }
-                        if (optionsMenu.getItem(PRODUCTFAMILY_MENU_ROOT).getSubMenu().getItem(3).isChecked()) {
-                            productType = ProductType.LICENSES;
-                        }
-                        // *******************************************************************
-                        // *                     PRODUCT STATUS                              *
-                        // *******************************************************************
-                        if (optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(0).isChecked()) {
-                            productStatus = ProductStatus.IN_STOCK;
-                        }
-                        if (optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(1).isChecked()) {
-                            productStatus = ProductStatus.RETURNED;
-                        }
-                        if (optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(2).isChecked()) {
-                            productStatus = ProductStatus.EXPIRED;
-                        }
-                        if (optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(3).isChecked()) {
-                            productStatus = ProductStatus.LOST;
-                        }
-                        if (optionsMenu.getItem(PRODUCTSTATUS_MENU_ROOT).getSubMenu().getItem(4).isChecked()) {
-                            productStatus = ProductStatus.ANY;
-                        }
-                        // *******************************************************************
-                        // *                END EVALUATE MENU SELECTIONS                     *
-                        // *******************************************************************
-
 
                         btnChooseAccount.setVisibility(curAccount == null ? View.VISIBLE : View.GONE);
 
@@ -1510,6 +1676,19 @@ public class Activity_AccountData extends AppCompatActivity {
         protected void getAccountInventory(boolean forceRefresh) {
             String query = "";
 
+            try {
+                layoutFilter.setEnabled(false);
+                txtFilter.setEnabled(false);
+                txtFilter.setText("");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            populateList();
+
+            adapter.mData.clear();
+            adapter.notifyDataSetChanged();
+
             if (custInventory != null && custInventory.size() > 0 && forceRefresh != true) {
                 populateList();
                 return;
@@ -1543,7 +1722,7 @@ public class Activity_AccountData extends AppCompatActivity {
                     break;
             }
 
-            switch (productType) {
+            switch (productFamily) {
                 case PROBES:
                     query = Accounts.getAccountInventory(curAccount
                             .entityid,CrmEntities.AccountProducts.ITEM_GROUP_PROBES, statusCode);
@@ -1556,7 +1735,7 @@ public class Activity_AccountData extends AppCompatActivity {
                     query = Accounts.getAccountInventory(curAccount
                             .entityid,CrmEntities.AccountProducts.ITEM_GROUP_LICENSES, statusCode);
                     break;
-                case LICENSES:
+                case CARDS:
                     query = Accounts.getAccountInventory(curAccount
                             .entityid,CrmEntities.AccountProducts.ITEM_GROUP_CABLES, statusCode);
                     break;
@@ -1596,7 +1775,7 @@ public class Activity_AccountData extends AppCompatActivity {
         String getPagerTitle() {
             String txtAppend = "";
 
-            switch (productType) {
+            switch (productFamily) {
                 case PROBES:
                     txtAppend = "probes - ";
                     break;
@@ -1606,7 +1785,7 @@ public class Activity_AccountData extends AppCompatActivity {
                 case CABLES:
                     txtAppend = "cables - ";
                     break;
-                case LICENSES:
+                case CARDS:
                     txtAppend = "licenses - ";
                     break;
             }
@@ -1674,6 +1853,14 @@ public class Activity_AccountData extends AppCompatActivity {
                 txtNoInventory.setVisibility(View.VISIBLE);
             } else {
                 txtNoInventory.setVisibility(View.GONE);
+            }
+
+            try {
+                layoutFilter.setEnabled(true);
+                txtFilter.setEnabled(true);
+                txtFilter.setText("");
+            } catch (Exception e) {
+                e.printStackTrace();
             }
 
         }
@@ -1777,7 +1964,14 @@ public class Activity_AccountData extends AppCompatActivity {
                                  @Nullable Bundle savedInstanceState) {
             root = inflater.inflate(R.layout.frag_opportunities, container, false);
             fab = root.findViewById(R.id.floatingActionButton);
-            fab.setVisibility(View.GONE);
+            fab.setVisibility(View.VISIBLE);
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(FAB_CLICKED);
+                    getActivity().sendBroadcast(intent);
+                }
+            });
             refreshLayout = root.findViewById(R.id.refreshLayout);
             refreshLayout.setEnableLoadMore(false);
             options = new MyPreferencesHelper(context);
@@ -1803,7 +1997,6 @@ public class Activity_AccountData extends AppCompatActivity {
                     Intent intentChangeAccount = new Intent(context, FullscreenActivityChooseAccount.class);
                     intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
                     intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, curAccount);
-                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
                     startActivityForResult(intentChangeAccount, FullscreenActivityChooseAccount.REQUESTCODE);
                 }
             });
@@ -1935,12 +2128,6 @@ public class Activity_AccountData extends AppCompatActivity {
         protected void getAccountOpportunities(boolean forceRefresh) {
 
             if (curAccount == null) {
-                return;
-            }
-
-            String query = CrmQueries.Opportunities.getOpportunitiesByAccount(curAccount.entityid);
-
-            if (curAccount == null) {
                 Toast.makeText(context, "Please select an account", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -1952,6 +2139,7 @@ public class Activity_AccountData extends AppCompatActivity {
                 return;
             }
 
+            String query = CrmQueries.Opportunities.getOpportunitiesByAccount(curAccount.entityid, dealStatus);
             refreshLayout.autoRefreshAnimationOnly();
             ArrayList<Requests.Argument> args = new ArrayList<>();
             Requests.Argument argument = new Requests.Argument("query", query);
@@ -2074,7 +2262,14 @@ public class Activity_AccountData extends AppCompatActivity {
                                  @Nullable Bundle savedInstanceState) {
             root = inflater.inflate(R.layout.frag_cases, container, false);
             fab = root.findViewById(R.id.floatingActionButton);
-            fab.setVisibility(View.GONE); // No filtering is set up (yet).
+            fab.setVisibility(View.VISIBLE);
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(FAB_CLICKED);
+                    getActivity().sendBroadcast(intent);
+                }
+            });
             refreshLayout = root.findViewById(R.id.refreshLayout);
             refreshLayout.setEnableLoadMore(false);
             options = new MyPreferencesHelper(context);
@@ -2099,7 +2294,6 @@ public class Activity_AccountData extends AppCompatActivity {
                     Intent intentChangeAccount = new Intent(context, FullscreenActivityChooseAccount.class);
                     intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_TERRITORY, territory);
                     intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CURRENT_ACCOUNT, curAccount);
-                    intentChangeAccount.putExtra(FullscreenActivityChooseAccount.CACHED_ACCOUNTS, cachedAccounts);
                     startActivityForResult(intentChangeAccount, FullscreenActivityChooseAccount.REQUESTCODE);
                 }
             });
@@ -2209,12 +2403,6 @@ public class Activity_AccountData extends AppCompatActivity {
         protected void getAccountTickets(boolean forceRefresh) {
 
             if (curAccount == null) {
-                return;
-            }
-
-            String query = CrmQueries.Tickets.getAccountTickets(curAccount.entityid);
-
-            if (curAccount == null) {
                 Toast.makeText(context, "Please select an account", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -2225,8 +2413,9 @@ public class Activity_AccountData extends AppCompatActivity {
                 populateList();
                 return;
             }
-
             refreshLayout.autoRefreshAnimationOnly();
+
+            String query = CrmQueries.Tickets.getAccountIncidents(curAccount.entityid, case_filter, case_state);
             ArrayList<Requests.Argument> args = new ArrayList<>();
             Requests.Argument argument = new Requests.Argument("query", query);
             args.add(argument);
@@ -2240,13 +2429,7 @@ public class Activity_AccountData extends AppCompatActivity {
                         Log.i(TAG, "onSuccess " + response);
                         CrmEntities.Tickets tickets = new CrmEntities.Tickets(response);
                         objects.clear();
-                        for (CrmEntities.Tickets.Ticket ticket : tickets.list) {
-                            BasicObjects.BasicObject object = new BasicObjects.BasicObject(ticket.ticketnumber, ticket.title, ticket);
-                            object.middleText = ticket.description;
-                            object.topRightText = ticket.statusFormatted;
-                            object.bottomRightText = Helpers.DatesAndTimes.getPrettyDateAndTime(ticket.modifiedon);
-                            objects.add(object);
-                        }
+                        objects = tickets.toBasicObjects();
                         populateList();
                         refreshLayout.finishRefresh();
                     } catch (Exception e) {
@@ -2261,13 +2444,16 @@ public class Activity_AccountData extends AppCompatActivity {
                     refreshLayout.finishRefresh();
                 }
             });
+
         }
 
         protected void populateList() {
 
-            for (int i = 0; i < (objects.size()); i++) {
+            /*for (int i = 0; i < (objects.size()); i++) {
                 adapter = new BasicObjectRecyclerAdapter(context, objects);
-            }
+            }*/
+
+            adapter = new BasicObjectRecyclerAdapter(context, objects);
 
             // Check if adapter is null and leave if so.  If user hasn't selected an account this will be the case
             if (adapter == null) {

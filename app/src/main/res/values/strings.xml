@@ -141,7 +141,7 @@
     <string name="title_activity_numbers">Sales and Goals</string>
     <string name="title_activity__sales_performance">ScrollingActivity</string>
     <string name="menu_sales">Sales and more</string>
-    <string name="action_change_date">Change Date...</string>
+    <string name="action_change_date">Choose month...</string>
     <string name="action_last_month">Last month</string>
     <string name="action_this_month">This month</string>
     <string name="action_this_year">This year</string>
@@ -252,7 +252,7 @@
     <string name="retrieving_opportunities">Retrieving opportunities...</string>
     <string name="change_case_state">Case state</string>
     <string name="action_case_state_open">Open</string>
-    <string name="action_case_state_resolved">Resolved</string>
+    <string name="action_case_state_closed">Closed</string>
     <string name="action_case_status_waiting_on_rep">Waiting on rep</string>
     <string name="change_case_status">Case status</string>
     <string name="action_case_state_in_progress">In progress</string>
@@ -262,7 +262,6 @@
     <string name="action_case_status_waiting_on_customer">Waiting on customer</string>
     <string name="action_case_status_to_be_billed">To be billed</string>
     <string name="action_case_status_problem_solved">Problem solved</string>
-    <string name="action_case_state_not_resolved">Not resolved</string>
     <string name="action_email">Email...</string>
     <string name="tickets_about_this_list">Please choose a ticket.</string>
     <string name="send_email">Send email</string>
@@ -426,6 +425,33 @@
     <string name="title_activity_emails_fullscreen">FullscreenActivity</string>
     <string name="notes_activities_emails_label">Activity:</string>
     <string name="title_activity_view_email">ViewEmailActivity</string>
+    <string name="menu_cpywide_data">Company-Wide</string>
+    <string name="title_activity_cpywide">Company-Wide</string>
+    <string name="action_qualifying">Qualifying</string>
+    <string name="action_stalled">Stalled</string>
+    <string name="action_discovery">Discovery</string>
+    <string name="action_evaluating">Evaluating</string>
+    <string name="action_pending">Pending</string>
+    <string name="action_won">Won</string>
+    <string name="action_closed">Closed</string>
+    <string name="action_canceled">Canceled</string>
+    <string name="action_dead">Dead</string>
+    <string name="action_any">Any</string>
+    <string name="change_opportunity_status">Opportunity status...</string>
+    <string name="lead_any">All</string>
+    <string name="change_lead_type">Lead types...</string>
+    <string name="lead_qualified">Qualified</string>
+    <string name="lead_disqualified">Disqualified</string>
+    <string name="lead_created_last_three_months">Created in last 3 months</string>
+    <string name="action_last_three_months">Last 3 months</string>
+    <string name="action_back">Back</string>
+    <string name="action_create_new">Create new...</string>
+    <string name="title_activity_fullscreen_choose_contact">Choose Contact</string>
+    <string name="action_delete">Delete</string>
+    <string name="msg_cannot_edit_closed_ticket">Cannot edit a closed/cancelled ticket using MediBuddy (yet).  Sorry!</string>
+    <string name="action_resolved_cases">Closed tickets</string>
+    <string name="action_unresolved_cases">Open tickets</string>
+    <string name="action_case_status_any">Any</string>
 
 
 </resources>

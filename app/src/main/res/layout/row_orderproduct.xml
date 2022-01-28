@@ -62,11 +62,11 @@
         android:layout_below="@id/txt_partNumber"
         android:layout_marginStart="10dp"
         android:layout_marginEnd="4dp"
-        android:singleLine="true"
         android:layout_marginRight="3dp"
         android:layout_toStartOf="@+id/txt_orderDate"
         android:layout_toEndOf="@id/img_PartIcon"
         android:fontFamily="@font/casual"
+        android:singleLine="true"
         android:text="Baptist Memorial Hospital"
         android:textSize="16sp"
         android:textStyle="bold" />

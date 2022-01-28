@@ -22,7 +22,9 @@ import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
 import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
-import com.fimbleenterprises.medimileage.objects_and_containers.Territory;
+import com.fimbleenterprises.medimileage.objects_and_containers.Territories;
+import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
+
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import java.util.ArrayList;
@@ -39,7 +41,7 @@ public class FullscreenAccountTerritoryPicker extends AppCompatActivity implemen
     MyExpandableListview listview;
     ExpandableBasicObjectListviewAdapter adapter;
     ArrayList<BasicObjects> parents = new ArrayList<>();
-    ArrayList<Territory> territories = new ArrayList<>();
+    ArrayList<Territories.Territory> territories = new ArrayList<>();
     Context context;
     Parcelable lastListviewState;
 
@@ -52,23 +54,7 @@ public class FullscreenAccountTerritoryPicker extends AppCompatActivity implemen
         this.context = this;
         listview = findViewById(R.id.expandableListview);
 
-        // Caller can supply an arraylist of Territory objects which will be used instead of querying CRM
-        if (getIntent().hasExtra(CACHED_TERRITORIES)) {
-            if (getIntent().getParcelableArrayListExtra(CACHED_TERRITORIES) != null) {
-                territories = getIntent().getParcelableArrayListExtra(CACHED_TERRITORIES);
-                for (Territory t : territories) {
-                    BasicObjects.BasicObject parentTerritoryObject = new BasicObjects.BasicObject(t.repName, t.territoryName, t);
-                    BasicObjects parent = new BasicObjects(t.territoryName, parentTerritoryObject);
-                    parents.add(parent);
-                }
-
-                populateListdata();
-                return;
-            }
-        } else {
-            Log.i(TAG, "onCreate No cached territories were supplied - must retrieve from CRM");
-            getListData();
-        }
+        getListData();
     }
 
     public static void showPicker(Activity callingActivity) {
@@ -76,7 +62,7 @@ public class FullscreenAccountTerritoryPicker extends AppCompatActivity implemen
         callingActivity.startActivityForResult(intent, 0);
     }
 
-    public static void showPicker(Activity callingActivity, ArrayList<Territory> cachedTerritories) {
+    public static void showPicker(Activity callingActivity, ArrayList<Territories.Territory> cachedTerritories) {
         Intent intent = new Intent(callingActivity, FullscreenAccountTerritoryPicker.class);
         if (cachedTerritories != null) {
             intent.putExtra(CACHED_TERRITORIES, cachedTerritories);
@@ -185,7 +171,7 @@ public class FullscreenAccountTerritoryPicker extends AppCompatActivity implemen
 
                 Territory selectedTerritory = (Territory) parent.parentObject.object;
 
-                String query = CrmQueries.Accounts.getAccountsByTerritory(selectedTerritory.territoryid);
+                String query = CrmQueries.Accounts.getAccounts(selectedTerritory.territoryid);
                 ArrayList<Requests.Argument> args = new ArrayList<>();
                 args.add(new Requests.Argument("query", query));
                 Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);

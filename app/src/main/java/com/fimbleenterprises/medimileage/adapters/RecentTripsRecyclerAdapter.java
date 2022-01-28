@@ -111,10 +111,10 @@ public class RecentTripsRecyclerAdapter extends RecyclerView.Adapter<RecentTrips
         ViewHolder(final View itemView) {
             super(itemView);
             layout = itemView.findViewById(R.id.layout);
-            imgIcon = itemView.findViewById(R.id.leftIcon);
+            imgIcon = itemView.findViewById(R.id.imgLeft);
             txtMainText = itemView.findViewById(R.id.txtMainText);
             txtSubtext = itemView.findViewById(R.id.txtSubtext);
-            btnDelete = itemView.findViewById(R.id.btnDeleteTrip);
+            btnDelete = itemView.findViewById(R.id.imgRight);
 
             itemView.setOnClickListener(this);
             itemView.setOnLongClickListener(this);

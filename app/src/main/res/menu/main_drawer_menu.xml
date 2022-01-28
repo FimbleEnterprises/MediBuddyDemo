@@ -31,11 +31,15 @@
             android:title="@string/menu_my_data">
             <menu>
                 <item
-                    android:id="@+id/nav_myterritory"
+                    android:id="@+id/nav_cpywidedata"
+                    android:icon="@drawable/territory1"
+                    android:title="@string/menu_cpywide_data" />
+                <item
+                    android:id="@+id/nav_territory_data"
                     android:icon="@drawable/territory1"
                     android:title="@string/menu_territory_info" />
                 <item
-                    android:id="@+id/nav_myaccounts"
+                    android:id="@+id/nav_account_data"
                     android:icon="@drawable/territory1"
                     android:title="@string/menu_account_info" />
                 <item

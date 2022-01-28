@@ -136,15 +136,15 @@ public class ContactActions {
 
         deleteRow.setVisibility(allowDelete ? View.VISIBLE : View.GONE);
         businessRow.setVisibility(person.mobile == null ? View.GONE : View.VISIBLE);
-        address1Row.setVisibility(person.address1Phone == null ? View.GONE : View.VISIBLE);
-        smsRow1.setVisibility(person.address1Phone == null ? View.GONE : View.VISIBLE);
+        address1Row.setVisibility(person.telephone1 == null ? View.GONE : View.VISIBLE);
+        smsRow1.setVisibility(person.telephone1 == null ? View.GONE : View.VISIBLE);
         smsRow2.setVisibility(person.mobile == null ? View.GONE : View.VISIBLE);
         emailRow.setVisibility(person.email == null ? View.GONE : View.VISIBLE);
 
-        btnCallAddress1.setText(person.address1Phone != null ? "Call: " + person.address1Phone : "");
-        btnCallBusiness1.setText(person.mobile != null ? "Call: " + person.mobile : "");
-        btnSms1.setText(person.address1Phone != null ? "Text: " + person.address1Phone : "");
-        btnSms2.setText(person.mobile != null ? "Text: " + person.mobile : "");
+        btnCallAddress1.setText(person.telephone1 != null ? "Call: " + person.telephone1 : "");
+        btnCallBusiness1.setText(person.mobile != null ? "Call mobile: " + person.mobile : "");
+        btnSms1.setText(person.telephone1 != null ? "Text: " + person.telephone1 : "");
+        btnSms2.setText(person.mobile != null ? "Text mobile: " + person.mobile : "");
 
         String s1 = btnSms1.getText().toString();
         String s2 = btnSms2.getText().toString();
@@ -209,7 +209,7 @@ public class ContactActions {
                 String entityLogicalName = (person.isLead) ? "lead" : "contact";
                 intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, entityLogicalName);
                 intent.putExtra(BasicEntityActivity.ENTITYID, person.parentid);
-                intent.putExtra(BasicEntityActivity.GSON_STRING, person.toBasicEntity().toGson());
+                intent.putExtra(BasicEntityActivity.GSON_STRING, person.toBasicEntity(person.isLead).toGson());
                 intent.putExtra(BasicEntityActivity.LOAD_NOTES, true);
                 intent.putExtra(BasicEntityActivity.HIDE_MENU, false);
                 activity.startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);

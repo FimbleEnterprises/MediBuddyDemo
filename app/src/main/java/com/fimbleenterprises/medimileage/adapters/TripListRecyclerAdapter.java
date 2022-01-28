@@ -201,13 +201,13 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
         ViewHolder(View itemView) {
             super(itemView);
             layout = itemView.findViewById(R.id.layout);
-            imgSubmitStatus = itemView.findViewById(R.id.leftIcon);
+            imgSubmitStatus = itemView.findViewById(R.id.imgLeft);
             txtMainText = itemView.findViewById(R.id.txtMainText);
             txtSubtext = itemView.findViewById(R.id.txtSubtext);
             imgHasAssociations = itemView.findViewById(R.id.imageView_has_associations);
             txtIsEditedOrManual = itemView.findViewById(R.id.txtIsEditedOrManual);
             txtIsAutoStoppedTrip = itemView.findViewById(R.id.txtIsAutoStopped);
-            chkbxSelectTrip = itemView.findViewById(R.id.btnDeleteTrip);
+            chkbxSelectTrip = itemView.findViewById(R.id.imgRight);
 
             itemView.setOnClickListener(this);
             itemView.setOnLongClickListener(this);

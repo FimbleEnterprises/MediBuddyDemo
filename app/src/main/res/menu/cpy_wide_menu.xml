@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Sales lines -->
+    <item android:id="@+id/search"
+        android:title="@string/search_title"
+        android:icon="@drawable/search"
+        app:showAsAction="always"
+        app:actionViewClass="androidx.appcompat.widget.SearchView" />
+
+    <item
+        android:id="@+id/action_choose_territory"
+        android:orderInCategory="1"
+        android:title="@string/action_choose_territory"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_east_region"
+        android:checkable="true"
+        android:orderInCategory="96"
+        android:title="@string/action_east_region"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_west_region"
+        android:checkable="true"
+        android:orderInCategory="96"
+        android:title="@string/action_west_region"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_this_year"
+        android:orderInCategory="96"
+        android:title="@string/action_this_year"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_last_year"
+        android:orderInCategory="97"
+        android:title="@string/action_last_year"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_this_month"
+        android:orderInCategory="98"
+        android:title="@string/action_this_month"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_last_month"
+        android:orderInCategory="99"
+        android:title="@string/action_last_month"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_choose_month"
+        android:orderInCategory="100"
+        android:title="@string/action_change_date"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_lead_type"
+        android:orderInCategory="98"
+        android:title="@string/change_lead_type">
+        <menu>
+            <group
+                android:id="@+id/lead_type"
+                android:menuCategory="container">
+                <item
+                    android:id="@+id/action_lead_any"
+                    android:orderInCategory="100"
+                    android:checkable="true"
+                    android:title="@string/lead_any"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_lead_created_last_three_months"
+                    android:orderInCategory="100"
+                    android:checkable="true"
+                    android:title="@string/lead_created_last_three_months"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_lead_qualified"
+                    android:orderInCategory="100"
+                    android:checkable="true"
+                    android:title="@string/lead_qualified"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_lead_disqualified"
+                    android:orderInCategory="100"
+                    android:checkable="true"
+                    android:title="@string/lead_disqualified"
+                    app:showAsAction="never" />
+            </group>
+        </menu>
+    </item>
+
+    <!-- SERVICE AGREEMENTS -->
+    <item
+        android:id="@+id/action_current_service_agreements"
+        android:orderInCategory="100"
+        android:checkable="true"
+        android:title="@string/action_current_service_agreements"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_expiring_service_agreements"
+        android:orderInCategory="99"
+        android:checkable="true"
+        android:title="@string/action_expiring_service_agreements"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_expired_service_agreements"
+        android:orderInCategory="98"
+        android:checkable="true"
+        android:title="@string/action_expired_service_agreements"
+        app:showAsAction="never" />
+    <!-- Opportunities -->
+    <item
+        android:id="@+id/action_opportunity_status"
+        android:orderInCategory="98"
+        android:title="@string/change_opportunity_status">
+        <menu>
+            <group
+                android:id="@+id/opportunity_status"
+                android:menuCategory="container">
+                <item
+                    android:id="@+id/action_opp_any"
+                    android:orderInCategory="100"
+                    android:checkable="true"
+                    android:title="@string/action_any"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_opp_discovery"
+                    android:orderInCategory="99"
+                    android:checkable="true"
+                    android:title="@string/action_discovery"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_opp_stalled"
+                    android:orderInCategory="98"
+                    android:checkable="true"
+                    android:title="@string/action_stalled"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_opp_qualifying"
+                    android:orderInCategory="97"
+                    android:checkable="true"
+                    android:title="@string/action_qualifying"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_opp_evaluating"
+                    android:orderInCategory="96"
+                    android:checkable="true"
+                    android:title="@string/action_evaluating"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_opp_pending"
+                    android:orderInCategory="95"
+                    android:checkable="true"
+                    android:title="@string/action_pending"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_opp_won"
+                    android:orderInCategory="94"
+                    android:checkable="true"
+                    android:title="@string/action_won"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_opp_closed"
+                    android:orderInCategory="93"
+                    android:checkable="true"
+                    android:title="@string/action_closed"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_opp_canceled"
+                    android:orderInCategory="92"
+                    android:checkable="true"
+                    android:title="@string/action_canceled"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_opp_dead"
+                    android:orderInCategory="91"
+                    android:checkable="true"
+                    android:title="@string/action_dead"
+                    app:showAsAction="never" />
+            </group>
+        </menu>
+    </item>
+
+    <!--********************* CASE STUFF *********************-->
+
+    <!--
+    public static final int IN_PROGRESS = 1;
+    public static final int ON_HOLD = 2;
+    public static final int TO_BE_INSPECTED = 100000002;
+    public static final int WAITING_ON_REP = 3;
+    public static final int WAITING_FOR_PRODUCT = 4;
+    public static final int WAITING_ON_CUSTOMER = 100000001;
+    public static final int TO_BE_BILLED = 100000003;
+     -->
+
+    <item
+        android:id="@+id/action_case_state"
+        android:orderInCategory="98"
+        android:title="@string/change_case_state">
+        <menu>
+            <group
+                android:id="@+id/case_state"
+                android:menuCategory="container">
+                <item
+                    android:id="@+id/action_case_state_open"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:orderInCategory="96"
+                    android:title="@string/action_case_state_open"
+                    app:showAsAction="never" />
+            <item
+                android:id="@+id/action_case_state_closed"
+                android:checkable="true"
+                android:checked="false"
+                android:orderInCategory="96"
+                android:title="@string/action_case_state_closed"
+                app:showAsAction="never" />
+            </group>
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/action_case_status"
+        android:orderInCategory="98"
+        android:title="@string/change_case_status">
+        <menu>
+            <group
+                android:id="@+id/case_status"
+                android:menuCategory="container">
+                <item
+                    android:id="@+id/action_change_case_status_any"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:orderInCategory="96"
+                    android:title="@string/action_case_status_any"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_change_case_status_inprogress"
+                    android:checkable="true"
+                    android:checked="false"
+                    android:orderInCategory="96"
+                    android:title="@string/action_case_state_in_progress"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_change_case_status_on_hold"
+                    android:checkable="true"
+                    android:checked="false"
+                    android:orderInCategory="96"
+                    android:title="@string/action_case_status_on_hold"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_change_case_status_to_be_inspected"
+                    android:checkable="true"
+                    android:checked="false"
+                    android:orderInCategory="96"
+                    android:title="@string/action_case_status_to_be_inspected"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_change_case_status_waiting_for_product"
+                    android:checkable="true"
+                    android:checked="false"
+                    android:orderInCategory="96"
+                    android:title="@string/action_case_status_waiting_for_product"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_change_case_status_waiting_on_customer"
+                    android:checkable="true"
+                    android:checked="false"
+                    android:orderInCategory="96"
+                    android:title="@string/action_case_status_waiting_on_customer"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_change_case_status_waiting_on_rep"
+                    android:checkable="true"
+                    android:checked="false"
+                    android:orderInCategory="96"
+                    android:title="@string/action_case_status_waiting_on_rep"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_change_case_status_to_be_billed"
+                    android:checkable="true"
+                    android:checked="false"
+                    android:orderInCategory="96"
+                    android:title="@string/action_case_status_to_be_billed"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_change_case_status_problem_solved"
+                    android:checkable="true"
+                    android:checked="false"
+                    android:orderInCategory="96"
+                    android:title="@string/action_case_status_problem_solved"
+                    app:showAsAction="never" />
+            </group>
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/action_account_type"
+        android:orderInCategory="98"
+        android:title="@string/change_account_type">
+        <menu>
+            <group
+                android:id="@+id/account_type"
+                android:menuCategory="container">
+                <item
+                    android:id="@+id/action_account_type_any"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:orderInCategory="96"
+                    android:title="@string/action_account_type_any"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_account_type_customer"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:orderInCategory="96"
+                    android:title="@string/action_account_type_customer"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_account_type_potential_customer"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:orderInCategory="96"
+                    android:title="@string/action_account_type_potential_customer"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_account_type_distributor"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:orderInCategory="96"
+                    android:title="@string/action_account_type_distributor"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_account_type_former_customer"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:orderInCategory="96"
+                    android:title="@string/action_account_type_former_customer"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_account_type_eval_in_progress"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:orderInCategory="96"
+                    android:title="@string/action_account_type_eval_in_progress"
+                    app:showAsAction="never" />
+                <item
+                    android:id="@+id/action_account_type_other"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:orderInCategory="96"
+                    android:title="@string/action_account_type_other"
+                    app:showAsAction="never" />
+            </group>
+        </menu>
+    </item>
+
+</menu>

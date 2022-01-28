@@ -1,5 +1,6 @@
 package com.fimbleenterprises.medimileage.objects_and_containers;
 
+import android.graphics.Color;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -65,6 +66,7 @@ public class BasicObjects {
         public boolean isHeader = false;
         public boolean isEmpty = false;
         public boolean isVisible = true;
+        public boolean shouldHighlight;
         public DateTime dateTime;
 
         public BasicObject() {

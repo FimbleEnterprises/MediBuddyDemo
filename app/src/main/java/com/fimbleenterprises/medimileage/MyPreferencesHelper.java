@@ -2,7 +2,6 @@ package com.fimbleenterprises.medimileage;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.location.Location;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -11,6 +10,8 @@ import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyUpdate;
 import com.fimbleenterprises.medimileage.objects_and_containers.SavedParkingSpot;
+import com.fimbleenterprises.medimileage.objects_and_containers.Territories;
+import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
 import com.fimbleenterprises.medimileage.objects_and_containers.UserAddresses;
 import com.google.gson.Gson;
 
@@ -19,6 +20,7 @@ import org.joda.time.Days;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
 
@@ -64,10 +66,18 @@ public class MyPreferencesHelper {
     public static final String SHOW_USAGE_MENU_ITEM = "SHOW_USAGE_MENU_ITEM";
     public static final String LAST_SEARCH_TAB = "LAST_SEARCH_TAB";
     public static final String LAST_TERRITORY_TAB = "LAST_TERRITORY_TAB";
+    public static final String LAST_ACCOUNT_PAGE = "LAST_ACCOUNT_PAGE";
+    public static final String CACHED_ACCOUNT_LIST = "CACHED_ACCOUNT_LIST";
+    private static final String CACHED_CONTACT_LIST = "CACHED_CONTACT_LIST";
+    public static final String CACHED_TERRITORIES_LIST = "CACHED_TERRITORIES_LIST";
 
     public static final String RECEIPT_FORMAT_PNG = ".png";
     public static final String RECEIPT_FORMAT_JPEG = ".jpeg";
     public static final String RECEIPT_FORMAT_TXT = ".txt";
+    private static final String LAST_CPY_WIDE_PAGE = "LAST_CPY_WIDE_PAGE";
+    private static final String CACHED_ACCOUNTS_DATE = "CACHED_ACCOUNTS_DATE";
+    private static final String CACHED_CONTACTS_DATE = "CACHED_CONTACTS_DATE";
+    public static final String CACHED_TERRITORIES_DATE = "CACHED_TERRITORIES_DATE";
 
     Context context;
     SharedPreferences prefs;
@@ -609,7 +619,7 @@ public class MyPreferencesHelper {
      */
     public void setLastTerritoryTab(int pageIndex) {
         prefs.edit().putInt(LAST_TERRITORY_TAB, pageIndex).commit();
-        Log.i(TAG, "setLastTerritoryTab | Set to: " + pageIndex);
+        Log.i(TAG, "setLastTerritoryTab " + pageIndex);
     }
 
     /**
@@ -621,10 +631,124 @@ public class MyPreferencesHelper {
         int defaultTerrPage = 0;
         try {
             prefs.getInt(DEFAULT_TERRITORY_PAGE, 0);
+            Log.i(TAG, "getLastTerritoryTab " + prefs.getInt(DEFAULT_TERRITORY_PAGE, 0));
         } catch (Exception e) {
             e.printStackTrace();
+            return 0;
         }
         return prefs.getInt(LAST_TERRITORY_TAB, defaultTerrPage);
+    }
+
+    public int getLastAccountPage() {
+        int pos = prefs.getInt(LAST_ACCOUNT_PAGE, 0);
+        Log.i(TAG, "getLastAccountPage " + pos);
+        return pos;
+    }
+
+    public void setLastAccountPage(int pos) {
+        prefs.edit().putInt(LAST_ACCOUNT_PAGE, pos).commit();
+        Log.i(TAG, "setLastAccountPage " + pos);
+    }
+
+    public int getLastCpyWidePage() {
+        int pos = prefs.getInt(LAST_CPY_WIDE_PAGE, 0);
+        Log.i(TAG, "getLastCpyWidePage " + pos);
+        return pos;
+    }
+
+    public void setLastCpyWidePage(int pos) {
+        prefs.edit().putInt(LAST_CPY_WIDE_PAGE, pos).commit();
+        Log.i(TAG, "setLastCpyWidePage " + pos);
+    }
+
+    public CrmEntities.Accounts getCachedAccounts() {
+        if (hasCachedAccounts()) {
+            String gson = prefs.getString(CACHED_ACCOUNT_LIST, null);
+            return new Gson().fromJson(gson, CrmEntities.Accounts.class);
+        }
+        return null;
+    }
+
+    public void cacheAccounts(CrmEntities.Accounts accounts) {
+        prefs.edit().putString(CACHED_ACCOUNT_LIST, new Gson().toJson(accounts)).commit();
+        prefs.edit().putLong(CACHED_ACCOUNTS_DATE, DateTime.now().getMillis()).commit();
+    }
+
+    public boolean hasCachedAccounts() {
+        String val = prefs.getString(CACHED_ACCOUNT_LIST, null);
+        long cachMillis = prefs.getLong(CACHED_ACCOUNTS_DATE, 0);
+        long curMillis = System.currentTimeMillis();
+        long diff = curMillis - cachMillis;
+
+        // Two weeks
+        if (diff > 1.21e+9) {
+            return false;
+        }
+
+        return val != null && val.length() > 0;
+    }
+
+    public CrmEntities.Contacts getCachedContacts() {
+        if (hasCachedContacts()) {
+            String gson = prefs.getString(CACHED_CONTACT_LIST, null);
+            return new Gson().fromJson(gson, CrmEntities.Contacts.class);
+        }
+        return null;
+    }
+
+    public void cacheContacts(CrmEntities.Contacts contacts) {
+        prefs.edit().putString(CACHED_CONTACT_LIST, new Gson().toJson(contacts)).commit();
+        prefs.edit().putLong(CACHED_CONTACTS_DATE, DateTime.now().getMillis()).commit();
+    }
+
+    public boolean hasCachedContacts() {
+        String val = prefs.getString(CACHED_CONTACT_LIST, null);
+        long cachMillis = prefs.getLong(CACHED_CONTACTS_DATE, 0);
+        long curMillis = System.currentTimeMillis();
+        long diff = curMillis - cachMillis;
+
+        // Two weeks
+        if (diff > 1.21e+9) {
+            return false;
+        }
+
+        return val != null && val.length() > 0;
+    }
+
+    public Territories getCachedTerritories() {
+        if (hasCachedTerritories()) {
+            String gson = prefs.getString(CACHED_TERRITORIES_LIST, null);
+            Territories terrs = new Gson().fromJson(gson, Territories.class);
+            return terrs;
+        }
+        return null;
+    }
+
+    public void cacheTerritories(Territories territories) {
+        String json = new Gson().toJson(territories);
+        prefs.edit().putString(CACHED_TERRITORIES_LIST, json).commit();
+        prefs.edit().putLong(CACHED_TERRITORIES_DATE, DateTime.now().getMillis()).commit();
+    }
+
+    public void cacheTerritories(ArrayList<Territories.Territory> territories) {
+        Territories t = new Territories();
+        t.list = territories;
+        prefs.edit().putString(CACHED_TERRITORIES_LIST, new Gson().toJson(territories)).commit();
+        prefs.edit().putLong(CACHED_TERRITORIES_DATE, DateTime.now().getMillis()).commit();
+    }
+
+    public boolean hasCachedTerritories() {
+        String val = prefs.getString(CACHED_TERRITORIES_LIST, null);
+        long cachMillis = prefs.getLong(CACHED_TERRITORIES_DATE, 0);
+        long curMillis = System.currentTimeMillis();
+        long diff = curMillis - cachMillis;
+
+        // Two weeks
+        if (diff > 1.21e+9) {
+            return false;
+        }
+
+        return val != null && val.length() > 0;
     }
 }
 

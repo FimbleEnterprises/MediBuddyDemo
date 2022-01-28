@@ -92,6 +92,9 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Calendar;
@@ -336,12 +339,14 @@ public abstract class Helpers {
          */
         public static Bitmap getImageIconForPart(String partNumber, Context c) {
 
+            partNumber = partNumber.toUpperCase();
+
             if (partNumber.startsWith("PQ")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.quickfit64);
                 return icon;
             }
 
-            if (partNumber.startsWith("PA") | partNumber.startsWith("PB")) {
+            if (partNumber.startsWith("PA") | partNumber.startsWith("PB") | partNumber.startsWith("PV")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.peri64);
                 return icon;
             }
@@ -378,6 +383,21 @@ public abstract class Helpers {
 
             if (partNumber.startsWith("MQV")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.miraq64);
+                return icon;
+            }
+
+            if (partNumber.startsWith("PRV")) {
+                Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.ticket3);
+                return icon;
+            }
+
+            if (partNumber.startsWith("SHR0001")) {
+                Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.servicehour1);
+                return icon;
+            }
+
+            if (partNumber.startsWith("PAF")) {
+                Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.prv1);
                 return icon;
             }
 
@@ -451,12 +471,27 @@ public abstract class Helpers {
                 return icon;
             }
 
+            if (partNumber.startsWith("SC0001")) {
+                Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.bpo_50x50);
+                return icon;
+            }
+
             if (partNumber.startsWith("KM")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.ecg1cablex64);
                 return icon;
             }
 
             if (partNumber.startsWith("CM")) {
+                Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.ecg1cablex64);
+                return icon;
+            }
+
+            if (partNumber.startsWith("CV200201")) {
+                Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.ecg1cablex64);
+                return icon;
+            }
+
+            if (partNumber.startsWith("CV200101")) {
                 Bitmap icon = BitmapFactory.decodeResource(c.getResources(), R.drawable.ecg1cablex64);
                 return icon;
             }
@@ -778,7 +813,7 @@ public abstract class Helpers {
         public static int returnWeekOfYear(DateTime date) {
 
             Calendar c = Calendar.getInstance();
-            c.setMinimalDaysInFirstWeek(7);//anything more than 1 will work in this year
+            c.setMinimalDaysInFirstWeek(2);//anything more than 1 will work in this year
             DateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             try {
                 c.setTime(sdf.parse(date.getDayOfMonth() + "/" + date.getMonthOfYear() + "/" + date.getYearOfCentury()));
@@ -1209,40 +1244,40 @@ public abstract class Helpers {
             String prettyMonth = "";
             switch (monthNumber) {
                 case 1:
-                    prettyMonth = "January ";
+                    prettyMonth ="January";
                     break;
                 case 2:
-                    prettyMonth = "February ";
+                    prettyMonth ="February";
                     break;
                 case 3:
-                    prettyMonth = "March ";
+                    prettyMonth ="March";
                     break;
                 case 4:
-                    prettyMonth = "April ";
+                    prettyMonth ="April";
                     break;
                 case 5:
-                    prettyMonth = "May ";
+                    prettyMonth ="May";
                     break;
                 case 6:
-                    prettyMonth = "June ";
+                    prettyMonth ="June";
                     break;
                 case 7:
-                    prettyMonth = "July ";
+                    prettyMonth ="July";
                     break;
                 case 8:
-                    prettyMonth = "August ";
+                    prettyMonth ="August";
                     break;
                 case 9:
-                    prettyMonth = "September ";
+                    prettyMonth ="September";
                     break;
                 case 10:
-                    prettyMonth = "October ";
+                    prettyMonth ="October";
                     break;
                 case 11:
-                    prettyMonth = "November ";
+                    prettyMonth ="November";
                     break;
                 case 12:
-                    prettyMonth = "December ";
+                    prettyMonth ="December";
                     break;
                 default:
                     prettyMonth = "";
