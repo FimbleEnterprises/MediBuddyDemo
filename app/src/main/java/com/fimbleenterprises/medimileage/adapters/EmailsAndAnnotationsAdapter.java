@@ -119,10 +119,14 @@ public class EmailsAndAnnotationsAdapter extends RecyclerView.Adapter<EmailsAndA
     public void removeAnnotationAndReload(Annotation modifiedItem) {
         for (int i = 0; i < mData.size(); i++) {
             EmailsOrAnnotations.EmailOrAnnotation item = mData.get(i);
-            if (item.entityid.equals(modifiedItem.entityid)) {
-                mData.remove(i);
+            try {
+                if (item.entityid.equals(modifiedItem.entityid)) {
+                    mData.remove(i);
+                    notifyDataSetChanged();
+                    return;
+                }
+            } catch (Exception e) {
                 notifyDataSetChanged();
-                return;
             }
         }
     }

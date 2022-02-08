@@ -1,0 +1,82 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.MileBuddy.AppWidget.Container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/btn_glass_orange_gradient"
+    android:theme="@style/AppTheme.AppWidgetContainer">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RelativeLayout
+            android:id="@+id/row1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="5dp">
+
+            <ImageView
+                android:id="@+id/imageView3"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@drawable/car2_static" />
+
+            <TextView
+                android:id="@+id/txtTripCountLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_toRightOf="@id/imageView3"
+                android:fontFamily="@font/casual"
+                android:text="Trips: "
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txtTotalReimbursementLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_toRightOf="@id/txtTripCount"
+                android:fontFamily="@font/casual"
+                android:text="MTD: "
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txtTotalReimbursement"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_toRightOf="@id/txtTotalReimbursementLabel"
+                android:fontFamily="@font/casual"
+                android:text="Calculating... " />
+
+            <TextView
+                android:id="@+id/txtTripCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_toRightOf="@id/txtTripCountLabel"
+                android:fontFamily="@font/casual"
+                android:text="Calculating..." />
+
+            <TextView
+                android:id="@+id/txtServiceStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/txtTripCountLabel"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_toRightOf="@id/imageView3"
+                android:fontFamily="@font/casual"
+                android:text="Trip not running"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+</RelativeLayout>

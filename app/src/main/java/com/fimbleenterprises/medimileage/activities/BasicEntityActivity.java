@@ -930,18 +930,23 @@ public class BasicEntityActivity extends AppCompatActivity {
 
     void loadRecordFromUrl() {
         // https://crmauth.medistim.com/main.aspx?etc=3&id=%7bbbc26479-adfd-ea11-810b-005056a36b9b%7d&pagetype=entityrecord
+        // https://crmauth.medistim.com/main.aspx?pagetype=entityrecord&etc=3&id=%7bB2C53F4C-B47F-EC11-811F-005056A36B9B%7d&extraqs=&newWindow=true&histKey=216705665#881962037
+        // https://crmauth.medistim.com/main.aspx?pagetype=entityrecord&etc=112&id=bb951130-ce82-ec11-811f-005056a36b9b&extraqs=&newWindow=true&histKey=201016870#249014784
+        // https://crmauth.medistim.com/main.aspx?pagetype=entityrecord&etc=112&id=bb951130-ce82-ec11-811f-005056a36b9b&extraqs=&newWindow=true&histKey=201016870#249014784
         try {
             // Parsing url begins
-            String url = getIntent().getData().toString();
+            String url = getIntent().getData().toString().replace("%7b", "").replace("%7d", "");
             int etcStartPos = url.indexOf("etc=") + 4;
-            int idStartPos = url.indexOf("&id=%7b");
             int GUID_LENGTH = 36;
             String ss1 = url.substring(etcStartPos); // 3&id=%7bbbc26479-adfd-ea11-810b-005056a36b9b%7d&pagetype=entityrecord
             int nextArgStartPos = ss1.indexOf("&"); // Find the next & indicating the start of the next arg and end of the current
 
+            int idStartPos = url.indexOf("id=") + 3;
+            String guid = url.substring(idStartPos, idStartPos + 36);
+
             // We should now have the ugly business of parsing the URL over and be left with a type code and guid.
             final int entityTypeCode = Integer.parseInt(ss1.substring(0, nextArgStartPos)); // Should be typecode
-            final String guid = url.substring(idStartPos + 7, idStartPos + 7 + GUID_LENGTH);
+            // final String guid = url.substring(idStartPos + 7, idStartPos + 7 + GUID_LENGTH);
 
             Log.i(TAG, "loadRecordFromUrl ETC: " + entityTypeCode + ", GUID: " + guid);
 
@@ -968,6 +973,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                         activityTitle = "Ticket";
                         setTitle(activityTitle);
 
+                        basicEntity = new BasicEntity(gson);
                         populateForm(gson, false);
                         getNotes();
 
@@ -1004,6 +1010,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                         activityTitle = "Opportunity";
                         setTitle(activityTitle);
 
+                        basicEntity = new BasicEntity(gson);
                         populateForm(gson, false);
                         getNotes();
 

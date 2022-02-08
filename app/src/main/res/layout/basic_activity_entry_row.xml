@@ -34,6 +34,7 @@
         android:maxLines="50"
         android:minLines="1"
         android:scrollHorizontally="false"
+        android:textColor="@drawable/edit_text_enabled_disabled_colors"
         android:visibility="visible" />
 
     <Button
@@ -61,7 +62,7 @@
         android:focusable="auto"
         android:text="Some value"
         android:textAlignment="viewStart"
-        android:textColor="@color/colorPrimaryAlt"
+        android:color="@drawable/edit_text_enabled_disabled_colors"
         android:textSize="18sp"
         android:visibility="gone" />
 

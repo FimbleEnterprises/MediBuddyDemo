@@ -3,6 +3,8 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/drawable/edit_text_enabled_disabled_colors.xml" value="0.5497435897435897" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/drawable/rounded_container_orange.xml" value="0.5497435897435897" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_account_stuff.xml" value="0.328125" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_cpy_wide_sales_perf.xml" value="0.5421875" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_emails_fullscreen.xml" value="0.5421875" />
@@ -25,10 +27,14 @@
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/frag_cases.xml" value="0.5421875" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/frag_dashboard.xml" value="0.5421875" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/frag_saleslines.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/medi_buddy_app_widget.xml" value="0.5221920289855072" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/my_app_widget.xml" value="0.5221920289855072" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/restore_options.xml" value="0.5421875" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/row_annotation.xml" value="0.5421875" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/row_annotation_simple.xml" value="0.5421875" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/row_cust_inventory_item.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/row_database_restore.xml" value="0.5221920289855072" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/row_emails_list.xml" value="0.5221920289855072" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/row_landing_page.xml" value="0.5421875" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/row_orderproduct.xml" value="0.5421875" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/row_orderproduct_with_account_button.xml" value="0.5421875" />
@@ -96,6 +102,13 @@
   </component>
   <component name="ProjectType">
     <option name="id" value="Android" />
+  </component>
+  <component name="VisualizationToolProject">
+    <option name="state">
+      <ProjectState>
+        <option name="scale" value="0.5221920289855072" />
+      </ProjectState>
+    </option>
   </component>
   <component name="masterDetails">
     <states>

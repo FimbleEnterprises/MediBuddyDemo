@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 apply plugin: 'com.google.gms.google-services'
 
 android {
@@ -12,8 +13,8 @@ android {
         applicationId "com.fimbleenterprises.medimileage"
         minSdkVersion 26
         targetSdkVersion 29
-        versionCode 51 // 51
-        versionName "2.02"
+        versionCode 53 // 52
+        versionName "2.03"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner" 
     }
@@ -83,5 +84,11 @@ dependencies {
     implementation 'com.scwang.smart:refresh-footer-ball:2.0.0'        //BallPulseFooter
     implementation 'com.scwang.smart:refresh-footer-classics:2.0.0'    //ClassicsFooter
     implementation 'com.cardiomood.android:android-widgets:0.1.1'
-    compileOnly 'com.google.android.wearable:wearable:2.8.1'// SpeedometerGuage
+    compileOnly 'com.google.android.wearable:wearable:2.8.1'
+    implementation "androidx.core:core-ktx:+"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version" // SpeedometerGuage
+}
+repositories {
+    mavenCentral()
 }

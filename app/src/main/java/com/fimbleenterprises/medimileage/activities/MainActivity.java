@@ -264,7 +264,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         try {
 
             if (!MediUser.isLoggedIn()) {
-                drawer.close();
+                // drawer.close();
                 Toast.makeText(activity, "You must login.", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -413,7 +413,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             int backstackcount = Objects.requireNonNull(fragmentManager.getPrimaryNavigationFragment()).getChildFragmentManager().getBackStackEntryCount();
 
-            try {
+            /*try {
                 if (myStack.get(1).equals("Login")) {
                     Log.i(TAG, "onKeyDown Last page was login");
                     for (int i = 0; i < backstackcount; i++) {
@@ -421,7 +421,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         Log.i(TAG, "onKeyDown Popped backstack entry");
                     }
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {}*/
         }
 
         return super.onKeyDown(keyCode, event);

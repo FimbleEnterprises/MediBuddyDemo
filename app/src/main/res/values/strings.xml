@@ -452,6 +452,10 @@
     <string name="action_resolved_cases">Closed tickets</string>
     <string name="action_unresolved_cases">Open tickets</string>
     <string name="action_case_status_any">Any</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="configure">Configure</string>
+    <string name="add_widget">Add widget</string>
+    <string name="app_widget_description">This is an app widget description</string>
 
 
 </resources>

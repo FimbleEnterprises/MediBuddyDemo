@@ -53,6 +53,7 @@ import com.bumptech.glide.Glide;
 import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.activities.Activity_ManualTrip;
 import com.fimbleenterprises.medimileage.Crm;
+import com.fimbleenterprises.medimileage.activities.ui.authentication.AuthenticationFragment;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.dialogs.DatePickerFragment;
 import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
@@ -694,6 +695,15 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             }
         });
 
+
+        // setEditMode(false);
+
+        if (!MediUser.isLoggedIn()) {
+            Log.i(TAG, "onCreateView | NOT LOGGED IN!");
+            getActivity().finishAffinity();
+            return root;
+        }
+
         return root;
     }
 
@@ -892,7 +902,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         if (!MediUser.isLoggedIn()) {
             try {
                 options.logout();
-                getActivity().onBackPressed();
+                getActivity().finishAffinity();
                 return;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -907,8 +917,12 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         Helpers.Animations.pulseAnimation(txtMtd);
         startMtdTogglerRunner();
 
-        getContext().registerReceiver(allPurposeReceiver, allPurposeFilter);
-        getContext().registerReceiver(tripSyncReceiver, tripSyncFilter);
+        try {
+            getContext().registerReceiver(allPurposeReceiver, allPurposeFilter);
+            getContext().registerReceiver(tripSyncReceiver, tripSyncFilter);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         Log.i(TAG, "onInflate | Sync service running = " + ServerTripSyncService.isRunning);
 
@@ -1235,17 +1249,21 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     }
 
     public void setEditMode(boolean isChecked) {
-        adapter.setEditModeEnabled(isChecked);
+
         btnDeleteTrips.setEnabled(isChecked);
         toggleEditButton.setChecked(isChecked);
         btnDeleteTrips.setVisibility((isChecked) ? View.VISIBLE : View.INVISIBLE);
-        if (isChecked) {
-            for (FullTrip trip : adapter.mData) {
-                if (trip.isChecked) {
-                    btnDeleteTrips.setEnabled(true);
-                    return;
+
+        if (adapter != null) {
+            adapter.setEditModeEnabled(isChecked);
+            if (isChecked) {
+                for (FullTrip trip : adapter.mData) {
+                    if (trip.isChecked) {
+                        btnDeleteTrips.setEnabled(true);
+                        return;
+                    }
+                    btnDeleteTrips.setEnabled(false);
                 }
-                btnDeleteTrips.setEnabled(false);
             }
         }
     }
