@@ -14,11 +14,12 @@ import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.MySQLiteHelper;
 import com.fimbleenterprises.medimileage.activities.QuoteActivity;
+import com.fimbleenterprises.medimileage.activities.ViewModelPlaygroundActivity;
 import com.fimbleenterprises.medimileage.dialogs.MonthYearPickerDialog;
 import com.fimbleenterprises.medimileage.objects_and_containers.AccountAddresses;
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
-import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityChooseRep;
+import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseRep;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
@@ -48,6 +49,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModel;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
@@ -551,7 +553,8 @@ public class SettingsActivity extends AppCompatActivity {
                     MyYesNoDialog.show(getContext(), "I don't even know what will run when you click, \"Yes\"\n\nAre you sure?", new MyYesNoDialog.YesNoListener() {
                         @Override
                         public void onYes() {
-
+                            Intent goViewModelPlaygroundIntent = new Intent(getContext(), ViewModelPlaygroundActivity.class);
+                            startActivity(goViewModelPlaygroundIntent);
                         }
 
                         @Override

@@ -1,11 +1,18 @@
-package com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers;
+package com.fimbleenterprises.medimileage.activities.fullscreen_pickers;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.widget.AutoCompleteTextView;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.Helpers;
@@ -98,20 +105,23 @@ public class FullscreenActivityChooseRecentTrip extends AppCompatActivity {
     }
 
     void populateTrips() {
+
+        // Create an array consumable by the recyclerview
         final BasicObjects tripsAsBasicObjects = RecentOrSavedTrip.toBasicObjects(trips);
-        adapter = new RecentTripsRecyclerAdapter(this, tripsAsBasicObjects.list, new RecentTripsRecyclerAdapter.ItemClickListener() {
+        adapter = new RecentTripsRecyclerAdapter(this, tripsAsBasicObjects.list,
+                new RecentTripsRecyclerAdapter.ItemClickListener() {
             @Override
             public void onItemClick(View view, final int position) {
                 MyYesNoDialog.show(context, new MyYesNoDialog.YesNoListener() {
                     @Override
                     public void onYes() {
-                        Toast.makeText(context, "Deleted", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, getString(R.string.DELETED), Toast.LENGTH_SHORT).show();
                         RecentOrSavedTrip clickedTrip = (RecentOrSavedTrip) adapter.mData.get(position).object;
                         if (clickedTrip.delete()) {
                             adapter.mData.remove(position);
                             adapter.notifyDataSetChanged();
                         } else {
-                            Toast.makeText(context, "Failed to remove recent trip.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(context, getString(R.string.FAILED_TO_REMOVE_RECENT_TRIP), Toast.LENGTH_SHORT).show();
                         }
                     }
 
@@ -122,7 +132,57 @@ public class FullscreenActivityChooseRecentTrip extends AppCompatActivity {
                 });
             }
         });
-                listView.setAdapter(adapter);
+        adapter.setOnEditClickListener(new RecentTripsRecyclerAdapter.ItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                RecentOrSavedTrip clickedTrip = (RecentOrSavedTrip) adapter.mData.get(position).object;
+                final Dialog dialog = new Dialog(context);
+                final Context c = context;
+                dialog.setContentView(R.layout.edit_recent_trip);
+                dialog.setCancelable(true);
+                dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+                    @Override
+                    public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                        if (keyCode == KeyEvent.KEYCODE_BACK) {
+                            dialog.dismiss();
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
+                });
+                AutoCompleteTextView txtName = dialog.findViewById(R.id.autocomplete_EditText_NameTrip);
+                txtName.setText(clickedTrip.name);
+
+                EditText txtDistance = dialog.findViewById(R.id.editTxt_Distance);
+                txtDistance.setText(clickedTrip.distanceInMiles + "");
+
+                Button btnSave = dialog.findViewById(R.id.btnSaveEdits);
+                btnSave.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        try {
+                            clickedTrip.name = txtName.getText().toString();
+                            clickedTrip.distanceInMiles = Float.parseFloat(txtDistance.getText().toString());
+                            if (clickedTrip.save()) {
+                                populateTrips();
+                                dialog.dismiss();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+                dialog.show();
+            }
+        });
+
+        // If no data, show the no data label
+        TextView tvNoData = findViewById(R.id.txtNoData);
+        tvNoData.setVisibility((trips == null || trips.size() == 0) ? View.VISIBLE : View.GONE);
+
+        // Configure and set the adapter
+        listView.setAdapter(adapter);
         listView.addItemDecoration(new DividerItemDecoration(context,
                 DividerItemDecoration.VERTICAL));
         listView.setLayoutManager(new LinearLayoutManager(context));

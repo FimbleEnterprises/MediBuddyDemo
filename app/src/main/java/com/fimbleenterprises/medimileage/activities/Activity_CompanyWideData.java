@@ -26,7 +26,6 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
-import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,7 +43,7 @@ import com.fimbleenterprises.medimileage.adapters.LandingPageRecyclerAdapter;
 import com.fimbleenterprises.medimileage.adapters.OrderLineRecyclerAdapter;
 import com.fimbleenterprises.medimileage.dialogs.ContactActions;
 import com.fimbleenterprises.medimileage.dialogs.MonthYearPickerDialog;
-import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityChooseTerritory;
+import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseTerritory;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.LandingPageItem;
@@ -62,8 +61,6 @@ import com.scwang.smart.refresh.layout.listener.OnLoadMoreListener;
 import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
 import org.joda.time.DateTime;
-import org.joda.time.Days;
-import org.joda.time.Hours;
 
 import java.util.ArrayList;
 import java.util.Objects;

@@ -56,7 +56,7 @@ import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
-import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityChooseTerritory;
+import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseTerritory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;

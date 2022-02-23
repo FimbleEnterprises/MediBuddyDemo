@@ -50,8 +50,8 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         final BasicObjects.BasicObject object = mData.get(position);
 
-        holder.txtMainText.setText(object.title);
-        holder.txtSubtext.setText(object.subtitle);
+        holder.txtMainText.setText(object.topText);
+        holder.txtSubtext.setText(object.bottomText);
         holder.txtMiddleText.setText(object.middleText);
         holder.txtTopRightText.setText(object.topRightText);
         holder.txtBottomRightText.setText(object.bottomRightText);
@@ -71,10 +71,10 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
         }
 
         // Hide the main text field if it is null
-        holder.txtMainText.setVisibility(object.title == null ? View.GONE : View.VISIBLE);
+        holder.txtMainText.setVisibility(object.topText == null ? View.GONE : View.VISIBLE);
 
         // Hide the sub text field if it is null
-        holder.txtSubtext.setVisibility(object.subtitle == null ? View.GONE : View.VISIBLE);
+        holder.txtSubtext.setVisibility(object.bottomText == null ? View.GONE : View.VISIBLE);
 
         // Hide the middle text field if it is null
         holder.txtMiddleText.setVisibility(object.middleText == null ? View.GONE : View.VISIBLE);
@@ -91,7 +91,7 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
 
         if (object.isEmpty) {
             holder.txtMiddleText.setTypeface(face, Typeface.NORMAL);
-            holder.txtMiddleText.setText(object.title);
+            holder.txtMiddleText.setText(object.topText);
             holder.txtMiddleText.setVisibility(View.VISIBLE);
             holder.img.setVisibility(View.INVISIBLE);
             holder.txtMainText.setVisibility(View.INVISIBLE);

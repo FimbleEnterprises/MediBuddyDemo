@@ -1,4 +1,4 @@
-package com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers;
+package com.fimbleenterprises.medimileage.activities.fullscreen_pickers;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;

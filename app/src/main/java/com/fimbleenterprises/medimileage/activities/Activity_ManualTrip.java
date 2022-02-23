@@ -7,26 +7,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.database.DatabaseErrorHandler;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.MultiAutoCompleteTextView;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.MyApp;
@@ -35,9 +29,7 @@ import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyAutoComplet
 import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyHyperlinkTextview;
 import com.fimbleenterprises.medimileage.dialogs.MyDatePicker;
 import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
-import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityBasicObjectPicker;
-import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityChooseRecentTrip;
-import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
+import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseRecentTrip;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
 import com.fimbleenterprises.medimileage.Helpers;
@@ -47,7 +39,6 @@ import com.fimbleenterprises.medimileage.objects_and_containers.MyMapMarker;
 import com.fimbleenterprises.medimileage.MyMapRouteHelper;
 import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.MySqlDatasource;
-import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyUnderlineEditText;
 import com.fimbleenterprises.medimileage.MyViewPager;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.RecentOrSavedTrip;
@@ -76,7 +67,6 @@ import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.model.RectangularBounds;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
-import com.google.rpc.Help;
 
 import org.joda.time.DateTime;
 import org.w3c.dom.Document;
@@ -85,7 +75,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -131,6 +120,11 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
     public static SweetAlertDialog pDialog;
     public static Button btnPrev;
     public static MyHyperlinkTextview btnRecents;
+    /**
+     * This flag starts false and can only be true if the user selects a RecentOrSaved trip from the recents list.
+     * It will flip back to false if the user selects either a FROM or TO address from the places autocomplete.
+     */
+    public static boolean overrideDistance = false;
     public static Button btnNext;
     public static MyViewPager mViewPager;
     public static PagerTitleStrip mPagerStrip;
@@ -336,6 +330,7 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
                 if (chosenTrip != null) {
                     Toast.makeText(activity, "Loading trip: " + chosenTrip.name, Toast.LENGTH_SHORT).show();
                     loadSavedTrip(chosenTrip);
+                    overrideDistance = true;
                 }
             }
         }
@@ -550,11 +545,13 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
                 @Override
                 public void onPlaceSelected(@NonNull com.google.android.libraries.places.api.model.Place place) {
                     if (place.getName() != null && place.getName().length() > 0) {
+                        overrideDistance = false;
                         setFromMarker(place.getLatLng(), place.getName().toString());
                         fromTitle = place.getName();
                         EditText etPlace = (EditText) autoCompleteFrag_From.getView().findViewById(R.id.places_autocomplete_search_input);
                         etPlace.setHint(fromTitle);
                     } else {
+                        overrideDistance = false;
                         setFromMarker(place.getLatLng());
                         fromTitle = place.getLatLng().latitude + "/" + place.getLatLng().longitude;
                         EditText etPlace = (EditText) autoCompleteFrag_From.getView().findViewById(R.id.places_autocomplete_search_input);
@@ -639,11 +636,13 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
                 @Override
                 public void onPlaceSelected(@NonNull com.google.android.libraries.places.api.model.Place place) {
                     if (place.getName() != null && place.getName().length() > 0) {
+                        overrideDistance = false;
                         setToMarker(place.getLatLng(), place.getName());
                         toTitle = place.getName();
                         EditText etPlace = (EditText) autoCompleteFrag_To.getView().findViewById(R.id.places_autocomplete_search_input);
                         etPlace.setHint(toTitle);
                     } else {
+                        overrideDistance = false;
                         setToMarker(place.getLatLng());
                         toTitle = place.getLatLng().latitude + "/" + place.getLatLng().longitude;
                         EditText etPlace = (EditText) autoCompleteFrag_To.getView().findViewById(R.id.places_autocomplete_search_input);
@@ -845,7 +844,7 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
 
     /**
      * Adds an entry to the recents table.  This is called by the saveTrip() method assuming that
-     * method completes successfully.
+     * method completes successfully.  If a trip is found with the same name it is (effectively) overwritten.
      */
     private void saveTripToRecents() {
         try {
@@ -856,7 +855,7 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
             trip.fromLon = fromLatLng.longitude;
             trip.toLat = toLatLng.latitude;
             trip.toLon = toLatLng.longitude;
-            new MySqlDatasource().createNewRecentOrSavedTrip(trip);
+            new MySqlDatasource().createNewRecentOrSavedTrip(trip, true);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1016,7 +1015,9 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
                     super.onPostExecute(val);
                     progressDialog.dismiss();
                     saveTripToRecents();
-                    setResult(Activity.RESULT_OK);
+                    Intent intent = new Intent(ADD_MANUAL_TRIP);
+                    intent.putExtra(ADD_MANUAL_TRIP, fullTrip);
+                    setResult(Activity.RESULT_OK, intent);
                     finish();
                 }
             };
@@ -1405,11 +1406,9 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
     }
 
     public static class DrawRoute extends AsyncTask<LatLng, LatLng, Boolean> {
-        public String rslt;
-        MyMapRouteHelper gmap = new MyMapRouteHelper();
+
         ArrayList<LatLng> latLngList = new ArrayList<LatLng>();
         PolylineOptions line = new PolylineOptions();
-        Document doc;
         boolean operationFailed = false;
         double distanceVal;
         // MyProgressDialog mpd;
@@ -1432,10 +1431,17 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
                 latLngList = routeHelper.getDirection(document);
                 points = latLngList;
 
-                int meters = routeHelper.getTotalDistanceInmeters(document);
-                distanceVal = Double.parseDouble(Helpers.Geo.convertMetersToMiles((double)meters
-                        , false));
-                distanceStr = Double.toString(distanceVal);
+                // If the distanceStr is not null then the user probably loaded this trip from the
+                // recents list and we can then forgo calculating the distance from the route.
+                if (!overrideDistance) {
+                    int meters = routeHelper.getTotalDistanceInmeters(document);
+                    distanceVal = Double.parseDouble(Helpers.Geo.convertMetersToMiles((double)meters
+                            , false));
+                    distanceStr = Double.toString(distanceVal);
+                } else {
+                    distanceVal = Double.parseDouble(distanceStr);
+                }
+
                 prog = 1;
                 total = latLngList.size();
 

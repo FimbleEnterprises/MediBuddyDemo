@@ -41,6 +41,8 @@ import com.fimbleenterprises.medimileage.QueryFactory.Filter.FilterCondition;
 import com.fimbleenterprises.medimileage.QueryFactory.Filter.FilterType;
 import com.fimbleenterprises.medimileage.QueryFactory.Filter.Operator;
 import com.fimbleenterprises.medimileage.R;
+import com.fimbleenterprises.medimileage.activities.ui.mileage.MileageFragment;
+import com.fimbleenterprises.medimileage.activities.ui.mileage.MileageViewModel;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.AccountAddresses;
 import com.fimbleenterprises.medimileage.objects_and_containers.EntityContainers;
@@ -50,6 +52,7 @@ import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.SavedParkingSpot;
 import com.fimbleenterprises.medimileage.objects_and_containers.TripEntry;
 import com.fimbleenterprises.medimileage.objects_and_containers.UserAddresses;
+import com.fimbleenterprises.medimileage.viewmodels.ViewModelPlaygroundPageViewModel;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -76,13 +79,20 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.concurrent.Executor;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelStore;
+import androidx.lifecycle.ViewModelStoreOwner;
 import cz.msebera.android.httpclient.Header;
 
-public class MyLocationService extends Service implements LocationListener {
+public class MyLocationService extends Service implements LocationListener, ViewModelStoreOwner {
     public static final String USER_STOPPED = "USER_STOPPED";
     private static final String TAG = "MyLocationService";
 
@@ -149,6 +159,11 @@ public class MyLocationService extends Service implements LocationListener {
     public static boolean userStoppedTrip = false;
     public static boolean userStartedTrip = false;
 
+    // Testing the ViewModel architecture instead of using broadcasts
+    MileageViewModel mileageViewModel;
+    MileageViewModel mileageViewModel2;
+    public static Fragment mileageFragment;
+
     public MyLocationService() {
         Log.d(TAG, "MyLocationService Empty constructor");
         prenameTrip = null;
@@ -205,6 +220,9 @@ public class MyLocationService extends Service implements LocationListener {
             startInForeground();
             isMovingChecker(StartStop.START);
             updateAddresses(7000);
+
+
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -548,6 +566,20 @@ public class MyLocationService extends Service implements LocationListener {
             LocationContainer container = new LocationContainer(location, fullTrip, currentTripEntry);
             intent.putExtra(LOCATION_CHANGED, container);
             sendBroadcast(intent);
+
+            MutableLiveData<LocationContainer> locationContainerMutableLiveData = new MutableLiveData<>();
+            locationContainerMutableLiveData.postValue(container);
+
+            try {
+                if (mileageFragment != null && !mileageFragment.isDetached())
+                mileageViewModel = ViewModelProviders.of(mileageFragment).get(MileageViewModel.class);
+                mileageViewModel2 = new ViewModelProvider(mileageFragment).get(MileageViewModel.class);
+                mileageViewModel.updateLocationContainer(container);
+                mileageViewModel2.updateLocationContainer(container);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -737,6 +769,12 @@ public class MyLocationService extends Service implements LocationListener {
         long minutes = ((nowMillis - startMillis) / 1000) / 60;
         DecimalFormat decimalFormat = new DecimalFormat("#");
         return Integer.parseInt(decimalFormat.format(minutes));
+    }
+
+    @NonNull
+    @Override
+    public ViewModelStore getViewModelStore() {
+        return null;
     }
 
     enum StartStop {

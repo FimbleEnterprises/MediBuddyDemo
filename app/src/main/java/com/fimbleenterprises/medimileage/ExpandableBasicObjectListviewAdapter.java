@@ -80,8 +80,8 @@ public class ExpandableBasicObjectListviewAdapter extends BaseExpandableListAdap
         holder.title = convertView.findViewById(R.id.textView_ParentMainText);
         holder.value = convertView.findViewById(R.id.textview_parentsubtext);
 
-        holder.title.setText(parents.get(groupPosition).parentObject.title);
-        String jobTitle = parents.get(groupPosition).parentObject.title;
+        holder.title.setText(parents.get(groupPosition).parentObject.topText);
+        String jobTitle = parents.get(groupPosition).parentObject.topText;
         if (jobTitle != null) {
             holder.value.setText(jobTitle);
             holder.value.setVisibility(View.VISIBLE);
@@ -108,8 +108,8 @@ public class ExpandableBasicObjectListviewAdapter extends BaseExpandableListAdap
 
         holder.title = convertView.findViewById(R.id.child_title);
         holder.value = convertView.findViewById(R.id.textView_childRowSubtext);
-        holder.title.setText(children.get(childPosition).title);
-        holder.value.setText(children.get(childPosition).subtitle);
+        holder.title.setText(children.get(childPosition).topText);
+        holder.value.setText(children.get(childPosition).bottomText);
         /*convertView.setFocusable(true);
         convertView.setClickable(true);
         convertView.setLongClickable(true);*/

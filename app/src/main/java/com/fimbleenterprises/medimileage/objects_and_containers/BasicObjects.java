@@ -1,14 +1,15 @@
 package com.fimbleenterprises.medimileage.objects_and_containers;
 
 import android.graphics.Color;
-import android.os.Parcel;
-import android.os.Parcelable;
 
 import com.fimbleenterprises.medimileage.R;
 
 import org.joda.time.DateTime;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+
+import androidx.annotation.ColorInt;
 
 public class BasicObjects {
 
@@ -48,8 +49,8 @@ public class BasicObjects {
      */
     public static class BasicObject {
 
-        public String title;
-        public String subtitle;
+        public String topText;
+        public String bottomText;
         public String middleText;
         public String topRightText;
         public String bottomRightText;
@@ -69,63 +70,62 @@ public class BasicObjects {
         public boolean shouldHighlight;
         public DateTime dateTime;
 
-        public BasicObject() {
-        }
+        public BasicObject() { }
 
         /**
          * Creates a basic object with the isHeader flag set to true.  Used to break up lists using headers.
-         * @param name The header's title.
+         * @param topText The header's title.
          */
-        public BasicObject(String name) {
+        public BasicObject(String topText) {
             this.isHeader = true;
-            this.title = name;
+            this.topText = topText;
         }
 
         /**
-         * Creates the simplest BasicObject possessing just a name and subtitle - no object.
-         * @param name The main text of the object
-         * @param subtitle The subtitle text.
+         * Creates the simplest BasicObject possessing just a topText and bottomText - no object.
+         * @param topText The main text of the object
+         * @param bottomText The bottomText text.
          */
-        public BasicObject(String name, String subtitle) {
+        public BasicObject(String topText, String bottomText) {
             this.isHeader = false;
-            this.title = name;
-            this.middleText = subtitle;
+            this.topText = topText;
+            this.middleText = bottomText;
         }
 
         /**
-         * Probably the most common constructor useful for most any list - name, subtitle and associated object.
-         * @param name The main text.
-         * @param subtitle Subtitle.
+         * Probably the most common constructor useful for most any list - topText, bottomText and associated object.
+         * @param topText The main text.
+         * @param bottomText bottomText.
          * @param object The associated object.
          */
-        public BasicObject(String name, String subtitle, Object object) {
-            this.title = name;
-            this.subtitle = subtitle;
+        public BasicObject(String topText, String bottomText, Object object) {
+            this.topText = topText;
+            this.bottomText = bottomText;
             this.object = object;
             this.iconResource = R.drawable.car_icon_circular;
         }
 
-        public BasicObject(String name, String subtitle, String middleText, Object object) {
-            this.title = name;
+        public BasicObject(String topText, String bottomText, String middleText, Object object) {
+            this.topText = topText;
             this.middleText = middleText;
-            this.subtitle = subtitle;
+            this.bottomText = bottomText;
             this.object = object;
             this.iconResource = R.drawable.car_icon_circular;
         }
 
-        public BasicObject(String name, String subtitle, String middleText, String topRightText, Object object) {
-            this.title = name;
+        public BasicObject(String topText, String bottomText, String middleText, String topRightText, Object object) {
+            this.topText = topText;
             this.middleText = middleText;
-            this.subtitle = subtitle;
+            this.bottomText = bottomText;
             this.topRightText = topRightText;
             this.object = object;
             this.iconResource = R.drawable.car_icon_circular;
         }
 
-        public BasicObject(String name, String subtitle, String middleText, String topRightText, String bottomRightText, Object object) {
-            this.title = name;
+        public BasicObject(String topText, String bottomText, String middleText, String topRightText, String bottomRightText, Object object) {
+            this.topText = topText;
             this.middleText = middleText;
-            this.subtitle = subtitle;
+            this.bottomText = bottomText;
             this.topRightText = topRightText;
             this.bottomRightText = bottomRightText;
             this.object = object;
@@ -134,8 +134,8 @@ public class BasicObjects {
 
         @Override
         public String toString() {
-            return "Title: " + this.title + ", Subtitle: " + this.subtitle;
+            return "Title: " + this.topText + ", bottomText: " + this.bottomText;
         }
-
+        
     }
 }

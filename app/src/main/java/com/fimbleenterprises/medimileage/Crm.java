@@ -29,8 +29,6 @@ public class Crm {
 
     public static void userCanAuthenticate(String username, String password, final MyInterfaces.AuthenticationResult result) {
 
-        final MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
-
         Requests.Request request = new Requests.Request(Requests.Request.Function.CAN_AUTHENTICATE);
         request.arguments.add(new Requests.Argument(null, username));
         request.arguments.add(new Requests.Argument(null, password));

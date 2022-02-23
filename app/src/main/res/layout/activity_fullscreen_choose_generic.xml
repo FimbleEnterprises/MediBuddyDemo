@@ -4,11 +4,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFFFFF"
-    tools:context=".dialogs.fullscreen_pickers.FullscreenActivityChooseRep">
+    tools:context=".activities.fullscreen_pickers.FullscreenActivityChooseRep">
 
+
+    <TextView
+        android:id="@+id/txtNoData"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="No data found"
+        android:visibility="invisible" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvBasicObjects"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent" >
+
+    </androidx.recyclerview.widget.RecyclerView>
 </RelativeLayout>

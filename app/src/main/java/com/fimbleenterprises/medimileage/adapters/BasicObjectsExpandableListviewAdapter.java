@@ -93,7 +93,7 @@ public class BasicObjectsExpandableListviewAdapter extends BaseExpandableListAda
         ImageView leftIcon = (ImageView) convertView.findViewById(R.id.imageView_BasicObjectIcon);
 
 
-        mainText.setText(data.title);
+        mainText.setText(data.topText);
         subText.setText(data.middleText);
         topRightText.setText(data.topRightText);
         middleText.setText(data.middleText);
@@ -102,8 +102,8 @@ public class BasicObjectsExpandableListviewAdapter extends BaseExpandableListAda
             leftIcon.setImageResource(data.iconResource);
         }
 
-        mainText.setVisibility(data.title == null ? View.GONE : View.VISIBLE);
-        subText.setVisibility(data.subtitle == null ? View.GONE : View.VISIBLE);
+        mainText.setVisibility(data.topText == null ? View.GONE : View.VISIBLE);
+        subText.setVisibility(data.bottomText == null ? View.GONE : View.VISIBLE);
         topRightText.setVisibility(data.topRightText == null ? View.GONE : View.VISIBLE);
         middleText.setVisibility(data.middleText == null ? View.GONE : View.VISIBLE);
         leftIcon.setVisibility(data.iconResource == -1 ? View.GONE : View.VISIBLE);

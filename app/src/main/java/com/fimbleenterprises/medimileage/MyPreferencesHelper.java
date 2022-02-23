@@ -474,7 +474,7 @@ public class MyPreferencesHelper {
         prefs.edit().putBoolean(AUTH_SHOWING, isShowing).commit();
     }
 
-    public boolean getAutosubmitOnTripEnd() {
+    public boolean autoSubmitOnTripEnded() {
         return prefs.getBoolean(SUBMIT_ON_END, true);
     }
 

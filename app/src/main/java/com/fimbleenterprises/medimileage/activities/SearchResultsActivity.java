@@ -460,20 +460,26 @@ public class SearchResultsActivity extends AppCompatActivity {
                 return;
             }
 
+            // Convert the returned data to BasicObject objects for consumption by the adapter.
             ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
             for (AccountProducts.AccountProduct product : accountProducts.list) {
                 BasicObjects.BasicObject object = new BasicObjects.BasicObject(product.partNumber + " s/n "
                         + product.serialnumber, product.accountname, product);
+                object.topRightText = product.isCapital ? getString(R.string.capital_string) :
+                        getString(R.string.not_capital_string);
                 object.middleText = product.statusFormatted;
                 objects.add(object);
             }
 
+            // Construct the adapter and prep the recyclerview to connect to it.
             adapter = new BasicObjectRecyclerAdapter(context, objects);
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
             recyclerView.setAdapter(adapter);
 
+            // Finish the pulldown progress animation.
             refreshLayout.finishRefresh();
 
+            // Hide/Show no results textview based on whether the adapter actually got some data.
             txtNoResults.setVisibility(adapter != null && adapter.mData != null && adapter.mData.size() > 0 ? View.INVISIBLE : View.VISIBLE);
         }
     }
@@ -586,6 +592,8 @@ public class SearchResultsActivity extends AppCompatActivity {
         }
 
         protected void populateList() {
+
+            // Convert the returned data to BasicObject objects for consumption by the adapter.
             ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
             for (CrmEntities.Accounts.Account account : accounts.list) {
                 BasicObjects.BasicObject object = new BasicObjects.BasicObject(account.accountName, account.accountnumber, account);
@@ -593,6 +601,7 @@ public class SearchResultsActivity extends AppCompatActivity {
                 objects.add(object);
             }
 
+            // Configure the adapter and prep the recyclerview for it.
             adapter = new BasicObjectRecyclerAdapter(getContext(), objects);
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
             recyclerView.setAdapter(adapter);
@@ -607,7 +616,11 @@ public class SearchResultsActivity extends AppCompatActivity {
             });
             refreshLayout.finishRefresh();
 
-            txtNoResults.setVisibility(adapter != null && adapter.mData != null && adapter.mData.size() > 0 ? View.INVISIBLE : View.VISIBLE);
+            // Hide/Show no results textview based on the presence of adapter data.
+            if (txtNoResults != null) {
+                txtNoResults.setVisibility(adapter != null && adapter.mData != null && adapter.mData
+                        .size() > 0 ? View.INVISIBLE : View.VISIBLE);
+            }
         }
     }
 

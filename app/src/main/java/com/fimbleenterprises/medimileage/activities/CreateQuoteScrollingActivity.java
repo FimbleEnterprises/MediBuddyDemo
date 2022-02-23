@@ -28,8 +28,8 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.fimbleenterprises.medimileage.R;
-import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenAccountTerritoryPicker;
-import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityBasicObjectPicker;
+import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenAccountTerritoryPicker;
+import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityBasicObjectPicker;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
@@ -39,7 +39,7 @@ import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import java.util.ArrayList;
 
-import static com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenAccountTerritoryPicker.ACCOUNT_RESULT;
+import static com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenAccountTerritoryPicker.ACCOUNT_RESULT;
 
 public class CreateQuoteScrollingActivity extends AppCompatActivity {
     private static final String TAG = "CreateQuoteScrollingActivity";

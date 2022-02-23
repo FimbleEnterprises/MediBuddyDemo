@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/logo_bg"
-    tools:context=".dialogs.fullscreen_pickers.FullscreenActivityChooseTerritory">
+    tools:context=".activities.fullscreen_pickers.FullscreenActivityChooseTerritory">
 
     <RelativeLayout
         android:layout_width="match_parent"

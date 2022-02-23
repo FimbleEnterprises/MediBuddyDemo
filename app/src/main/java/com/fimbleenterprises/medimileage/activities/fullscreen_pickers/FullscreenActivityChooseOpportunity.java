@@ -1,4 +1,4 @@
-package com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers;
+package com.fimbleenterprises.medimileage.activities.fullscreen_pickers;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
@@ -342,7 +342,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         // If there are no nearby opportunities then create an empty one
         if (nearbyOpportunities.size() == 0) {
             BasicObjects.BasicObject emptyObject = new BasicObjects.BasicObject();
-            emptyObject.title = "No opportunities";
+            emptyObject.topText = "No opportunities";
             emptyObject.isEmpty = true;
             emptyObject.isHeader = false;
             objects.add(emptyObject);

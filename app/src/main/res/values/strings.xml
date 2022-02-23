@@ -456,6 +456,10 @@
     <string name="configure">Configure</string>
     <string name="add_widget">Add widget</string>
     <string name="app_widget_description">This is an app widget description</string>
+    <string name="DELETED">Deleted</string>
+    <string name="FAILED_TO_REMOVE_RECENT_TRIP">Failed to remove recent trip.</string>
+    <string name="capital_string">Capital</string>
+    <string name="not_capital_string">Not capital</string>
 
 
 </resources>

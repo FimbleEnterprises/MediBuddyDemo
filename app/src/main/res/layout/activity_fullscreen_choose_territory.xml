@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="#FFFFFF"
-    tools:context=".dialogs.fullscreen_pickers.FullscreenActivityChooseTerritory">
+    tools:context=".activities.fullscreen_pickers.FullscreenActivityChooseTerritory">
 
     <com.scwang.smart.refresh.layout.SmartRefreshLayout
         android:id="@+id/refreshLayout"

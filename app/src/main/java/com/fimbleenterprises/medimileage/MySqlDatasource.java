@@ -433,7 +433,22 @@ public class MySqlDatasource {
      * @param trip A valid RecentOrSavedTrip object.
      * @return True if successful.
      */
-    public boolean createNewRecentOrSavedTrip(RecentOrSavedTrip trip) {
+    public boolean createNewRecentOrSavedTrip(RecentOrSavedTrip trip, boolean overwrite) {
+
+        // If we find a trip with the same name already saved then we will want to delete it after
+        // we confirm this one has been saved.
+        RecentOrSavedTrip existingRecentWithSameName = null;
+        if (overwrite) {
+            ArrayList<RecentOrSavedTrip> recentTrips = getAllRecentOrSavedTrips();
+            if (recentTrips != null) {
+                for (RecentOrSavedTrip t : recentTrips) {
+                    if (t.name.equals(trip.name)) {
+                        existingRecentWithSameName = t;
+                    }
+                }
+            }
+        }
+
         boolean result = true;
         try {
             ContentValues values = new ContentValues();
@@ -446,6 +461,41 @@ public class MySqlDatasource {
 
             result = (database.insert(TABLE_RECENT_OR_SAVED_TRIPS, null, values) > 0);
             Log.i(TAG, "RecentOrSavedTrip row was created.");
+
+            // Remove existing trip in the recents list now that we have saved this one.
+            if (overwrite && existingRecentWithSameName != null) {
+                existingRecentWithSameName.delete();
+                Log.i(TAG, "createNewRecentOrSavedTrip | Existing trip with same name was removed after saving this recent.");
+            }
+
+        } catch (SQLException e) {
+            result = false;
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    /**
+     * Updates an existing RecentOrSavedTrip in teh database.
+     * @param trip
+     * @return
+     */
+    public boolean updateRecentOrSavedtrip(RecentOrSavedTrip trip) {
+
+        boolean result = true;
+        try {
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_NAME, trip.name);
+            values.put(COLUMN_DIST, trip.distanceInMiles);
+            values.put(COLUMN_TO_LAT, trip.toLat);
+            values.put(COLUMN_TO_LON, trip.toLon);
+            values.put(COLUMN_FROM_LAT, trip.fromLat);
+            values.put(COLUMN_FROM_LON, trip.fromLon);
+
+            String whereClause = COLUMN_ID + " = ?";
+            String[] whereArgs = {String.valueOf(trip.id)};
+
+            result = (database.update(TABLE_RECENT_OR_SAVED_TRIPS, values, whereClause, whereArgs) > 0);
 
         } catch (SQLException e) {
             result = false;

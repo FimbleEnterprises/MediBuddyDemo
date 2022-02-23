@@ -14,7 +14,7 @@ import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.services.MyContactUploadService;
 import com.fimbleenterprises.medimileage.objects_and_containers.MyVcard;
 import com.fimbleenterprises.medimileage.R;
-import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityChooseAccount;
+import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseAccount;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.

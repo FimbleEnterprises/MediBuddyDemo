@@ -1,4 +1,4 @@
-package com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers;
+package com.fimbleenterprises.medimileage.activities.fullscreen_pickers;
 
 import android.app.Activity;
 import android.content.Context;
@@ -13,10 +13,7 @@ import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.adapters.BasicObjectRecyclerAdapter;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 import com.scwang.smart.refresh.layout.SmartRefreshLayout;
-import com.scwang.smart.refresh.layout.api.RefreshLayout;
-import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;

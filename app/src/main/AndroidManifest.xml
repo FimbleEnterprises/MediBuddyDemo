@@ -26,6 +26,10 @@
         android:roundIcon="@mipmap/car2_static_round_tparent_icon"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity
+            android:name=".activities.ViewModelPlaygroundActivity"
+            android:exported="false" />
+
         <receiver
             android:name=".MyAppWidget"
             android:exported="true">
@@ -79,15 +83,15 @@
             android:label="@string/title_activity_parking_buddy"
             android:theme="@style/AppTheme" />
         <activity
-            android:name=".dialogs.fullscreen_pickers.FullscreenAccountTerritoryPicker"
+            android:name=".activities.fullscreen_pickers.FullscreenAccountTerritoryPicker"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_pick_account_territory" />
         <activity
-            android:name=".dialogs.fullscreen_pickers.FullscreenActivityChooseRecentTrip"
+            android:name=".activities.fullscreen_pickers.FullscreenActivityChooseRecentTrip"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_pick_recent_trip" />
         <activity
-            android:name=".dialogs.fullscreen_pickers.FullscreenActivityBasicObjectPicker"
+            android:name=".activities.fullscreen_pickers.FullscreenActivityBasicObjectPicker"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_pick_basic_object" />
         <activity
@@ -148,28 +152,28 @@
             android:label="@string/title_activity_individual_aggregate_stats"
             android:theme="@style/AppThemeAlt" />
         <activity
-            android:name=".dialogs.fullscreen_pickers.FullscreenActivityChooseTerritory"
+            android:name=".activities.fullscreen_pickers.FullscreenActivityChooseTerritory"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen_choose_territory"
             android:parentActivityName=".activities.MainActivity"
             android:theme="@style/FullscreenAltTheme" />
         <activity
-            android:name=".dialogs.fullscreen_pickers.FullscreenActivityChooseRep"
+            android:name=".activities.fullscreen_pickers.FullscreenActivityChooseRep"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen_choose_territory"
             android:theme="@style/FullscreenAltTheme" />
         <activity
-            android:name=".dialogs.fullscreen_pickers.FullscreenActivityChooseAccount"
+            android:name=".activities.fullscreen_pickers.FullscreenActivityChooseAccount"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen_choose_account"
             android:theme="@style/FullscreenAltTheme" />
         <activity
-            android:name=".dialogs.fullscreen_pickers.FullscreenActivityChooseContact"
+            android:name=".activities.fullscreen_pickers.FullscreenActivityChooseContact"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen_choose_contact"
             android:theme="@style/FullscreenAltTheme" />
         <activity
-            android:name=".dialogs.fullscreen_pickers.FullscreenActivityChooseOpportunity"
+            android:name=".activities.fullscreen_pickers.FullscreenActivityChooseOpportunity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen_choose_opportunity"
             android:theme="@style/FullscreenAltTheme">

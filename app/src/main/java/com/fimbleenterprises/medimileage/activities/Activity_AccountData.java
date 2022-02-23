@@ -11,7 +11,6 @@ import android.content.IntentFilter;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Debug;
 import android.provider.ContactsContract;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -50,8 +49,8 @@ import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
-import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityChooseAccount;
-import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityChooseTerritory;
+import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseAccount;
+import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseTerritory;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
@@ -1000,7 +999,7 @@ public class Activity_AccountData extends AppCompatActivity {
                             CrmEntities.Contacts.Contact clickedContact = (CrmEntities.Contacts.Contact)
                                     clickedObject.object;
                             Log.i(TAG, "onItemClick Clicked item at position " + position
-                                    + "(" + clickedObject.title + ")");
+                                    + "(" + clickedObject.topText + ")");
 
                             ContactActions contactActions = new ContactActions(getActivity(), clickedContact);
                             contactActions.dismissOnSelection = true;

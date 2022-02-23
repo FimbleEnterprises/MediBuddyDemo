@@ -2,6 +2,7 @@ package com.fimbleenterprises.medimileage.objects_and_containers;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import com.fimbleenterprises.medimileage.MySqlDatasource;
 
@@ -15,7 +16,7 @@ import javax.sql.DataSource;
  * Used to allow the user to create favorite manual trips or recall recently created manual trips.
  */
 public class RecentOrSavedTrip implements Parcelable {
-    
+    private static final String TAG = "RecentOrSavedTrip";
     public double id;
     public String name;
     public float distanceInMiles;
@@ -85,5 +86,9 @@ public class RecentOrSavedTrip implements Parcelable {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public boolean save() {
+        return new MySqlDatasource().updateRecentOrSavedtrip(this);
     }
 }

@@ -35,7 +35,7 @@ import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
-import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityChooseTerritory;
+import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseTerritory;
 import com.github.mikephil.charting.charts.HorizontalBarChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.BarData;
@@ -61,11 +61,9 @@ import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;

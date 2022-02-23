@@ -1,4 +1,4 @@
-package com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers;
+package com.fimbleenterprises.medimileage.activities.fullscreen_pickers;
 
 import android.app.Activity;
 import android.content.Context;
@@ -12,16 +12,18 @@ import android.widget.AutoCompleteTextView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import com.fimbleenterprises.medimileage.MyPreferencesHelper;
-import com.fimbleenterprises.medimileage.adapters.BasicObjectRecyclerAdapter;
-import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 import com.fimbleenterprises.medimileage.Crm;
-import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.Accounts;
-import com.fimbleenterprises.medimileage.Helpers;
-import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics;
-import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
 import com.fimbleenterprises.medimileage.CrmQueries;
+import com.fimbleenterprises.medimileage.Helpers;
+import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.R;
+import com.fimbleenterprises.medimileage.adapters.BasicObjectRecyclerAdapter;
+import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
+import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
+import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.Accounts;
+import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.Contacts;
+import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.Contacts.Contact;
+import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
 import com.loopj.android.http.AsyncHttpResponseHandler;
@@ -45,26 +47,25 @@ import cz.msebera.android.httpclient.Header;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class FullscreenActivityChooseAccount extends AppCompatActivity {
+public class FullscreenActivityChooseContact extends AppCompatActivity {
 
     public static final String CHANGE_ACCOUNT = "CHANGE_ACCOUNT";
     public static final String CURRENT_TERRITORY = "CURRENT_TERRITORY";
     private static final String TAG = "FullscreenActivityChooseTerritory";
-    public static final int ACCOUNT_CHOSEN_RESULT = 9191;
+    public static final int CONTACT_CHOSEN_RESULT = 8181;
 
     Context context;
     RecyclerView listView;
     RelativeLayout mainLayout;
     ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
     BasicObjectRecyclerAdapter adapter;
-    public static final int REQUESTCODE = 011;
-    public static final String ACCOUNT_RESULT = "ACCOUNT_RESULT";
+    public static final int REQUESTCODE = 222;
+    public static final String CONTACT_RESULT = "CONTACT_RESULT";
     public static final String CURRENT_ACCOUNT = "CURRENT_ACCOUNT";
     // public static final String CACHED_ACCOUNTS = "CACHED_ACCOUNTS";
     Territory currentTerritory;
-    Accounts.Account currentAccount;
-    ArrayList<Accounts.Account> accounts;
-    ArrayList<Territory> cachedTerritories;
+    Contact currentContact;
+    ArrayList<Contact> contacts;
     SmartRefreshLayout refreshLayout;
     AutoCompleteTextView txtFilter;
     String filterString;
@@ -82,7 +83,7 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
         refreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
-                getAccounts();
+                getContacts();
             }
         });
         txtFilter = findViewById(R.id.autoCompleteTextView);
@@ -99,10 +100,10 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 if (charSequence != null && charSequence.length() > 0) {
                     filterString = charSequence.toString();
-                    populateAccounts(filterString);
+                    populateContacts(filterString);
                 } else {
                     filterString = null;
-                    populateAccounts();
+                    populateContacts();
                 }
             }
 
@@ -118,22 +119,22 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
         Intent intent = getIntent();
         if (intent != null) {
             currentTerritory = intent.getParcelableExtra(CURRENT_TERRITORY);
-            currentAccount = intent.getParcelableExtra(CURRENT_ACCOUNT);
+            currentContact = intent.getParcelableExtra(CURRENT_ACCOUNT);
         }
 
-        if (options.hasCachedAccounts()) {
+        if (options.hasCachedContacts()) {
             try {
-                accounts = options.getCachedAccounts().list;
+                contacts = options.getCachedContacts().list;
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
         // If there are cached accounts then use them instead of going to CRM for them.
-        if (accounts == null) {
-            getAccounts();
+        if (contacts == null) {
+            getContacts();
         } else {
-            populateAccounts();
+            populateContacts();
         }
 
         Helpers.Views.MySwipeHandler mySwipeHandler = new Helpers.Views.MySwipeHandler(new Helpers.Views.MySwipeHandler.MySwipeListener() {
@@ -164,7 +165,7 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
             if (!newTerritory.territoryid.equals(currentTerritory.territoryid)) {
                 Log.i(TAG, "onActivityResult New territory chosen!");
                 currentTerritory = newTerritory;
-                getAccounts();
+                getContacts();
             }
         }
 
@@ -189,7 +190,7 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
      */
     public static void showPicker(Activity activity, Accounts.Account currentAccount, Territory territory, int requestCode) {
 
-        Intent intent = new Intent(activity, FullscreenActivityChooseAccount.class);
+        Intent intent = new Intent(activity, FullscreenActivityChooseContact.class);
         intent.putExtra(CURRENT_ACCOUNT, currentAccount);
         intent.putExtra(CURRENT_TERRITORY, territory);
         activity.startActivityForResult(intent, requestCode);
@@ -202,19 +203,19 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
      */
     public static void showPicker(Activity activity, Territory territory, int requestCode) {
 
-        Intent intent = new Intent(activity, FullscreenActivityChooseAccount.class);
+        Intent intent = new Intent(activity, FullscreenActivityChooseContact.class);
         intent.putExtra(CURRENT_TERRITORY, territory);
         activity.startActivityForResult(intent, requestCode);
     }
 
-    void getAccounts() {
+    void getContacts() {
         final MyProgressDialog progressDialog = new MyProgressDialog(this, "Getting accounts...");
         progressDialog.show();
 
         Crm crm = new Crm();
         ArrayList<Requests.Argument> args = new ArrayList<>();
         // Requests.Argument argument = new Requests.Argument("query", CrmQueries.Accounts.getAccountsByTerritory(currentTerritory.territoryid));
-        Requests.Argument argument = new Requests.Argument("query", CrmQueries.Accounts.getAccounts(null));
+        Requests.Argument argument = new Requests.Argument("query", CrmQueries.Contacts.getContacts());
         args.add(argument);
         Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
 
@@ -222,14 +223,15 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 String result = new String(responseBody);
-                Accounts objAccounts = new Accounts(result);
-                accounts = objAccounts.list;
-                options.cacheAccounts(objAccounts);
-                populateAccounts();
+                Contacts objContacts = new Contacts(result);
+                contacts = objContacts.list;
+                objContacts.convertToLiteContacts();
+                options.cacheContacts(objContacts);
+                populateContacts();
                 Log.i(TAG, "onSuccess Response is " + result.length() + " chars long");
                 progressDialog.dismiss();
-                Intent intent = new Intent(ACCOUNT_RESULT);
-                setResult(ACCOUNT_CHOSEN_RESULT, intent);
+                Intent intent = new Intent(CONTACT_RESULT);
+                setResult(CONTACT_CHOSEN_RESULT, intent);
                 refreshLayout.finishRefresh();
             }
 
@@ -242,26 +244,26 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
 
     }
 
-    void populateAccounts() {
-        populateAccounts(null);
+    void populateContacts() {
+        populateContacts(null);
     }
 
-    void populateAccounts(String filter) {
+    void populateContacts(String filter) {
 
         objects.clear();
 
-        for (Accounts.Account account : accounts) {
+        for (Contact contact : contacts) {
 
             // Convert account object to BasicObject
-            BasicObjects.BasicObject object = new BasicObjects.BasicObject(account.accountName, account.accountnumber
-                    + " " + account.getAgreementTypeFormatted(), account);
+            BasicObjects.BasicObject object = new BasicObjects.BasicObject(contact.getFullname(), contact.accountFormatted
+                    + " " + contact.jobtitle, contact);
 
             // Set its icon
             object.iconResource = R.mipmap.ic_business_black_24dp;
 
             // See if it is currently selected so it can be reflected as such in the list.
-            if (currentAccount != null) {
-                object.isSelected = currentAccount.entityid.equals(account.entityid);
+            if (currentContact != null) {
+                object.isSelected = currentContact.entityid.equals(contact.entityid);
             }
 
             // Apply filter if applicable.
@@ -270,12 +272,16 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
 
                 // If it's an account number we filter on that property.
                 if (Helpers.Numbers.isNumeric(filter)) {
-                    if (account.accountnumber.toLowerCase().contains(filter)) {
+                    if (contact.getFullname().toLowerCase().contains(filter)) {
                         objects.add(object);
                     }
                 } else { // Otherwise we filter on name.
-                    if (account.accountName.toLowerCase().contains(filter)) {
-                        objects.add(object);
+                    try {
+                        if (contact.accountFormatted.toLowerCase().contains(filter)) {
+                            objects.add(object);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
             } else { // Filter not applicable - just add.
@@ -302,11 +308,11 @@ public class FullscreenActivityChooseAccount extends AppCompatActivity {
                     finishActivity(REQUESTCODE);
                     Log.i(TAG, "onItemClick Position: " + position);*/
 
-                    Accounts.Account account = (Accounts.Account) objects.get(position).object;
-                    Intent intent = new Intent(ACCOUNT_RESULT);
+                    Contact contact = (Contact) objects.get(position).object;
+                    Intent intent = new Intent(CONTACT_RESULT);
                     // intent.putExtra(CACHED_ACCOUNTS, accounts);
-                    intent.putExtra(ACCOUNT_RESULT, account);
-                    setResult(ACCOUNT_CHOSEN_RESULT, intent);
+                    intent.putExtra(CONTACT_RESULT, contact);
+                    setResult(CONTACT_CHOSEN_RESULT, intent);
                     finish();
                 } catch (Exception e) {
                     e.printStackTrace();

@@ -2,7 +2,6 @@ package com.fimbleenterprises.medimileage.objects_and_containers;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.content.Intent;
 import android.location.Location;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -19,8 +18,6 @@ import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
-import com.fimbleenterprises.medimileage.activities.Activity_AccountData;
-import com.fimbleenterprises.medimileage.adapters.OrderLineRecyclerAdapter;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects.BasicObject;
 import com.fimbleenterprises.medimileage.objects_and_containers.EntityContainers.EntityContainer;
 import com.fimbleenterprises.medimileage.objects_and_containers.EntityContainers.EntityField;
@@ -42,7 +39,6 @@ import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import cz.msebera.android.httpclient.Header;
 
 public class CrmEntities {
@@ -173,9 +169,9 @@ public class CrmEntities {
                 BasicObject object = new BasicObject();
                 object.object = annotation;
                 object.iconResource = R.drawable.text_message_icon_32x;
-                object.title = annotation.subject;
+                object.topText = annotation.subject;
                 object.middleText = annotation.notetext;
-                object.subtitle = annotation.createdByName;
+                object.bottomText = annotation.createdByName;
                 object.bottomRightText = Helpers.DatesAndTimes.getPrettyDateAndTime(annotation.createdon);
                 object.dateTime = annotation.createdon;
                 objects.add(object);
@@ -4002,7 +3998,7 @@ public class CrmEntities {
                     if (addedTodayHeader == false) {
                         BasicObject headerObj = new BasicObject();
                         headerObj.isHeader = true;
-                        headerObj.title = ("Today");
+                        headerObj.topText = ("Today");
                         objects.add(headerObj);
                         addedTodayHeader = true;
                         Log.d(TAG + "populateList", "Added a header object to the array that will eventually be a header childView in the list view named, 'Today' - This will not be added again!");
@@ -4014,7 +4010,7 @@ public class CrmEntities {
                     if (addedYesterdayHeader == false) {
                         BasicObject headerObj = new BasicObject();
                         headerObj.isHeader = true;
-                        headerObj.title = ("Yesterday");
+                        headerObj.topText = ("Yesterday");
                         objects.add(headerObj);
                         addedYesterdayHeader = true;
                         Log.d(TAG + "populateList", "Added a header object to the array that will eventually be a header childView in the list view named, 'Yesterday' - This will not be added again!");
@@ -4026,7 +4022,7 @@ public class CrmEntities {
                     if (addedThisWeekHeader == false) {
                         BasicObject headerObj = new BasicObject();
                         headerObj.isHeader = true;
-                        headerObj.title = ("This week");
+                        headerObj.topText = ("This week");
                         objects.add(headerObj);
                         addedThisWeekHeader = true;
                         Log.d(TAG + "populateList", "Added a header object to the array that will eventually be a header childView in the list view named, 'This week' - This will not be added again!");
@@ -4037,7 +4033,7 @@ public class CrmEntities {
                     if (addedThisMonthHeader == false) {
                         BasicObject headerObj = new BasicObject();
                         headerObj.isHeader = true;
-                        headerObj.title = ("This month");
+                        headerObj.topText = ("This month");
                         objects.add(headerObj);
                         addedThisMonthHeader = true;
                         Log.d(TAG + "populateList", "Added a header object to the array that will eventually be a header childView in the list view named, 'This month' - This will not be added again!");
@@ -4048,7 +4044,7 @@ public class CrmEntities {
                     if (addedLastMonthHeader == false) {
                         BasicObject headerObj = new BasicObject();
                         headerObj.isHeader = true;
-                        headerObj.title = ("Last month");
+                        headerObj.topText = ("Last month");
                         objects.add(headerObj);
                         addedLastMonthHeader = true;
                         Log.d(TAG + "populateList", "Added a header object to the array that will eventually be a header childView in the list view named, 'Last month' - This will not be added again!");
@@ -4058,7 +4054,7 @@ public class CrmEntities {
                     if (addedOlderHeader == false) {
                         BasicObject headerObj = new BasicObject();
                         headerObj.isHeader = true;
-                        headerObj.title = ("Total");
+                        headerObj.topText = ("Total");
                         objects.add(headerObj);
                         addedOlderHeader = true;
                         Log.d(TAG + "populateList", "Added a header object to the array that will eventually be a header childView in the list view named, 'Older' - This will not be added again!");

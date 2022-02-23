@@ -17,7 +17,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -39,9 +38,10 @@ import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.view.ViewCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -53,12 +53,11 @@ import com.bumptech.glide.Glide;
 import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.activities.Activity_ManualTrip;
 import com.fimbleenterprises.medimileage.Crm;
-import com.fimbleenterprises.medimileage.activities.ui.authentication.AuthenticationFragment;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.dialogs.DatePickerFragment;
 import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
-import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityChooseOpportunity;
-import com.fimbleenterprises.medimileage.dialogs.fullscreen_pickers.FullscreenActivityChooseRep;
+import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseOpportunity;
+import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseRep;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.objects_and_containers.LocationContainer;
 import com.fimbleenterprises.medimileage.activities.MainActivity;
@@ -107,7 +106,6 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 public class MileageFragment extends Fragment implements TripListRecyclerAdapter.ItemClickListener {
 
@@ -126,7 +124,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     private static final int SHOW_CLICK_HERE_TRIP_COUNT_THRESHOLD = 8;
     private MileageViewModel mileageViewModel;
     BroadcastReceiver locReceiver;
-    BroadcastReceiver allPurposeReceiver;
+    BroadcastReceiver miscReceiver;
     IntentFilter allPurposeFilter = new IntentFilter(GENERIC_RECEIVER_ACTION);
     MySqlDatasource datasource;
     TripListRecyclerAdapter adapter;
@@ -189,6 +187,16 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                     Log.i(TAG, "onActivityResult Opportunity was manipulated (" + opportunity.name + ")");
                 }
                 populateTripList();
+            } else if (data != null && data.hasExtra(Activity_ManualTrip.ADD_MANUAL_TRIP)) {
+                FullTrip createdTrip = data.getParcelableExtra(Activity_ManualTrip.ADD_MANUAL_TRIP);
+                try {
+                    if (options.autoSubmitOnTripEnded()) {
+                        submitTrip(createdTrip);
+                    }
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                    Toast.makeText(getContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                }
             } else {
                 populateTripList();
                 Toast.makeText(getContext(), "Trip was created.", Toast.LENGTH_SHORT).show();
@@ -416,116 +424,6 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         int defaultColor = txtStatus.getCurrentTextColor();
         Log.i(TAG, "onCreateView " + defaultColor);
 
-        // Initialize the broadcast receiver
-        locReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(final Context context, Intent intent) {
-            if (intent != null) {
-
-                if (intent.getAction().equals(MyAttachmentUploadService.ATTACHMENT_SERVICE_STARTED)) {
-                    return;
-                }
-                
-                if (options.isExplicitMode()) {
-                    btnStartStop.setText((MyLocationService.isRunning) ? "FUCKING STOP" : "FUCKING GO");
-                } else {
-                    btnStartStop.setText((MyLocationService.isRunning) ? "STOP" : "GO");
-                }
-                btnSync.setTextColor((MyLocationService.isRunning) ? Color.GRAY : Color.BLUE);
-                btnSync.setEnabled((MyLocationService.isRunning) ? false : true);
-                tripStatusContainer.setVisibility((MyLocationService.isRunning) ? View.VISIBLE : View.GONE);
-                txtDuration.setText(MyLocationService.getTripDuration() + " mins");
-
-                // NEW LOCATION INFORMATION RECEIVED
-                if (intent.getParcelableExtra(MyLocationService.LOCATION_CHANGED) != null) {
-                    LocationContainer update = intent.getParcelableExtra(MyLocationService.LOCATION_CHANGED);
-                    Log.d(TAG, "onReceive Location broadcast received!");
-
-                    if (MyLocationService.isRunning) {
-                        txtStatus.setText("Trip is running");
-                        txtStatus.setTextColor(Color.GREEN);
-                        txtReimbursement.setText(update.fullTrip.calculatePrettyReimbursement());
-                        Helpers.Animations.pulseAnimation(txtStatus, 1.00f, 1.25f, 9000, 150);
-                        if (isStarting) {
-                            showGif(false);
-                            isStarting = false;
-                        }
-                    } else {
-                        txtStatus.setText("Trip not started");
-                        txtStatus.setTextColor(DEFAULT_FONT_COLOR);
-                    }
-
-                    txtDistance.setText(Helpers.Geo.convertMetersToMiles(update.fullTrip.getDistance(), 2) + " miles");
-                    txtSpeed.setText(update.tripEntry.getSpeedInMph(true));
-                    gauge.setSpeed(update.tripEntry.getMph());
-
-                    setEditMode(false);
-                    manageDefaultImage();
-
-                }
-
-                // SERVICE HAS STARTED
-                if (intent.getAction() != null && intent.getAction().equals(MyLocationService.SERVICE_STARTED)) {
-                    btnSync.setEnabled(false);
-                    txtStatus.setText("Start driving!");
-                    txtDistance.setText("0 miles");
-                    txtSpeed.setText("0 mph");
-                    isStarting = true;
-                    tripStatusContainer.setVisibility(View.VISIBLE);
-                    txtStatus.setTextColor(Color.BLUE);
-                    txtReimbursement.setText("$0.00");
-                    Helpers.Animations.pulseAnimation(txtStatus, 1.00f, 1.25f, 9000, 450);
-                    Log.i(TAG, "onReceive | trip starting broadcast received.");
-                    manageDefaultImage();
-                    gauge.setSpeed(0);
-                    gauge.setMaxSpeed(120);
-                    startTripDurationRunner();
-                }
-
-                // SERVICE IS STOPPING
-                if (intent.getAction() != null && intent.getAction().equals(MyLocationService.SERVICE_STOPPED)) {
-                    txtStatus.setText("Trip is stopping");
-                    Log.i(TAG, "onReceive  | trip stopping broadcast received");
-                }
-
-                // SERVICE IS ENDED
-                if (intent.getAction() != null && intent.getAction().equals(MyLocationService.SERVICE_STOPPED)) {
-                    txtStatus.setText("Trip is stopped.");
-                    txtStatus.setTextColor(Color.RED);
-                    tripStatusContainer.setVisibility(View.GONE);
-                    Log.i(TAG, "onReceive | trip stopped broadcast received.");
-                    adapter.notifyDataSetChanged();
-                    populateTripList();
-                    manageDefaultImage();
-                    Log.i(TAG, "onReceive | trip stopping broadcast received.");
-
-                    if (intent.getParcelableExtra(MyLocationService.FINAL_LOCATION) != null) {
-                        FullTrip trip = intent.getParcelableExtra(MyLocationService.FINAL_LOCATION);
-                        Log.i(TAG, "onReceive " + trip.toString());
-
-                        if (options.getAutosubmitOnTripEnd()) {
-                            try {
-                                if (trip.getDistanceInMiles() >= 2 && trip.getTripEntries().size() > 2) {
-                                    submitTrip(trip);
-                                }
-                            } catch (UnsupportedEncodingException e) {
-                                e.printStackTrace();
-                            }
-                        }
-
-                    }
-                }
-
-                // USER IS NOT MOVING
-                if (intent.getAction() != null && intent.getAction().equals(MyLocationService.NOT_MOVING)) {
-                    txtSpeed.setText("0 mph");
-                    Log.i(TAG, "onReceive: Got a stopped moving broadcast!");
-                }
-
-            }
-            }
-        };
-
         // set up the RecyclerView
         recyclerView = root.findViewById(R.id.rvTrips);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -561,7 +459,117 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             e.printStackTrace();
         }
 
-        allPurposeReceiver = new BroadcastReceiver() {
+        // Initialize the receiver listening for broadcasts from the location service (running trip).
+        locReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(final Context context, Intent intent) {
+                if (intent != null) {
+
+                    if (intent.getAction().equals(MyAttachmentUploadService.ATTACHMENT_SERVICE_STARTED)) {
+                        return;
+                    }
+
+                    if (options.isExplicitMode()) {
+                        btnStartStop.setText((MyLocationService.isRunning) ? "FUCKING STOP" : "FUCKING GO");
+                    } else {
+                        btnStartStop.setText((MyLocationService.isRunning) ? "STOP" : "GO");
+                    }
+                    btnSync.setTextColor((MyLocationService.isRunning) ? Color.GRAY : Color.BLUE);
+                    btnSync.setEnabled((MyLocationService.isRunning) ? false : true);
+                    tripStatusContainer.setVisibility((MyLocationService.isRunning) ? View.VISIBLE : View.GONE);
+                    txtDuration.setText(MyLocationService.getTripDuration() + " mins");
+
+                    // NEW LOCATION INFORMATION RECEIVED
+                    if (intent.getParcelableExtra(MyLocationService.LOCATION_CHANGED) != null) {
+                        LocationContainer update = intent.getParcelableExtra(MyLocationService.LOCATION_CHANGED);
+                        Log.d(TAG, "onReceive Location broadcast received!");
+
+                        if (MyLocationService.isRunning) {
+                            txtStatus.setText("Trip is running");
+                            txtStatus.setTextColor(Color.GREEN);
+                            txtReimbursement.setText(update.fullTrip.calculatePrettyReimbursement());
+                            Helpers.Animations.pulseAnimation(txtStatus, 1.00f, 1.25f, 9000, 150);
+                            if (isStarting) {
+                                showGif(false);
+                                isStarting = false;
+                            }
+                        } else {
+                            txtStatus.setText("Trip not started");
+                            txtStatus.setTextColor(DEFAULT_FONT_COLOR);
+                        }
+
+                        txtDistance.setText(Helpers.Geo.convertMetersToMiles(update.fullTrip.getDistance(), 2) + " miles");
+                        txtSpeed.setText(update.tripEntry.getSpeedInMph(true));
+                        gauge.setSpeed(update.tripEntry.getMph());
+
+                        setEditMode(false);
+                        manageDefaultImage();
+
+                    }
+
+                    // SERVICE HAS STARTED
+                    if (intent.getAction() != null && intent.getAction().equals(MyLocationService.SERVICE_STARTED)) {
+                        btnSync.setEnabled(false);
+                        txtStatus.setText("Start driving!");
+                        txtDistance.setText("0 miles");
+                        txtSpeed.setText("0 mph");
+                        isStarting = true;
+                        tripStatusContainer.setVisibility(View.VISIBLE);
+                        txtStatus.setTextColor(Color.BLUE);
+                        txtReimbursement.setText("$0.00");
+                        Helpers.Animations.pulseAnimation(txtStatus, 1.00f, 1.25f, 9000, 450);
+                        Log.i(TAG, "onReceive | trip starting broadcast received.");
+                        manageDefaultImage();
+                        gauge.setSpeed(0);
+                        gauge.setMaxSpeed(120);
+                        startTripDurationRunner();
+                    }
+
+                    // SERVICE IS STOPPING
+                    if (intent.getAction() != null && intent.getAction().equals(MyLocationService.SERVICE_STOPPED)) {
+                        txtStatus.setText("Trip is stopping");
+                        Log.i(TAG, "onReceive  | trip stopping broadcast received");
+                    }
+
+                    // SERVICE IS ENDED
+                    if (intent.getAction() != null && intent.getAction().equals(MyLocationService.SERVICE_STOPPED)) {
+                        txtStatus.setText("Trip is stopped.");
+                        txtStatus.setTextColor(Color.RED);
+                        tripStatusContainer.setVisibility(View.GONE);
+                        Log.i(TAG, "onReceive | trip stopped broadcast received.");
+                        adapter.notifyDataSetChanged();
+                        populateTripList();
+                        manageDefaultImage();
+                        Log.i(TAG, "onReceive | trip stopping broadcast received.");
+
+                        if (intent.getParcelableExtra(MyLocationService.FINAL_LOCATION) != null) {
+                            FullTrip trip = intent.getParcelableExtra(MyLocationService.FINAL_LOCATION);
+                            Log.i(TAG, "onReceive " + trip.toString());
+
+                            if (options.autoSubmitOnTripEnded()) {
+                                try {
+                                    if (trip.getDistanceInMiles() >= 2 && trip.getTripEntries().size() > 2) {
+                                        submitTrip(trip);
+                                    }
+                                } catch (UnsupportedEncodingException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+
+                        }
+                    }
+
+                    // USER IS NOT MOVING
+                    if (intent.getAction() != null && intent.getAction().equals(MyLocationService.NOT_MOVING)) {
+                        txtSpeed.setText("0 mph");
+                        Log.i(TAG, "onReceive: Got a stopped moving broadcast!");
+                    }
+
+                }
+            }
+        };
+
+        miscReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent != null) {
@@ -703,6 +711,15 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             getActivity().finishAffinity();
             return root;
         }
+
+        mileageViewModel = new ViewModelProvider(this).get(MileageViewModel.class);
+        MyLocationService.mileageFragment = this;
+        mileageViewModel.getLocationContainer().observe(getActivity(), new Observer<LocationContainer>() {
+            @Override
+            public void onChanged(LocationContainer container) {
+                Log.i(TAG, "onChanged | " + container.speed + " mph");
+            }
+        });
 
         return root;
     }
@@ -884,7 +901,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         try {
             // Unregister broadcast receivers.
             getActivity().unregisterReceiver(locReceiver);
-            getContext().unregisterReceiver(allPurposeReceiver);
+            getContext().unregisterReceiver(miscReceiver);
             getContext().unregisterReceiver(tripSyncReceiver);
 
             tripDurationHandler.removeCallbacks(tripDurationRunner);
@@ -918,7 +935,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         startMtdTogglerRunner();
 
         try {
-            getContext().registerReceiver(allPurposeReceiver, allPurposeFilter);
+            getContext().registerReceiver(miscReceiver, allPurposeFilter);
             getContext().registerReceiver(tripSyncReceiver, tripSyncFilter);
         } catch (Exception e) {
             e.printStackTrace();
@@ -1175,7 +1192,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         dialog.setContentView(R.layout.edit_trip);
         final Button btnChangeDate = dialog.findViewById(R.id.btnChangeDate);
         btnChangeDate.setText(clickedTrip.getPrettyDate());
-        Button btnSaveTrip = dialog.findViewById(R.id.button_NameAndCreateTrip);
+        Button btnSaveTrip = dialog.findViewById(R.id.btnSaveEdits);
         final AutoCompleteTextView txtName = dialog.findViewById(R.id.autocomplete_EditText_NameTrip);
         final EditText txtDistance = dialog.findViewById(R.id.editTxt_Distance);
         final float originalMiles = clickedTrip.getDistanceInMiles();
@@ -2215,7 +2232,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
         dialog.setContentView(R.layout.rename_trip);
         final AutoCompleteTextView actv = dialog.findViewById(R.id.autocomplete_EditText_NameTrip);
-        Button startButton = dialog.findViewById(R.id.button_NameAndCreateTrip);
+        Button startButton = dialog.findViewById(R.id.btnSaveEdits);
         dialog.setCancelable(true);
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override

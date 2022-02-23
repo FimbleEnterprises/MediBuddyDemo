@@ -5,6 +5,7 @@ import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
 import com.fimbleenterprises.medimileage.objects_and_containers.UserAddresses;
 
+import org.jetbrains.annotations.NotNull;
 import org.joda.time.DateTime;
 
 import java.io.File;
@@ -102,6 +103,12 @@ public class MyInterfaces {
     public interface CrmRequestListener {
         void onComplete(Object result);
         void onProgress(Crm.AsyncProgress progress);
+        void onFail(String error);
+    }
+
+    public interface KtCrmRequestListener {
+        void onComplete(Object result);
+        void onProgress(KtCrm.AsyncProgress progress);
         void onFail(String error);
     }
 

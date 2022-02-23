@@ -25,19 +25,39 @@ public class RecentTripsRecyclerAdapter extends RecyclerView.Adapter<RecentTrips
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
     private ItemClickListener mDeleteButtonClickListener;
+    private ItemClickListener mEditButtonClickListener;
     MyPreferencesHelper options;
     Context context;
     public int selectedIndex = -1;
     Typeface face;
 
     // data is passed into the constructor
-    public RecentTripsRecyclerAdapter(Context context, ArrayList<BasicObjects.BasicObject> data, ItemClickListener deleteButtonClickListener) {
+    public RecentTripsRecyclerAdapter(Context context, ArrayList<BasicObjects.BasicObject> data,
+                                      ItemClickListener deleteButtonClickListener) {
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
         this.context = context;
         this.options = new MyPreferencesHelper(context);
         face = context.getResources().getFont(R.font.casual);
         this.mDeleteButtonClickListener = deleteButtonClickListener;
+        // this.mEditButtonClickListener = editButtonClickListener;
+    }
+
+    // data is passed into the constructor
+    public RecentTripsRecyclerAdapter(Context context, ArrayList<BasicObjects.BasicObject> data,
+                                      ItemClickListener deleteButtonClickListener,
+                                      ItemClickListener editButtonClickListener) {
+        this.mInflater = LayoutInflater.from(context);
+        this.mData = data;
+        this.context = context;
+        this.options = new MyPreferencesHelper(context);
+        face = context.getResources().getFont(R.font.casual);
+        this.mDeleteButtonClickListener = deleteButtonClickListener;
+        this.mEditButtonClickListener = editButtonClickListener;
+    }
+
+    public void setOnEditClickListener(ItemClickListener listener) {
+        this.mEditButtonClickListener = listener;
     }
 
     // inflates the row layout from xml when needed
@@ -52,8 +72,8 @@ public class RecentTripsRecyclerAdapter extends RecyclerView.Adapter<RecentTrips
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         final BasicObjects.BasicObject object = mData.get(position);
 
-        holder.txtMainText.setText(object.title);
-        holder.txtSubtext.setText(object.subtitle);
+        holder.txtMainText.setText(object.topText);
+        holder.txtSubtext.setText(object.bottomText);
         holder.itemView.setLongClickable(true);
 
         // Hide the icon if it is not explicitly set
@@ -69,10 +89,10 @@ public class RecentTripsRecyclerAdapter extends RecyclerView.Adapter<RecentTrips
         }
 
         // Hide the main text field if it is null
-        holder.txtMainText.setVisibility(object.title == null ? View.GONE : View.VISIBLE);
+        holder.txtMainText.setVisibility(object.topText == null ? View.GONE : View.VISIBLE);
 
         // Hide the sub text field if it is null
-        holder.txtSubtext.setVisibility(object.subtitle == null ? View.GONE : View.VISIBLE);
+        holder.txtSubtext.setVisibility(object.bottomText == null ? View.GONE : View.VISIBLE);
 
         // Hide/show fields based on whether this object is being used as a header/title row
         holder.txtSubtext.setVisibility(object.isHeader ? View.GONE : View.VISIBLE);
@@ -107,6 +127,7 @@ public class RecentTripsRecyclerAdapter extends RecyclerView.Adapter<RecentTrips
         TextView txtMainText;
         TextView txtSubtext;
         ImageButton btnDelete;
+        ImageButton btnEdit;
 
         ViewHolder(final View itemView) {
             super(itemView);
@@ -115,6 +136,7 @@ public class RecentTripsRecyclerAdapter extends RecyclerView.Adapter<RecentTrips
             txtMainText = itemView.findViewById(R.id.txtMainText);
             txtSubtext = itemView.findViewById(R.id.txtSubtext);
             btnDelete = itemView.findViewById(R.id.imgRight);
+            btnEdit = itemView.findViewById(R.id.imgRight2);
 
             itemView.setOnClickListener(this);
             itemView.setOnLongClickListener(this);
@@ -122,6 +144,13 @@ public class RecentTripsRecyclerAdapter extends RecyclerView.Adapter<RecentTrips
                 @Override
                 public void onClick(View view) {
                     mDeleteButtonClickListener.onItemClick(itemView, getAdapterPosition());
+                }
+            });
+
+            btnEdit.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    mEditButtonClickListener.onItemClick(itemView, getAdapterPosition());
                 }
             });
         }
