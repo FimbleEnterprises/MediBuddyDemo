@@ -21,12 +21,10 @@ import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyHyperlinkTextview;
+import com.fimbleenterprises.medimileage.activities.ui.views.MyHyperlinkTextview;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicEntity;
 import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.R;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 
@@ -149,7 +147,7 @@ public class BasicEntityActivityObjectRecyclerAdapter extends RecyclerView.Adapt
                 holder.btnMainText.setBackgroundColor(Color.parseColor(editColor));
 
                 if (field.isNumber) {
-                    holder.txtMainText.setInputType(InputType.TYPE_CLASS_NUMBER);
+                    holder.txtMainText.setInputType(InputType.TYPE_NUMBER_FLAG_DECIMAL);
                 }
 
                 holder.imgAsterisk.setVisibility(field.isRequired ? View.VISIBLE : View.GONE);

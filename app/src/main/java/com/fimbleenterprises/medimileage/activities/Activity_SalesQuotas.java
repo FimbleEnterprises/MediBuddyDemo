@@ -29,7 +29,7 @@ import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics;
 import com.fimbleenterprises.medimileage.dialogs.MonthYearPickerDialog;
 import com.fimbleenterprises.medimileage.MyPreferencesHelper;
-import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyUnderlineEditText;
+import com.fimbleenterprises.medimileage.activities.ui.views.MyUnderlineEditText;
 import com.fimbleenterprises.medimileage.MyViewPager;
 import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;

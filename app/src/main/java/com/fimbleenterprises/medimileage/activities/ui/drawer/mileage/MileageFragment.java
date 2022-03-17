@@ -1,4 +1,4 @@
-package com.fimbleenterprises.medimileage.activities.ui.mileage;
+package com.fimbleenterprises.medimileage.activities.ui.drawer.mileage;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -64,7 +64,8 @@ import com.fimbleenterprises.medimileage.activities.MainActivity;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics;
 import com.fimbleenterprises.medimileage.dialogs.MonthYearPickerDialog;
-import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyAnimatedNumberTextView;
+import com.fimbleenterprises.medimileage.activities.ui.views.MyAnimatedNumberTextView;
+import com.fimbleenterprises.medimileage.objects_and_containers.Opportunities;
 import com.fimbleenterprises.medimileage.objects_and_containers.custom_exceptions.CrmRequestExceptions;
 import com.fimbleenterprises.medimileage.services.MyAttachmentUploadService;
 import com.fimbleenterprises.medimileage.MyInterfaces;
@@ -181,7 +182,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
         if (resultCode == Activity.RESULT_OK) {
             if (data != null && data.hasExtra(FullscreenActivityChooseOpportunity.OPPORTUNITY_RESULT)) {
-                CrmEntities.Opportunities.Opportunity opportunity =
+                Opportunities.Opportunity opportunity =
                         data.getParcelableExtra(FullscreenActivityChooseOpportunity.OPPORTUNITY_RESULT);
                 if (opportunity != null) {
                     Log.i(TAG, "onActivityResult Opportunity was manipulated (" + opportunity.name + ")");
@@ -1454,7 +1455,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 if (addedTodayHeader == false) {
                     FullTrip headerObj = new FullTrip();
                     headerObj.isSeparator = true;
-                    headerObj.setTitle(options.isExplicitMode() ? getActivity().getString(R.string.triplist_today_explicit) : getActivity().getString(R.string.triplist_today));
+                    headerObj.setTitle(options.isExplicitMode() ? getActivity().getString(R.string.triplist_today_explicit) : getActivity().getString(R.string.today));
                     triplist.add(headerObj);
                     addedTodayHeader = true;
                     Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Today' - This will not be added again!");
@@ -1464,7 +1465,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 if (addedYesterdayHeader == false) {
                     FullTrip headerObj = new FullTrip();
                     headerObj.isSeparator = true;
-                    headerObj.setTitle(options.isExplicitMode() ? getActivity().getString(R.string.triplist_yesterday_explicit) : getActivity().getString(R.string.triplist_yesterday));
+                    headerObj.setTitle(options.isExplicitMode() ? getActivity().getString(R.string.triplist_yesterday_explicit) : getActivity().getString(R.string.yesterday));
                     triplist.add(headerObj);
                     addedYesterdayHeader = true;
                     Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Yesterday' - This will not be added again!");
@@ -1475,7 +1476,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 if (addedThisWeekHeader == false) {
                     FullTrip headerObj = new FullTrip();
                     headerObj.isSeparator = true;
-                    headerObj.setTitle(options.isExplicitMode() ? getActivity().getString(R.string.triplist_this_week_explicit) : getActivity().getString(R.string.triplist_this_week));
+                    headerObj.setTitle(options.isExplicitMode() ? getActivity().getString(R.string.triplist_this_week_explicit) : getActivity().getString(R.string.this_week));
                     triplist.add(headerObj);
                     addedThisWeekHeader = true;
                     Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'This week' - This will not be added again!");
@@ -1497,7 +1498,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 if (addedOlderHeader == false) {
                     FullTrip headerObj = new FullTrip();
                     headerObj.isSeparator = true;
-                    headerObj.setTitle(options.isExplicitMode() ? getActivity().getString(R.string.triplist_last_month_and_older_explicit) : getActivity().getString(R.string.triplist_last_month_and_older));
+                    headerObj.setTitle(options.isExplicitMode() ? getActivity().getString(R.string.triplist_last_month_and_older_explicit) : getActivity().getString(R.string.last_month_and_older));
                     triplist.add(headerObj);
                     addedOlderHeader = true;
                     Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Older' - This will not be added again!");

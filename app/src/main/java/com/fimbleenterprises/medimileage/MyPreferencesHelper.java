@@ -6,9 +6,11 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.fimbleenterprises.medimileage.objects_and_containers.AccountAddresses;
+import com.fimbleenterprises.medimileage.objects_and_containers.Contacts;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyUpdate;
+import com.fimbleenterprises.medimileage.objects_and_containers.Opportunities;
 import com.fimbleenterprises.medimileage.objects_and_containers.SavedParkingSpot;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territories;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
@@ -431,11 +433,11 @@ public class MyPreferencesHelper {
         return "$" + val;
     }
 
-    public CrmEntities.Opportunities getSavedOpportunities() {
-        return CrmEntities.Opportunities.fromGson(prefs.getString(OPPORTUNITIES_JSON, null));
+    public Opportunities getSavedOpportunities() {
+        return Opportunities.fromGson(prefs.getString(OPPORTUNITIES_JSON, null));
     }
 
-    public void saveOpportunities(CrmEntities.Opportunities opportunities) {
+    public void saveOpportunities(Opportunities opportunities) {
         prefs.edit().putString(OPPORTUNITIES_JSON, opportunities.toGson()).commit();
     }
 
@@ -656,6 +658,24 @@ public class MyPreferencesHelper {
         return pos;
     }
 
+    /**
+     * Gets whether or not the user has disabled the ability to use the volume buttons to skip
+     * categories in supported lists.
+     * @return
+     */
+    public boolean volumeButtonsCanScroll() {
+        return prefs.getBoolean(context.getString(R.string.VOLUME_BUTTON_SCROLLS), true);
+    }
+
+    /**
+     * Sets whether or not the user has disabled the ability to use the volume buttons to skip
+     * categories in supported lists.
+     * @return
+     */
+    public void volumeButtonsCanScroll(boolean val) {
+        prefs.edit().putBoolean(context.getString(R.string.VOLUME_BUTTON_SCROLLS), val).apply();
+    }
+
     public void setLastCpyWidePage(int pos) {
         prefs.edit().putInt(LAST_CPY_WIDE_PAGE, pos).commit();
         Log.i(TAG, "setLastCpyWidePage " + pos);
@@ -688,15 +708,15 @@ public class MyPreferencesHelper {
         return val != null && val.length() > 0;
     }
 
-    public CrmEntities.Contacts getCachedContacts() {
+    public Contacts getCachedContacts() {
         if (hasCachedContacts()) {
             String gson = prefs.getString(CACHED_CONTACT_LIST, null);
-            return new Gson().fromJson(gson, CrmEntities.Contacts.class);
+            return new Gson().fromJson(gson, Contacts.class);
         }
         return null;
     }
 
-    public void cacheContacts(CrmEntities.Contacts contacts) {
+    public void cacheContacts(Contacts contacts) {
         prefs.edit().putString(CACHED_CONTACT_LIST, new Gson().toJson(contacts)).commit();
         prefs.edit().putLong(CACHED_CONTACTS_DATE, DateTime.now().getMillis()).commit();
     }

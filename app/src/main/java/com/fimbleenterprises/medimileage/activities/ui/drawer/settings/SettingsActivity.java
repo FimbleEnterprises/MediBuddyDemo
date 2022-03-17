@@ -1,4 +1,4 @@
-package com.fimbleenterprises.medimileage.activities.ui.settings;
+package com.fimbleenterprises.medimileage.activities.ui.drawer.settings;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -18,7 +18,6 @@ import com.fimbleenterprises.medimileage.activities.ViewModelPlaygroundActivity;
 import com.fimbleenterprises.medimileage.dialogs.MonthYearPickerDialog;
 import com.fimbleenterprises.medimileage.objects_and_containers.AccountAddresses;
 import com.fimbleenterprises.medimileage.Crm;
-import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseRep;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
@@ -26,6 +25,7 @@ import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyUpdate;
 import com.fimbleenterprises.medimileage.MyInterfaces;
+import com.fimbleenterprises.medimileage.objects_and_containers.Opportunities;
 import com.fimbleenterprises.medimileage.services.MyLocationService;
 import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
 import com.fimbleenterprises.medimileage.MyPreferencesHelper;
@@ -44,12 +44,12 @@ import java.io.FileOutputStream;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.ViewModel;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
@@ -106,6 +106,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String CREATE_RECEIPT_FOR_USER = "CREATE_RECEIPT_FOR_USER";
     public static final String EXPORT_DB = "SHARE_DB";
     public static final String GET_DB_SIZE = "GET_DB_SIZE";
+    public static final String VOLUME_BUTTON_SCROLLS = "VOLUME_BUTTON_SCROLLS";
 
     public static String DEFAULT_DATABASE_NAME = "mileagetracking.db";
 
@@ -592,7 +593,7 @@ public class SettingsActivity extends AppCompatActivity {
             });
 
             prefCreateReceiptFor = findPreference(CREATE_RECEIPT_FOR_USER);
-            prefCreateReceiptFor.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            Objects.requireNonNull(prefCreateReceiptFor).setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
                     FullscreenActivityChooseRep.showRepChooser(getActivity(), MediUser.getMe(), MAKE_RECEIPT_FOR_USER_CODE);
@@ -650,9 +651,9 @@ public class SettingsActivity extends AppCompatActivity {
                 public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                     dialog.dismiss();
                     String response = new String(responseBody);
-                    CrmEntities.Opportunities opportunities = new CrmEntities.Opportunities(response);
+                    Opportunities opportunities = new Opportunities(response);
                     opportunities.save();
-                    CrmEntities.Opportunities savedOpportunities = options.getSavedOpportunities();
+                    Opportunities savedOpportunities = options.getSavedOpportunities();
                     Log.i(TAG, "onSuccess " + response);
                     Toast.makeText(getContext(), opportunities.toString() + " were saved", Toast.LENGTH_SHORT).show();
                 }

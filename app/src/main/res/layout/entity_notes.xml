@@ -121,7 +121,7 @@
                     android:layout_marginTop="5dp"
                     android:nestedScrollingEnabled="false">
 
-                    <com.fimbleenterprises.medimileage.activities.ui.CustomViews.NonScrollRecyclerView
+                    <com.fimbleenterprises.medimileage.activities.ui.views.NonScrollRecyclerView
                         android:id="@+id/nonScrollListviewNotes"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

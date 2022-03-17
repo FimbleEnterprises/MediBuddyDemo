@@ -86,6 +86,27 @@ public class BasicObjects {
          * @param topText The main text of the object
          * @param bottomText The bottomText text.
          */
+        public BasicObject(boolean isHeader, String topText, String bottomText) {
+            this.isHeader = isHeader;
+            this.topText = topText;
+            this.middleText = bottomText;
+        }
+
+        /**
+         * Creates the simplest BasicObject possessing just a topText and bottomText - no object.
+         * @param topText The main text of the object
+         */
+        public BasicObject(boolean isHeader, String topText) {
+            this.isHeader = isHeader;
+            this.topText = topText;
+            this.middleText = bottomText;
+        }
+
+        /**
+         * Creates the simplest BasicObject possessing just a topText and bottomText - no object.
+         * @param topText The main text of the object
+         * @param bottomText The bottomText text.
+         */
         public BasicObject(String topText, String bottomText) {
             this.isHeader = false;
             this.topText = topText;

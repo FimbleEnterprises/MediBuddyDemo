@@ -3,6 +3,7 @@ package com.fimbleenterprises.medimileage.adapters;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,17 +17,19 @@ import com.fimbleenterprises.medimileage.R;
 
 import java.util.ArrayList;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 
 public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObjectRecyclerAdapter.ViewHolder> {
     private static final String TAG="BasicObjectRecyclerAdapter";
     public ArrayList<BasicObjects.BasicObject> mData;
-    private LayoutInflater mInflater;
+    private final LayoutInflater mInflater;
     private ItemClickListener mClickListener;
     MyPreferencesHelper options;
     Context context;
-    public int selectedIndex = -1;
+    private int lastKnownPosition;
     Typeface face;
 
     // data is passed into the constructor
@@ -38,9 +41,36 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
         face = context.getResources().getFont(R.font.casual);
     }
 
-    // inflates the row layout from xml when needed
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
+        if(manager instanceof LinearLayoutManager && getItemCount() > 0) {
+            LinearLayoutManager llm = (LinearLayoutManager) manager;
+            recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                    super.onScrollStateChanged(recyclerView, newState);
+                }
+
+                @Override
+                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                    super.onScrolled(recyclerView, dx, dy);
+                    int visiblePosition = llm.findFirstCompletelyVisibleItemPosition();
+                    Log.i(TAG, "onScrolled | Top most visible item index: " + visiblePosition);
+                    if(visiblePosition > -1) {
+                        // View v = llm.findViewByPosition(visiblePosition);
+                        lastKnownPosition = visiblePosition;
+                    }
+                }
+            });
+        }
+    }
+
+    // inflates the row layout from xml when needed
+    @NonNull
+    @Override
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = mInflater.inflate(R.layout.basic_object_row, parent, false);
         return new ViewHolder(view);
     }
@@ -98,12 +128,6 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
             holder.txtSubtext.setVisibility(View.INVISIBLE);
         }
 
-        if (object.shouldHighlight) {
-            holder.layout.setBackgroundResource(R.drawable.btn_glass_gray_orange_border);
-        } else {
-            holder.layout.setBackgroundResource(R.drawable.btn_glass_gray_black_border_label_bg);
-        }
-
         if (object.isHeader) {
             holder.txtMainText.setTypeface(face, Typeface.BOLD);
             holder.txtMainText.setTextColor(Color.BLUE);
@@ -111,7 +135,11 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
         } else {
             holder.txtMainText.setTypeface(face, Typeface.BOLD);
             holder.txtMainText.setTextColor(Color.BLACK);
-            holder.layout.setBackgroundResource(R.drawable.btn_glass_gray_black_border_label_bg);
+            if (object.shouldHighlight) {
+                holder.layout.setBackgroundResource(R.drawable.btn_glass_gray_orange_border);
+            } else {
+                holder.layout.setBackgroundResource(R.drawable.btn_glass_gray_black_border_label_bg);
+            }
         }
 
     }
@@ -120,6 +148,42 @@ public class BasicObjectRecyclerAdapter extends RecyclerView.Adapter<BasicObject
     @Override
     public int getItemCount() {
         return mData.size();
+    }
+
+    /**
+     * This helps for auto-scrolling to header rows (e.g. using the volume buttons to scroll)
+     * @return The most previous header
+     */
+    public int getNextClickableCategoryPosition() {
+
+        try {
+            for (int i = lastKnownPosition + 1; i < mData.size(); i++) {
+                if (lastKnownPosition != i && mData.get(i).isHeader) {
+                    return i;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    /**
+     * This helps for auto-scrolling to header rows (e.g. using the volume buttons to scroll)
+     * @return The most previous header
+     */
+    public int getPreviousClickableCategoryPosition() {
+
+        if (lastKnownPosition == 0) {
+            return 0;
+        }
+
+        for (int i = lastKnownPosition - 1; i > -1; i--) {
+            if (mData.get(i).isHeader) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     // stores and recycles views as they are scrolled off screen

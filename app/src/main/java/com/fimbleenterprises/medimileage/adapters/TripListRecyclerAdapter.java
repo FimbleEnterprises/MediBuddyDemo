@@ -18,10 +18,12 @@ import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.R;
-import com.fimbleenterprises.medimileage.activities.ui.mileage.MileageFragment;
+import com.fimbleenterprises.medimileage.activities.ui.drawer.mileage.MileageFragment;
 
 import java.util.ArrayList;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 
@@ -36,6 +38,7 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
     MileageFragment mileageFragment;
     Context context;
     Typeface originalTypeface;
+    public int lastKnownPosition = 0;
     TextView textView;
 
     Uri imgAssociationPath = Uri.parse("android.resource://com.fimbleenterprises.medimileage/" + R.drawable.exclamation_blue_64);
@@ -57,6 +60,32 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
         this.options = new MyPreferencesHelper(context);
     }
 
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
+        if(manager instanceof LinearLayoutManager && getItemCount() > 0) {
+            LinearLayoutManager llm = (LinearLayoutManager) manager;
+            recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                    super.onScrollStateChanged(recyclerView, newState);
+                }
+
+                @Override
+                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                    super.onScrolled(recyclerView, dx, dy);
+                    int visiblePosition = llm.findFirstCompletelyVisibleItemPosition();
+                    Log.i(TAG, "onScrolled | Top most visible item index: " + visiblePosition);
+                    if(visiblePosition > -1) {
+                        View v = llm.findViewByPosition(visiblePosition);
+                        lastKnownPosition = visiblePosition;
+                    }
+                }
+            });
+        }
+    }
+
     // inflates the row layout from xml when needed
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -69,8 +98,8 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
 
     // binds the data to the TextView in each row
     @Override
-    public void onBindViewHolder(final ViewHolder holder, final int position) {
-        final FullTrip trip = mData.get(position);
+    public void onBindViewHolder(final ViewHolder holder, int pos) {
+        final FullTrip trip = mData.get(holder.getAdapterPosition());
 
         if (options.isExplicitMode()) {
             holder.txtSubtext.setText(Helpers.Geo.convertMetersToMiles(
@@ -110,7 +139,7 @@ public class TripListRecyclerAdapter extends RecyclerView.Adapter<TripListRecycl
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 trip.isChecked = b;
-                mClickListener.onItemClick(holder.itemView, position);
+                mClickListener.onItemClick(holder.itemView, holder.getAdapterPosition());
             }
         });
         holder.imgSubmitStatus.setImageResource((trip.getIsSubmitted())

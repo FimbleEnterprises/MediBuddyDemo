@@ -1,12 +1,18 @@
 <component name="ProjectDictionaryState">
   <dictionary name="weber">
     <words>
+      <w>companywide</w>
       <w>entityid</w>
+      <w>flowmeter</w>
       <w>flowmeters</w>
       <w>fucky</w>
+      <w>lastmonth</w>
       <w>listview</w>
       <w>parentcustomerid</w>
       <w>recents</w>
+      <w>recordurl</w>
+      <w>thismonth</w>
+      <w>thisweek</w>
     </words>
   </dictionary>
 </component>

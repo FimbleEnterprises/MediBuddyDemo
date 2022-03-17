@@ -16,8 +16,10 @@ import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.activities.BasicEntityActivity;
+import com.fimbleenterprises.medimileage.objects_and_containers.Contacts;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.EntityContainers;
+import com.fimbleenterprises.medimileage.objects_and_containers.Person;
 
 import androidx.core.app.ActivityCompat;
 
@@ -29,61 +31,6 @@ public class ContactActions {
         unnecessary Yes/No dialog and then deleting the contact regardless of choice.
      */
 
-    public static class Person extends CrmEntities.Contacts.Contact {
-        public boolean isLead = false;
-        public String parentid;
-
-        public void qualifyLead(MyInterfaces.leadQualifyListener listener) {
-
-        }
-
-        public Person(CrmEntities.Contacts.Contact contact) {
-            this.lastname = contact.lastname;
-            this.firstname = contact.firstname;
-            this.telephone1 = contact.telephone1;
-            this.mobile = contact.mobile;
-            this.email = contact.email;
-            this.accountFormatted = contact.accountFormatted;
-            this.jobtitle = contact.jobtitle;
-            this.accountid = contact.accountid;
-            this.npiid = contact.npiid;
-            this.npiFormatted = contact.npiFormatted;
-            this.modifiedBy = contact.modifiedBy;
-            this.modifiedByFormatted = contact.modifiedByFormatted;
-            this.createdBy = contact.createdBy;
-            this.createdByFormatted = contact.createdByFormatted;
-            this.modifiedOn = contact.modifiedOn;
-            this.modifiedOnFormatted = contact.modifiedOnFormatted;
-            this.createdOn = contact.createdOn;
-            this.createdOnFormatted = contact.createdOnFormatted;
-            this.etag = contact.etag;
-            this.parentid = contact.entityid;
-        }
-
-        public Person(CrmEntities.Leads.Lead lead) {
-            this.isLead = true;
-            this.lastname = lead.lastname;
-            this.firstname = lead.firstname;
-            this.telephone1 = lead.businessphone;
-            this.mobile = lead.mobilephone;
-            this.email = lead.email;
-            this.accountFormatted = lead.parentAccountName;
-            this.jobtitle = lead.jobtitle;
-            this.accountid = lead.parentAccountId;
-            this.modifiedBy = lead.modifiedBy;
-            this.modifiedByFormatted = lead.modifiedByFormatted;
-            this.createdBy = lead.createdBy;
-            this.createdByFormatted = lead.createdByFormatted;
-            this.modifiedOn = lead.modifiedOn;
-            this.modifiedOnFormatted = lead.modifiedOnFormatted;
-            this.createdOn = lead.createdOn;
-            this.createdOnFormatted = lead.createdOnFormatted;
-            this.etag = lead.etag;
-            this.parentid = lead.entityid;
-        }
-
-    }
-
     Person person;
     Activity activity;
     public static final int CALL_PHONE_REQ = 123;
@@ -93,7 +40,7 @@ public class ContactActions {
     public boolean dismissOnSelection = false;
     public boolean allowDelete = false;
 
-    public ContactActions(Activity activity, CrmEntities.Contacts.Contact contact) {
+    public ContactActions(Activity activity, Contacts.Contact contact) {
         this.person = new Person(contact);
 
         this.activity = activity;

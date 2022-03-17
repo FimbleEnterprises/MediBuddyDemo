@@ -23,6 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.R;
+import com.fimbleenterprises.medimileage.objects_and_containers.Opportunities;
 
 public class ActivityAssociatedOpportunities extends AppCompatActivity {
     private static final String TAG = "ActivityAssociatedOpportunities";
@@ -68,9 +69,9 @@ public class ActivityAssociatedOpportunities extends AppCompatActivity {
                 final MyProgressDialog dialog = new MyProgressDialog(context, "Getting details...");
                 dialog.show();
 
-                CrmEntities.Opportunities.retrieveOpportunityDetails(mileageAssociation.associated_opportunity_id, new MyInterfaces.GetOpportunitiesListener() {
+                Opportunities.retrieveOpportunityDetails(mileageAssociation.associated_opportunity_id, new MyInterfaces.GetOpportunitiesListener() {
                     @Override
-                    public void onSuccess(CrmEntities.Opportunities opportunities) {
+                    public void onSuccess(Opportunities opportunities) {
 
                         if (opportunities.list.size() == 0) {
                             dialog.dismiss();

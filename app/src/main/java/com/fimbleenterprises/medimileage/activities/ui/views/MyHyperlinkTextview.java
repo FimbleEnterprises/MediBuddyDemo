@@ -1,4 +1,4 @@
-package com.fimbleenterprises.medimileage.activities.ui.CustomViews;
+package com.fimbleenterprises.medimileage.activities.ui.views;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

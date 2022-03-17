@@ -23,8 +23,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.MyApp;
-import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyHyperlinkTextview;
-import com.fimbleenterprises.medimileage.activities.ui.CustomViews.NonScrollRecyclerView;
+import com.fimbleenterprises.medimileage.activities.ui.views.MyHyperlinkTextview;
+import com.fimbleenterprises.medimileage.activities.ui.views.NonScrollRecyclerView;
 import com.fimbleenterprises.medimileage.objects_and_containers.AggregateStats;
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.CustomTypefaceSpan;
@@ -360,7 +360,7 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
                     FullTrip headerObj = new FullTrip();
                     headerObj.isSeparator = true;
                     headerObj.setTitle(options.isExplicitMode() ? getString(R.string.triplist_today_explicit)
-                    : getString(R.string.triplist_today));
+                    : getString(R.string.today));
                     triplist.add(headerObj);
                     addedTodayHeader = true;
                     Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Today' - This will not be added again!");
@@ -372,7 +372,7 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
                     FullTrip headerObj = new FullTrip();
                     headerObj.isSeparator = true;
                     headerObj.setTitle(options.isExplicitMode() ? getString(R.string.triplist_yesterday_explicit)
-                            : getString(R.string.triplist_yesterday));
+                            : getString(R.string.yesterday));
                     triplist.add(headerObj);
                     addedYesterdayHeader = true;
                     Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Yesterday' - This will not be added again!");
@@ -384,7 +384,7 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
                     FullTrip headerObj = new FullTrip();
                     headerObj.isSeparator = true;
                     headerObj.setTitle(options.isExplicitMode() ? getString(R.string.triplist_this_week_explicit)
-                            : getString(R.string.triplist_this_week));
+                            : getString(R.string.this_week));
                     triplist.add(headerObj);
                     addedThisWeekHeader = true;
                     Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'This week' - This will not be added again!");
@@ -408,7 +408,7 @@ public class UserTripsActivity extends AppCompatActivity implements TripListRecy
                     FullTrip headerObj = new FullTrip();
                     headerObj.isSeparator = true;
                     headerObj.setTitle(options.isExplicitMode() ? getString(R.string.triplist_last_month_and_older_explicit)
-                            : getString(R.string.triplist_last_month_and_older));
+                            : getString(R.string.last_month_and_older));
                     triplist.add(headerObj);
                     addedOlderHeader = true;
                     Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Older' - This will not be added again!");

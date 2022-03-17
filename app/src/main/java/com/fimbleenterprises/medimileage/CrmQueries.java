@@ -1966,6 +1966,25 @@ public class CrmQueries {
             query.addColumn("createdby");
             query.addColumn("modifiedon");
             query.addColumn("modifiedby");
+            query.addColumn("description");
+            query.addColumn("preferredcontactmethodcode");
+            // Surgeon properties
+            query.addColumn("msus_npi");
+            query.addColumn("msus_credentials");
+            query.addColumn("msus_primaryspecialty");
+            query.addColumn("msus_secondary_specialties");
+            query.addColumn("msus_medical_school_name");
+            query.addColumn("msus_medicare_claims");
+            query.addColumn("msus_graduation_year");
+            query.addColumn("msus_annual_cabg_cases");
+            query.addColumn("msus_ttfm_vendor");
+            query.addColumn("msus_medistim_customer");
+            query.addColumn("msus_ttfm_procedures");
+            query.addColumn("msus_percentagecaseswttfm");
+            query.addColumn("msus_percentageonpump");
+            query.addColumn("msus_percentagescanaorta");
+            query.addColumn("msus_percentageusingmedistimimaging");
+            query.addColumn("msus_vessels_imaged");
 
             // Create a filter
             Filter filter = new Filter(AND);
@@ -2000,6 +2019,25 @@ public class CrmQueries {
             query.addColumn("createdby");
             query.addColumn("modifiedon");
             query.addColumn("modifiedby");
+            query.addColumn("description");
+            query.addColumn("preferredcontactmethodcode");
+            // Surgeon properties
+            query.addColumn("msus_npi");
+            query.addColumn("msus_credentials");
+            query.addColumn("msus_primaryspecialty");
+            query.addColumn("msus_secondary_specialties");
+            query.addColumn("msus_medical_school_name");
+            query.addColumn("msus_medicare_claims");
+            query.addColumn("msus_graduation_year");
+            query.addColumn("msus_annual_cabg_cases");
+            query.addColumn("msus_ttfm_vendor");
+            query.addColumn("msus_medistim_customer");
+            query.addColumn("msus_ttfm_procedures");
+            query.addColumn("msus_percentagecaseswttfm");
+            query.addColumn("msus_percentageonpump");
+            query.addColumn("msus_percentagescanaorta");
+            query.addColumn("msus_percentageusingmedistimimaging");
+            query.addColumn("msus_vessels_imaged");
 
             // Create a filter
             Filter filter = new Filter(AND);
@@ -2034,6 +2072,25 @@ public class CrmQueries {
             query.addColumn("createdby");
             query.addColumn("modifiedon");
             query.addColumn("modifiedby");
+            query.addColumn("description");
+            query.addColumn("preferredcontactmethodcode");
+            // Surgeon properties
+            query.addColumn("msus_npi");
+            query.addColumn("msus_credentials");
+            query.addColumn("msus_primaryspecialty");
+            query.addColumn("msus_secondary_specialties");
+            query.addColumn("msus_medical_school_name");
+            query.addColumn("msus_medicare_claims");
+            query.addColumn("msus_graduation_year");
+            query.addColumn("msus_annual_cabg_cases");
+            query.addColumn("msus_ttfm_vendor");
+            query.addColumn("msus_medistim_customer");
+            query.addColumn("msus_ttfm_procedures");
+            query.addColumn("msus_percentagecaseswttfm");
+            query.addColumn("msus_percentageonpump");
+            query.addColumn("msus_percentagescanaorta");
+            query.addColumn("msus_percentageusingmedistimimaging");
+            query.addColumn("msus_vessels_imaged");
 
             // Create a filter
             Filter filter = new Filter(AND);

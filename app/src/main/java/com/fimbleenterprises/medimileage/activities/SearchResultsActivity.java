@@ -27,6 +27,7 @@ import com.fimbleenterprises.medimileage.adapters.BasicObjectRecyclerAdapter;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 import com.fimbleenterprises.medimileage.dialogs.ContactActions;
 import com.fimbleenterprises.medimileage.Crm;
+import com.fimbleenterprises.medimileage.objects_and_containers.Contacts;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.AccountProducts;
 import com.fimbleenterprises.medimileage.DelayedWorker;
@@ -37,7 +38,9 @@ import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.MyViewPager;
 import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
+import com.fimbleenterprises.medimileage.objects_and_containers.Opportunities;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
+import com.fimbleenterprises.medimileage.objects_and_containers.Tickets;
 import com.fimbleenterprises.medimileage.sharepoint.SharePoint;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
@@ -632,7 +635,7 @@ public class SearchResultsActivity extends AppCompatActivity {
         public RecyclerView recyclerView;
         RefreshLayout refreshLayout;
         BroadcastReceiver searchReceiver;
-        CrmEntities.Tickets tickets;
+        Tickets tickets;
         BasicObjectRecyclerAdapter adapter;
 
         @Nullable
@@ -712,7 +715,7 @@ public class SearchResultsActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                         String response = new String(responseBody);
-                        tickets = new CrmEntities.Tickets(response);
+                        tickets = new Tickets(response);
                         if (getActivity() != null && !getActivity().isFinishing()) {
                             populateList();
                         }
@@ -733,7 +736,7 @@ public class SearchResultsActivity extends AppCompatActivity {
 
         protected void populateList() {
             final ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
-            for (CrmEntities.Tickets.Ticket ticket : tickets.list) {
+            for (Tickets.Ticket ticket : tickets.list) {
                 BasicObjects.BasicObject object = new BasicObjects.BasicObject(ticket.ticketnumber, ticket.customerFormatted, ticket);
                 object.middleText = ticket.statusFormatted;
                 objects.add(object);
@@ -749,8 +752,8 @@ public class SearchResultsActivity extends AppCompatActivity {
             adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
                 @Override
                 public void onItemClick(View view, int position) {
-                    CrmEntities.Tickets.Ticket selectedTicket =
-                            (CrmEntities.Tickets.Ticket) objects.get(position).object;
+                    Tickets.Ticket selectedTicket =
+                            (Tickets.Ticket) objects.get(position).object;
                     Intent intent = new Intent(getContext(), BasicEntityActivity.class);
                     intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Ticket Details");
                     intent.putExtra(BasicEntityActivity.ENTITYID, selectedTicket.entityid);
@@ -779,7 +782,7 @@ public class SearchResultsActivity extends AppCompatActivity {
         public RecyclerView recyclerView;
         RefreshLayout refreshLayout;
         BroadcastReceiver searchReceiver;
-        CrmEntities.Opportunities opportunities;
+        Opportunities opportunities;
         BasicObjectRecyclerAdapter adapter;
 
         @Nullable
@@ -856,7 +859,7 @@ public class SearchResultsActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                         String response = new String(responseBody);
-                        opportunities = new CrmEntities.Opportunities(response);
+                        opportunities = new Opportunities(response);
                         if (getActivity() != null && !getActivity().isFinishing()) {
                             populateList();
                         }
@@ -877,7 +880,7 @@ public class SearchResultsActivity extends AppCompatActivity {
 
         protected void populateList() {
             final ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
-            for (CrmEntities.Opportunities.Opportunity opportunity : opportunities.list) {
+            for (Opportunities.Opportunity opportunity : opportunities.list) {
                 BasicObjects.BasicObject object = new BasicObjects.BasicObject(opportunity.name, opportunity.accountname, opportunity);
                 object.middleText = opportunity.statuscodeFormatted;
                 objects.add(object);
@@ -893,8 +896,8 @@ public class SearchResultsActivity extends AppCompatActivity {
             adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
                 @Override
                 public void onItemClick(View view, int position) {
-                    CrmEntities.Opportunities.Opportunity selectedOpportunity =
-                            (CrmEntities.Opportunities.Opportunity) objects.get(position).object;
+                    Opportunities.Opportunity selectedOpportunity =
+                            (Opportunities.Opportunity) objects.get(position).object;
                     Intent intent = new Intent(getContext(), BasicEntityActivity.class);
                     intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Opportunity Details");
                     intent.putExtra(BasicEntityActivity.ENTITYID, selectedOpportunity.entityid);
@@ -925,7 +928,7 @@ public class SearchResultsActivity extends AppCompatActivity {
         public RecyclerView recyclerView;
         RefreshLayout refreshLayout;
         BroadcastReceiver searchReceiver;
-        CrmEntities.Contacts contacts;
+        Contacts contacts;
         BasicObjectRecyclerAdapter adapter;
         String attemptedPhonenumber;
 
@@ -1025,7 +1028,7 @@ public class SearchResultsActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                         String response = new String(responseBody);
-                        contacts = new CrmEntities.Contacts(response);
+                        contacts = new Contacts(response);
                         if (getActivity() != null && !getActivity().isFinishing()) {
                             populateList();
                         }
@@ -1045,7 +1048,7 @@ public class SearchResultsActivity extends AppCompatActivity {
         }
 
         protected void populateList() {
-            for (CrmEntities.Contacts.Contact contact : contacts.list) {
+            for (Contacts.Contact contact : contacts.list) {
                 BasicObjects.BasicObject object = new BasicObjects.BasicObject(contact.getFullname(), contact.accountFormatted, contact);
                 object.middleText = contact.jobtitle;
                 objects.add(object);
@@ -1061,8 +1064,8 @@ public class SearchResultsActivity extends AppCompatActivity {
             adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
                 @Override
                 public void onItemClick(View view, int position) {
-                    CrmEntities.Contacts.Contact selectedContact =
-                            (CrmEntities.Contacts.Contact) objects.get(position).object;
+                    Contacts.Contact selectedContact =
+                            (Contacts.Contact) objects.get(position).object;
 
                     ContactActions contactActions = new ContactActions(getActivity(), selectedContact);
                     contactActions.showContactOptions();
@@ -1083,7 +1086,7 @@ public class SearchResultsActivity extends AppCompatActivity {
         public RecyclerView recyclerView;
         RefreshLayout refreshLayout;
         BroadcastReceiver searchReceiver;
-        CrmEntities.Contacts contacts;
+        Contacts contacts;
         BasicObjectRecyclerAdapter adapter;
         String attemptedPhonenumber;
 
@@ -1191,7 +1194,7 @@ public class SearchResultsActivity extends AppCompatActivity {
 
         protected void populateList() {
             final ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
-            for (CrmEntities.Contacts.Contact contact : contacts.list) {
+            for (Contacts.Contact contact : contacts.list) {
                 BasicObjects.BasicObject object = new BasicObjects.BasicObject(contact.getFullname(), contact.accountFormatted, contact);
                 object.middleText = contact.jobtitle;
                 objects.add(object);
@@ -1207,8 +1210,8 @@ public class SearchResultsActivity extends AppCompatActivity {
             adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
                 @Override
                 public void onItemClick(View view, int position) {
-                    CrmEntities.Contacts.Contact selectedContact =
-                            (CrmEntities.Contacts.Contact) objects.get(position).object;
+                    Contacts.Contact selectedContact =
+                            (Contacts.Contact) objects.get(position).object;
 
                     ContactActions contactActions = new ContactActions(getActivity(), selectedContact);
                     contactActions.showContactOptions();

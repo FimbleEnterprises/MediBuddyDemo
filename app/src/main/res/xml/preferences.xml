@@ -210,6 +210,14 @@
             app:defaultValue="false"
             app:title="@string/settings_show_usage_menu_item" />
 
+        <SwitchPreference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
+            app:key="@string/VOLUME_BUTTON_SCROLLS"
+            android:fontFamily="casual"
+            app:defaultValue="true"
+            app:title="@string/settings_volume_button_scrolls" />
+
         <!-- -= NOT USED ANYMORE - USING LAST_ACCESSED_SEARCH_TAB NOW =- -->
         <ListPreference
             android:foreground="#000000"

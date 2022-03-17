@@ -26,7 +26,8 @@ import com.fimbleenterprises.medimileage.adapters.BasicObjectRecyclerAdapter;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
-import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.Opportunities.Opportunity;
+import com.fimbleenterprises.medimileage.objects_and_containers.Opportunities;
+import com.fimbleenterprises.medimileage.objects_and_containers.Opportunities.Opportunity;
 import com.fimbleenterprises.medimileage.CustomTypefaceSpan;
 import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
 import com.fimbleenterprises.medimileage.Helpers;
@@ -82,7 +83,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
     boolean isLaunchedFromExternalApp = false;
     boolean wasLauchedFromMainNavDrawer = false;
     Territory currentTerritory;
-    CrmEntities.Opportunities opportunities;
+    Opportunities opportunities;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -373,7 +374,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         objects.clear();
 
         MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
-        CrmEntities.Opportunities savedOpportunities = opportunities;
+        Opportunities savedOpportunities = opportunities;
 
         for (Opportunity opp : savedOpportunities.list) {
             BasicObjects.BasicObject obj = new BasicObjects.BasicObject(opp.name, opp.getPrettyEstimatedValue(), opp);
@@ -392,16 +393,16 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
         if (useCached) {
             if (!options.hasSavedOpportunities()) {
                 Toast.makeText(context, "Retrieving your opportunities - try again in a minute or so.", Toast.LENGTH_LONG).show();
-                CrmEntities.Opportunities.retrieveAndSaveOpportunities();
+                Opportunities.retrieveAndSaveOpportunities();
                 finish();
                 return;
             }
         } else {
             final MyProgressDialog myProgressDialog = new MyProgressDialog(context, getString(R.string.retrieving_opportunities));
             myProgressDialog.show();
-            CrmEntities.Opportunities.retrieveOpportunities(currentTerritory.territoryid, new MyInterfaces.GetOpportunitiesListener() {
+            Opportunities.retrieveOpportunities(currentTerritory.territoryid, new MyInterfaces.GetOpportunitiesListener() {
                 @Override
-                public void onSuccess(CrmEntities.Opportunities crmOpportunities) {
+                public void onSuccess(Opportunities crmOpportunities) {
                     opportunities = crmOpportunities;
                     populateOpportunities();
                     myProgressDialog.dismiss();

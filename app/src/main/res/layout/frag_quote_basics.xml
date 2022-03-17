@@ -41,7 +41,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1">
 
-                <com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyHyperlinkTextview
+                <com.fimbleenterprises.medimileage.activities.ui.views.MyHyperlinkTextview
                     android:id="@+id/txtAccount"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -111,7 +111,7 @@
                 android:layout_weight=".75">
 
 
-                <com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyHyperlinkTextview
+                <com.fimbleenterprises.medimileage.activities.ui.views.MyHyperlinkTextview
                     android:id="@+id/txtChangeAddress"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

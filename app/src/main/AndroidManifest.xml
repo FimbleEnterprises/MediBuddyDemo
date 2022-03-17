@@ -27,6 +27,11 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
+            android:name=".activities.AggregateSalesActivity"
+            android:exported="false"
+            android:label="@string/title_activity_aggregate_sales"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
             android:name=".activities.ViewModelPlaygroundActivity"
             android:exported="false" />
 
@@ -230,7 +235,7 @@
                 android:resource="@xml/searchable" />
         </activity>
         <activity
-            android:name=".activities.ui.settings.SettingsActivity"
+            android:name=".activities.ui.drawer.settings.SettingsActivity"
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/title_activity_settings"
             android:screenOrientation="portrait"

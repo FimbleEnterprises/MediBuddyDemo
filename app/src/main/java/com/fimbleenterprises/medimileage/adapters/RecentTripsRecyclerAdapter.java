@@ -2,6 +2,7 @@ package com.fimbleenterprises.medimileage.adapters;
 
 import android.content.Context;
 import android.graphics.Typeface;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,8 @@ import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 
 import java.util.ArrayList;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 
@@ -28,6 +31,7 @@ public class RecentTripsRecyclerAdapter extends RecyclerView.Adapter<RecentTrips
     private ItemClickListener mEditButtonClickListener;
     MyPreferencesHelper options;
     Context context;
+    public int lastKnownPosition = 0;
     public int selectedIndex = -1;
     Typeface face;
 
@@ -58,6 +62,32 @@ public class RecentTripsRecyclerAdapter extends RecyclerView.Adapter<RecentTrips
 
     public void setOnEditClickListener(ItemClickListener listener) {
         this.mEditButtonClickListener = listener;
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
+        if(manager instanceof LinearLayoutManager && getItemCount() > 0) {
+            LinearLayoutManager llm = (LinearLayoutManager) manager;
+            recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                    super.onScrollStateChanged(recyclerView, newState);
+                }
+
+                @Override
+                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                    super.onScrolled(recyclerView, dx, dy);
+                    int visiblePosition = llm.findFirstCompletelyVisibleItemPosition();
+                    Log.i(TAG, "onScrolled | Top most visible item index: " + visiblePosition);
+                    if(visiblePosition > -1) {
+                        View v = llm.findViewByPosition(visiblePosition);
+                        lastKnownPosition = visiblePosition;
+                    }
+                }
+            });
+        }
     }
 
     // inflates the row layout from xml when needed

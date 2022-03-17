@@ -20,6 +20,7 @@ import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.activities.OpportunityActivity;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
+import com.fimbleenterprises.medimileage.objects_and_containers.Opportunities;
 
 import java.io.File;
 
@@ -52,7 +53,7 @@ public class MyAttachmentUploadService extends Service {
     public static final String UPLOAD_BROADCAST = "UPLOAD_BROADCAST";
     public static String uploadedFilePath;
     public static int START_ID = 21;
-    CrmEntities.Opportunities.Opportunity selectedOpportunity;
+    Opportunities.Opportunity selectedOpportunity;
 
     Notification notification;
     public static boolean isRunning = false;

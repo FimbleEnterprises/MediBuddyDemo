@@ -3,6 +3,7 @@ package com.fimbleenterprises.medimileage;
 import com.fimbleenterprises.medimileage.objects_and_containers.AccountAddresses;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
+import com.fimbleenterprises.medimileage.objects_and_containers.Opportunities;
 import com.fimbleenterprises.medimileage.objects_and_containers.UserAddresses;
 
 import org.jetbrains.annotations.NotNull;
@@ -123,7 +124,7 @@ public class MyInterfaces {
     }
 
     public interface GetOpportunitiesListener {
-        void onSuccess(CrmEntities.Opportunities opportunities);
+        void onSuccess(Opportunities opportunities);
         void onFailure(String error);
     }
 
@@ -133,7 +134,7 @@ public class MyInterfaces {
     }
 
     public interface leadQualifyListener {
-        void onSuccess(CrmEntities.Opportunities.Opportunity newOpportunity);
+        void onSuccess(Opportunities.Opportunity newOpportunity);
         void onFailure(String errorMsg);
     }
 }

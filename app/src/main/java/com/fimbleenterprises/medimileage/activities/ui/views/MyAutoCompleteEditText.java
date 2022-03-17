@@ -1,9 +1,7 @@
-package com.fimbleenterprises.medimileage.activities.ui.CustomViews;
+package com.fimbleenterprises.medimileage.activities.ui.views;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.util.AttributeSet;
-import android.widget.AutoCompleteTextView;
 
 /**
  * This field was made for the purposes of displaying autocomplete entries on zero length.  Meaning,

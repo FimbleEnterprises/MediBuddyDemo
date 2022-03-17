@@ -34,7 +34,7 @@ import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
-import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyHyperlinkTextview;
+import com.fimbleenterprises.medimileage.activities.ui.views.MyHyperlinkTextview;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import java.util.ArrayList;

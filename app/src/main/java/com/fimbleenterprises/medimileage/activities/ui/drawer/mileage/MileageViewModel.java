@@ -1,9 +1,4 @@
-package com.fimbleenterprises.medimileage.activities.ui.mileage;
-
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.util.Log;
+package com.fimbleenterprises.medimileage.activities.ui.drawer.mileage;
 
 import com.fimbleenterprises.medimileage.objects_and_containers.LocationContainer;
 

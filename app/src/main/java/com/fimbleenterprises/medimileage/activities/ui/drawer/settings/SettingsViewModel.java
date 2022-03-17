@@ -1,4 +1,4 @@
-package com.fimbleenterprises.medimileage.activities.ui.settings;
+package com.fimbleenterprises.medimileage.activities.ui.drawer.settings;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;

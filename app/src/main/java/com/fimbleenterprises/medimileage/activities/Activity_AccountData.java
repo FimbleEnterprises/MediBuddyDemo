@@ -28,6 +28,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.adapters.AccountInventoryRecyclerAdapter;
 import com.fimbleenterprises.medimileage.dialogs.MonthYearPickerDialog;
@@ -36,21 +37,23 @@ import com.fimbleenterprises.medimileage.adapters.BasicObjectRecyclerAdapter;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 import com.fimbleenterprises.medimileage.dialogs.ContactActions;
 import com.fimbleenterprises.medimileage.Crm;
+import com.fimbleenterprises.medimileage.objects_and_containers.Contacts;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.ExcelSpreadsheet;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics;
 import com.fimbleenterprises.medimileage.MyPreferencesHelper;
-import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyUnderlineEditText;
+import com.fimbleenterprises.medimileage.activities.ui.views.MyUnderlineEditText;
 import com.fimbleenterprises.medimileage.MyViewPager;
 import com.fimbleenterprises.medimileage.adapters.OrderLineRecyclerAdapter;
-import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
+import com.fimbleenterprises.medimileage.objects_and_containers.Opportunities;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
 import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseAccount;
 import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseTerritory;
+import com.fimbleenterprises.medimileage.objects_and_containers.Tickets;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
@@ -118,9 +121,10 @@ public class Activity_AccountData extends AppCompatActivity {
 
     public static Activity_CompanyWideData.ServiceAgreementFilter serviceAgreementFilter
             = Activity_CompanyWideData.ServiceAgreementFilter.CURRENT;
-    public static Opportunities.DealStatus dealStatus = Opportunities.DealStatus.ANY;
-    public static int case_filter = Tickets.ANY;
-    public static int case_state = Tickets.BOTH;
+    public static boolean show_surgeons_only = false;
+    public static CrmQueries.Opportunities.DealStatus dealStatus = CrmQueries.Opportunities.DealStatus.ANY;
+    public static int case_filter = CrmQueries.Tickets.ANY;
+    public static int case_state = CrmQueries.Tickets.BOTH;
     public static CrmQueries.CustomerInventory.ProductStatus productStatus = CustomerInventory.ProductStatus.IN_STOCK;
     public static CrmQueries.CustomerInventory.ProductType productFamily = CustomerInventory.ProductType.PROBES;
 
@@ -383,8 +387,9 @@ public class Activity_AccountData extends AppCompatActivity {
 
         // Show/Hide menu options
         menu.findItem(R.id.action_case_create_new).setVisible(false);
-        // menu.findItem(R.id.action_case_create_new).setVisible(mViewPager.currentPosition == SectionsPagerAdapter.TICKETS_PAGE);
-        menu.findItem(R.id.action_back).setVisible(mViewPager.currentPosition == SectionsPagerAdapter.CONTACTS_PAGE);
+
+        menu.findItem(R.id.action_back).setVisible(false);
+        menu.findItem(R.id.action_surgeons_only).setVisible(mViewPager.currentPosition == SectionsPagerAdapter.CONTACTS_PAGE);
         menu.findItem(R.id.action_last_three_months).setVisible(mViewPager.currentPosition == SectionsPagerAdapter.SALES_LINE_PAGE);
         menu.findItem(R.id.action_this_month).setVisible(mViewPager.currentPosition == SectionsPagerAdapter.SALES_LINE_PAGE);
         menu.findItem(R.id.action_last_month).setVisible(mViewPager.currentPosition == SectionsPagerAdapter.SALES_LINE_PAGE);
@@ -424,20 +429,23 @@ public class Activity_AccountData extends AppCompatActivity {
         menu.findItem(R.id.action_opp_discovery).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.DISCOVERY);
         menu.findItem(R.id.action_opp_won).setChecked(dealStatus == CrmQueries.Opportunities.DealStatus.WON);
 
+        // Check/Uncheck show surgeons only
+        menu.findItem(R.id.action_opp_any).setChecked(show_surgeons_only);
+
         // Set case state values
-        menu.findItem(R.id.action_case_state_open).setChecked(case_state == Tickets.OPEN);
-        menu.findItem(R.id.action_case_state_closed).setChecked(case_state == Tickets.CLOSED);
+        menu.findItem(R.id.action_case_state_open).setChecked(case_state == CrmQueries.Tickets.OPEN);
+        menu.findItem(R.id.action_case_state_closed).setChecked(case_state == CrmQueries.Tickets.CLOSED);
 
         // Set case status values
-        menu.findItem(R.id.action_case_status_any).setChecked(case_filter == Tickets.ANY);
-        menu.findItem(R.id.action_case_status_inprogress).setChecked(case_filter == Tickets.IN_PROGRESS);
-        menu.findItem(R.id.action_case_status_on_hold).setChecked(case_filter == Tickets.ON_HOLD);
-        menu.findItem(R.id.action_case_status_to_be_inspected).setChecked(case_filter == Tickets.TO_BE_INSPECTED);
-        menu.findItem(R.id.action_case_status_waiting_for_product).setChecked(case_filter == Tickets.WAITING_FOR_PRODUCT);
-        menu.findItem(R.id.action_case_status_waiting_on_customer).setChecked(case_filter == Tickets.WAITING_ON_CUSTOMER);
-        menu.findItem(R.id.action_change_case_status_waiting_on_rep).setChecked(case_filter == Tickets.WAITING_ON_REP);
-        menu.findItem(R.id.action_case_status_to_be_billed).setChecked(case_filter == Tickets.TO_BE_BILLED);
-        menu.findItem(R.id.action_case_status_problem_solved).setChecked(case_filter == Tickets.PROBLEM_SOLVED);
+        menu.findItem(R.id.action_case_status_any).setChecked(case_filter == CrmQueries.Tickets.ANY);
+        menu.findItem(R.id.action_case_status_inprogress).setChecked(case_filter == CrmQueries.Tickets.IN_PROGRESS);
+        menu.findItem(R.id.action_case_status_on_hold).setChecked(case_filter == CrmQueries.Tickets.ON_HOLD);
+        menu.findItem(R.id.action_case_status_to_be_inspected).setChecked(case_filter == CrmQueries.Tickets.TO_BE_INSPECTED);
+        menu.findItem(R.id.action_case_status_waiting_for_product).setChecked(case_filter == CrmQueries.Tickets.WAITING_FOR_PRODUCT);
+        menu.findItem(R.id.action_case_status_waiting_on_customer).setChecked(case_filter == CrmQueries.Tickets.WAITING_ON_CUSTOMER);
+        menu.findItem(R.id.action_change_case_status_waiting_on_rep).setChecked(case_filter == CrmQueries.Tickets.WAITING_ON_REP);
+        menu.findItem(R.id.action_case_status_to_be_billed).setChecked(case_filter == CrmQueries.Tickets.TO_BE_BILLED);
+        menu.findItem(R.id.action_case_status_problem_solved).setChecked(case_filter == CrmQueries.Tickets.PROBLEM_SOLVED);
         
         return super.onPreparePanel(featureId, view, menu);
 
@@ -455,6 +463,11 @@ public class Activity_AccountData extends AppCompatActivity {
             case R.id.action_back:
                 onBackPressed();
                 break;
+
+            case R.id.action_surgeons_only:
+                show_surgeons_only = !item.isChecked();
+                item.setChecked(show_surgeons_only);
+                sendMenuItemSelectedBroadcast();
 
             case R.id.action_last_three_months:
                 // If curMonth and curYear == 0 getSalesLines() will query the last three months.
@@ -537,67 +550,67 @@ public class Activity_AccountData extends AppCompatActivity {
                 break;
 
             case R.id.action_opp_any:
-                dealStatus = Opportunities.DealStatus.ANY;
+                dealStatus = CrmQueries.Opportunities.DealStatus.ANY;
                 sendMenuItemSelectedBroadcast();
                 break;
             case R.id.action_opp_canceled:
-                dealStatus = Opportunities.DealStatus.CANCELED;
+                dealStatus = CrmQueries.Opportunities.DealStatus.CANCELED;
                 sendMenuItemSelectedBroadcast();
                 break;
             case R.id.action_opp_closed:
-                dealStatus = Opportunities.DealStatus.CLOSED;
+                dealStatus = CrmQueries.Opportunities.DealStatus.CLOSED;
                 sendMenuItemSelectedBroadcast();
                 break;
             case R.id.action_opp_dead:
-                dealStatus = Opportunities.DealStatus.DEAD;
+                dealStatus = CrmQueries.Opportunities.DealStatus.DEAD;
                 sendMenuItemSelectedBroadcast();
                 break;
             case R.id.action_opp_discovery:
-                dealStatus = Opportunities.DealStatus.DISCOVERY;
+                dealStatus = CrmQueries.Opportunities.DealStatus.DISCOVERY;
                 sendMenuItemSelectedBroadcast();
                 break;
             case R.id.action_opp_evaluating:
-                dealStatus = Opportunities.DealStatus.EVALUATING;
+                dealStatus = CrmQueries.Opportunities.DealStatus.EVALUATING;
                 sendMenuItemSelectedBroadcast();
                 break;
             case R.id.action_opp_pending:
-                dealStatus = Opportunities.DealStatus.PENDING;
+                dealStatus = CrmQueries.Opportunities.DealStatus.PENDING;
                 sendMenuItemSelectedBroadcast();
                 break;
             case R.id.action_opp_qualifying:
-                dealStatus = Opportunities.DealStatus.QUALIFYING;
+                dealStatus = CrmQueries.Opportunities.DealStatus.QUALIFYING;
                 sendMenuItemSelectedBroadcast();
                 break;
             case R.id.action_opp_stalled:
-                dealStatus = Opportunities.DealStatus.STALLED;
+                dealStatus = CrmQueries.Opportunities.DealStatus.STALLED;
                 sendMenuItemSelectedBroadcast();
                 break;
             case R.id.action_opp_won:
-                dealStatus = Opportunities.DealStatus.WON;
+                dealStatus = CrmQueries.Opportunities.DealStatus.WON;
                 sendMenuItemSelectedBroadcast();
                 break;
 
             case R.id.action_case_state_open:
-                if (case_state == Tickets.OPEN) {
-                    case_state = Tickets.BOTH;
+                if (case_state == CrmQueries.Tickets.OPEN) {
+                    case_state = CrmQueries.Tickets.BOTH;
                 } else {
-                    case_state = Tickets.OPEN;
+                    case_state = CrmQueries.Tickets.OPEN;
                 }
                 sendMenuItemSelectedBroadcast();
                 break;
 
             case R.id.action_case_state_closed:
-                if (case_state == Tickets.CLOSED) {
-                    case_state = Tickets.BOTH;
+                if (case_state == CrmQueries.Tickets.CLOSED) {
+                    case_state = CrmQueries.Tickets.BOTH;
                 } else {
-                    case_state = Tickets.CLOSED;
+                    case_state = CrmQueries.Tickets.CLOSED;
                 }
                 sendMenuItemSelectedBroadcast();
                 break;
 
                 // Cases
             case R.id.action_case_create_new:
-                CrmEntities.Tickets.Ticket ticket = new CrmEntities.Tickets.Ticket() ;
+                Tickets.Ticket ticket = new Tickets.Ticket() ;
 
 
                 Intent intent = new Intent(context, BasicEntityActivity.class);
@@ -610,39 +623,39 @@ public class Activity_AccountData extends AppCompatActivity {
                 startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
                 break;
             case R.id.action_case_status_inprogress:
-                case_filter = Tickets.IN_PROGRESS;
+                case_filter = CrmQueries.Tickets.IN_PROGRESS;
                 sendMenuItemSelectedBroadcast();
                 break;
             case R.id.action_case_status_any:
-                case_filter = Tickets.ANY;
+                case_filter = CrmQueries.Tickets.ANY;
                 sendMenuItemSelectedBroadcast();
                 break;
             case R.id.action_case_status_on_hold:
-                case_filter = Tickets.ON_HOLD;
+                case_filter = CrmQueries.Tickets.ON_HOLD;
                 sendMenuItemSelectedBroadcast();
                 break;
             case R.id.action_case_status_to_be_inspected:
-                case_filter = Tickets.TO_BE_INSPECTED;
+                case_filter = CrmQueries.Tickets.TO_BE_INSPECTED;
                 sendMenuItemSelectedBroadcast();
                 break;
             case R.id.action_case_status_waiting_for_product:
-                case_filter = Tickets.WAITING_FOR_PRODUCT;
+                case_filter = CrmQueries.Tickets.WAITING_FOR_PRODUCT;
                 sendMenuItemSelectedBroadcast();
                 break;
             case R.id.action_case_status_waiting_on_customer:
-                case_filter = Tickets.WAITING_ON_CUSTOMER;
+                case_filter = CrmQueries.Tickets.WAITING_ON_CUSTOMER;
                 sendMenuItemSelectedBroadcast();
                 break;
             case R.id.action_change_case_status_waiting_on_rep:
-                case_filter = Tickets.WAITING_ON_REP;
+                case_filter = CrmQueries.Tickets.WAITING_ON_REP;
                 sendMenuItemSelectedBroadcast();
                 break;
             case R.id.action_case_status_to_be_billed:
-                case_filter = Tickets.TO_BE_BILLED;
+                case_filter = CrmQueries.Tickets.TO_BE_BILLED;
                 sendMenuItemSelectedBroadcast();
                 break;
             case R.id.action_case_status_problem_solved:
-                case_filter = Tickets.PROBLEM_SOLVED;
+                case_filter = CrmQueries.Tickets.PROBLEM_SOLVED;
                 sendMenuItemSelectedBroadcast();
                 break;
         }
@@ -777,7 +790,7 @@ public class Activity_AccountData extends AppCompatActivity {
         Button btnChooseAccount;
         public static String pageTitle = "Contacts";
         TextView txtNoContacts;
-        BroadcastReceiver parentActivityReceiver;
+        BroadcastReceiver menuReceiver;
         CrmEntities.Accounts.Account lastAccount;
         String attemptedPhonenumber;
         FloatingActionButton fab;
@@ -789,7 +802,14 @@ public class Activity_AccountData extends AppCompatActivity {
                                  @Nullable Bundle savedInstanceState) {
             root = inflater.inflate(R.layout.frag_contacts, container, false);
             fab = root.findViewById(R.id.floatingActionButton);
-            fab.setVisibility(View.GONE);
+            fab.setVisibility(View.VISIBLE);
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(FAB_CLICKED);
+                    getActivity().sendBroadcast(intent);
+                }
+            });
 
             txtNoContacts = root.findViewById(R.id.txtNoContacts);
             refreshLayout = root.findViewById(R.id.refreshLayout);
@@ -829,40 +849,12 @@ public class Activity_AccountData extends AppCompatActivity {
             super.onCreateView(inflater, container, savedInstanceState);
 
             // Broadcast received regarding an options menu selection
-            parentActivityReceiver = new BroadcastReceiver() {
+            menuReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    Log.i(TAG, "onReceive Local receiver received broadcast!");
-                    // Validate intent shit
+                    Log.i(TAG, "onReceive menuReceiver received broadcast in the contacts page!");
                     if (intent != null && intent.getAction().equals(MENU_ACTION)) {
-
-                        if (intent.getIntExtra(EXPORT_PAGE_INDEX, -1) == SectionsPagerAdapter.CONTACTS_PAGE) {
-                            // Check if this is regarding an inventory export to Excel
-                            if (intent.getStringExtra(EXPORT_INVENTORY) != null) {
-                                // Ensure there is an account stipulated and inventory to export
-                                if (curAccount != null && objects != null &&
-                                        objects.size() > 0) {
-                                } else {
-                                    Toast.makeText(context, "No sales to export!", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        }
-
-                        // If the current account is null then clear the list.  This is to enable
-                        // on back pressed behavior that doesn't automatically finish the activity.
-                        if (curAccount == null) {
-                            objects.clear();
-                            populateList();
-                        }
-
-                        btnChooseAccount.setVisibility(curAccount == null ? View.VISIBLE : View.GONE);
-
-                        getAccountContacts(true);
-
-                        mViewPager.getAdapter().notifyDataSetChanged();
-                    } else if (intent != null && intent.getAction().equals(BasicEntityActivity.ENTITY_UPDATED)) {
-                        Log.i(TAG, "onReceive Broadcast received from parent activity suggesting a record was updated!");
-                        getAccountContacts(true);
+                        populateList();
                     }
                 }
             };
@@ -881,7 +873,7 @@ public class Activity_AccountData extends AppCompatActivity {
         public void onDestroyView() {
             super.onDestroyView();
 
-            getActivity().unregisterReceiver(parentActivityReceiver);
+            getActivity().unregisterReceiver(menuReceiver);
             Log.i(TAG, "Unregistered the account contacts receiver");
         }
 
@@ -889,7 +881,7 @@ public class Activity_AccountData extends AppCompatActivity {
         public void onResume() {
 
             // Register the options menu selected receiver
-            getActivity().registerReceiver(parentActivityReceiver, intentFilterParentActivity);
+            getActivity().registerReceiver(menuReceiver, intentFilterParentActivity);
 
             // Hide/show the choose account button
             if (curAccount == null) {
@@ -953,10 +945,15 @@ public class Activity_AccountData extends AppCompatActivity {
                     try {
                         String response = new String(responseBody);
                         Log.i(TAG, "onSuccess " + response);
-                        CrmEntities.Contacts contacts = new CrmEntities.Contacts(response);
+                        Contacts contacts = new Contacts(response);
                         objects.clear();
-                        for (CrmEntities.Contacts.Contact contact : contacts.list) {
-                            BasicObjects.BasicObject object = new BasicObjects.BasicObject(contact.getFullname(), contact.jobtitle, contact);
+                        for (Contacts.Contact contact : contacts.list) {
+                            BasicObjects.BasicObject object = new BasicObjects.BasicObject(contact
+                                    .getFullname(), contact.jobtitle, contact);
+                            if (contact.isSurgeon()) {
+                                object.shouldHighlight = true;
+                                object.topRightText = getString(R.string.surgeon_top_right_label);
+                            }
                             objects.add(object);
                         }
                         populateList();
@@ -977,9 +974,20 @@ public class Activity_AccountData extends AppCompatActivity {
 
         protected void populateList() {
 
-            for (int i = 0; i < (objects.size()); i++) {
-                adapter = new BasicObjectRecyclerAdapter(context, objects);
+            // Filter out non-surgeons if the global flag is true
+            ArrayList<BasicObjects.BasicObject> filteredObjects = new ArrayList<>();
+            for (BasicObjects.BasicObject object : objects) {
+                Contacts.Contact contact = (Contacts.Contact) object.object;
+                if (show_surgeons_only) {
+                    if (contact.isSurgeon()) {
+                        filteredObjects.add(object);
+                    }
+                } else {
+                    filteredObjects.add(object);
+                }
             }
+
+            adapter = new BasicObjectRecyclerAdapter(context, filteredObjects);
 
             // Check if adapter is null and leave if so.  If user hasn't selected an account this will be the case
             if (adapter == null) {
@@ -995,8 +1003,8 @@ public class Activity_AccountData extends AppCompatActivity {
                     @Override
                     public void onItemClick(View view, int position) {
                         try {
-                            BasicObjects.BasicObject clickedObject = objects.get(position);
-                            CrmEntities.Contacts.Contact clickedContact = (CrmEntities.Contacts.Contact)
+                            BasicObjects.BasicObject clickedObject = filteredObjects.get(position);
+                            Contacts.Contact clickedContact = (Contacts.Contact)
                                     clickedObject.object;
                             Log.i(TAG, "onItemClick Clicked item at position " + position
                                     + "(" + clickedObject.topText + ")");
@@ -1250,7 +1258,7 @@ public class Activity_AccountData extends AppCompatActivity {
                         curProduct.orderDate.getYear() == DateTime.now().getYear()) {
                     if (addedTodayHeader == false) {
                         CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
-                        headerObj.isSeparator = true;
+                        headerObj.isHeader = true;
                         headerObj.setTitle("Today");
                         orderList.add(headerObj);
                         addedTodayHeader = true;
@@ -1264,7 +1272,7 @@ public class Activity_AccountData extends AppCompatActivity {
                         curProduct.orderDate.getYear() == DateTime.now().minusDays(1).getYear()) {
                     if (addedYesterdayHeader == false) {
                         CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
-                        headerObj.isSeparator = true;
+                        headerObj.isHeader = true;
                         headerObj.setTitle("Yesterday");
                         orderList.add(headerObj);
                         addedYesterdayHeader = true;
@@ -1278,7 +1286,7 @@ public class Activity_AccountData extends AppCompatActivity {
                         curProduct.orderDate.getYear() == DateTime.now().getYear()) {
                     if (addedThisWeekHeader == false) {
                         CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
-                        headerObj.isSeparator = true;
+                        headerObj.isHeader = true;
                         headerObj.setTitle("This week");
                         orderList.add(headerObj);
                         addedThisWeekHeader = true;
@@ -1291,7 +1299,7 @@ public class Activity_AccountData extends AppCompatActivity {
                         curProduct.orderDate.getYear() == DateTime.now().getYear()) {
                     if (addedThisMonthHeader == false) {
                         CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
-                        headerObj.isSeparator = true;
+                        headerObj.isHeader = true;
                         headerObj.setTitle("This month");
                         orderList.add(headerObj);
                         addedThisMonthHeader = true;
@@ -1303,7 +1311,7 @@ public class Activity_AccountData extends AppCompatActivity {
                             curProduct.orderDate.getYear() == DateTime.now().minusMonths(1).getYear()) {
                     if (addedLastMonthHeader == false) {
                         CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
-                        headerObj.isSeparator = true;
+                        headerObj.isHeader = true;
                         headerObj.setTitle("Last month");
                         orderList.add(headerObj);
                         addedLastMonthHeader = true;
@@ -1313,7 +1321,7 @@ public class Activity_AccountData extends AppCompatActivity {
                 } else {
                     if (addedOlderHeader == false) {
                         CrmEntities.OrderProducts.OrderProduct headerObj = new CrmEntities.OrderProducts.OrderProduct();
-                        headerObj.isSeparator = true;
+                        headerObj.isHeader = true;
                         headerObj.setTitle("Older than 2 months");
                         orderList.add(headerObj);
                         addedOlderHeader = true;
@@ -1334,32 +1342,32 @@ public class Activity_AccountData extends AppCompatActivity {
             // Append the subtotals to the headers (note that the partNumber property is used for the header's text - confusing I know)
             for (CrmEntities.OrderProducts.OrderProduct product : orderList) {
                 if (todaySubtotal > 0) {
-                    if (product.isSeparator && product.partNumber.equals("Today")) {
+                    if (product.isHeader && product.partNumber.equals("Today")) {
                         product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(todaySubtotal) + ")";
                     }
                 }
                 if (yesterdaySubtotal > 0) {
-                    if (product.isSeparator && product.partNumber.equals("Yesterday")) {
+                    if (product.isHeader && product.partNumber.equals("Yesterday")) {
                         product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(yesterdaySubtotal) + ")";
                     }
                 }
                 if (thisWeekSubtotal > 0) {
-                    if (product.isSeparator && product.partNumber.equals("This week")) {
+                    if (product.isHeader && product.partNumber.equals("This week")) {
                         product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(thisWeekSubtotal) + ")";
                     }
                 }
                 if (thisMonthSubtotal > 0) {
-                    if (product.isSeparator && product.partNumber.equals("This month")) {
+                    if (product.isHeader && product.partNumber.equals("This month")) {
                         product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(thisMonthSubtotal) + ")";
                     }
                 }
                 if (lastMonthSubtotal > 0) {
-                    if (product.isSeparator && product.partNumber.equals("Last month")) {
+                    if (product.isHeader && product.partNumber.equals("Last month")) {
                         product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(lastMonthSubtotal) + ")";
                     }
                 }
                 if (olderSubtotal > 0) {
-                    if (product.isSeparator && product.partNumber.equals("Older than 2 months")) {
+                    if (product.isHeader && product.partNumber.equals("Older than 2 months")) {
                         product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(olderSubtotal) + ")";
                     }
                 }
@@ -2151,9 +2159,9 @@ public class Activity_AccountData extends AppCompatActivity {
                     try {
                         String response = new String(responseBody);
                         Log.i(TAG, "onSuccess " + response);
-                        CrmEntities.Opportunities opportunities = new CrmEntities.Opportunities(response);
+                        Opportunities opportunities = new Opportunities(response);
                         objects.clear();
-                        for (CrmEntities.Opportunities.Opportunity opportunity : opportunities.list) {
+                        for (Opportunities.Opportunity opportunity : opportunities.list) {
                             BasicObjects.BasicObject object = new BasicObjects.BasicObject(opportunity.accountname, opportunity.statuscodeFormatted, opportunity);
                             objects.add(object);
                         }
@@ -2190,8 +2198,8 @@ public class Activity_AccountData extends AppCompatActivity {
                 adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
                     @Override
                     public void onItemClick(View view, int position) {
-                        CrmEntities.Opportunities.Opportunity selectedOpportunity =
-                                (CrmEntities.Opportunities.Opportunity) objects.get(position).object;
+                        Opportunities.Opportunity selectedOpportunity =
+                                (Opportunities.Opportunity) objects.get(position).object;
                         Intent intent = new Intent(context, BasicEntityActivity.class);
                         intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Opportunity Details");
                         intent.putExtra(BasicEntityActivity.ENTITYID, selectedOpportunity.entityid);
@@ -2214,11 +2222,11 @@ public class Activity_AccountData extends AppCompatActivity {
             txtNoOpportunities.setVisibility( (objects == null || objects.size() == 0) ? View.VISIBLE : View.GONE );
         }
 
-        void showOpportunityOptions(final CrmEntities.Opportunities.Opportunity clickedContact) {
+        void showOpportunityOptions(final Opportunities.Opportunity clickedContact) {
 
         }
 
-        public void insertContact(CrmEntities.Contacts.Contact contact) {
+        public void insertContact(Contacts.Contact contact) {
             Intent intent = new Intent(Intent.ACTION_INSERT);
             intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
             intent.putExtra(ContactsContract.Intents.Insert.NAME, contact.getFullname());
@@ -2426,7 +2434,7 @@ public class Activity_AccountData extends AppCompatActivity {
                     try {
                         String response = new String(responseBody);
                         Log.i(TAG, "onSuccess " + response);
-                        CrmEntities.Tickets tickets = new CrmEntities.Tickets(response);
+                        Tickets tickets = new Tickets(response);
                         objects.clear();
                         objects = tickets.toBasicObjects();
                         populateList();
@@ -2465,8 +2473,8 @@ public class Activity_AccountData extends AppCompatActivity {
                 adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
                     @Override
                     public void onItemClick(View view, int position) {
-                        CrmEntities.Tickets.Ticket selectedTicket =
-                                (CrmEntities.Tickets.Ticket) objects.get(position).object;
+                        Tickets.Ticket selectedTicket =
+                                (Tickets.Ticket) objects.get(position).object;
                         Intent intent = new Intent(context, BasicEntityActivity.class);
                         intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Ticket Details");
                         intent.putExtra(BasicEntityActivity.ENTITYID, selectedTicket.entityid);

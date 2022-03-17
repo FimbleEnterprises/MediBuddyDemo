@@ -48,7 +48,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1">
 
-                <com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyAutoCompleteEditText
+                <com.fimbleenterprises.medimileage.activities.ui.views.MyAutoCompleteEditText
                     android:id="@+id/textView_title_value"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

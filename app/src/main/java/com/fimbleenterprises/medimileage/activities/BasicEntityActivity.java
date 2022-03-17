@@ -44,6 +44,7 @@ import com.fimbleenterprises.medimileage.objects_and_containers.BasicEntity;
 import com.fimbleenterprises.medimileage.adapters.BasicEntityActivityObjectRecyclerAdapter;
 import com.fimbleenterprises.medimileage.dialogs.ContactActions;
 import com.fimbleenterprises.medimileage.Crm;
+import com.fimbleenterprises.medimileage.objects_and_containers.Contacts;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.CustomTypefaceSpan;
 import com.fimbleenterprises.medimileage.objects_and_containers.EmailsOrAnnotations;
@@ -53,13 +54,15 @@ import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
 import com.fimbleenterprises.medimileage.MyPreferencesHelper;
-import com.fimbleenterprises.medimileage.activities.ui.CustomViews.NonScrollRecyclerView;
+import com.fimbleenterprises.medimileage.activities.ui.views.NonScrollRecyclerView;
 import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
+import com.fimbleenterprises.medimileage.objects_and_containers.Opportunities;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
 import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseAccount;
 
+import com.fimbleenterprises.medimileage.objects_and_containers.Tickets;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 import com.jaiselrahman.filepicker.activity.FilePickerActivity;
@@ -540,7 +543,7 @@ public class BasicEntityActivity extends AppCompatActivity {
         } else if (requestCode == FullscreenActivityChooseContact.REQUESTCODE) {
             if (data != null) {
                 if (data.hasExtra(FullscreenActivityChooseContact.CONTACT_RESULT)) {
-                    CrmEntities.Contacts.Contact contact = data.getParcelableExtra(FullscreenActivityChooseContact.CONTACT_RESULT);
+                    Contacts.Contact contact = data.getParcelableExtra(FullscreenActivityChooseContact.CONTACT_RESULT);
                     this.basicEntity.setContact(contact);
                     populateForm(this.basicEntity.toGson(), isEditMode);
                     updatePending = true;
@@ -727,7 +730,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                             @Override
                             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                                 String response = new String(responseBody);
-                                CrmEntities.Contacts contacts = new CrmEntities.Contacts(response);
+                                Contacts contacts = new Contacts(response);
                                 ContactActions actions = new ContactActions(activity, contacts.list.get(0));
                                 actions.showContactOptions();
                             }
@@ -964,7 +967,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
 
-                        CrmEntities.Tickets tickets = new CrmEntities.Tickets(new String(responseBody));
+                        Tickets tickets = new Tickets(new String(responseBody));
 
                         String gson = tickets.list.get(0).toBasicEntity().toGson();
                         entityid = guid;
@@ -1002,7 +1005,7 @@ public class BasicEntityActivity extends AppCompatActivity {
                 crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                        CrmEntities.Opportunities opportunities = new CrmEntities.Opportunities(new String(responseBody));
+                        Opportunities opportunities = new Opportunities(new String(responseBody));
                         String gson = opportunities.list.get(0).toBasicEntity().toGson();
                         entityid = guid;
                         entityLogicalName = "opportunity";

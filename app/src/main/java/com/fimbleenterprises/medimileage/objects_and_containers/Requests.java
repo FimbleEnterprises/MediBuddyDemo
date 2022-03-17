@@ -2,6 +2,8 @@ package com.fimbleenterprises.medimileage.objects_and_containers;
 
 import com.google.gson.Gson;
 
+import org.jetbrains.annotations.NonNls;
+
 import java.util.ArrayList;
 
 import androidx.annotation.Nullable;
@@ -131,7 +133,7 @@ public class Requests {
         public String name;
         public Object value;
 
-        public Argument(@Nullable String name, Object value) {
+        public Argument(@NonNls @Nullable String name, Object value) {
             if (name == null) name = "not supplied";
             this.name = name;
             this.value = value;

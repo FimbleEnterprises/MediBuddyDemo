@@ -3,7 +3,8 @@ package com.fimbleenterprises.medimileage;
 import android.util.Log;
 
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
-import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.Opportunities.Opportunity;
+import com.fimbleenterprises.medimileage.objects_and_containers.Opportunities;
+import com.fimbleenterprises.medimileage.objects_and_containers.Opportunities.Opportunity;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.TripAssociations;
 import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
@@ -45,7 +46,7 @@ public class TripAssociationManager {
 
         // Retrieve the cached account addresses
         CrmEntities.CrmAddresses accountAddresses = options.getAllSavedCrmAddresses();
-        CrmEntities.Opportunities savedOpportunities = options.getSavedOpportunities();
+        Opportunities savedOpportunities = options.getSavedOpportunities();
 
         // Verify that there are indeed saved addresses - we can not proceed without them.
         if (accountAddresses == null || accountAddresses.list.size() < 1) {

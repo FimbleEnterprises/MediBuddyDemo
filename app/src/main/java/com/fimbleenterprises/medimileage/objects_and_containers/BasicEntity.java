@@ -58,7 +58,7 @@ public class BasicEntity {
         }
     }
 
-    public void setContact(CrmEntities.Contacts.Contact contact) {
+    public void setContact(Contacts.Contact contact) {
         for (EntityBasicField field : this.fields) {
             if (field.isContactField) {
                 field.contact = contact;
@@ -144,7 +144,7 @@ public class BasicEntity {
         public ArrayList<OptionSetValue> optionSetValues = new ArrayList<>();
         public ArrayList<EntityStatusReason> entityStatusReasons = new ArrayList<>();
         public CrmEntities.Accounts.Account account;
-        public CrmEntities.Contacts.Contact contact;
+        public Contacts.Contact contact;
 
         public EntityBasicField(String label) {
             this.label = label;

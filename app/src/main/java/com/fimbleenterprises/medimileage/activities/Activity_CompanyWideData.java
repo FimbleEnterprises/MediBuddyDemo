@@ -2,7 +2,6 @@ package com.fimbleenterprises.medimileage.activities;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
@@ -23,7 +22,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -34,36 +32,41 @@ import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.MyInterfaces;
+import com.fimbleenterprises.medimileage.MyLinearSmoothScroller;
 import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.MyViewPager;
 import com.fimbleenterprises.medimileage.R;
-import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyUnderlineEditText;
+import com.fimbleenterprises.medimileage.activities.ui.views.MyUnderlineEditText;
 import com.fimbleenterprises.medimileage.adapters.BasicObjectRecyclerAdapter;
 import com.fimbleenterprises.medimileage.adapters.LandingPageRecyclerAdapter;
 import com.fimbleenterprises.medimileage.adapters.OrderLineRecyclerAdapter;
 import com.fimbleenterprises.medimileage.dialogs.ContactActions;
 import com.fimbleenterprises.medimileage.dialogs.MonthYearPickerDialog;
 import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseTerritory;
+import com.fimbleenterprises.medimileage.objects_and_containers.AggregatedSales;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.LandingPageItem;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics;
+import com.fimbleenterprises.medimileage.objects_and_containers.Opportunities;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
+import com.fimbleenterprises.medimileage.objects_and_containers.Tickets;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
-import com.scwang.smart.refresh.layout.listener.OnLoadMoreListener;
 import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
+import org.jetbrains.annotations.NonNls;
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -81,6 +84,7 @@ import static com.fimbleenterprises.medimileage.activities.BasicEntityActivity.E
 import static com.fimbleenterprises.medimileage.activities.BasicEntityActivity.ENTITY_LOGICAL_NAME;
 import static com.fimbleenterprises.medimileage.activities.BasicEntityActivity.REQUEST_BASIC;
 import static com.fimbleenterprises.medimileage.activities.BasicEntityActivity.SEND_EMAIL;
+import static com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseTerritory.*;
 import static com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.OrderProducts;
 import static com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.OrderProducts.OrderProduct;
 import static com.fimbleenterprises.medimileage.CrmQueries.Tickets.ANY;
@@ -89,29 +93,44 @@ import static com.fimbleenterprises.medimileage.CrmQueries.Tickets.OPEN;
 
 public class Activity_CompanyWideData extends AppCompatActivity {
 
+    @NonNls
+    public static final String VOLUME_CLICKED = "VOLUMN_CLICKED";
+    @NonNls
+    public static final String VOLUME_UP_CLICKED = "VOLUME_UP_CLICKED";
+    @NonNls
+    public static final String VOLUME_DOWN_CLICKED = "VOLUMN_DOWN_CLICKED";
+    @NonNls
     private static final String FAB_CLICKED = "FAB_CLICKED";
-    public static Activity activity;
-    public static EditText title;
-    public static MyUnderlineEditText date;
-    public static EditText distance;
+    @NonNls
+    private static final String OPPORTUNITY_LOGICAL_NAME = "opportunity";
+    @NonNls
+    private static final String INCIDENT_LOGICAL_NAME = "incident";
+
+    public Activity activity;
+    public EditText title;
+    public MyUnderlineEditText date;
+    public EditText distance;
     public static Marker fromMarker;
     public static Marker toMarker;
-    public static Context context;
     public static Polyline polyline;
     public static LatLng fromLatLng;
     public static LatLng toLatLng;
+    @SuppressLint("StaticFieldLeak")
     public static MyViewPager mViewPager;
+    @SuppressLint("StaticFieldLeak")
     public static PagerTitleStrip mPagerStrip;
+    @SuppressLint("StaticFieldLeak")
+    public static Toolbar toolbar;
     public static SectionsPagerAdapter sectionsPagerAdapter;
     public static androidx.fragment.app.FragmentManager fragMgr;
     public static MyPreferencesHelper options;
     public ArrayList<Territory> cachedTerritories = new ArrayList<>();
     BroadcastReceiver fabClickReceiver;
-    public static Toolbar toolbar;
     IntentFilter fabClickIntentFilter = new IntentFilter(FAB_CLICKED);
     SearchView searchView;
     public static CrmQueries.Opportunities.DealStatus dealStatus = CrmQueries.Opportunities.DealStatus.ANY;
 
+    @NonNls
     public static final String MENU_SELECTION = "MENU_SELECTION";
 
     // Intent filters for the various fragment's broadcast receivers.
@@ -125,6 +144,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
     public enum ServiceAgreementFilter {
         EXPIRED, EXPIRING, CURRENT
     }
+
     public static ServiceAgreementFilter serviceAgreementFilter = ServiceAgreementFilter.EXPIRING;
 
     public static CrmQueries.Leads.LeadFilter leadFilter = CrmQueries.Leads.LeadFilter.ANY;
@@ -132,9 +152,6 @@ public class Activity_CompanyWideData extends AppCompatActivity {
     // vars for case status
     public static int case_status = ANY;
     public static int case_state = OPEN;
-
-    // vars for customer type
-    public static final int customer_type = CrmEntities.Accounts.ANY;
 
     // flag for region
     public static boolean isEastRegion = true;
@@ -146,23 +163,24 @@ public class Activity_CompanyWideData extends AppCompatActivity {
     public static Dialog chartPopupDialog;
 
     public final static String TAG = "TerritoryData";
-    // public static final String DATE_CHANGED = "DATE_CHANGED";
-    public static final String MONTH = "MONTH";
-    public static final String YEAR = "YEAR";
 
-    public int curPageIndex = 0;
+    @NonNls
+    public static final String DATE_CHANGED = "DATE_CHANGED";
+    @NonNls
+    public static final String MONTH = "MONTH";
+    @NonNls
+    public static final String YEAR = "YEAR";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        context = this;
         activity = this;
         options = new MyPreferencesHelper(getBaseContext());
 
         // Log a metric
         try {
-            MileBuddyMetrics.updateMetric(context, MileBuddyMetrics.MetricName.LAST_ACCESSED_TERRITORY_DATA, DateTime.now());
+            MileBuddyMetrics.updateMetric(this, MileBuddyMetrics.MetricName.LAST_ACCESSED_TERRITORY_DATA, DateTime.now());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -176,25 +194,17 @@ public class Activity_CompanyWideData extends AppCompatActivity {
         setContentView(R.layout.activity_cpy_wide_sales_perf);
 
         sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-        mViewPager = (MyViewPager) findViewById(R.id.main_pager_yo_sales_perf);
-        mViewPager.onRealPageChangedListener = new MyViewPager.OnRealPageChangedListener() {
-            @Override
-            public void onPageActuallyFuckingChanged(int pageIndex) {
-                setTitle(sectionsPagerAdapter.getPageTitle(pageIndex));
-                options.setLastCpyWidePage(pageIndex);
-            }
+        mViewPager = findViewById(R.id.main_pager_yo_sales_perf);
+        mViewPager.onRealPageChangedListener = pageIndex ->  {
+            setTitle(sectionsPagerAdapter.getPageTitle(pageIndex));
+            options.setLastCpyWidePage(pageIndex);
         };
-        mPagerStrip = (PagerTitleStrip) findViewById(R.id.pager_title_strip_sales_perf);
+        mPagerStrip = findViewById(R.id.pager_title_strip_sales_perf);
         mViewPager.setAdapter(sectionsPagerAdapter);
         mViewPager.setOffscreenPageLimit(0);
-        // mViewPager.setCurrentItem(options.getLastCpyWidePage());
         mViewPager.setCurrentItem(0); // Set to landing page now that we have the landing page.
-        mViewPager.setOnScrollChangeListener(new View.OnScrollChangeListener() {
-            @Override
-            public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-                destroyChartDialogIfVisible();
-            }
-        });
+        mViewPager.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY)
+                -> destroyChartDialogIfVisible());
 
         // Set the viewpager font
         Typeface fontTypeFace = getResources().getFont(R.font.casual);
@@ -211,13 +221,14 @@ public class Activity_CompanyWideData extends AppCompatActivity {
 
         fragMgr = getSupportFragmentManager();
 
-        toolbar = (Toolbar) findViewById(R.id.toolbar2);
+        toolbar = findViewById(R.id.toolbar2);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
         fabClickReceiver = new BroadcastReceiver() {
-            @SuppressLint("RestrictedApi") // Apparently a bug causes method: .openOptionsMenu() to raise a lint warning (https://stackoverflow.com/a/44926919/2097893).
+            @SuppressLint("RestrictedApi")
+            // Apparently a bug causes method: .openOptionsMenu() to raise a lint warning (https://stackoverflow.com/a/44926919/2097893).
             @Override
             public void onReceive(Context context, Intent intent) {
                 Objects.requireNonNull(getSupportActionBar()).openOptionsMenu();
@@ -238,6 +249,21 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             }
             return true;
         }
+
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN && options.volumeButtonsCanScroll()) {
+            Intent volDown = new Intent(VOLUME_CLICKED);
+            volDown.putExtra(VOLUME_CLICKED, VOLUME_DOWN_CLICKED);
+            sendBroadcast(volDown);
+            return true;
+        }
+
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP && options.volumeButtonsCanScroll()) {
+            Intent volUp = new Intent(VOLUME_CLICKED);
+            volUp.putExtra(VOLUME_CLICKED, VOLUME_UP_CLICKED);
+            sendBroadcast(volUp);
+            return true;
+        }
+
         return super.onKeyDown(keyCode, event);
     }
 
@@ -249,12 +275,14 @@ public class Activity_CompanyWideData extends AppCompatActivity {
 
             if (resultCode == RESULT_OK) {
                 Log.i(TAG, "onActivityResult RESULT_CODE == " + resultCode);
-                if (data.getAction().equals(BasicEntityActivity.MENU_SELECTION)) {
+                if (data != null && data.getAction() != null && data.getAction()
+                        .equals(BasicEntityActivity.MENU_SELECTION)) {
                     Log.i(TAG, "onActivityResult " + MENU_SELECTION);
 
                     if (data.getStringExtra(SEND_EMAIL) != null) {
 
-                        String emailSuffix = "";
+                        AtomicReference<String> recordUrl = new AtomicReference<>("");
+                        AtomicReference<String> emailSuffix = new AtomicReference<>("");
 
                         Log.i(TAG, "onActivityResult Received a " + SEND_EMAIL + " result extra");
                         String entityid = data.getStringExtra(ENTITYID);
@@ -262,31 +290,29 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                         Log.i(TAG, "onActivityResult Entityid: " + entityid + " - Entity logical name: " + entityLogicalName);
                         Log.i(TAG, "onActivityResult ");
 
-                        String recordurl = "";
-                        String subject = "";
+                        if (entityLogicalName != null && entityLogicalName.equals(OPPORTUNITY_LOGICAL_NAME)) {
+                            recordUrl.set(Crm.getRecordUrl(entityid, Integer.toString(Crm.ETC_OPPORTUNITY)));
+                            emailSuffix.set(getString(R.string.crm_link) + recordUrl);
+                            Log.i(TAG, "onActivityResult:: " + recordUrl);
 
-                        if (entityLogicalName.equals("opportunity")) {
-                            recordurl = Crm.getRecordUrl(entityid, Integer.toString(Crm.ETC_OPPORTUNITY));
-                            subject = "Opportunity";
-                            emailSuffix = "\n\nCRM Link:\n" + recordurl;
-                            Log.i(TAG, "onActivityResult:: " + recordurl);
-
-                        } else if (entityLogicalName.equals("incident")) {
-                            recordurl = Crm.getRecordUrl(entityid, Integer.toString(Crm.ETC_INCIDENT));
-                            emailSuffix = "\n\nCRM Link:\n" + recordurl;
-                            subject = "Ticket";
-                            Log.i(TAG, "onActivityResult:: " + recordurl);
+                        } else if (entityLogicalName != null && entityLogicalName.equals(INCIDENT_LOGICAL_NAME)) {
+                            recordUrl.set(Crm.getRecordUrl(entityid, Integer.toString(Crm.ETC_INCIDENT)));
+                            emailSuffix.set(getString(R.string.crm_link) + recordUrl);
+                            Log.i(TAG, "onActivityResult:: " + recordUrl);
                         }
 
-                        Helpers.Email.sendEmail(emailSuffix + "\n\n", "CRM Link", activity);
+                        Helpers.Email.sendEmail(emailSuffix + "\n\n", getString(R.string
+                                .crm_summary_email_subject_line), activity);
 
                     }
 
                 }
             }
 
-            globalTerritory = data.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
-            cachedTerritories = data.getParcelableArrayListExtra(FullscreenActivityChooseTerritory.CACHED_TERRITORIES);
+            if (data != null && data.getExtras() != null) {
+                globalTerritory = data.getParcelableExtra(TERRITORY_RESULT);
+                cachedTerritories = data.getParcelableArrayListExtra(CACHED_TERRITORIES);
+            }
             sectionsPagerAdapter.notifyDataSetChanged();
 
 
@@ -294,11 +320,6 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             intent.putExtra(Activity_TerritoryData.REQUESTED_TERRITORY, globalTerritory);
             finishAndRemoveTask();
             startActivity(intent);
-
-            /*Intent intent = new Intent(MENU_SELECTION);
-            intent.setAction(MENU_SELECTION);
-            intent.putExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT, globalTerritory);
-            sendBroadcast(intent);*/
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -367,7 +388,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
         // Associate searchable configuration with the SearchView
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         searchView = (SearchView) menu.findItem(R.id.search).getActionView();
-        searchView.setSearchableInfo( searchManager.getSearchableInfo(new
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(new
                 ComponentName(this, SearchResultsActivity.class)));
 
         if (searchView != null) {
@@ -535,16 +556,6 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 menu.findItem(R.id.action_current_service_agreements).setVisible(false);
 
                 menu.findItem(R.id.action_opportunity_status).setVisible(false);
-                /*menu.findItem(R.id.action_opp_any).setVisible(false);
-                menu.findItem(R.id.action_opp_canceled).setVisible(false);
-                menu.findItem(R.id.action_opp_closed).setVisible(false);
-                menu.findItem(R.id.action_opp_dead).setVisible(false);
-                menu.findItem(R.id.action_opp_discovery).setVisible(false);
-                menu.findItem(R.id.action_opp_evaluating).setVisible(false);
-                menu.findItem(R.id.action_opp_pending).setVisible(false);
-                menu.findItem(R.id.action_opp_qualifying).setVisible(false);
-                menu.findItem(R.id.action_opp_stalled).setVisible(false);
-                menu.findItem(R.id.action_opp_won).setVisible(false);*/
                 break;
 
             case SectionsPagerAdapter.CASES_PAGE: // Cases
@@ -570,16 +581,6 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 menu.findItem(R.id.action_current_service_agreements).setVisible(false);
 
                 menu.findItem(R.id.action_opportunity_status).setVisible(false);
-                /*menu.findItem(R.id.action_opp_any).setVisible(false);
-                menu.findItem(R.id.action_opp_canceled).setVisible(false);
-                menu.findItem(R.id.action_opp_closed).setVisible(false);
-                menu.findItem(R.id.action_opp_dead).setVisible(false);
-                menu.findItem(R.id.action_opp_discovery).setVisible(false);
-                menu.findItem(R.id.action_opp_evaluating).setVisible(false);
-                menu.findItem(R.id.action_opp_pending).setVisible(false);
-                menu.findItem(R.id.action_opp_qualifying).setVisible(false);
-                menu.findItem(R.id.action_opp_stalled).setVisible(false);
-                menu.findItem(R.id.action_opp_won).setVisible(false);*/
                 break;
 
             case SectionsPagerAdapter.SERVICE_AGREEMENTS_PAGE:
@@ -605,16 +606,6 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 menu.findItem(R.id.action_current_service_agreements).setVisible(true);
 
                 menu.findItem(R.id.action_opportunity_status).setVisible(false);
-                /*menu.findItem(R.id.action_opp_any).setVisible(false);
-                menu.findItem(R.id.action_opp_canceled).setVisible(false);
-                menu.findItem(R.id.action_opp_closed).setVisible(false);
-                menu.findItem(R.id.action_opp_dead).setVisible(false);
-                menu.findItem(R.id.action_opp_discovery).setVisible(false);
-                menu.findItem(R.id.action_opp_evaluating).setVisible(false);
-                menu.findItem(R.id.action_opp_pending).setVisible(false);
-                menu.findItem(R.id.action_opp_qualifying).setVisible(false);
-                menu.findItem(R.id.action_opp_stalled).setVisible(false);
-                menu.findItem(R.id.action_opp_won).setVisible(false);*/
                 break;
 
         }
@@ -643,7 +634,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 menu.findItem(R.id.action_change_case_status_waiting_on_rep).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
                 break;
-            case CrmQueries.Tickets.IN_PROGRESS :
+            case CrmQueries.Tickets.IN_PROGRESS:
                 menu.findItem(R.id.action_change_case_status_any).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_inprogress).setChecked(true);
                 menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
@@ -653,7 +644,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 menu.findItem(R.id.action_change_case_status_waiting_on_rep).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
                 break;
-            case CrmQueries.Tickets.ON_HOLD :
+            case CrmQueries.Tickets.ON_HOLD:
                 menu.findItem(R.id.action_change_case_status_any).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_on_hold).setChecked(true);
@@ -663,7 +654,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
                 break;
-            case CrmQueries.Tickets.TO_BE_INSPECTED :
+            case CrmQueries.Tickets.TO_BE_INSPECTED:
                 menu.findItem(R.id.action_change_case_status_any).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
@@ -673,7 +664,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
                 break;
-            case CrmQueries.Tickets.WAITING_FOR_PRODUCT :
+            case CrmQueries.Tickets.WAITING_FOR_PRODUCT:
                 menu.findItem(R.id.action_change_case_status_any).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
@@ -683,7 +674,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
                 break;
-            case CrmQueries.Tickets.WAITING_ON_CUSTOMER :
+            case CrmQueries.Tickets.WAITING_ON_CUSTOMER:
                 menu.findItem(R.id.action_change_case_status_any).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
@@ -693,7 +684,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 menu.findItem(R.id.action_change_case_status_waiting_on_customer).setChecked(true);
                 menu.findItem(R.id.action_change_case_status_to_be_billed).setChecked(false);
                 break;
-            case CrmQueries.Tickets.TO_BE_BILLED :
+            case CrmQueries.Tickets.TO_BE_BILLED:
                 menu.findItem(R.id.action_change_case_status_any).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_inprogress).setChecked(false);
                 menu.findItem(R.id.action_change_case_status_on_hold).setChecked(false);
@@ -745,169 +736,138 @@ public class Activity_CompanyWideData extends AppCompatActivity {
 
         DateTime now = DateTime.now();
         DateTime aMonthAgo = now.minusMonths(1);
-        switch (item.getItemId()) {
-            case 16908332 :
-                if (searchView.isIconified()) {
-                    onBackPressed();
-                }
-                break;
-            case R.id.action_choose_territory :
-                Intent intent = new Intent(context, FullscreenActivityChooseTerritory.class);
-                intent.putExtra(FullscreenActivityChooseTerritory.CURRENT_TERRITORY, globalTerritory);
-                intent.putExtra(FullscreenActivityChooseTerritory.CACHED_TERRITORIES, cachedTerritories);
-                startActivityForResult(intent, 0);
-                break;
-            case R.id.action_east_region :
-                isEastRegion = true;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_west_region :
-                isEastRegion = false;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_this_month :
-                monthNum = now.getMonthOfYear();
-                yearNum = now.getYear();
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_last_month :
-                monthNum = aMonthAgo.getMonthOfYear();
-                yearNum = aMonthAgo.getYear();
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_choose_month :
-                showMonthYearPicker();
-                break;
-            case R.id.action_this_year :
-                yearNum = now.getYear();
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_last_year :
-                yearNum = aMonthAgo.getYear();
-                sendMenuSelectionBroadcast();
-                break;
 
-                // LEADS
-            case R.id.action_lead_any:
-                leadFilter = CrmQueries.Leads.LeadFilter.ANY;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_lead_qualified:
-                leadFilter = CrmQueries.Leads.LeadFilter.QUALIFIED;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_lead_disqualified:
-                leadFilter = CrmQueries.Leads.LeadFilter.DISQUALIFIED;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_lead_created_last_three_months:
-                leadFilter = CrmQueries.Leads.LeadFilter.LAST_THREE_MONTHS;
-                sendMenuSelectionBroadcast();
-                break;
+        /* Converted this from a switch statement, which was elegant, to an if/elseif/then
+        stuff due to Google moving away from resource constants being final in Gradle v8.
+        https://stackoverflow.com/questions/7840914/android-resource-ids-suddenly-not-final-switches-broken  */
+
+        final int itemId = item.getItemId();
+
+        if (itemId == 16908332) {
+            if (searchView.isIconified()) {
+                onBackPressed();
+            }
+        } else if (itemId == R.id.action_choose_territory) {
+            Intent intent = new Intent(this, FullscreenActivityChooseTerritory.class);
+            intent.putExtra(CURRENT_TERRITORY, globalTerritory);
+            intent.putExtra(CACHED_TERRITORIES, cachedTerritories);
+            startActivityForResult(intent, 0);
+        } else if (itemId == R.id.action_east_region) {
+            isEastRegion = true;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_west_region) {
+            isEastRegion = false;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_this_month) {
+            monthNum = now.getMonthOfYear();
+            yearNum = now.getYear();
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_last_month) {
+            monthNum = aMonthAgo.getMonthOfYear();
+            yearNum = aMonthAgo.getYear();
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_choose_month) {
+            showMonthYearPicker();
+        } else if (itemId == R.id.action_this_year) {
+            yearNum = now.getYear();
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_last_year) {
+            yearNum = aMonthAgo.getYear();
+            sendMenuSelectionBroadcast();
+
+            // LEADS
+        } else if (itemId == R.id.action_lead_any) {
+            leadFilter = CrmQueries.Leads.LeadFilter.ANY;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_lead_qualified) {
+            leadFilter = CrmQueries.Leads.LeadFilter.QUALIFIED;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_lead_disqualified) {
+            leadFilter = CrmQueries.Leads.LeadFilter.DISQUALIFIED;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_lead_created_last_three_months) {
+            leadFilter = CrmQueries.Leads.LeadFilter.LAST_THREE_MONTHS;
+            sendMenuSelectionBroadcast();
 
             // CASE STATE
-            case R.id.action_case_state_open:
-                case_state = OPEN;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_case_state_closed:
-                case_state = CLOSED;
-                sendMenuSelectionBroadcast();
-                break;
+        } else if (itemId == R.id.action_case_state_open) {
+            case_state = OPEN;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_case_state_closed) {
+            case_state = CLOSED;
+            sendMenuSelectionBroadcast();
 
             // CASE STATUS
-            case R.id.action_change_case_status_any:
-                case_status = ANY;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_change_case_status_inprogress:
-                case_status = CrmQueries.Tickets.IN_PROGRESS;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_change_case_status_on_hold:
-                case_status = CrmQueries.Tickets.ON_HOLD;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_change_case_status_to_be_inspected:
-                case_status = CrmQueries.Tickets.TO_BE_INSPECTED;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_change_case_status_waiting_for_product:
-                case_status = CrmQueries.Tickets.WAITING_FOR_PRODUCT;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_change_case_status_waiting_on_customer:
-                case_status = CrmQueries.Tickets.WAITING_ON_CUSTOMER;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_change_case_status_waiting_on_rep:
-                case_status = CrmQueries.Tickets.WAITING_ON_REP;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_change_case_status_to_be_billed:
-                case_status = CrmQueries.Tickets.TO_BE_BILLED;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_change_case_status_problem_solved:
-                case_status = CrmQueries.Tickets.PROBLEM_SOLVED;
-                sendMenuSelectionBroadcast();
-                break;
+        } else if (itemId == R.id.action_change_case_status_any) {
+            case_status = ANY;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_change_case_status_inprogress) {
+            case_status = CrmQueries.Tickets.IN_PROGRESS;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_change_case_status_on_hold) {
+            case_status = CrmQueries.Tickets.ON_HOLD;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_change_case_status_to_be_inspected) {
+            case_status = CrmQueries.Tickets.TO_BE_INSPECTED;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_change_case_status_waiting_for_product) {
+            case_status = CrmQueries.Tickets.WAITING_FOR_PRODUCT;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_change_case_status_waiting_on_customer) {
+            case_status = CrmQueries.Tickets.WAITING_ON_CUSTOMER;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_change_case_status_waiting_on_rep) {
+            case_status = CrmQueries.Tickets.WAITING_ON_REP;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_change_case_status_to_be_billed) {
+            case_status = CrmQueries.Tickets.TO_BE_BILLED;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_change_case_status_problem_solved) {
+            case_status = CrmQueries.Tickets.PROBLEM_SOLVED;
+            sendMenuSelectionBroadcast();
 
-                // Service agreements
-            case R.id.action_current_service_agreements:
-                serviceAgreementFilter = ServiceAgreementFilter.CURRENT;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_expiring_service_agreements:
-                serviceAgreementFilter = ServiceAgreementFilter.EXPIRING;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_expired_service_agreements:
-                serviceAgreementFilter = ServiceAgreementFilter.EXPIRED;
-                sendMenuSelectionBroadcast();
-                break;
+            // Service agreements
+        } else if (itemId == R.id.action_current_service_agreements) {
+            serviceAgreementFilter = ServiceAgreementFilter.CURRENT;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_expiring_service_agreements) {
+            serviceAgreementFilter = ServiceAgreementFilter.EXPIRING;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_expired_service_agreements) {
+            serviceAgreementFilter = ServiceAgreementFilter.EXPIRED;
+            sendMenuSelectionBroadcast();
 
-                // OPPORTUNITIES
-            case R.id.action_opp_any:
-                dealStatus = CrmQueries.Opportunities.DealStatus.ANY;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_opp_discovery:
-                dealStatus = CrmQueries.Opportunities.DealStatus.DISCOVERY;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_opp_dead:
-                dealStatus = CrmQueries.Opportunities.DealStatus.DEAD;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_opp_canceled:
-                dealStatus = CrmQueries.Opportunities.DealStatus.CANCELED;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_opp_closed:
-                dealStatus = CrmQueries.Opportunities.DealStatus.CLOSED;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_opp_won:
-                dealStatus = CrmQueries.Opportunities.DealStatus.WON;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_opp_pending:
-                dealStatus = CrmQueries.Opportunities.DealStatus.PENDING;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_opp_evaluating:
-                dealStatus = CrmQueries.Opportunities.DealStatus.EVALUATING;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_opp_qualifying:
-                dealStatus = CrmQueries.Opportunities.DealStatus.QUALIFYING;
-                sendMenuSelectionBroadcast();
-                break;
-            case R.id.action_opp_stalled:
-                dealStatus = CrmQueries.Opportunities.DealStatus.STALLED;
-                sendMenuSelectionBroadcast();
-                break;
+            // OPPORTUNITIES
+        } else if (itemId == R.id.action_opp_any) {
+            dealStatus = CrmQueries.Opportunities.DealStatus.ANY;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_opp_discovery) {
+            dealStatus = CrmQueries.Opportunities.DealStatus.DISCOVERY;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_opp_dead) {
+            dealStatus = CrmQueries.Opportunities.DealStatus.DEAD;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_opp_canceled) {
+            dealStatus = CrmQueries.Opportunities.DealStatus.CANCELED;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_opp_closed) {
+            dealStatus = CrmQueries.Opportunities.DealStatus.CLOSED;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_opp_won) {
+            dealStatus = CrmQueries.Opportunities.DealStatus.WON;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_opp_pending) {
+            dealStatus = CrmQueries.Opportunities.DealStatus.PENDING;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_opp_evaluating) {
+            dealStatus = CrmQueries.Opportunities.DealStatus.EVALUATING;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_opp_qualifying) {
+            dealStatus = CrmQueries.Opportunities.DealStatus.QUALIFYING;
+            sendMenuSelectionBroadcast();
+        } else if (itemId == R.id.action_opp_stalled) {
+            dealStatus = CrmQueries.Opportunities.DealStatus.STALLED;
+            sendMenuSelectionBroadcast();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -918,27 +878,24 @@ public class Activity_CompanyWideData extends AppCompatActivity {
         }
     }
 
-    public static void sendMenuSelectionBroadcast() {
+    public void sendMenuSelectionBroadcast() {
         Intent menuActionIntent = new Intent(MENU_SELECTION);
         menuActionIntent.putExtra(MONTH, monthNum);
         menuActionIntent.putExtra(YEAR, yearNum);
-        activity.sendBroadcast(menuActionIntent);
+        sendBroadcast(menuActionIntent);
     }
 
     @SuppressLint("NewApi")
     private void showMonthYearPicker() {
         final MonthYearPickerDialog mpd = new MonthYearPickerDialog();
-        mpd.setListener(new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                Intent dateChanged = new Intent(MENU_SELECTION);
-                dateChanged.putExtra(MONTH, month);
-                dateChanged.putExtra(YEAR, year);
-                monthNum = month;
-                yearNum = year;
-                sendBroadcast(dateChanged);
-                mpd.dismiss();
-            }
+        mpd.setListener((view, year, month, dayOfMonth) -> {
+            Intent dateChanged = new Intent(MENU_SELECTION);
+            dateChanged.putExtra(MONTH, month);
+            dateChanged.putExtra(YEAR, year);
+            monthNum = month;
+            yearNum = year;
+            sendBroadcast(dateChanged);
+            mpd.dismiss();
         });
         mpd.show(getSupportFragmentManager(), "MonthYearPickerDialog");
     }
@@ -947,80 +904,75 @@ public class Activity_CompanyWideData extends AppCompatActivity {
 
         public static final int LANDING_PAGE = 0;
         public static final int SALES_PAGE = 1;
-        public static final int LEADS_PAGE= 2;
+        public static final int LEADS_PAGE = 2;
         public static final int OPPORTUNITIES_PAGE = 3;
         public static final int CASES_PAGE = 4;
         public static final int ACCOUNTS_PAGE = 5;
         public static final int SERVICE_AGREEMENTS_PAGE = 6;
 
         public SectionsPagerAdapter(androidx.fragment.app.FragmentManager fm) {
-            super(fm);
+            super(fm, FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
             sectionsPagerAdapter = this;
         }
 
+        @NonNull
         @Override
         public Fragment getItem(int position) {
 
             Log.d("getItem", "Creating Fragment in pager at index: " + position);
             Log.w(TAG, "getItem: PAGER POSITION: " + position);
 
-            if (position == LANDING_PAGE) {
-                Fragment fragment = new Frag_LandingPage();
-                Bundle args = new Bundle();
-                args.putInt(Frag_SalesLines.ARG_SECTION_NUMBER, position + 1);
-                fragment.setArguments(args);
-                return fragment;
+            switch (position) {
+                case SALES_PAGE: {
+                    Fragment fragment = new Frag_SalesLines();
+                    Bundle args = new Bundle();
+                    args.putInt(Frag_SalesLines.ARG_SECTION_NUMBER, position + 1);
+                    fragment.setArguments(args);
+                    return fragment;
+                }
+                case LEADS_PAGE: {
+                    Fragment fragment = new Frag_Leads();
+                    Bundle args = new Bundle();
+                    args.putInt(Frag_SalesLines.ARG_SECTION_NUMBER, position + 1);
+                    fragment.setArguments(args);
+                    return fragment;
+                }
+                case OPPORTUNITIES_PAGE: {
+                    Fragment fragment = new Frag_Opportunities();
+                    Bundle args = new Bundle();
+                    args.putInt(Frag_Opportunities.ARG_SECTION_NUMBER, position + 1);
+                    fragment.setArguments(args);
+                    return fragment;
+                }
+                case CASES_PAGE: {
+                    Fragment fragment = new Frag_Cases();
+                    Bundle args = new Bundle();
+                    args.putInt(Frag_Opportunities.ARG_SECTION_NUMBER, position + 1);
+                    fragment.setArguments(args);
+                    return fragment;
+                }
+                case ACCOUNTS_PAGE: {
+                    Fragment fragment = new Frag_Accounts();
+                    Bundle args = new Bundle();
+                    args.putInt(Frag_Accounts.ARG_SECTION_NUMBER, position + 1);
+                    fragment.setArguments(args);
+                    return fragment;
+                }
+                case SERVICE_AGREEMENTS_PAGE: {
+                    Fragment fragment = new Frag_ServiceAgreements();
+                    Bundle args = new Bundle();
+                    args.putInt(Frag_ServiceAgreements.ARG_SECTION_NUMBER, position + 1);
+                    fragment.setArguments(args);
+                    return fragment;
+                }
+                default: {
+                    Fragment fragment = new Frag_LandingPage();
+                    Bundle args = new Bundle();
+                    args.putInt(Frag_SalesLines.ARG_SECTION_NUMBER, position + 1);
+                    fragment.setArguments(args);
+                    return fragment;
+                }
             }
-
-            if (position == SALES_PAGE) {
-                Fragment fragment = new Frag_SalesLines();
-                Bundle args = new Bundle();
-                args.putInt(Frag_SalesLines.ARG_SECTION_NUMBER, position + 1);
-                fragment.setArguments(args);
-                return fragment;
-            }
-
-            if (position == LEADS_PAGE) {
-                Fragment fragment = new Frag_Leads();
-                Bundle args = new Bundle();
-                args.putInt(Frag_SalesLines.ARG_SECTION_NUMBER, position + 1);
-                fragment.setArguments(args);
-                return fragment;
-            }
-
-            if (position == OPPORTUNITIES_PAGE) {
-                Fragment fragment = new Frag_Opportunities();
-                Bundle args = new Bundle();
-                args.putInt(Frag_Opportunities.ARG_SECTION_NUMBER, position + 1);
-                fragment.setArguments(args);
-                return fragment;
-            }
-
-            if (position == CASES_PAGE) {
-                Fragment fragment = new Frag_Cases();
-                Bundle args = new Bundle();
-                args.putInt(Frag_Opportunities.ARG_SECTION_NUMBER, position + 1);
-                fragment.setArguments(args);
-                return fragment;
-            }
-
-            if (position == ACCOUNTS_PAGE) {
-                Fragment fragment = new Frag_Accounts();
-                Bundle args = new Bundle();
-                args.putInt(Frag_Accounts.ARG_SECTION_NUMBER, position + 1);
-                fragment.setArguments(args);
-                return fragment;
-            }
-
-            if (position == SERVICE_AGREEMENTS_PAGE) {
-                Fragment fragment = new Frag_ServiceAgreements();
-                Bundle args = new Bundle();
-                args.putInt(Frag_ServiceAgreements.ARG_SECTION_NUMBER, position + 1);
-                fragment.setArguments(args);
-                return fragment;
-            }
-
-            return null;
         }
 
         @Override
@@ -1028,26 +980,26 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             return 7;
         }
 
-        public String getCaseCriteriaTitleAddendum() {
+        public Object getCaseCriteriaTitleAddendum() {
             switch (case_status) {
-                case CrmQueries.Tickets.ANY :
-                    return "Any";
-                case CrmQueries.Tickets.IN_PROGRESS :
-                    return "In progress";
-                case CrmQueries.Tickets.ON_HOLD :
-                    return "On hold";
-                case CrmQueries.Tickets.TO_BE_BILLED :
-                    return "To be billed";
-                case CrmQueries.Tickets.TO_BE_INSPECTED :
-                    return "To be inspected";
-                case CrmQueries.Tickets.WAITING_ON_CUSTOMER :
-                    return "Waiting on customer";
-                case CrmQueries.Tickets.WAITING_ON_REP :
-                    return "Waiting on rep";
-                case CrmQueries.Tickets.WAITING_FOR_PRODUCT :
-                    return "Waiting for product";
-                case CrmQueries.Tickets.PROBLEM_SOLVED :
-                    return "Problem solved";
+                case CrmQueries.Tickets.ANY:
+                    return getString(R.string.any);
+                case CrmQueries.Tickets.IN_PROGRESS:
+                    return getString(R.string.in_progress);
+                case CrmQueries.Tickets.ON_HOLD:
+                    return getString(R.string.on_hold);
+                case CrmQueries.Tickets.TO_BE_BILLED:
+                    return getString(R.string.to_be_billed);
+                case CrmQueries.Tickets.TO_BE_INSPECTED:
+                    return getString(R.string.to_be_inspected);
+                case CrmQueries.Tickets.WAITING_ON_CUSTOMER:
+                    return getString(R.string.waiting_on_customer);
+                case CrmQueries.Tickets.WAITING_ON_REP:
+                    return getString(R.string.waiting_on_rep);
+                case CrmQueries.Tickets.WAITING_FOR_PRODUCT:
+                    return getString(R.string.waiting_for_product);
+                case CrmQueries.Tickets.PROBLEM_SOLVED:
+                    return getString(R.string.problem_solved);
             }
             return null;
         }
@@ -1055,45 +1007,43 @@ public class Activity_CompanyWideData extends AppCompatActivity {
         public String getOpportunityTitleAddendum() {
             switch (dealStatus) {
                 case DEAD:
-                    return "Dead";
+                    return getString(R.string.dead);
                 case CANCELED:
-                    return "Canceled";
+                    return getString(R.string.cancelled);
                 case CLOSED:
-                    return "Closed";
+                    return getString(R.string.closed);
                 case WON:
-                    return "Won";
+                    return getString(R.string.won);
                 case PENDING:
-                    return "Pending";
+                    return getString(R.string.pending);
                 case EVALUATING:
-                    return "Evaluating";
+                    return getString(R.string.evaluating);
                 case QUALIFYING:
-                    return "Qualifying";
+                    return getString(R.string.qualifying);
                 case STALLED:
-                    return "Stalled";
+                    return getString(R.string.stalled);
                 case DISCOVERY:
-                    return "Discovery";
+                    return getString(R.string.discovery);
                 default:
-                    return "All";
+                    return getString(R.string.all);
             }
         }
 
         public String getLeadsTitleAddendum() {
             switch (leadFilter) {
                 case QUALIFIED:
-                    return "Qualified";
+                    return getString(R.string.qualified);
                 case DISQUALIFIED:
-                    return "Disqualified";
+                    return getString(R.string.disqualified);
                 case LAST_THREE_MONTHS:
-                    return "Last 3 months";
+                    return getString(R.string.last_3_months);
                 default:
-                    return "Any";
+                    return getString(R.string.any);
             }
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
-
-            curPageIndex = position;
 
             if (globalTerritory == null) {
                 globalTerritory = MediUser.getMe().getTerritory();
@@ -1101,40 +1051,35 @@ public class Activity_CompanyWideData extends AppCompatActivity {
 
             switch (position) {
                 case LANDING_PAGE:
-                    return "Company-Wide";
+                    return getString(R.string.companywide_page_title);
                 case SALES_PAGE:
-                    String title = "Sales Lines - " + getSalesTimespanTitle();
-                    return title;
+                    return getString(R.string.sales_lines_page_title) + getSalesTimeSpanTitle();
                 case LEADS_PAGE:
-                    return "Leads - " + getLeadsTitleAddendum();
+                    return getString(R.string.leads_page_title) + getLeadsTitleAddendum();
                 case OPPORTUNITIES_PAGE:
-                    return "Opportunities - " + getOpportunityTitleAddendum();
+                    return getString(R.string.opportunities_page_title) + getOpportunityTitleAddendum();
                 case CASES_PAGE:
-                    return "Cases - " + getCaseCriteriaTitleAddendum();
+                    return getString(R.string.cases_page_title) + getCaseCriteriaTitleAddendum();
                 case ACCOUNTS_PAGE:
-                    return "Accounts";
+                    return getString(R.string.accounts_page_title);
                 case SERVICE_AGREEMENTS_PAGE:
                     switch (serviceAgreementFilter) {
                         case CURRENT:
-                            return "Active Service Agreements (" + globalTerritory.territoryName + ")";
+                            return getString(R.string.active_service_agreements_for_territory_page_title, globalTerritory.territoryName);
                         case EXPIRED:
-                            return "Expired Service Agreements (" + globalTerritory.territoryName + ")";
+                            return getString(R.string.expired_service_agreements_for_territory_page_title, globalTerritory.territoryName);
                         case EXPIRING:
-                            return "Expiring Service Agreements (" + globalTerritory.territoryName + ")";
+                            return getString(R.string.expiring_service_agreements_for_territory_page_title, globalTerritory.territoryName);
                     }
             }
             return null;
         }
 
-        /**
-         * Used for the sales lines page.
-         * @return
-         */
-        public String getSalesTimespanTitle() {
+        public String getSalesTimeSpanTitle() {
             if (monthNum == DateTime.now().getMonthOfYear()) {
-                return "This month";
+                return getString(R.string.this_month);
             } else if (monthNum == DateTime.now().minusMonths(1).getMonthOfYear()) {
-                return "Last month";
+                return getString(R.string.last_month);
             } else {
                 return Helpers.DatesAndTimes.getMonthName(monthNum) + yearNum;
             }
@@ -1143,16 +1088,13 @@ public class Activity_CompanyWideData extends AppCompatActivity {
 
     //region ********************************** FRAGS *****************************************
     public static class Frag_LandingPage extends Fragment {
-        public static final String ARG_SECTION_NUMBER = "section_number";
         public View root;
         public RecyclerView recyclerView;
-        RefreshLayout refreshLayout;
         LandingPageRecyclerAdapter adapter;
         RecyclerView listview;
         Territory curTerritory;
         BroadcastReceiver territoryChangedReceiver;
         BroadcastReceiver menuSelectionReceiver;
-        FloatingActionButton fab;
         ArrayList<LandingPageItem> landingPageItems;
 
         @Nullable
@@ -1161,16 +1103,6 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                                  @Nullable Bundle savedInstanceState) {
             root = inflater.inflate(R.layout.frag_dashboard, container, false);
             super.onCreateView(inflater, container, savedInstanceState);
-
-            /*fab = root.findViewById(R.id.floatingActionButton);
-            fab.setVisibility(View.GONE);
-            fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent = new Intent(FAB_CLICKED);
-                    getActivity().sendBroadcast(intent);
-                }
-            });*/
 
             menuSelectionReceiver = new BroadcastReceiver() {
                 @Override
@@ -1205,17 +1137,17 @@ public class Activity_CompanyWideData extends AppCompatActivity {
         @Override
         public void onDestroyView() {
             super.onDestroyView();
-            getActivity().unregisterReceiver(menuSelectionReceiver);
-            getActivity().unregisterReceiver(territoryChangedReceiver);
+            requireActivity().unregisterReceiver(menuSelectionReceiver);
+            requireActivity().unregisterReceiver(territoryChangedReceiver);
             Log.i(TAG, "onPause Unregistered the sales lines receiver");
         }
 
         @Override
         public void onResume() {
-            IntentFilter filter = new IntentFilter(FullscreenActivityChooseTerritory.TERRITORY_RESULT);
+            IntentFilter filter = new IntentFilter(TERRITORY_RESULT);
             filter.addAction(MENU_SELECTION);
-            getActivity().registerReceiver(menuSelectionReceiver, filter);
-            getActivity().registerReceiver(territoryChangedReceiver, new IntentFilter(MENU_SELECTION));
+            requireActivity().registerReceiver(menuSelectionReceiver, filter);
+            requireActivity().registerReceiver(territoryChangedReceiver, new IntentFilter(MENU_SELECTION));
 
             Log.i(TAG, "onResume Registered the sales lines receiver");
             super.onResume();
@@ -1230,29 +1162,26 @@ public class Activity_CompanyWideData extends AppCompatActivity {
         void populateList() {
 
             landingPageItems = new ArrayList<>();
-            landingPageItems.add(new LandingPageItem("Go to sales", Activity_TerritoryData.SectionsPagerAdapter.SALES_PAGE, R.drawable.dollar6, R.drawable.arrow_right2));
-            landingPageItems.add(new LandingPageItem("Go to leads", Activity_TerritoryData.SectionsPagerAdapter.LEADS_PAGE, R.drawable.lead2, R.drawable.arrow_right2));
-            landingPageItems.add(new LandingPageItem("Go to opportunities", Activity_TerritoryData.SectionsPagerAdapter.OPPORTUNITIES_PAGE, R.drawable.opportunity1, R.drawable.arrow_right2));
-            landingPageItems.add(new LandingPageItem("Go to cases", Activity_TerritoryData.SectionsPagerAdapter.CASES_PAGE, R.drawable.ticket1, R.drawable.arrow_right2));
-            landingPageItems.add(new LandingPageItem("Go to accounts", Activity_TerritoryData.SectionsPagerAdapter.ACCOUNTS_PAGE, R.drawable.customer2, R.drawable.arrow_right2));
-            landingPageItems.add(new LandingPageItem("Go to service agreements", Activity_TerritoryData.SectionsPagerAdapter.SERVICE_AGREEMENTS_PAGE, R.drawable.contract32, R.drawable.arrow_right2));
-            landingPageItems.add(new LandingPageItem("Go to territory...", LandingPageItem.CHANGE_TERRITORY_CODE));
+            landingPageItems.add(new LandingPageItem(getString(R.string.go_to_sales), Activity_TerritoryData.SectionsPagerAdapter.SALES_PAGE, R.drawable.dollar6, R.drawable.arrow_right2));
+            landingPageItems.add(new LandingPageItem(getString(R.string.go_to_leads), Activity_TerritoryData.SectionsPagerAdapter.LEADS_PAGE, R.drawable.lead2, R.drawable.arrow_right2));
+            landingPageItems.add(new LandingPageItem(getString(R.string.go_to_opps), Activity_TerritoryData.SectionsPagerAdapter.OPPORTUNITIES_PAGE, R.drawable.opportunity1, R.drawable.arrow_right2));
+            landingPageItems.add(new LandingPageItem(getString(R.string.go_to_cases), Activity_TerritoryData.SectionsPagerAdapter.CASES_PAGE, R.drawable.ticket1, R.drawable.arrow_right2));
+            landingPageItems.add(new LandingPageItem(getString(R.string.go_to_accounts), Activity_TerritoryData.SectionsPagerAdapter.ACCOUNTS_PAGE, R.drawable.customer2, R.drawable.arrow_right2));
+            landingPageItems.add(new LandingPageItem(getString(R.string.go_to_service_agreements), Activity_TerritoryData.SectionsPagerAdapter.SERVICE_AGREEMENTS_PAGE, R.drawable.contract32, R.drawable.arrow_right2));
+            landingPageItems.add(new LandingPageItem(getString(R.string.choose_territory), LandingPageItem.CHANGE_TERRITORY_CODE));
 
             listview = root.findViewById(R.id.recyclerView);
-            adapter = new LandingPageRecyclerAdapter(context, landingPageItems);
-            listview.setLayoutManager(new LinearLayoutManager(context));
+            adapter = new LandingPageRecyclerAdapter(getContext(), landingPageItems);
+            listview.setLayoutManager(new LinearLayoutManager(getContext()));
             listview.setAdapter(adapter);
-            adapter.setClickListener(new LandingPageRecyclerAdapter.ItemClickListener() {
-                @Override
-                public void onItemClick(View view, int position) {
-                    LandingPageItem item = adapter.getItem(position);
-                    if (item.pageIndex == LandingPageItem.CHANGE_TERRITORY_CODE) {
-                        Intent intent = new Intent(context, FullscreenActivityChooseTerritory.class);
-                        intent.putExtra(FullscreenActivityChooseTerritory.CURRENT_TERRITORY, globalTerritory);
-                        startActivityForResult(intent, 0);
-                    } else {
-                        mViewPager.setCurrentItem(item.pageIndex, true);
-                    }
+            adapter.setClickListener((view, position) -> {
+                LandingPageItem item = adapter.getItem(position);
+                if (item.pageIndex == LandingPageItem.CHANGE_TERRITORY_CODE) {
+                    Intent intent = new Intent(getContext(), FullscreenActivityChooseTerritory.class);
+                    intent.putExtra(CURRENT_TERRITORY, globalTerritory);
+                    startActivityForResult(intent, 0);
+                } else {
+                    mViewPager.setCurrentItem(item.pageIndex, true);
                 }
             });
         }
@@ -1260,6 +1189,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
     }
 
     public static class Frag_SalesLines extends Fragment {
+        @NonNls
         public static final String ARG_SECTION_NUMBER = "section_number";
         public View root;
         public RecyclerView recyclerView;
@@ -1270,6 +1200,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
         ArrayList<OrderProduct> allOrders = new ArrayList<>();
         TextView txtNoSales;
         BroadcastReceiver menuSelectionReceiver;
+        BroadcastReceiver volumeButtonClickReceiver;
         FloatingActionButton fab;
 
         @Nullable
@@ -1281,31 +1212,18 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             refreshLayout = root.findViewById(R.id.refreshLayout);
             RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
             refreshLayout.setEnableLoadMore(false);
-            refreshLayout.setOnRefreshListener(new OnRefreshListener() {
-                @Override
-                public void onRefresh(RefreshLayout refreshlayout) {
-                    getSalesLines();
-                }
-            });
-            refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
-                @Override
-                public void onLoadMore(RefreshLayout refreshlayout) {
-                    refreshlayout.finishLoadMore(500/*,false*/);
-                }
-            });
+            refreshLayout.setOnRefreshListener(onRefresh -> getSalesLines());
+            refreshLayout.setOnLoadMoreListener(onLoadMore -> refreshLayout.finishLoadMore(500/*,false*/));
 
-            txtNoSales.setVisibility( (allOrders == null || allOrders.size() == 0) ? View.VISIBLE : View.GONE);
+            txtNoSales.setVisibility((allOrders == null || allOrders.size() == 0) ? View.VISIBLE : View.GONE);
 
             recyclerView = root.findViewById(R.id.orderLinesRecyclerview);
             super.onCreateView(inflater, container, savedInstanceState);
 
             fab = root.findViewById(R.id.floatingActionButton);
-            fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent = new Intent(FAB_CLICKED);
-                    getActivity().sendBroadcast(intent);
-                }
+            fab.setOnClickListener((view) -> {
+                Intent intent = new Intent(FAB_CLICKED);
+                requireActivity().sendBroadcast(intent);
             });
 
             menuSelectionReceiver = new BroadcastReceiver() {
@@ -1333,6 +1251,47 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 }
             };
 
+            // Parent activity will send a broadcast if the user clicks the volume up/down buttons.
+            // We can use this to scroll the listview to the next time span (Today -> This week etc.)
+            volumeButtonClickReceiver = new BroadcastReceiver() {
+
+                final RecyclerView.SmoothScroller smoothScroller = new
+                        MyLinearSmoothScroller(requireContext()) {
+                            @Override
+                            protected int getVerticalSnapPreference() {
+                                return MyLinearSmoothScroller.SNAP_TO_START;
+                            }
+                        };
+
+
+                @Override
+                public void onReceive(Context context, Intent intent) {
+
+                    // Set up a mechanism to scroll the listview to the next category if a volume
+                    // button is pressed.
+                    if (intent != null && intent.hasExtra(VOLUME_CLICKED)) {
+                        if (Objects.requireNonNull(intent.getStringExtra(VOLUME_CLICKED))
+                                .equals(VOLUME_UP_CLICKED)) {
+                            Log.i(TAG, "onReceive | volume up broadcast received");
+                            if (adapter != null && adapter.mData != null && adapter.mData.size() > 0) {
+                                smoothScroller.setTargetPosition(adapter.getPreviousClickableCategoryPosition());
+                            }
+                        } else if (Objects.requireNonNull(intent.getStringExtra(VOLUME_CLICKED))
+                                .equals(VOLUME_DOWN_CLICKED)) {
+                            Log.i(TAG, "onReceive | volume down broadcast received");
+                            if (adapter != null && adapter.mData != null && adapter.mData.size() > 0) {
+                                smoothScroller.setTargetPosition(adapter.getNextClickableCategoryPosition());
+                            }
+                        }
+
+                        try {
+                            // Actually scroll the listview
+                            Objects.requireNonNull(recyclerView.getLayoutManager()).startSmoothScroll(smoothScroller);
+                        } catch (Exception e) { /* do nothing */ }
+                    }
+                }
+            };
+
             return root;
         }
 
@@ -1345,30 +1304,31 @@ public class Activity_CompanyWideData extends AppCompatActivity {
         @Override
         public void onDestroyView() {
             super.onDestroyView();
-            getActivity().unregisterReceiver(menuSelectionReceiver);
-            getActivity().unregisterReceiver(territoryChangedReceiver);
-            Log.i(TAG, "onPause Unregistered the sales lines receiver");
+            requireActivity().unregisterReceiver(menuSelectionReceiver);
+            requireActivity().unregisterReceiver(territoryChangedReceiver);
+            requireActivity().unregisterReceiver(volumeButtonClickReceiver);
+
+            Log.i(TAG, "onDestroyView | Unregistered receivers");
         }
 
         @Override
         public void onResume() {
-            getActivity().registerReceiver(territoryChangedReceiver, new IntentFilter(FullscreenActivityChooseTerritory.TERRITORY_RESULT));
-            getActivity().registerReceiver(menuSelectionReceiver, new IntentFilter(MENU_SELECTION));
-
-            Log.i(TAG, "onResume Registered the sales lines receiver");
+            requireActivity().registerReceiver(territoryChangedReceiver, new IntentFilter(TERRITORY_RESULT));
+            requireActivity().registerReceiver(menuSelectionReceiver, new IntentFilter(MENU_SELECTION));
+            requireActivity().registerReceiver(volumeButtonClickReceiver, new IntentFilter(VOLUME_CLICKED));
+            Log.i(TAG, "onResume | Registered receivers");
             super.onResume();
         }
 
         @Override
         public void onPause() {
-
             super.onPause();
         }
 
         protected void getSalesLines() {
             refreshLayout.autoRefreshAnimationOnly();
 
-            String query = null;
+            String query;
 
             if (monthNum == DateTime.now().getMonthOfYear() && yearNum == DateTime.now().getYear()) {
                 query = CrmQueries.OrderLines.getOrderLines(null,
@@ -1380,7 +1340,8 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 query = CrmQueries.OrderLines.getOrderLines(null, monthNum, yearNum);
             }
 
-            String title = "Sales Lines (" + sectionsPagerAdapter.getSalesTimespanTitle() + ")";
+            String title = getString(R.string.sales_lines_time_span_page_title, sectionsPagerAdapter
+                    .getSalesTimeSpanTitle());
             toolbar.setTitle(title);
             sectionsPagerAdapter.notifyDataSetChanged();
 
@@ -1409,7 +1370,6 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 @Override
                 public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
                     Log.w(TAG, "onFailure: " + error.getLocalizedMessage());
-
                     refreshLayout.finishRefresh();
                 }
             });
@@ -1433,6 +1393,20 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             float lastMonthSubtotal = 0f;
             float olderSubtotal = 0f;
 
+            ArrayList<OrderProduct> todayAggregate = new ArrayList<>();
+            ArrayList<OrderProduct> yesterdayAggregate = new ArrayList<>();
+            ArrayList<OrderProduct> thisWeekAggregate = new ArrayList<>();
+            ArrayList<OrderProduct> thisMonthAggregate = new ArrayList<>();
+            ArrayList<OrderProduct> lastMonthAggregate = new ArrayList<>();
+            ArrayList<OrderProduct> olderAggregate = new ArrayList<>();
+
+            final int TODAY = 1;
+            final int YESTERDAY = 2;
+            final int THISWEEK = 3;
+            final int THISMONTH = 4;
+            final int LASTMONTH = 5;
+            final int OLDER = 6;
+
             Log.i(TAG, "populateTripList: Preparing the dividers and trips...");
             for (int i = 0; i < (allOrders.size()); i++) {
 
@@ -1442,80 +1416,103 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 if (curProduct.orderDate.getDayOfMonth() == DateTime.now().getDayOfMonth() &&
                         curProduct.orderDate.getMonthOfYear() == DateTime.now().getMonthOfYear() &&
                         curProduct.orderDate.getYear() == DateTime.now().getYear()) {
-                    if (addedTodayHeader == false) {
+                    if (!addedTodayHeader) {
                         OrderProduct headerObj = new OrderProduct();
-                        headerObj.isSeparator = true;
-                        headerObj.setTitle("Today");
+                        headerObj.isClickableHeader = true;
+                        headerObj.setTitle(getString(R.string.today));
+                        headerObj.groupid = TODAY;
                         orderList.add(headerObj);
                         addedTodayHeader = true;
                         Log.d(TAG + "populateList", "Added a header object to the array that will eventually be a header childView in the list view named, 'Today' - This will not be added again!");
                     }
                     todaySubtotal += curProduct.extendedAmt;
+                    curProduct.groupid = TODAY;
+                    todayAggregate.add(curProduct);
                     // Order was yesterday
                 } else if (curProduct.orderDate.getDayOfMonth() == DateTime.now().minusDays(1).getDayOfMonth() &&
-                            curProduct.orderDate.getMonthOfYear() == DateTime.now().minusDays(1).getMonthOfYear() &&
-                            curProduct.orderDate.getYear() == DateTime.now().minusDays(1).getYear()) {
-                    if (addedYesterdayHeader == false) {
+                        curProduct.orderDate.getMonthOfYear() == DateTime.now().minusDays(1).getMonthOfYear() &&
+                        curProduct.orderDate.getYear() == DateTime.now().minusDays(1).getYear()) {
+                    if (!addedYesterdayHeader) {
                         OrderProduct headerObj = new OrderProduct();
-                        headerObj.isSeparator = true;
-                        headerObj.setTitle("Yesterday");
+                        headerObj.isClickableHeader = true;
+                        headerObj.setTitle(getString(R.string.yesterday));
+                        headerObj.groupid = YESTERDAY;
                         orderList.add(headerObj);
                         addedYesterdayHeader = true;
-                        Log.d(TAG + "populateList", "Added a header object to the array that will eventually be a header childView in the list view named, 'Yesterday' - This will not be added again!");
+                        Log.d(TAG + "populateList", "Added a header object to the array " +
+                                "that will eventually be a header childView in the list view named," +
+                                " 'Yesterday' - This will not be added again!");
                     }
                     yesterdaySubtotal += curProduct.extendedAmt;
+                    curProduct.groupid = YESTERDAY;
+                    yesterdayAggregate.add(curProduct);
                     // Order was this week
-                }  else if (curProduct.orderDate.getWeekOfWeekyear() == DateTime.now().getWeekOfWeekyear() &&
+                } else if (curProduct.orderDate.getWeekOfWeekyear() == DateTime.now().getWeekOfWeekyear() &&
                         curProduct.orderDate.getMonthOfYear() == DateTime.now().getMonthOfYear() &&
                         curProduct.orderDate.getYear() == DateTime.now().getYear()) {
-                    if (addedThisWeekHeader == false) {
+                    if (!addedThisWeekHeader) {
                         OrderProduct headerObj = new OrderProduct();
-                        headerObj.isSeparator = true;
-                        headerObj.setTitle("This week");
+                        headerObj.isClickableHeader = true;
+                        headerObj.setTitle(getString(R.string.this_week));
+                        headerObj.groupid = THISWEEK;
                         orderList.add(headerObj);
                         addedThisWeekHeader = true;
                         Log.d(TAG + "populateList", "Added a header object to the array that will eventually be a header childView in the list view named, 'This week' - This will not be added again!");
                     }
                     thisWeekSubtotal += curProduct.extendedAmt;
+                    curProduct.groupid = THISWEEK;
+                    thisWeekAggregate.add(curProduct);
                     // Order was this month
                 } else if (curProduct.orderDate.getMonthOfYear() == DateTime.now().getMonthOfYear() &&
-                            curProduct.orderDate.getYear() == DateTime.now().getYear()) {
-                    if (addedThisMonthHeader == false) {
+                        curProduct.orderDate.getYear() == DateTime.now().getYear()) {
+                    if (!addedThisMonthHeader) {
                         OrderProduct headerObj = new OrderProduct();
-                        headerObj.isSeparator = true;
-                        headerObj.setTitle("This month");
+                        headerObj.isClickableHeader = true;
+                        headerObj.setTitle(getString(R.string.this_month));
+                        headerObj.groupid = THISMONTH;
                         orderList.add(headerObj);
                         addedThisMonthHeader = true;
                         Log.d(TAG + "populateList", "Added a header object to the array that will eventually be a header childView in the list view named, 'This month' - This will not be added again!");
                     }
                     thisMonthSubtotal += curProduct.extendedAmt;
+                    curProduct.groupid = THISMONTH;
+                    thisMonthAggregate.add(curProduct);
                     // Order was last month
                 } else if (curProduct.orderDate.getMonthOfYear() == DateTime.now().minusMonths(1).getMonthOfYear() &&
-                            curProduct.orderDate.getYear() == DateTime.now().minusMonths(1).getYear()) {
-                    if (addedLastMonthHeader == false) {
+                        curProduct.orderDate.getYear() == DateTime.now().minusMonths(1).getYear()) {
+                    if (!addedLastMonthHeader) {
                         OrderProduct headerObj = new OrderProduct();
-                        headerObj.isSeparator = true;
-                        headerObj.setTitle("Last month");
+                        headerObj.isClickableHeader = true;
+                        headerObj.setTitle(getString(R.string.last_month));
+                        headerObj.groupid = LASTMONTH;
                         orderList.add(headerObj);
                         addedLastMonthHeader = true;
                         Log.d(TAG + "populateList", "Added a header object to the array that will eventually be a header childView in the list view named, 'Last month' - This will not be added again!");
                     }
                     lastMonthSubtotal += curProduct.extendedAmt;
+                    curProduct.groupid = LASTMONTH;
+                    lastMonthAggregate.add(curProduct);
                     // Order was older than 2 months.
                 } else {
-                    if (addedOlderHeader == false) {
+                    if (!addedOlderHeader) {
                         OrderProduct headerObj = new OrderProduct();
-                        headerObj.isSeparator = true;
-                        headerObj.setTitle("Total");
+                        headerObj.isClickableHeader = true;
+                        headerObj.setTitle(getString(R.string.total));
+                        headerObj.groupid = OLDER;
                         orderList.add(headerObj);
                         addedOlderHeader = true;
-                        Log.d(TAG + "populateList", "Added a header object to the array that will eventually be a header childView in the list view named, 'Older' - This will not be added again!");
+                        Log.d(TAG + "populateList", "Added a header object to the array " +
+                                "that will eventually be a header childView in the list view named, " +
+                                "'Older' - This will not be added again!");
                     }
                     olderSubtotal += curProduct.extendedAmt;
+                    curProduct.groupid = OLDER;
+                    olderAggregate.add(curProduct);
                 }
 
-                OrderProduct orderProduct = allOrders.get(i);
-                orderList.add(orderProduct);
+                // This seems unnecessary... commenting it out
+                // OrderProduct orderProduct = allOrders.get(i);
+                orderList.add(curProduct);
             }
 
             // Sum today, yesterday, this week, etc.
@@ -1526,75 +1523,88 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             // Append the subtotals to the headers
             for (OrderProducts.OrderProduct product : orderList) {
                 if (todaySubtotal > 0) {
-                    if (product.isSeparator && product.partNumber.equals("Today")) {
+                    if (product.isHeader && product.partNumber.equals(getString(R.string.today))) {
                         product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(todaySubtotal) + ")";
                     }
                 }
                 if (yesterdaySubtotal > 0) {
-                    if (product.isSeparator && product.partNumber.equals("Yesterday")) {
+                    if (product.isHeader && product.partNumber.equals(getString(R.string.yesterday))) {
                         product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(yesterdaySubtotal) + ")";
                     }
                 }
                 if (yesterdaySubtotal > 0) {
-                    if (product.isSeparator && product.partNumber.equals("This week")) {
+                    if (product.isHeader && product.partNumber.equals(getString(R.string.this_week))) {
                         product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(thisWeekSubtotal) + ")";
                     }
                 }
                 if (thisMonthSubtotal > 0) {
-                    if (product.isSeparator && product.partNumber.equals("This month")) {
+                    if (product.isHeader && product.partNumber.equals(getString(R.string.this_month))) {
                         product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(thisMonthSubtotal) + ")";
                     }
                 }
                 if (lastMonthSubtotal > 0) {
-                    if (product.isSeparator && product.partNumber.equals("Last month")) {
+                    if (product.isHeader && product.partNumber.equals(getString(R.string.last_month))) {
                         product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(lastMonthSubtotal) + ")";
                     }
                 }
                 if (olderSubtotal > 0) {
-                    if (product.isSeparator && product.partNumber.equals("Total")) {
+                    if (product.isHeader && product.partNumber.equals(getString(R.string.total))) {
                         product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(olderSubtotal) + ")";
                     }
                 }
             }
 
-
             Log.i(TAG, "populateTripList Finished preparing the dividers and trips.");
 
-            if (!getActivity().isFinishing()) {
+            if (!requireActivity().isFinishing()) {
                 adapter = new OrderLineRecyclerAdapter(getContext(), orderList);
-                adapter.setOnRowClickListener(new OrderLineRecyclerAdapter.RowClickListener() {
-                    @Override
-                    public void onItemClick(View view, int position) {
-                        Log.i(TAG, "onItemClick ");
-                        Log.i(TAG, "onLinkButtonClick ");
-                        CrmEntities.Accounts.Account selectedAccount = new CrmEntities.Accounts.Account(
-                                adapter.mData.get(position).customerid, adapter.mData.get(position).customeridFormatted);
-                        Intent intent = new Intent(context, Activity_AccountData.class);
-                        intent.setAction(Activity_AccountData.GO_TO_ACCOUNT);
-                        intent.putExtra(Activity_AccountData.GO_TO_ACCOUNT_OBJECT, selectedAccount);
-                        intent.putExtra(Activity_AccountData.INITIAL_PAGE, Activity_AccountData.SectionsPagerAdapter.SALES_LINE_PAGE);
-                        startActivity(intent);
+                adapter.setOnRowClickListener((view, position) -> {
+                    OrderProduct orderProduct = adapter.mData.get(position);
+                    if (orderProduct.isClickableHeader) {
+
+                        AggregatedSales aggregatedSales = null;
+
+                        switch (orderProduct.groupid) {
+                            case TODAY:
+                                aggregatedSales = new AggregatedSales(todayAggregate);
+                                break;
+                            case YESTERDAY:
+                                aggregatedSales = new AggregatedSales(yesterdayAggregate);
+                                break;
+                            case THISWEEK:
+                                aggregatedSales = new AggregatedSales(thisWeekAggregate);
+                                break;
+                            case THISMONTH:
+                                aggregatedSales = new AggregatedSales(thisMonthAggregate);
+                                break;
+                            case LASTMONTH:
+                                aggregatedSales = new AggregatedSales(lastMonthAggregate);
+                                break;
+                            case OLDER:
+                                aggregatedSales = new AggregatedSales(olderAggregate);
+                                break;
+                        }
+
+                        if (aggregatedSales != null) {
+                            getSummary(aggregatedSales);
+                        } else {
+                            Toast.makeText(getContext(), getString(R.string
+                                    .failed_to_create_summary), Toast.LENGTH_SHORT).show();
+                        }
+
                     }
                 });
-                adapter.setOnLinkButtonClickListener(new OrderLineRecyclerAdapter.OnLinkButtonClickListener() {
-                    @Override
-                    public void onLinkButtonClick(View view, int position) {
-                        Log.i(TAG, "onLinkButtonClick ");
-                        CrmEntities.Accounts.Account selectedAccount = new CrmEntities.Accounts.Account(
-                                adapter.mData.get(position).customerid, adapter.mData.get(position).customeridFormatted);
-                        Intent intent = new Intent(context, Activity_AccountData.class);
-                        intent.setAction(Activity_AccountData.GO_TO_ACCOUNT);
-                        intent.putExtra(Activity_AccountData.GO_TO_ACCOUNT_OBJECT, selectedAccount);
-                        intent.putExtra(Activity_AccountData.INITIAL_PAGE, Activity_AccountData.SectionsPagerAdapter.SALES_LINE_PAGE);
-                        startActivity(intent);
-                    }
+                adapter.setOnLinkButtonClickListener((view, position) -> {
+                    Log.i(TAG, "onLinkButtonClick ");
+                    CrmEntities.Accounts.Account selectedAccount = new CrmEntities.Accounts.Account(
+                            adapter.mData.get(position).customerid, adapter.mData.get(position).customeridFormatted);
+                    Intent intent = new Intent(getContext(), Activity_AccountData.class);
+                    intent.setAction(Activity_AccountData.GO_TO_ACCOUNT);
+                    intent.putExtra(Activity_AccountData.GO_TO_ACCOUNT_OBJECT, selectedAccount);
+                    intent.putExtra(Activity_AccountData.INITIAL_PAGE, Activity_AccountData.SectionsPagerAdapter.SALES_LINE_PAGE);
+                    startActivity(intent);
                 });
-                adapter.setOnRowLongClickListener(new OrderLineRecyclerAdapter.RowLongClickListener() {
-                    @Override
-                    public void onItemLongClick(View view, int position) {
-                        Log.i(TAG, "onItemLongClick ");
-                    }
-                });
+                adapter.setOnRowLongClickListener((view, position) -> {});
                 recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
                 recyclerView.setAdapter(adapter);
 
@@ -1603,17 +1613,30 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 Log.w(TAG, "populateList: CAN'T POPULATE AS THE ACTIVITY IS FINISHING!!!");
             }
 
-            txtNoSales.setVisibility( (allOrders == null || allOrders.size() == 0) ? View.VISIBLE : View.GONE);
+            txtNoSales.setVisibility((allOrders == null || allOrders.size() == 0) ? View.VISIBLE : View.GONE);
+
+        }
+
+        protected void getSummary(AggregatedSales totals) {
+
+            if (allOrders == null || allOrders.size() == 0) {
+                getSalesLines();
+                Toast.makeText(getContext(), getString(R.string.toast_getting_sales_data), Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Intent intent = new Intent(getContext(), AggregateSalesActivity.class);
+            intent.putExtra(AggregateSalesActivity.AGGREGATED_TOTALS, totals);
+            startActivity(intent);
+
         }
     }
 
     public static class Frag_Leads extends Fragment {
-        public static final String ARG_SECTION_NUMBER = "section_number";
         public View rootView;
         public RecyclerView listview;
         RefreshLayout refreshLayout;
         TextView txtNoLeads;
-        public ArrayList<Territory> cachedTerritories;
         public Territory curTerritory;
         public CrmEntities.Leads leads;
         ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
@@ -1629,24 +1652,16 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             listview = rootView.findViewById(R.id.leadsRecyclerview);
             refreshLayout = rootView.findViewById(R.id.refreshLayout);
             txtNoLeads = rootView.findViewById(R.id.txtNoLeads);
-            refreshLayout.setOnRefreshListener(new OnRefreshListener() {
-                @Override
-                public void onRefresh(@NonNull RefreshLayout refreshLayout) {
-                    getLeads();
-                }
-            });
+            refreshLayout.setOnRefreshListener(refreshLayout -> getLeads());
 
             refreshLayout.setEnableLoadMore(false);
             super.onCreateView(inflater, container, savedInstanceState);
 
             fab = rootView.findViewById(R.id.floatingActionButton);
             fab.setVisibility(View.VISIBLE); // Nothing to filter (yet) so hide.
-            fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent = new Intent(FAB_CLICKED);
-                    getActivity().sendBroadcast(intent);
-                }
+            fab.setOnClickListener((view) -> {
+                Intent intent = new Intent(FAB_CLICKED);
+                requireActivity().sendBroadcast(intent);
             });
 
             // Gifts from Santa - open present and do stuff with what we got!
@@ -1657,7 +1672,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
 
                     // User made an options menu selection - receive the details of that choice
                     // via the broadcast sent by the parent activity.
-                    if (intent.getAction().equals(MENU_SELECTION)) {
+                    if (Objects.requireNonNull(intent.getAction()).equals(MENU_SELECTION)) {
                         getLeads();
                     }
                 }
@@ -1694,8 +1709,8 @@ public class Activity_CompanyWideData extends AppCompatActivity {
 
         @Override
         public void onDestroyView() {
-            getActivity().unregisterReceiver(leadsReceiver);
-            getActivity().unregisterReceiver(territoryChangedReceiver);
+            requireActivity().unregisterReceiver(leadsReceiver);
+            requireActivity().unregisterReceiver(territoryChangedReceiver);
             super.onDestroyView();
         }
 
@@ -1703,14 +1718,14 @@ public class Activity_CompanyWideData extends AppCompatActivity {
         public void onResume() {
             super.onResume();
             IntentFilter intentFilterMenuSelection = new IntentFilter(MENU_SELECTION);
-            getActivity().registerReceiver(leadsReceiver, intentFilterMenuSelection);
-            getActivity().registerReceiver(territoryChangedReceiver, new IntentFilter(MENU_SELECTION));
+            requireActivity().registerReceiver(leadsReceiver, intentFilterMenuSelection);
+            requireActivity().registerReceiver(territoryChangedReceiver, new IntentFilter(MENU_SELECTION));
             Log.i(TAG, "onResume Registered opportunities receiver");
         }
 
         public void getLeads() {
             refreshLayout.autoRefreshAnimationOnly();
-            CrmEntities.Leads.getAllLeads(context, leadFilter, new MyInterfaces.GetLeadsListener() {
+            CrmEntities.Leads.getAllLeads(getContext(), leadFilter, new MyInterfaces.GetLeadsListener() {
                 @Override
                 public void onSuccess(CrmEntities.Leads crmLeads) {
                     Log.i(TAG, "onSuccess ");
@@ -1726,40 +1741,29 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 @Override
                 public void onFailure(String error) {
                     refreshLayout.finishRefresh();
-                    Toast.makeText(context, "Failed to get opportunities!\n" + error, Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), getString(R.string.toast_failed_to_get_opportunities) + error, Toast.LENGTH_LONG).show();
                 }
             });
         }
 
         void populateList() {
-            adapter = new BasicObjectRecyclerAdapter(context, objects);
-            listview.setLayoutManager(new LinearLayoutManager(context));
+            adapter = new BasicObjectRecyclerAdapter(getContext(), objects);
+            listview.setLayoutManager(new LinearLayoutManager(getContext()));
             listview.setAdapter(adapter);
-            adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
-                @Override
-                public void onItemClick(View view, int position) {
-                    CrmEntities.Leads.Lead selectedLead =
-                            (CrmEntities.Leads.Lead) objects.get(position).object;
-
-                    ContactActions actions = new ContactActions(activity, selectedLead);
-                    actions.showContactOptions();
-
-                    /*Intent intent = new Intent(context, BasicEntityActivity.class);
-                    intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Lead Details");
-                    intent.putExtra(BasicEntityActivity.ENTITYID, selectedLead.leadid);
-                    intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "lead");
-                    intent.putExtra(BasicEntityActivity.GSON_STRING, selectedLead.toBasicEntity().toGson());
-                    startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);*/
-                }
+            adapter.setClickListener((view, position) -> {
+                CrmEntities.Leads.Lead selectedLead =
+                        (CrmEntities.Leads.Lead) objects.get(position).object;
+                ContactActions actions = new ContactActions(getActivity(), selectedLead);
+                actions.showContactOptions(); 
             });
 
-            txtNoLeads.setVisibility( (leads == null || leads.list.size() == 0) ? View.VISIBLE : View.GONE );
+            txtNoLeads.setVisibility((leads == null || leads.list.size() == 0) ? View.VISIBLE : View.GONE);
 
         }
 
-        void showOpportunityOptions(final CrmEntities.Opportunities.Opportunity opportunity) {
+        void showOpportunityOptions(final Opportunities.Opportunity opportunity) {
 
-            final Dialog dialog = new Dialog(context);
+            final Dialog dialog = new Dialog(requireContext());
             dialog.setContentView(R.layout.dialog_opportunity_options);
 
             // Fields
@@ -1786,7 +1790,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             txtDealType.setText(opportunity.dealTypePretty);
             txtCloseProb.setText(opportunity.probabilityPretty);
 
-            String bgTruncated = "";
+            String bgTruncated;
             if (opportunity.currentSituation != null && opportunity.currentSituation.length() > 125) {
                 bgTruncated = opportunity.currentSituation.substring(0, 125) + "...\n";
             } else {
@@ -1797,39 +1801,32 @@ public class Activity_CompanyWideData extends AppCompatActivity {
 
             Button btnQuickNote;
             btnQuickNote = dialog.findViewById(R.id.btn_add_quick_note);
-            btnQuickNote.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    dialog.dismiss();
-                    showAddNoteDialog(opportunity);
-                }
+            btnQuickNote.setOnClickListener(view -> {
+                dialog.dismiss();
+                showAddNoteDialog(opportunity);
             });
 
-            Button btnViewOpportunity;
-            btnViewOpportunity = dialog.findViewById(R.id.btn_view_opportunity);
-            btnViewOpportunity.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent = new Intent(context, OpportunityActivity.class);
-                    intent.putExtra(OpportunityActivity.OPPORTUNITY_TAG, opportunity);
-                    startActivity(intent);
-                    dialog.dismiss();
-                }
+            Button btnViewOpportunity = dialog.findViewById(R.id.btn_view_opportunity);
+            btnViewOpportunity.setOnClickListener(view -> {
+                Intent intent = new Intent(getContext(), OpportunityActivity.class);
+                intent.putExtra(OpportunityActivity.OPPORTUNITY_TAG, opportunity);
+                startActivity(intent);
+                dialog.dismiss();
             });
 
             dialog.setCancelable(true);
-            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            Objects.requireNonNull(dialog.getWindow()).setBackgroundDrawableResource(android.R.color.transparent);
             dialog.show();
         }
 
-        void showAddNoteDialog(final CrmEntities.Opportunities.Opportunity opportunity) {
-            CrmEntities.Annotations.showAddNoteDialog(context, opportunity.entityid, new MyInterfaces.CrmRequestListener() {
+        void showAddNoteDialog(final Opportunities.Opportunity opportunity) {
+            CrmEntities.Annotations.showAddNoteDialog(getContext(), opportunity.entityid, new MyInterfaces.CrmRequestListener() {
                 @Override
                 public void onComplete(Object result) {
                     Log.i(TAG, "onComplete ");
-                    final Helpers.Notifications notifications = new Helpers.Notifications(context);
-                    notifications.create("Opportunity note created",
-                            "Your note was added to the opportunity!", false);
+                    final Helpers.Notifications notifications = new Helpers.Notifications(requireContext());
+                    notifications.create(getString(R.string.notification_title_opp_note_created),
+                            getString(R.string.notification_body_note_added), false);
                     notifications.show();
                     notifications.setAutoCancel(6000);
                 }
@@ -1850,13 +1847,14 @@ public class Activity_CompanyWideData extends AppCompatActivity {
     }
 
     public static class Frag_Opportunities extends Fragment {
+        @NonNls
         public static final String ARG_SECTION_NUMBER = "section_number";
         public View rootView;
         public RecyclerView listview;
         RefreshLayout refreshLayout;
         TextView txtNoOpportunities;
         public Territory curTerritory;
-        public CrmEntities.Opportunities opportunities;
+        public Opportunities opportunities;
         ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
         BasicObjectRecyclerAdapter adapter;
         BroadcastReceiver menuReceiver;
@@ -1876,7 +1874,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     getOpportunities();
-                    mViewPager.getAdapter().notifyDataSetChanged();
+                    Objects.requireNonNull(mViewPager.getAdapter()).notifyDataSetChanged();
                 }
             };
 
@@ -1887,7 +1885,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             if (globalTerritory != curTerritory) {
                 curTerritory = globalTerritory;
                 getOpportunities();
-            }  else {
+            } else {
                 if (opportunities != null) {
                     populateList();
                 }
@@ -1897,12 +1895,9 @@ public class Activity_CompanyWideData extends AppCompatActivity {
 
             fab = rootView.findViewById(R.id.floatingActionButton);
             fab.setVisibility(View.VISIBLE); // Nothing to filter (yet) so hide.
-            fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent = new Intent(FAB_CLICKED);
-                    getActivity().sendBroadcast(intent);
-                }
+            fab.setOnClickListener((view) -> {
+                Intent intent = new Intent(FAB_CLICKED);
+                requireActivity().sendBroadcast(intent);
             });
 
             return rootView;
@@ -1917,7 +1912,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
 
         @Override
         public void onDestroyView() {
-            getActivity().unregisterReceiver(menuReceiver);
+            requireActivity().unregisterReceiver(menuReceiver);
             super.onDestroyView();
         }
 
@@ -1925,15 +1920,15 @@ public class Activity_CompanyWideData extends AppCompatActivity {
         public void onResume() {
             super.onResume();
             IntentFilter intentFilterMenuSelection = new IntentFilter(MENU_SELECTION);
-            getActivity().registerReceiver(menuReceiver, intentFilterMenuSelection);
+            requireActivity().registerReceiver(menuReceiver, intentFilterMenuSelection);
             Log.i(TAG, "onResume Registered opportunities receiver");
         }
 
         public void getOpportunities() {
             refreshLayout.autoRefresh();
-            CrmEntities.Opportunities.retrieveOpportunities(dealStatus, null, new MyInterfaces.GetOpportunitiesListener() {
+            Opportunities.retrieveOpportunities(dealStatus, null, new MyInterfaces.GetOpportunitiesListener() {
                 @Override
-                public void onSuccess(CrmEntities.Opportunities crmOpportunities) {
+                public void onSuccess(Opportunities crmOpportunities) {
                     opportunities = crmOpportunities;
                     populateList();
                     refreshLayout.finishRefresh();
@@ -1942,15 +1937,17 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 @Override
                 public void onFailure(String error) {
                     refreshLayout.finishRefresh();
-                    Toast.makeText(context, "Failed to get opportunities!\n" + error, Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), getString(R.string.toast_failed_to_get_opportunities) 
+                            + error, Toast.LENGTH_LONG).show();
                 }
             });
         }
 
         void populateList() {
             objects = new ArrayList<>();
-            for (CrmEntities.Opportunities.Opportunity opp : opportunities.list) {
-                BasicObjects.BasicObject object = new BasicObjects.BasicObject(opp.name, opp.getDealTypePretty() + "\nCreated on " + opp.createdOnFormatted, opp);
+            for (Opportunities.Opportunity opp : opportunities.list) {
+                BasicObjects.BasicObject object = new BasicObjects.BasicObject(opp.name, opp
+                        .getDealTypePretty() + getString(R.string.created_on) + opp.createdOnFormatted, opp);
                 object.middleText = opp.accountname;
                 object.topRightText = opp.probabilityPretty;
                 object.iconResource = R.drawable.opportunity1;
@@ -1958,37 +1955,34 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 objects.add(object);
             }
 
-            adapter = new BasicObjectRecyclerAdapter(context, objects);
-            listview.setLayoutManager(new LinearLayoutManager(context));
+            adapter = new BasicObjectRecyclerAdapter(getContext(), objects);
+            listview.setLayoutManager(new LinearLayoutManager(getContext()));
             listview.setAdapter(adapter);
-            adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
-                @Override
-                public void onItemClick(View view, int position) {
-                    CrmEntities.Opportunities.Opportunity selectedOpportunity =
-                            (CrmEntities.Opportunities.Opportunity) objects.get(position).object;
+            adapter.setClickListener(((view, position) -> {
+                Opportunities.Opportunity selectedOpportunity =
+                        (Opportunities.Opportunity) objects.get(position).object;
 
-                    Intent intent = new Intent(context, BasicEntityActivity.class);
-                    intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Opportunity Details");
-                    intent.putExtra(BasicEntityActivity.ENTITYID, selectedOpportunity.entityid);
-                    intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "opportunity");
-                    intent.putExtra(BasicEntityActivity.GSON_STRING, selectedOpportunity.toBasicEntity().toGson());
-                    startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
+                Intent intent = new Intent(getContext(), BasicEntityActivity.class);
+                intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, getString(R.string.opp_details));
+                intent.putExtra(BasicEntityActivity.ENTITYID, selectedOpportunity.entityid);
+                intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "opportunity");
+                intent.putExtra(BasicEntityActivity.GSON_STRING, selectedOpportunity.toBasicEntity().toGson());
+                startActivityForResult(intent, BasicEntityActivity.REQUEST_BASIC);
 
-                    try {
-                        MileBuddyMetrics.updateMetric(context, MileBuddyMetrics.MetricName.LAST_OPENED_OPPORTUNITY, DateTime.now());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                try {
+                    MileBuddyMetrics.updateMetric(getContext(), MileBuddyMetrics.MetricName.LAST_OPENED_OPPORTUNITY, DateTime.now());
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            });
+            }));
 
-            txtNoOpportunities.setVisibility( (opportunities == null || opportunities.list.size() == 0) ? View.VISIBLE : View.GONE );
+            txtNoOpportunities.setVisibility((opportunities == null || opportunities.list.size() == 0) ? View.VISIBLE : View.GONE);
 
         }
 
-        void showOpportunityOptions(final CrmEntities.Opportunities.Opportunity opportunity) {
+        void showOpportunityOptions(final Opportunities.Opportunity opportunity) {
 
-            final Dialog dialog = new Dialog(context);
+            final Dialog dialog = new Dialog(requireContext());
             dialog.setContentView(R.layout.dialog_opportunity_options);
 
             // Fields
@@ -2015,7 +2009,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             txtDealType.setText(opportunity.dealTypePretty);
             txtCloseProb.setText(opportunity.probabilityPretty);
 
-            String bgTruncated = "";
+            String bgTruncated;
             if (opportunity.currentSituation != null && opportunity.currentSituation.length() > 125) {
                 bgTruncated = opportunity.currentSituation.substring(0, 125) + "...\n";
             } else {
@@ -2039,7 +2033,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             btnViewOpportunity.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Intent intent = new Intent(context, OpportunityActivity.class);
+                    Intent intent = new Intent(getContext(), OpportunityActivity.class);
                     intent.putExtra(OpportunityActivity.OPPORTUNITY_TAG, opportunity);
                     startActivity(intent);
                     dialog.dismiss();
@@ -2051,12 +2045,12 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             dialog.show();
         }
 
-        void showAddNoteDialog(final CrmEntities.Opportunities.Opportunity opportunity) {
-            CrmEntities.Annotations.showAddNoteDialog(context, opportunity.entityid, new MyInterfaces.CrmRequestListener() {
+        void showAddNoteDialog(final Opportunities.Opportunity opportunity) {
+            CrmEntities.Annotations.showAddNoteDialog(getContext(), opportunity.entityid, new MyInterfaces.CrmRequestListener() {
                 @Override
                 public void onComplete(Object result) {
                     Log.i(TAG, "onComplete ");
-                    final Helpers.Notifications notifications = new Helpers.Notifications(context);
+                    final Helpers.Notifications notifications = new Helpers.Notifications(getContext());
                     notifications.create("Opportunity note created",
                             "Your note was added to the opportunity!", false);
                     notifications.show();
@@ -2079,13 +2073,14 @@ public class Activity_CompanyWideData extends AppCompatActivity {
     }
 
     public static class Frag_Cases extends Fragment {
+        @NonNls
         public static final String ARG_SECTION_NUMBER = "section_number";
         public View rootView;
         public RecyclerView listview;
         RefreshLayout refreshLayout;
         BroadcastReceiver casesReceiver;
         Territory curTerritory;
-        CrmEntities.Tickets tickets;
+        Tickets tickets;
         ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
         BasicObjectRecyclerAdapter adapter;
         BroadcastReceiver territoryChangeReceiver;
@@ -2139,7 +2134,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             territoryChangeReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    if (intent.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT) != null) {
+                    if (intent.getParcelableExtra(TERRITORY_RESULT) != null) {
                         curTerritory = globalTerritory;
                         getTickets();
                     }
@@ -2164,12 +2159,12 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
 
             Crm crm = new Crm();
-            crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+            crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                     String response = new String(responseBody);
                     Log.i(TAG, "onSuccess " + response);
-                    tickets = new CrmEntities.Tickets(response);
+                    tickets = new Tickets(response);
                     populateList();
                 }
 
@@ -2187,15 +2182,15 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             if (tickets != null) {
                 objects = tickets.toBasicObjects();
 
-                adapter = new BasicObjectRecyclerAdapter(context, objects);
-                listview.setLayoutManager(new LinearLayoutManager(context));
+                adapter = new BasicObjectRecyclerAdapter(getContext(), objects);
+                listview.setLayoutManager(new LinearLayoutManager(getContext()));
                 listview.setAdapter(adapter);
                 adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
                     @Override
                     public void onItemClick(View view, int position) {
                         BasicObjects.BasicObject object = objects.get(position);
-                        CrmEntities.Tickets.Ticket ticket = (CrmEntities.Tickets.Ticket) object.object;
-                        Intent intent = new Intent(context, BasicEntityActivity.class);
+                        Tickets.Ticket ticket = (Tickets.Ticket) object.object;
+                        Intent intent = new Intent(getContext(), BasicEntityActivity.class);
                         intent.putExtra(BasicEntityActivity.GSON_STRING, ticket.toBasicEntity().toGson());
                         intent.putExtra(BasicEntityActivity.ENTITYID, ticket.entityid);
                         intent.putExtra(BasicEntityActivity.CURRENT_TERRITORY, globalTerritory);
@@ -2204,7 +2199,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                         startActivityForResult(intent, REQUEST_BASIC);
 
                         try {
-                            MileBuddyMetrics.updateMetric(context, MileBuddyMetrics.MetricName.LAST_OPENED_TICKET, DateTime.now());
+                            MileBuddyMetrics.updateMetric(getContext(), MileBuddyMetrics.MetricName.LAST_OPENED_TICKET, DateTime.now());
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -2246,6 +2241,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
     }
 
     public static class Frag_Accounts extends Fragment {
+        @NonNls
         public static final String ARG_SECTION_NUMBER = "section_number";
         public View rootView;
         public RecyclerView listview;
@@ -2301,7 +2297,8 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             txtFilter = rootView.findViewById(R.id.edittextFilter);
             txtFilter.addTextChangedListener(new TextWatcher() {
                 @Override
-                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                }
 
                 @Override
                 public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -2355,7 +2352,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             territoryChangedReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    if (intent.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT) != null) {
+                    if (intent.getParcelableExtra(TERRITORY_RESULT) != null) {
                         curTerritory = globalTerritory;
                     }
                 }
@@ -2392,7 +2389,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
 
             Crm crm = new Crm();
-            crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+            crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                     String response = new String(responseBody);
@@ -2431,8 +2428,8 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 }
             }
 
-            adapter = new BasicObjectRecyclerAdapter(context, objects);
-            listview.setLayoutManager(new LinearLayoutManager(context));
+            adapter = new BasicObjectRecyclerAdapter(getContext(), objects);
+            listview.setLayoutManager(new LinearLayoutManager(getContext()));
             listview.setAdapter(adapter);
             adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
                 @Override
@@ -2440,7 +2437,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                     BasicObjects.BasicObject object = objects.get(position);
                     CrmEntities.Accounts.Account account = (CrmEntities.Accounts.Account) object.object;
 
-                    Intent intent = new Intent(context, Activity_AccountData.class);
+                    Intent intent = new Intent(getContext(), Activity_AccountData.class);
                     intent.setAction(Activity_AccountData.GO_TO_ACCOUNT);
                     intent.putExtra(Activity_AccountData.GO_TO_ACCOUNT_OBJECT, account);
                     startActivity(intent);
@@ -2454,7 +2451,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 layoutFilter.setEnabled(true);
                 txtFilter.setEnabled(true);
                 if (mViewPager.getCurrentItem() == SectionsPagerAdapter.ACCOUNTS_PAGE) {
-                    Helpers.Application.showKeyboard(txtFilter, context);
+                    Helpers.Application.showKeyboard(txtFilter, getContext());
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -2467,8 +2464,8 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             super.onResume();
             IntentFilter filter = new IntentFilter(MENU_SELECTION);
             filter.addAction(MENU_SELECTION);
-            getActivity().registerReceiver(accountsReceiver, filter);
-            getActivity().registerReceiver(territoryChangedReceiver, new IntentFilter(MENU_SELECTION));
+            requireActivity().registerReceiver(accountsReceiver, filter);
+            requireActivity().registerReceiver(territoryChangedReceiver, new IntentFilter(MENU_SELECTION));
             Log.i(TAG, "onResume Registered the cases receiver");
         }
 
@@ -2480,13 +2477,14 @@ public class Activity_CompanyWideData extends AppCompatActivity {
         @Override
         public void onDestroyView() {
             super.onDestroyView();
-            getActivity().unregisterReceiver(accountsReceiver);
-            getActivity().unregisterReceiver(territoryChangedReceiver);
+            requireActivity().unregisterReceiver(accountsReceiver);
+            requireActivity().unregisterReceiver(territoryChangedReceiver);
             Log.i(TAG, "onPause Unregistered the cases receiver");
         }
     }
 
     public static class Frag_ServiceAgreements extends Fragment {
+        @NonNls
         public static final String ARG_SECTION_NUMBER = "section_number";
         public View rootView;
         public RecyclerView listview;
@@ -2512,7 +2510,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 @Override
                 public void onClick(View view) {
                     Intent intent = new Intent(FAB_CLICKED);
-                    getActivity().sendBroadcast(intent);
+                    requireActivity().sendBroadcast(intent);
                 }
             });
             refreshLayout.setOnRefreshListener(new OnRefreshListener() {
@@ -2535,7 +2533,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             territoryChangedReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    if (intent.getParcelableExtra(FullscreenActivityChooseTerritory.TERRITORY_RESULT) != null) {
+                    if (intent.getParcelableExtra(TERRITORY_RESULT) != null) {
                         curTerritory = globalTerritory;
                     }
                 }
@@ -2574,7 +2572,7 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             Requests.Request request = new Requests.Request(Requests.Request.Function.GET, args);
 
             Crm crm = new Crm();
-            crm.makeCrmRequest(context, request, new AsyncHttpResponseHandler() {
+            crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                     String response = new String(responseBody);
@@ -2609,15 +2607,15 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 }
             }
 
-            adapter = new BasicObjectRecyclerAdapter(context, objects);
-            listview.setLayoutManager(new LinearLayoutManager(context));
+            adapter = new BasicObjectRecyclerAdapter(getContext(), objects);
+            listview.setLayoutManager(new LinearLayoutManager(getContext()));
             listview.setAdapter(adapter);
             adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
                 @Override
                 public void onItemClick(View view, int position) {
                     BasicObjects.BasicObject object = objects.get(position);
                     CrmEntities.ServiceAgreements.ServiceAgreement agreement = (CrmEntities.ServiceAgreements.ServiceAgreement) object.object;
-                    Intent intent = new Intent(context, BasicEntityActivity.class);
+                    Intent intent = new Intent(getContext(), BasicEntityActivity.class);
                     intent.putExtra(BasicEntityActivity.GSON_STRING, agreement.toBasicEntity().toGson());
                     intent.putExtra(BasicEntityActivity.ENTITYID, agreement.entityid);
                     // intent.putExtra(BasicEntityActivity.HIDE_MENU, true);
@@ -2643,8 +2641,8 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             super.onResume();
             IntentFilter filter = new IntentFilter(MENU_SELECTION);
             filter.addAction(MENU_SELECTION);
-            getActivity().registerReceiver(agreementFilterReceiver, filter);
-            getActivity().registerReceiver(territoryChangedReceiver, new IntentFilter(MENU_SELECTION));
+            requireActivity().registerReceiver(agreementFilterReceiver, filter);
+            requireActivity().registerReceiver(territoryChangedReceiver, new IntentFilter(MENU_SELECTION));
             Log.i(TAG, "onResume Registered the cases receiver");
         }
 
@@ -2656,8 +2654,8 @@ public class Activity_CompanyWideData extends AppCompatActivity {
         @Override
         public void onDestroyView() {
             super.onDestroyView();
-            getActivity().unregisterReceiver(agreementFilterReceiver);
-            getActivity().unregisterReceiver(territoryChangedReceiver);
+            requireActivity().unregisterReceiver(agreementFilterReceiver);
+            requireActivity().unregisterReceiver(territoryChangedReceiver);
             Log.i(TAG, "onPause Unregistered the cases receiver");
         }
     }

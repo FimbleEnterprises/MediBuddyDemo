@@ -34,6 +34,14 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_surgeons_only"
+        android:checkable="true"
+        android:checked="false"
+        android:orderInCategory="96"
+        android:title="@string/action_surgeons_only"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_producttype"
         android:orderInCategory="98"
         android:title="@string/product_type_menu_title">

@@ -68,6 +68,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import org.jetbrains.annotations.NonNls;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Days;
@@ -1976,7 +1977,7 @@ public abstract class Helpers {
             }
         }
 
-        public static void sendEmail(String body, String subject, Context context) {
+        public static void sendEmail(@NonNls String body, String subject, Context context) {
             Intent i = new Intent(Intent.ACTION_SEND);
             // i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
             i.setType("message/rfc822");

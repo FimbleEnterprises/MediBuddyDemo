@@ -32,6 +32,7 @@ import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.QueryFactory;
 import com.fimbleenterprises.medimileage.R;
 import com.fimbleenterprises.medimileage.UpdateDownloader;
+import com.fimbleenterprises.medimileage.objects_and_containers.Opportunities;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.services.MyFirebaseMessagingService;
 import com.fimbleenterprises.medimileage.services.MyLocationService;
@@ -47,8 +48,8 @@ import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyUpdate;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileageUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
-import com.fimbleenterprises.medimileage.activities.ui.mileage.MileageFragment;
-import com.fimbleenterprises.medimileage.activities.ui.settings.SettingsActivity;
+import com.fimbleenterprises.medimileage.activities.ui.drawer.mileage.MileageFragment;
+import com.fimbleenterprises.medimileage.activities.ui.drawer.settings.SettingsActivity;
 import com.google.android.material.navigation.NavigationView;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
@@ -76,7 +77,7 @@ import androidx.appcompat.widget.Toolbar;
 import cz.msebera.android.httpclient.Header;
 
 import static com.fimbleenterprises.medimileage.QueryFactory.*;
-import static com.fimbleenterprises.medimileage.activities.ui.mileage.MileageFragment.PERMISSION_UPDATE;
+import static com.fimbleenterprises.medimileage.activities.ui.drawer.mileage.MileageFragment.PERMISSION_UPDATE;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, DrawerLayout.DrawerListener {
     private static final String TAG = "MainActivity";
@@ -730,7 +731,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public void retrieveAndSaveOpportunities() {
-        CrmEntities.Opportunities.retrieveAndSaveOpportunities(new MyInterfaces.YesNoResult() {
+        Opportunities.retrieveAndSaveOpportunities(new MyInterfaces.YesNoResult() {
             @Override
             public void onYes(@Nullable Object object) {
                 try {

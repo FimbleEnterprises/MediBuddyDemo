@@ -49,14 +49,16 @@ import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics
 import com.fimbleenterprises.medimileage.dialogs.MonthYearPickerDialog;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.MyPreferencesHelper;
-import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyUnderlineEditText;
+import com.fimbleenterprises.medimileage.activities.ui.views.MyUnderlineEditText;
 import com.fimbleenterprises.medimileage.MyViewPager;
 import com.fimbleenterprises.medimileage.adapters.OrderLineRecyclerAdapter;
 import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.R;
+import com.fimbleenterprises.medimileage.objects_and_containers.Opportunities;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
 import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseTerritory;
+import com.fimbleenterprises.medimileage.objects_and_containers.Tickets;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
@@ -1385,7 +1387,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 if (orderDayOfYear == todayDayOfYear) {
                     if (addedTodayHeader == false) {
                         OrderProducts.OrderProduct headerObj = new OrderProducts.OrderProduct();
-                        headerObj.isSeparator = true;
+                        headerObj.isHeader = true;
                         headerObj.setTitle("Today");
                         orderList.add(headerObj);
                         addedTodayHeader = true;
@@ -1396,7 +1398,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 } else if (orderDayOfYear == (todayDayOfYear - 1)) {
                     if (addedYesterdayHeader == false) {
                         OrderProduct headerObj = new OrderProduct();
-                        headerObj.isSeparator = true;
+                        headerObj.isHeader = true;
                         headerObj.setTitle("Yesterday");
                         orderList.add(headerObj);
                         addedYesterdayHeader = true;
@@ -1407,7 +1409,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 } else if (orderWeekOfYear == todayWeekOfYear) {
                     if (addedThisWeekHeader == false) {
                         OrderProduct headerObj = new OrderProduct();
-                        headerObj.isSeparator = true;
+                        headerObj.isHeader = true;
                         headerObj.setTitle("This week");
                         orderList.add(headerObj);
                         addedThisWeekHeader = true;
@@ -1418,7 +1420,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 } else if (tripMonthOfYear == todayMonthOfYear) {
                     if (addedThisMonthHeader == false) {
                         OrderProduct headerObj = new OrderProduct();
-                        headerObj.isSeparator = true;
+                        headerObj.isHeader = true;
                         headerObj.setTitle("This month");
                         orderList.add(headerObj);
                         addedThisMonthHeader = true;
@@ -1430,7 +1432,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     curProduct.orderDate.getYear() == DateTime.now().minusMonths(1).getYear()) {
                     if (addedLastMonthHeader == false) {
                         OrderProduct headerObj = new OrderProduct();
-                        headerObj.isSeparator = true;
+                        headerObj.isHeader = true;
                         headerObj.setTitle("Last month");
                         orderList.add(headerObj);
                         addedLastMonthHeader = true;
@@ -1441,7 +1443,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 } else {
                     if (otherHeader == false) {
                         OrderProduct headerObj = new OrderProduct();
-                        headerObj.isSeparator = true;
+                        headerObj.isHeader = true;
                         headerObj.setTitle("Total");
                         orderList.add(headerObj);
                         otherHeader = true;
@@ -1462,32 +1464,32 @@ public class Activity_TerritoryData extends AppCompatActivity {
             // Append the subtotals to the headers
             for (OrderProducts.OrderProduct product : orderList) {
                 if (todaySubtotal > 0) {
-                    if (product.isSeparator && product.partNumber.equals("Today")) {
+                    if (product.isHeader && product.partNumber.equals("Today")) {
                         product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(todaySubtotal) + ")";
                     }
                 }
                 if (yesterdaySubtotal > 0) {
-                    if (product.isSeparator && product.partNumber.equals("Yesterday")) {
+                    if (product.isHeader && product.partNumber.equals("Yesterday")) {
                         product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(yesterdaySubtotal) + ")";
                     }
                 }
                 if (thisWeekSubtotal > 0) {
-                    if (product.isSeparator && product.partNumber.equals("This week")) {
+                    if (product.isHeader && product.partNumber.equals("This week")) {
                         product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(thisWeekSubtotal) + ")";
                     }
                 }
                 if (thisMonthSubtotal > 0) {
-                    if (product.isSeparator && product.partNumber.equals("This month")) {
+                    if (product.isHeader && product.partNumber.equals("This month")) {
                         product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(thisMonthSubtotal) + ")";
                     }
                 }
                 if (lastMonthSubtotal > 0) {
-                    if (product.isSeparator && product.partNumber.equals("Last month")) {
+                    if (product.isHeader && product.partNumber.equals("Last month")) {
                         product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(lastMonthSubtotal) + ")";
                     }
                 }
                 if (otherSubtotal > 0) {
-                    if (product.isSeparator && product.partNumber.equals("Total")) {
+                    if (product.isHeader && product.partNumber.equals("Total")) {
                         product.partNumber = product.partNumber + " (" + Helpers.Numbers.convertToCurrency(otherSubtotal) + ")";
                     }
                 }
@@ -1695,7 +1697,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
         }
 
-        void showOpportunityOptions(final CrmEntities.Opportunities.Opportunity opportunity) {
+        void showOpportunityOptions(final Opportunities.Opportunity opportunity) {
 
             final Dialog dialog = new Dialog(context);
             dialog.setContentView(R.layout.dialog_opportunity_options);
@@ -1760,7 +1762,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
             dialog.show();
         }
 
-        void showAddNoteDialog(final CrmEntities.Opportunities.Opportunity opportunity) {
+        void showAddNoteDialog(final Opportunities.Opportunity opportunity) {
             CrmEntities.Annotations.showAddNoteDialog(context, opportunity.entityid, new MyInterfaces.CrmRequestListener() {
                 @Override
                 public void onComplete(Object result) {
@@ -1794,7 +1796,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         RefreshLayout refreshLayout;
         TextView txtNoOpportunities;
         public Territory curTerritory;
-        public CrmEntities.Opportunities opportunities;
+        public Opportunities opportunities;
         ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
         BasicObjectRecyclerAdapter adapter;
         BroadcastReceiver menuReceiver;
@@ -1886,9 +1888,9 @@ public class Activity_TerritoryData extends AppCompatActivity {
         public void getOpportunities() {
             toolbar.setTitle(sectionsPagerAdapter.getPageTitle(mViewPager.currentPosition));
             refreshLayout.autoRefresh();
-            CrmEntities.Opportunities.retrieveOpportunities(dealStatus, curTerritory.territoryid, new MyInterfaces.GetOpportunitiesListener() {
+            Opportunities.retrieveOpportunities(dealStatus, curTerritory.territoryid, new MyInterfaces.GetOpportunitiesListener() {
                 @Override
-                public void onSuccess(CrmEntities.Opportunities crmOpportunities) {
+                public void onSuccess(Opportunities crmOpportunities) {
                     opportunities = crmOpportunities;
                     populateList();
                     refreshLayout.finishRefresh();
@@ -1904,7 +1906,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
         void populateList() {
             objects = new ArrayList<>();
-            for (CrmEntities.Opportunities.Opportunity opp : opportunities.list) {
+            for (Opportunities.Opportunity opp : opportunities.list) {
                 BasicObjects.BasicObject object = new BasicObjects.BasicObject(opp.name, opp.dealTypePretty, opp);
                 object.middleText = opp.accountname;
                 object.topRightText = opp.probabilityPretty;
@@ -1918,8 +1920,8 @@ public class Activity_TerritoryData extends AppCompatActivity {
             adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
                 @Override
                 public void onItemClick(View view, int position) {
-                    CrmEntities.Opportunities.Opportunity selectedOpportunity =
-                            (CrmEntities.Opportunities.Opportunity) objects.get(position).object;
+                    Opportunities.Opportunity selectedOpportunity =
+                            (Opportunities.Opportunity) objects.get(position).object;
 
                     Intent intent = new Intent(context, BasicEntityActivity.class);
                     intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Opportunity Details");
@@ -1940,7 +1942,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
 
         }
 
-        void showOpportunityOptions(final CrmEntities.Opportunities.Opportunity opportunity) {
+        void showOpportunityOptions(final Opportunities.Opportunity opportunity) {
 
             final Dialog dialog = new Dialog(context);
             dialog.setContentView(R.layout.dialog_opportunity_options);
@@ -2005,7 +2007,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
             dialog.show();
         }
 
-        void showAddNoteDialog(final CrmEntities.Opportunities.Opportunity opportunity) {
+        void showAddNoteDialog(final Opportunities.Opportunity opportunity) {
             CrmEntities.Annotations.showAddNoteDialog(context, opportunity.entityid, new MyInterfaces.CrmRequestListener() {
                 @Override
                 public void onComplete(Object result) {
@@ -2039,7 +2041,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
         RefreshLayout refreshLayout;
         BroadcastReceiver casesReceiver;
         Territory curTerritory;
-        CrmEntities.Tickets tickets;
+        Tickets tickets;
         ArrayList<BasicObjects.BasicObject> objects = new ArrayList<>();
         BasicObjectRecyclerAdapter adapter;
         BroadcastReceiver territoryChangeReceiver;
@@ -2125,7 +2127,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                 public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                     String response = new String(responseBody);
                     Log.i(TAG, "onSuccess " + response);
-                    tickets = new CrmEntities.Tickets(response);
+                    tickets = new Tickets(response);
                     populateList();
                 }
 
@@ -2149,7 +2151,7 @@ public class Activity_TerritoryData extends AppCompatActivity {
                     @Override
                     public void onItemClick(View view, int position) {
                         BasicObjects.BasicObject object = objects.get(position);
-                        CrmEntities.Tickets.Ticket ticket = (CrmEntities.Tickets.Ticket) object.object;
+                        Tickets.Ticket ticket = (Tickets.Ticket) object.object;
                         Intent intent = new Intent(context, BasicEntityActivity.class);
                         intent.putExtra(BasicEntityActivity.GSON_STRING, ticket.toBasicEntity().toGson());
                         intent.putExtra(BasicEntityActivity.ENTITYID, ticket.entityid);

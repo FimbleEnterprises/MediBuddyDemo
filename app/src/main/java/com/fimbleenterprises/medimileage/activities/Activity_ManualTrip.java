@@ -25,8 +25,8 @@ import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.MyInterfaces;
-import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyAutoCompleteEditText;
-import com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyHyperlinkTextview;
+import com.fimbleenterprises.medimileage.activities.ui.views.MyAutoCompleteEditText;
+import com.fimbleenterprises.medimileage.activities.ui.views.MyHyperlinkTextview;
 import com.fimbleenterprises.medimileage.dialogs.MyDatePicker;
 import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
 import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseRecentTrip;

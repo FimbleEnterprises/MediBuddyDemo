@@ -1,4 +1,4 @@
-package com.fimbleenterprises.medimileage.activities.ui.authentication;
+package com.fimbleenterprises.medimileage.activities.ui.drawer.authentication;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;

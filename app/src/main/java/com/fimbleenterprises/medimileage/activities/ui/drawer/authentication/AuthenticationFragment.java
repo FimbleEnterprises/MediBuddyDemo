@@ -1,4 +1,4 @@
-package com.fimbleenterprises.medimileage.activities.ui.authentication;
+package com.fimbleenterprises.medimileage.activities.ui.drawer.authentication;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

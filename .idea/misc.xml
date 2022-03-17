@@ -6,6 +6,7 @@
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/drawable/edit_text_enabled_disabled_colors.xml" value="0.5497435897435897" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/drawable/rounded_container_orange.xml" value="0.5497435897435897" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_account_stuff.xml" value="0.328125" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_aggregate_sales.xml" value="0.5421875" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_cpy_wide_sales_perf.xml" value="0.5421875" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_emails_fullscreen.xml" value="0.5421875" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_fullscreen_choose_account.xml" value="0.5421875" />
@@ -14,6 +15,7 @@
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_fullscreen_choose_territory.xml" value="0.5421875" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_map_view.xml" value="0.328125" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_quotas.xml" value="0.5541666666666667" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_quote.xml" value="0.28306159420289856" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_sales_perf.xml" value="0.5421875" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_view_email.xml" value="0.5541666666666667" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/activity_view_model_playground.xml" value="0.5421875" />
@@ -21,6 +23,7 @@
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/basic_entity_activity.xml" value="0.328125" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/basic_entity_activity_with_emails.xml" value="0.328125" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/basic_object_row.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/basic_object_row_slim.xml" value="0.5" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/dialog_note.xml" value="0.5421875" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/dialog_show_single_field.xml" value="0.5421875" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/layout/edit_recent_trip.xml" value="0.5421875" />
@@ -55,6 +58,7 @@
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/menu/main.xml" value="0.5421875" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/menu/quota_menu.xml" value="0.5541666666666667" />
         <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/menu/territory_menu.xml" value="0.5421875" />
+        <entry key="..\:/Users/weber/StudioProjects/MileBuddy/app/src/main/res/xml/preferences.xml" value="0.5380208333333333" />
       </map>
     </option>
   </component>

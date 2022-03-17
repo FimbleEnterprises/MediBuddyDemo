@@ -94,7 +94,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
 
-                        <com.fimbleenterprises.medimileage.activities.ui.CustomViews.MyHyperlinkTextview
+                        <com.fimbleenterprises.medimileage.activities.ui.views.MyHyperlinkTextview
                             android:id="@+id/btnRecents"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
