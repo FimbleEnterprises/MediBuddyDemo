@@ -161,11 +161,9 @@ public class AccountAddresses  {
         MySqlDatasource ds = new MySqlDatasource(MyApp.getAppContext());
         try {
             if (ds.getAccounts() == null) {
-                ds.createAccounts(this);
-            } else if (ds.getAccounts().addresses.size() == 0) {
-                ds.updateAccounts(this);
+                Log.i(TAG, "save|created:"+ds.createAccounts(this));
             } else {
-                ds.updateAccounts(this);
+                Log.i(TAG, "save|updated:"+ds.updateAccounts(this));
             }
             new MyPreferencesHelper(MyApp.getAppContext()).updateLastUpdatedActAddys();
             Log.i(TAG, "save Accounts saved to local database!");

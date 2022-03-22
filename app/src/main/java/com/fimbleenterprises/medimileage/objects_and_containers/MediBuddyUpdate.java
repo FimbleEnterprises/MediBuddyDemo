@@ -13,9 +13,9 @@ import org.json.JSONObject;
 
 import java.io.File;
 
-import static com.fimbleenterprises.medimileage.MyPreferencesHelper.MILEBUDDY_UPDATE_JSON;
+import static com.fimbleenterprises.medimileage.MyPreferencesHelper.MEDIBUDDY_UPDATE_JSON;
 
-public class MileBuddyUpdate {
+public class MediBuddyUpdate {
 
     public static final String TAG = "MileBuddyUpdate";
 
@@ -29,12 +29,12 @@ public class MileBuddyUpdate {
     public double version;
     public String json;
 
-    public MileBuddyUpdate() {
+    public MediBuddyUpdate() {
         try {
             this.options = new MyPreferencesHelper(MyApp.getAppContext());
         } catch (Exception e) { }
     }
-    public MileBuddyUpdate(JSONObject json) {
+    public MediBuddyUpdate(JSONObject json) {
 
         try {
             options = new MyPreferencesHelper(MyApp.getAppContext());
@@ -99,7 +99,7 @@ public class MileBuddyUpdate {
 
     public void deleteLocally() {
         SharedPreferences prefs = options.getSharedPrefs();
-        prefs.edit().remove(MILEBUDDY_UPDATE_JSON).commit();
+        prefs.edit().remove(MEDIBUDDY_UPDATE_JSON).commit();
         File file = new File(Helpers.Files.AppUpdates.getDirectory() + File.separator +
                 "MileBuddy " + this.version);
         if (file.exists()) {
@@ -112,7 +112,7 @@ public class MileBuddyUpdate {
         int i = 0;
         MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
         SharedPreferences prefs = options.getSharedPrefs();
-        prefs.edit().remove(MILEBUDDY_UPDATE_JSON).commit();
+        prefs.edit().remove(MEDIBUDDY_UPDATE_JSON).commit();
         File[] files = Helpers.Files.AppUpdates.getFiles();
         for (File file : files) {
             if (! file.isDirectory() && file.getName().endsWith(".apk")) {

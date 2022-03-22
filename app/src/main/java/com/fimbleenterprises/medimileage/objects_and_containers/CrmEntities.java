@@ -2707,7 +2707,7 @@ public class CrmEntities {
                 try {
                     try {
                         MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
-                        return targetAddy.distanceTo(this.getLatLng()) <= options.getDistanceThreshold();
+                        return targetAddy.distanceTo(this.getLatLng()) <= options.getOppDistanceThresholdInMeters();
                     } catch (Exception e) {
                         e.printStackTrace();
                         return false;
@@ -2728,7 +2728,7 @@ public class CrmEntities {
                 try {
                     try {
                         MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
-                        return targetAddy.distanceTo(this.getLatLng()) <= options.getDistanceThreshold();
+                        return targetAddy.distanceTo(this.getLatLng()) <= options.getOppDistanceThresholdInMeters();
                     } catch (Exception e) {
                         e.printStackTrace();
                         return false;

@@ -31,33 +31,31 @@ public class FullTrip implements Parcelable {
     private String objective;
     private long dateTime;
     private long tripcode;
-    private float distance = 0;
+    private float distance;
     private String email;
-    private long milis;
-    public int edited = 0;
+    private long millis;
+    public int edited;
     private String gu_username;
     private String ownerid;
-    public int isManualTrip = 0;
-    public int isSubmitted = 0;
-    public boolean isChecked = false;
+    public int isManualTrip;
+    public int isSubmitted;
+    public boolean isChecked;
     public ArrayList<TripEntry> tripEntries = new ArrayList<>();
-    public boolean isSeparator = false;
+    public boolean isSeparator;
     private float reimbursementRate;
     public String tripEntriesJson;
     public String tripGuid;
-    public int userStoppedTrip = 0;
-    public int userStartedTrip = 0;
-    public int tripMinderKilled = 0;
+    public int userStoppedTrip;
+    public int userStartedTrip;
+    public int tripMinderKilled;
     public int hasNearbyAssociations;
 
     public static class TripEntries extends ArrayList<TripEntry> {
         public TripEntries(FullTrip trip) {
             MySqlDatasource ds = new MySqlDatasource();
-            ArrayList<TripEntry> entries = new ArrayList<>();
+            ArrayList<TripEntry> entries;
             entries = ds.getAllTripEntries(trip.tripcode);
-            for (TripEntry entry : entries) {
-                this.add(entry);
-            }
+            this.addAll(entries);
         }
     }
 
@@ -252,24 +250,32 @@ public class FullTrip implements Parcelable {
         return this.tripEntries != null && this.tripEntries.size() > 1;
     }
 
+    /**
+     * Checks if this trip started nearby the supplied position.  Nearby is based on:
+     * options.getOppDistanceThresholdInMeters()
+     */
     public boolean startedNear(LatLng latLng) {
         Location targetLocation = new Location("GPS");
         targetLocation.setLatitude(latLng.latitude);
         targetLocation.setLongitude(latLng.longitude);
         MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
         if (this.hasEntries()) {
-            return targetLocation.distanceTo(getStartLoc()) <= options.getDistanceThreshold();
+            return targetLocation.distanceTo(getStartLoc()) <= options.getOppDistanceThresholdInMeters();
         }
         return false;
     }
 
+    /**
+     * Checks if this trip ended nearby the supplied position.  Nearby is based on:
+     * options.getOppDistanceThresholdInMeters()
+     */
     public boolean endedNear(LatLng latLng) {
         Location targetLocation = new Location("GPS");
         targetLocation.setLatitude(latLng.latitude);
         targetLocation.setLongitude(latLng.longitude);
         MyPreferencesHelper options = new MyPreferencesHelper(MyApp.getAppContext());
         if (this.hasEntries()) {
-            return targetLocation.distanceTo(getEndLoc()) <= options.getDistanceThreshold();
+            return targetLocation.distanceTo(getEndLoc()) <= options.getOppDistanceThresholdInMeters();
         }
         return false;
     }
@@ -351,7 +357,8 @@ public class FullTrip implements Parcelable {
     public boolean getIsRunning() {
 
         if (MyLocationService.isRunning) {
-            return (MyLocationService.fullTrip.getTripcode() == this.getTripcode());
+            assert MyLocationService.getCurrentRunningTrip() != null;
+            return (MyLocationService.getCurrentRunningTrip().getTripcode() == this.getTripcode());
         } else {
             return false;
         }
@@ -609,12 +616,12 @@ public class FullTrip implements Parcelable {
         this.email = email;
     }
 
-    public long getMilis() {
-        return milis;
+    public long getMillis() {
+        return millis;
     }
 
-    public void setMilis(long milis) {
-        this.milis = milis;
+    public void setMillis(long millis) {
+        this.millis = millis;
     }
 
     public boolean getIsEdited() {
@@ -657,7 +664,7 @@ public class FullTrip implements Parcelable {
         tripcode = in.readLong();
         distance = in.readFloat();
         email = in.readString();
-        milis = in.readLong();
+        millis = in.readLong();
         edited = in.readInt();
         gu_username = in.readString();
         ownerid = in.readString();
@@ -688,7 +695,7 @@ public class FullTrip implements Parcelable {
         dest.writeLong(tripcode);
         dest.writeFloat(distance);
         dest.writeString(email);
-        dest.writeLong(milis);
+        dest.writeLong(millis);
         dest.writeInt(edited);
         dest.writeString(gu_username);
         dest.writeString(ownerid);

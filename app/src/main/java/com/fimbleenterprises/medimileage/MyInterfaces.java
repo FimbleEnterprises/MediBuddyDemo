@@ -6,6 +6,7 @@ import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
 import com.fimbleenterprises.medimileage.objects_and_containers.Opportunities;
 import com.fimbleenterprises.medimileage.objects_and_containers.UserAddresses;
 
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.DateTime;
 
@@ -98,6 +99,7 @@ public class MyInterfaces {
     public interface AuthenticationResult {
         void onSuccess();
         void onFailure();
+        @NonNls
         void onError(String msg, Throwable exception);
     }
 

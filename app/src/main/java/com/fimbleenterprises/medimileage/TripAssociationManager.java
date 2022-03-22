@@ -56,7 +56,7 @@ public class TripAssociationManager {
         }
 
         // This is the distance threshold that will be used to determine what is considered, "nearby"
-        double thresh = options.getDistanceThreshold();
+        double thresh = options.getOppDistanceThresholdInMeters();
 
         // See if anything is close to the start and end of the trip
         Log.i(TAG, "detectAccountsAtStartOrEnd: Distance threshold: " + thresh + " meters");

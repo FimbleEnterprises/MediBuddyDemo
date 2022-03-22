@@ -943,7 +943,7 @@ public class Activity_ManualTrip extends AppCompatActivity implements OnMapReady
             // Set title, date and millis
             fullTrip.setTitle(tripTitle);
             fullTrip.setDateTime(tripDate);
-            fullTrip.setMilis(fullTrip.getTripcode());
+            fullTrip.setMillis(fullTrip.getTripcode());
 
             // Finish buliding the trip
             float distmiles = Float.parseFloat(distanceStr);

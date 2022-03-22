@@ -5,7 +5,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.util.Log;
 
-import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyUpdate;
+import com.fimbleenterprises.medimileage.objects_and_containers.MediBuddyUpdate;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
@@ -26,7 +26,7 @@ public class MileBuddyUpdater {
     private double appVersion;
 
     public interface UpdateCheckListener {
-        public void onAvailable(MileBuddyUpdate updateObject);
+        public void onAvailable(MediBuddyUpdate updateObject);
         public void onNotAvailable();
         public void onError(String msg);
     }
@@ -62,12 +62,12 @@ public class MileBuddyUpdater {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                     String results = new String(responseBody);
-                    ArrayList<MileBuddyUpdate> updates = new ArrayList<>();
+                    ArrayList<MediBuddyUpdate> updates = new ArrayList<>();
                     try {
                         JSONArray array = new JSONObject(results).getJSONArray("value");
                         for (int i = 0; i < array.length(); i++) {
                             JSONObject jsonObject = array.getJSONObject(i);
-                            MileBuddyUpdate update = new MileBuddyUpdate(jsonObject);
+                            MediBuddyUpdate update = new MediBuddyUpdate(jsonObject);
                             if (update.version > appVersion) {
                                 listener.onAvailable(update);
                                 return;

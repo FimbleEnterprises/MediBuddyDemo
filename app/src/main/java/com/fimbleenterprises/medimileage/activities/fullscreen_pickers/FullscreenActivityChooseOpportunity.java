@@ -102,7 +102,7 @@ public class FullscreenActivityChooseOpportunity extends AppCompatActivity {
 
         baseMsg = "" +
                   "Checking for opportunities within (roughly) " +
-                  options.getDistanceThresholdInMiles() + " miles...";
+                  options.getOppDistanceThresholdInMiles() + " miles...";
 
         refreshLayout = findViewById(R.id.refreshLayout);
         refreshLayout.setOnRefreshListener(new OnRefreshListener() {

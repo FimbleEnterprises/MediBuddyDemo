@@ -17,20 +17,19 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.Crm;
 import com.fimbleenterprises.medimileage.DelayedWorker;
 import com.fimbleenterprises.medimileage.Helpers;
-import com.fimbleenterprises.medimileage.activities.MainActivity;
 import com.fimbleenterprises.medimileage.MyApp;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.MyPreferencesHelper;
@@ -41,25 +40,22 @@ import com.fimbleenterprises.medimileage.QueryFactory.Filter.FilterCondition;
 import com.fimbleenterprises.medimileage.QueryFactory.Filter.FilterType;
 import com.fimbleenterprises.medimileage.QueryFactory.Filter.Operator;
 import com.fimbleenterprises.medimileage.R;
-import com.fimbleenterprises.medimileage.activities.ui.drawer.mileage.MileageViewModel;
-import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
+import com.fimbleenterprises.medimileage.activities.MainActivity;
 import com.fimbleenterprises.medimileage.objects_and_containers.AccountAddresses;
 import com.fimbleenterprises.medimileage.objects_and_containers.EntityContainers;
 import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
 import com.fimbleenterprises.medimileage.objects_and_containers.LocationContainer;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
+import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.TripEntry;
 import com.fimbleenterprises.medimileage.objects_and_containers.UserAddresses;
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
+import org.jetbrains.annotations.NonNls;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
@@ -74,100 +70,86 @@ import java.io.UnsupportedEncodingException;
 import java.nio.channels.FileChannel;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Objects;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelProviders;
-import androidx.lifecycle.ViewModelStore;
-import androidx.lifecycle.ViewModelStoreOwner;
 import cz.msebera.android.httpclient.Header;
 
-public class MyLocationService extends Service implements LocationListener, ViewModelStoreOwner {
-    public static final String USER_STOPPED = "USER_STOPPED";
+public class MyLocationService extends Service implements LocationListener {
     private static final String TAG = "MyLocationService";
-
+    
     public static final int REQ_CODE = 6744;
-
     public static final int STOP_TRIP_REQ_CODE = 4;
-    public static final String STOP_TRIP_ACTION = "STOP_TRIP_ACTION";
-    public static final String LOCATION_CHANGED = "LOC_CHANGEDD";
-    public static final String WAKELOCK_ACQUIRED = "WAKELOCK_AQUIRED";
-    public static final String SERVICE_STARTED = "SERVICE_STARTED";
-    public static final String WAKELOCK_RELEASED = "WAKELOCK_RELEASED";
-    public static final String SERVICE_STOPPED = "SERVICE_STOPPED";
-    public static final String SERVICE_STOPPING = "SERVICE_STOPPING";
-    public static final String LOCATION_EVENT = "LOCATION_EVENT";
-    public static final String NO_RATE_DETECTED = "NO_RATE_DETECTED";
-    public static final String FINAL_LOCATION = "FINAL_LOCATION";
-    public static final String TRIP_PRENAME = "TRIP_PRENAME";
-
     public static final int MINIMUM_METERS_FOR_DB_ENTRY = 33;
-    public static final String USER_STARTED_TRIP_FLAG = "USER_STARTED_TRIP_FLAG";
     public static final int NOTIFICATION_ID = 1;
-    public static final String NOTIFICATION_TAG = "MILEAGE_NOTIFICATION_TAG";
-    public static final String NOTIFICATION_CHANNEL = "MILEAGE_NOTIFICATION_CHANNEL";
-    public static final String NOTIFICATION_CHANNEL_REMINDER = "NOTIFICATION_CHANNEL_REMINDER";
     private static final int LOCATION_INTERVAL = 3000;
     private static final float LOCATION_DISTANCE = 10f;
     public static final int MINIMUM_ACCURACY = 25;
+    public static final int MINUTES_BETWEEN_REALTIME_UPDATES = 5;
+    
+    @NonNls
+    public static final String STOP_TRIP_ACTION = "STOP_TRIP_ACTION";
+    @NonNls
+    public static final String LOCATION_CHANGED = "LOC_CHANGEDD";
+    @NonNls
+    public static final String WAKELOCK_ACQUIRED = "WAKELOCK_AQUIRED";
+    @NonNls
+    public static final String SERVICE_STARTED = "SERVICE_STARTED";
+    @NonNls
+    public static final String WAKELOCK_RELEASED = "WAKELOCK_RELEASED";
+    @NonNls
+    public static final String SERVICE_STOPPED = "SERVICE_STOPPED";
+    @NonNls
+    public static final String SERVICE_STOPPING = "SERVICE_STOPPING";
+    @NonNls
+    public static final String LOCATION_EVENT = "LOCATION_EVENT";
+    @NonNls
+    public static final String FINAL_LOCATION = "FINAL_LOCATION";
+    @NonNls
+    public static final String TRIP_PRENAME = "TRIP_PRENAME";
+    @NonNls
+    public static final String USER_STARTED_TRIP_FLAG = "USER_STARTED_TRIP_FLAG";
+    @NonNls
+    public static final String NOTIFICATION_CHANNEL = "MILEAGE_NOTIFICATION_CHANNEL";
+    @NonNls
+    public static final String NOTIFICATION_CHANNEL_REMINDER = "NOTIFICATION_CHANNEL_REMINDER";
+    @NonNls
     public static final String NOT_MOVING = "NOT_MOVING";
-    public static boolean userHasBeenWarned = false;
-    private final int MINIMUM_ALLOWED_GPS_ACCURACY_TO_ALLOW_LOCATION_UPDATE = 25;
+    @NonNls
     public static final String WARN_USER = "WARN_USER";
 
-    // private FusedLocationProviderClient mFusedLocationClient;
-    private LocationCallback locationCallback;
-    private LocationRequest locationRequest;
-    private LocationSettingsRequest locationSettingsRequest;
+    private static final ArrayList<TripEntry> tripEntries = new ArrayList<>();
+    private final Handler notMovingHandler = new Handler();
+    private final Handler tripMinderHandler = new Handler();
 
+    public static boolean isRunning; // Cannot be private
+    public static boolean userStoppedTrip; // Cannot be private 
+    public static boolean userHasBeenWarned; // Cannot be private
+    private static Location mLastLocation;
+    private static TripEntry currentTripEntry;
+    private static FullTrip fullTrip;
+
+    private boolean isMoving;
+    private MediUser user;
+    private long lastRealtimeUpdateMillis;
+    private boolean isUpdatingRealtimeLoc;
+    private boolean userStartedTrip;
+    private Runnable tripMinderRunner;
+    private MyPreferencesHelper options;
+    private WakeLock wakeLock;
     private LocationManager mLocationManager;
     private NotificationManager mNotificationManager;
-    public static Notification notification;
-
-    final Handler notMovingHandler = new Handler();
-    Runnable notMovingRunner;
-    final Handler tripMinderHandler = new Handler();
-    Runnable tripMinderRunner;
-
-    PowerManager.WakeLock wakeLock;
-    public static boolean isRunning;
-    static Location mLastLocation;
-    MyPreferencesHelper options;
-    public static boolean isMoving = false;
-
-    MySqlDatasource datasource;
-    public static FullTrip fullTrip;
-    public static TripEntry currentTripEntry;
-    public static TripEntry lastCommittedEntry;
-    public static ArrayList<TripEntry> tripEntries = new ArrayList<>();
-    public static MediUser user;
-    public String prenameTrip = null;
-    private long lastLocationChangedTimeInMilis = 0;
-    public static final int MINUTES_BETWEEN_REALTIME_UPDATES = 5;
-    public static long lastRealtimeUpdateMillis = 0;
-    public static boolean isUpdatingRealtimeLoc = false;
-    public static boolean userStoppedTrip = false;
-    public static boolean userStartedTrip = false;
-
-    // Testing the ViewModel architecture instead of using broadcasts
-    MileageViewModel mileageViewModel;
-    MileageViewModel mileageViewModel2;
-    public static Fragment mileageFragment;
+    private String prenameTrip;
+    private long lastLocationChangedTimeInMillis;
+    private MySqlDatasource datasource;
 
     public MyLocationService() {
         Log.d(TAG, "MyLocationService Empty constructor");
         prenameTrip = null;
-    }
-
-    public MyLocationService(String tripName) {
-        Log.d(TAG, "MyLocationService Empty constructor");
-        prenameTrip = tripName;
     }
 
     @Override
@@ -191,7 +173,6 @@ public class MyLocationService extends Service implements LocationListener, View
         return null;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.e(TAG, "onStartCommand");
@@ -206,6 +187,7 @@ public class MyLocationService extends Service implements LocationListener, View
             sendStartBroadcast();
             user = MediUser.getMe(this);
 
+            assert intent != null;
             if (intent.getStringExtra(TRIP_PRENAME) != null) {
                 prenameTrip = intent.getStringExtra(TRIP_PRENAME);
             }
@@ -235,8 +217,8 @@ public class MyLocationService extends Service implements LocationListener, View
 
         getWakelock();
 
-        Notification notification = getNotification("Trip is starting",
-                "Speed 0\nDistance: 0 miles", NotificationManager.IMPORTANCE_LOW);
+        Notification notification = getNotification(getString(R.string.notif_trip_starting_title),
+                getString(R.string.notif_trip_starting_body));
 
         initializeNewTrip();
 
@@ -244,7 +226,7 @@ public class MyLocationService extends Service implements LocationListener, View
 
         if (options.getReimbursementRate() == 0) {
             Log.w(TAG, "initializeNewTrip: No rate found for reimbursement.  Stopping service.");
-            Toast.makeText(this, "No reimbursement rate!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.toast_no_reimb_rate), Toast.LENGTH_SHORT).show();
             stopSelf();
             return;
         }
@@ -290,9 +272,7 @@ public class MyLocationService extends Service implements LocationListener, View
 
         if (Helpers.Geo.convertMetersToMiles(fullTrip.getDistance(), 0) < 1.1) {
             datasource.deleteFulltrip(fullTrip.getTripcode(), true);
-            Toast.makeText(this, "Trip was too short to save.", Toast.LENGTH_SHORT).show();
-        } else {
-
+            Toast.makeText(this, getString(R.string.toast_trip_too_short), Toast.LENGTH_SHORT).show();
         }
 
         releaseWakelock();
@@ -308,7 +288,8 @@ public class MyLocationService extends Service implements LocationListener, View
                 exportDB();
                 Log.i(TAG, "onDestroy Database was backed up.");
             } catch (Exception e) {
-                Toast.makeText(this, "Failed to backup the database!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.toast_failed_to_backup_db)
+                        , Toast.LENGTH_SHORT).show();
                 e.printStackTrace();
             }
         }
@@ -318,7 +299,6 @@ public class MyLocationService extends Service implements LocationListener, View
         try {
             notMovingHandler.removeCallbacks(tripMinderRunner);
             tripMinderHandler.removeCallbacks(tripMinderRunner);
-            ;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -327,15 +307,15 @@ public class MyLocationService extends Service implements LocationListener, View
 
     }
 
+    @SuppressLint("WakelockTimeout")
     private void getWakelock() {
-        final LocationListener listener = this;
         Log.d(TAG, "getWakelock Acquiring wakelock...");
         PowerManager mgr = (PowerManager) this.getSystemService(Context.POWER_SERVICE);
         wakeLock = mgr.newWakeLock(
                 PowerManager.PARTIAL_WAKE_LOCK |
                         PowerManager.ACQUIRE_CAUSES_WAKEUP,
-                "MediBuddy:MyWakeLock");
-        wakeLock.acquire();
+                getString(R.string.wakelock_tag));
+        wakeLock.acquire(/*240*60*1000L *//*4 hours*/);
         Log.d(TAG, "getWakelock Wakelock is held = " + wakeLock.isHeld());
 
         if (wakeLock.isHeld()) {
@@ -393,7 +373,6 @@ public class MyLocationService extends Service implements LocationListener, View
         }
 
         currentTripEntry = null;
-        lastCommittedEntry = null;
 
         fullTrip = new FullTrip();
 
@@ -412,7 +391,7 @@ public class MyLocationService extends Service implements LocationListener, View
             fullTrip.setEmail(user.email);
             fullTrip.setDateTime(DateTime.now());
             fullTrip.setDistance(0);
-            fullTrip.setMilis(milis);
+            fullTrip.setMillis(milis);
             fullTrip.setTripcode(milis);
             fullTrip.setReimbursementRate(options.getReimbursementRate());
             fullTrip.setUserStartedTrip(userStartedTrip);
@@ -440,16 +419,15 @@ public class MyLocationService extends Service implements LocationListener, View
     }
 
     void updateNotification() {
-        String title = "Trip is running";
-        String contentText = "" +
-                "Distance: " + Helpers.Geo.convertMetersToMiles(fullTrip.getDistance(), 2) + " miles\n" +
-                "Speed: " + currentTripEntry.getSpeedInMph(true);
-
-        Notification notification = getNotification(title, contentText, NotificationManager.IMPORTANCE_LOW);
+        String title = getString(R.string.notif_trip_running_title);
+        String contentText = getString(R.string.notif_trip_running_body, Helpers.Geo
+                .convertMetersToMiles(fullTrip.getDistance(), 2)
+                , currentTripEntry.getSpeedInMph(true));
+        Notification notification = getNotification(title, contentText);
         mNotificationManager.notify(NOTIFICATION_ID, notification);
     }
 
-    Notification getNotification(String title, String contentText, int importance) {
+    Notification getNotification(String title, String contentText) {
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this.getApplicationContext(), NOTIFICATION_CHANNEL);
 
@@ -460,11 +438,11 @@ public class MyLocationService extends Service implements LocationListener, View
         ii.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         ii.setAction(STOP_TRIP_ACTION);
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(this.getApplicationContext(), REQ_CODE, i
-                , PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this.getApplicationContext()
+                , REQ_CODE, i, PendingIntent.FLAG_IMMUTABLE);
 
-        PendingIntent stopTripIntent = PendingIntent.getActivity(this.getApplicationContext(), STOP_TRIP_REQ_CODE
-                , ii, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent stopTripIntent = PendingIntent.getActivity(this.getApplicationContext()
+                , STOP_TRIP_REQ_CODE, ii, PendingIntent.FLAG_IMMUTABLE);
 
         mBuilder.setContentIntent(pendingIntent);
         mBuilder.setOngoing(true);
@@ -474,32 +452,27 @@ public class MyLocationService extends Service implements LocationListener, View
         mBuilder.addAction(R.drawable.stop_icon_32x32, getString(R.string.stop_trip_btn_notification_text),
                 stopTripIntent);
 
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mBuilder.setSmallIcon(R.drawable.notification_small_car);
-            mBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.car2_static_round_tparent_icon));
-            mBuilder.setColor(Color.WHITE);
-        } else {
-            Log.i(TAG, "getNotification ");
-        }
+        mBuilder.setSmallIcon(R.drawable.notification_small_car);
+        mBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap
+                .car2_static_round_tparent_icon));
+        mBuilder.setColor(Color.WHITE);
 
         mNotificationManager = (NotificationManager) getApplicationContext()
-                .getSystemService(getApplicationContext().NOTIFICATION_SERVICE);
+                .getSystemService(NOTIFICATION_SERVICE);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            String channelId = NOTIFICATION_CHANNEL;
-            NotificationChannel channel = new NotificationChannel(
-                    channelId,
-                    "MediMiles",
-                    importance);
-            mNotificationManager.createNotificationChannel(channel);
-            mBuilder.setChannelId(channelId);
-        }
+        assert options != null;
+        String channelId = NOTIFICATION_CHANNEL;
+        NotificationChannel channel = new NotificationChannel(
+                channelId,
+                getString(R.string.app_name),
+                options.useHighNotificationImportance() ? NotificationManager.IMPORTANCE_HIGH
+                        : NotificationManager.IMPORTANCE_LOW);
+        mNotificationManager.createNotificationChannel(channel);
+        mBuilder.setChannelId(channelId);
+        
 
         Notification notif = mBuilder.build();
-
         notif.flags = Notification.FLAG_ONGOING_EVENT;
-        notification = notif;
-
         return notif;
     }
 
@@ -516,44 +489,38 @@ public class MyLocationService extends Service implements LocationListener, View
         ii.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         ii.setAction(STOP_TRIP_ACTION);
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(this.getApplicationContext(), 200, i
-                , PendingIntent.FLAG_ONE_SHOT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this.getApplicationContext()
+                , 200, i, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
 
-        PendingIntent stopTripIntent = PendingIntent.getActivity(this.getApplicationContext(), 200
-                , ii, PendingIntent.FLAG_ONE_SHOT);
+        PendingIntent stopTripIntent = PendingIntent.getActivity(this.getApplicationContext()
+                , 200, ii, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
 
         mBuilder.setContentIntent(pendingIntent);
         mBuilder.setSmallIcon(R.drawable.main_logo);
 
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mBuilder.setSmallIcon(R.drawable.notification_small_car);
-            mBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.car2_static_round_tparent_icon));
-            mBuilder.setColor(Color.WHITE);
-        } else {
-            Log.i(TAG, "getNotification ");
-        }
+        mBuilder.setSmallIcon(R.drawable.notification_small_car);
+        mBuilder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap
+                .car2_static_round_tparent_icon));
+        mBuilder.setColor(Color.WHITE);
 
-        mBuilder.setContentTitle("Trip still running");
-        mBuilder.setContentText("Did you forget to end your trip?");
+        mBuilder.setContentTitle(getString(R.string.trip_still_running));
+        mBuilder.setContentText(getString(R.string.forget_to_stop_trip));
         mBuilder.addAction(R.drawable.stop_icon_32x32, getString(R.string.stop_trip_btn_notification_text),
                 stopTripIntent);
 
         mNotificationManager = (NotificationManager) getApplicationContext()
-                .getSystemService(getApplicationContext().NOTIFICATION_SERVICE);
+                .getSystemService(Context.NOTIFICATION_SERVICE);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            String channelId = NOTIFICATION_CHANNEL_REMINDER;
-            NotificationChannel channel = new NotificationChannel(
-                    channelId,
-                    "MediMiles",
-                    NotificationManager.IMPORTANCE_HIGH);
-            mNotificationManager.createNotificationChannel(channel);
-            mBuilder.setChannelId(channelId);
-        }
+        String channelId = NOTIFICATION_CHANNEL_REMINDER;
+        NotificationChannel channel = new NotificationChannel(
+                channelId,
+                getString(R.string.app_name),
+                NotificationManager.IMPORTANCE_HIGH);
+        mNotificationManager.createNotificationChannel(channel);
+        mBuilder.setChannelId(channelId);
 
-        Notification notification = mBuilder.build();
+        return mBuilder.build();
 
-        return notification;
     }
 
     void sendUpdateBroadcast(Location location) {
@@ -562,19 +529,6 @@ public class MyLocationService extends Service implements LocationListener, View
             LocationContainer container = new LocationContainer(location, fullTrip, currentTripEntry);
             intent.putExtra(LOCATION_CHANGED, container);
             sendBroadcast(intent);
-
-            MutableLiveData<LocationContainer> locationContainerMutableLiveData = new MutableLiveData<>();
-            locationContainerMutableLiveData.postValue(container);
-
-            try {
-                if (mileageFragment != null && !mileageFragment.isDetached())
-                mileageViewModel = ViewModelProviders.of(mileageFragment).get(MileageViewModel.class);
-                mileageViewModel2 = new ViewModelProvider(mileageFragment).get(MileageViewModel.class);
-                mileageViewModel.updateLocationContainer(container);
-                mileageViewModel2.updateLocationContainer(container);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -667,8 +621,21 @@ public class MyLocationService extends Service implements LocationListener, View
     }
 
     /**
+     * Returns the private final fullTrip that this service is using to track the trip currently in
+     * use.  If the private static isRunning bool == false this will return null.
+     * @return A FullTrip object representing a trip that is currently being recorded.
+     */
+    public static FullTrip getCurrentRunningTrip() {
+        if (isRunning) {
+            return fullTrip;
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Induces an update broadcast and can be called statically from outside the service.
-     * @param context
+     * @param context A valid context to support sending a broadcast.
      */
     public static void sendUpdateBroadcast(Context context) {
         if (currentTripEntry == null) {
@@ -687,36 +654,38 @@ public class MyLocationService extends Service implements LocationListener, View
      */
     public void exportDB() {
         try {
-            File sd = Environment.getExternalStorageDirectory();
-            File data = Environment.getDataDirectory();
+            File storageDirectory = Environment.getExternalStorageDirectory();
             SQLiteDatabase database = new MySqlDatasource().getDatabase();
 
-            if (sd.canWrite()) {
+            if (storageDirectory.canWrite()) {
                 Log.d("TAG", "DatabaseHandler: can write in sd");
                 String currentDBPath = database.getPath();
-                String copieDBPath = "autobackup.db";
+                String copiedDbFilename = "autobackup.db";
 
                 File currentDB = new File(currentDBPath);
-                File copieDB = new File(sd, copieDBPath);
+                File copiedDb = new File(storageDirectory, copiedDbFilename);
 
-                if (copieDB.exists()) {
-                    copieDB.delete();
+                if (copiedDb.exists()) {
+                    if (!copiedDb.delete()) {
+                        Log.w(TAG, "exportDB|Failed to delete copiedDb; prob not a big deal.");
+                    }
                 }
-                copieDB = new File(sd, copieDBPath);
+                copiedDb = new File(storageDirectory, copiedDbFilename);
 
                 if (currentDB.exists()) {
                     Log.d("TAG", "DatabaseHandler: DB exist");
-                    @SuppressWarnings("resource")
+
                     FileChannel src = new FileInputStream(currentDB).getChannel();
-                    @SuppressWarnings("resource")
-                    FileChannel dst = new FileOutputStream(copieDB).getChannel();
+                    FileChannel dst = new FileOutputStream(copiedDb).getChannel();
                     dst.transferFrom(src, 0, src.size());
                     src.close();
                     dst.close();
-                    if (copieDB.exists() && copieDB.length() > 0) {
-                        Toast.makeText(this, "Database was backed up.", Toast.LENGTH_SHORT).show();
+                    if (copiedDb.exists() && copiedDb.length() > 0) {
+                        Toast.makeText(this, getString(R.string.toast_db_was_backed_up)
+                                , Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(this, "Failed to backup database.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.toast_failed_to_backup_db)
+                                , Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -730,7 +699,8 @@ public class MyLocationService extends Service implements LocationListener, View
             throws UnsupportedEncodingException {
         QueryFactory factory = new QueryFactory("businessunit");
         factory.addColumn("msus_mileage_reimbursement_rate");
-        FilterCondition condition = new FilterCondition("businessunitid", Operator.EQUALS, "8B31B2C2-E519-E711-80D2-005056A36B9B");
+        FilterCondition condition = new FilterCondition("businessunitid", Operator.EQUALS
+                , "8B31B2C2-E519-E711-80D2-005056A36B9B");
         factory.setFilter(new Filter(FilterType.AND, condition));
         String query = factory.construct();
         Requests.Request request = new Requests.Request(Requests.Request.Function.GET);
@@ -767,12 +737,6 @@ public class MyLocationService extends Service implements LocationListener, View
         return Integer.parseInt(decimalFormat.format(minutes));
     }
 
-    @NonNull
-    @Override
-    public ViewModelStore getViewModelStore() {
-        return null;
-    }
-
     enum StartStop {
         START, STOP
     }
@@ -781,7 +745,7 @@ public class MyLocationService extends Service implements LocationListener, View
 
         final long LAST_MOVED_THRESHOLD = 3000;
 
-        notMovingRunner = new Runnable() {
+        Runnable notMovingRunner = new Runnable() {
             public void run() {
 
                 if (mLastLocation == null) {
@@ -791,7 +755,7 @@ public class MyLocationService extends Service implements LocationListener, View
                 }
 
                 long interval = System.currentTimeMillis() - mLastLocation.getTime();
-                if (isRunning && interval > LAST_MOVED_THRESHOLD && isMoving == true) {
+                if (isRunning && interval > LAST_MOVED_THRESHOLD && isMoving) {
                     isMoving = false;
                     sendNotMovingBroadcast();
                     Log.i(TAG, "isMovingChecker.run: Detected stopped user.");
@@ -816,14 +780,14 @@ public class MyLocationService extends Service implements LocationListener, View
 
         int count = tripEntries.size();
         if (count < 3) {
-            this.lastLocationChangedTimeInMilis = System.currentTimeMillis();
+            this.lastLocationChangedTimeInMillis = System.currentTimeMillis();
             Log.v(TAG + "", "Haven't travelled far enough to check yet...");
             return;
         }
 
         long curMillies = System.currentTimeMillis();
 
-        if ((curMillies - this.lastLocationChangedTimeInMilis) > options.getTripMinderIntervalMillis()) {
+        if ((curMillies - this.lastLocationChangedTimeInMillis) > options.getTripMinderIntervalMillis()) {
             Log.i(TAG, "tripMinderEvaluation time between valid updates has been exceeded.");
             if (userHasBeenWarned) {
                 Log.w(TAG, "tripMinderEvaluation: User has been warned.  Stopping the trip!");
@@ -840,7 +804,7 @@ public class MyLocationService extends Service implements LocationListener, View
                 }
             } else {
                 Log.w(TAG, "tripMinderEvaluation: Warning the user!");
-                this.lastLocationChangedTimeInMilis = System.currentTimeMillis();
+                this.lastLocationChangedTimeInMillis = System.currentTimeMillis();
                 if (!userHasBeenWarned) {
                     Notification notification = getTripStillRunningNotification();
                     mNotificationManager.notify(NOTIFICATION_ID, notification);
@@ -962,11 +926,10 @@ public class MyLocationService extends Service implements LocationListener, View
             if (datasource.appendTrip(currentTripEntry)) {
                 datasource.updateFulltrip(fullTrip);
                 tripEntries.add(currentTripEntry);
-                lastCommittedEntry = currentTripEntry;
                 Log.i(TAG, "onLocationChanged: Successfully inserted new trip entry");
                 userHasBeenWarned = false;
                 TripEntry lastEntry = tripEntries.get(tripEntries.size() - 1);
-                this.lastLocationChangedTimeInMilis = lastEntry.getMilis();
+                this.lastLocationChangedTimeInMillis = lastEntry.getMilis();
             }
         } else {
             Log.i(TAG, "onLocationChanged Not eligible for db insert.");
@@ -984,12 +947,12 @@ public class MyLocationService extends Service implements LocationListener, View
     }
 
     @Override
-    public void onProviderDisabled(String provider) {
+    public void onProviderDisabled(@NonNull String provider) {
         Log.e(TAG, "onProviderDisabled: " + provider);
     }
 
     @Override
-    public void onProviderEnabled(String provider) {
+    public void onProviderEnabled(@NonNull String provider) {
 
     }
 
@@ -1009,12 +972,10 @@ public class MyLocationService extends Service implements LocationListener, View
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION);
         }
-        Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
+        Location location = Objects.requireNonNull(locationManager).getLastKnownLocation(Objects
+                .requireNonNull(locationManager.getBestProvider(criteria, false)));
         if (location != null) {
-            double lat = location.getLatitude();
-            double longi = location.getLongitude();
-            LatLng latLng = new LatLng(lat, longi);
-            Log.d(TAG, "zoomMyCuurentLocation: location not null");
+            Log.d(TAG, "zoomMyCurrentLocation: location not null");
             return location;
         }
         return null;
@@ -1026,12 +987,14 @@ public class MyLocationService extends Service implements LocationListener, View
      * @param context A context valid for confirming permissions and accessing the location manager.
      * @param onSuccessListener A listener for reporting the results when operation has finished.
      */
+    @SuppressWarnings("unused")
     @SuppressLint("MissingPermission")
     public static void getLastKnownCachedLocationFromOS(Context context, OnSuccessListener<Location> onSuccessListener) {
 
         // See if the OS has a last known loc already and use that if so.
         if (getLastKnownCachedLocationFromOS(context) != null) {
-            onSuccessListener.onSuccess(getLastKnownCachedLocationFromOS(context));
+            onSuccessListener.onSuccess(Objects.requireNonNull(
+                    getLastKnownCachedLocationFromOS(context)));
             return;
         }
 
@@ -1042,282 +1005,13 @@ public class MyLocationService extends Service implements LocationListener, View
         }
 
         // Determine the current location manually.
-        Log.d(TAG, "setMyLastLocation: excecute, and get last location");
+        Log.d(TAG, "setMyLastLocation: execute, and get last location");
         FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(context);
-        fusedLocationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
-            @Override
-            public void onSuccess(Location location) {
-                if (location != null) {
-                    double lat = location.getLatitude();
-                    double longi = location.getLongitude();
-                    LatLng latLng = new LatLng(lat, longi);
-                    Log.d(TAG, "MyLastLocation coordinat :" + latLng);
-                }
-            }
+        fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+            double lat = location.getLatitude();
+            double longi = location.getLongitude();
+            LatLng latLng = new LatLng(lat, longi);
+            Log.d(TAG, "MyLastLocation coordinate :" + latLng);
         });
     }
-
-/*
-switch (value.Function.ToLower()) {
-					case USER_CAN_GET_PROXY:
-						string username = (string)value.Arguments[0].value;
-						string password = (string)value.Arguments[1].value;
-						result = JsonConvert.SerializeObject(Crm.CRMworker.UserCanGetProxy(username, password));
-						object obj = JsonConvert.DeserializeObject<object>(result);
-						response = Request.CreateResponse(HttpStatusCode.OK, obj);
-						return response;
-					case GET:
-						result = MyCrm.Content.Retrieve((string)value.Arguments[0].value);
-						obj = JsonConvert.DeserializeObject<object>(result);
-						response = Request.CreateResponse(HttpStatusCode.OK, obj);
-						return response;
-					case CREATE:
-						string entityName = (string)value.Arguments[0].value;
-						string asUserid = (string)value.Arguments[1].value;
-						EntityContainer container = JsonConvert.DeserializeObject<EntityContainer>(
-							(string)value.Arguments[2].value);
-						result = JsonConvert.SerializeObject(MyCrm.Content.CreateEntity(entityName, asUserid, container));
-						obj = JsonConvert.DeserializeObject<object>(result);
-						response = Request.CreateResponse(HttpStatusCode.OK, obj);
-						return response;
-					case CREATE_MANY:
-						entityName = (string)value.Arguments[0].value;
-						asUserid = (string)value.Arguments[1].value;
-						EntityContainers containers = JsonConvert.DeserializeObject<EntityContainers>(
-							(string)value.Arguments[2].value);
-						result = JsonConvert.SerializeObject(MyCrm.Content.CreateEntities(entityName, asUserid, containers));
-						obj = JsonConvert.DeserializeObject<object>(result);
-						response = Request.CreateResponse(HttpStatusCode.OK, obj);
-						return response;
-					case UPDATE:
-						string guid = (string)value.Arguments[0].value;
-						entityName = (string)value.Arguments[1].value;
-						container = JsonConvert.DeserializeObject<EntityContainer>((string)value.Arguments[2].value);
-						asUserid = (string)value.Arguments[3].value;
-						result = JsonConvert.SerializeObject(MyCrm.Content.UpdateEntity(guid, entityName, container, asUserid));
-						obj = JsonConvert.DeserializeObject<object>(result);
-						response = Request.CreateResponse(HttpStatusCode.OK, obj);
-						return response;
-					case UPDATE_MANY:
-						guid = (string)value.Arguments[0].value;
-						entityName = (string)value.Arguments[1].value;
-						containers = JsonConvert.DeserializeObject<EntityContainers>((string)value.Arguments[2].value);
-						asUserid = (string)value.Arguments[3].value;
-						result = JsonConvert.SerializeObject(MyCrm.Content.UpdateEntities(guid, entityName, containers, asUserid));
-						obj = JsonConvert.DeserializeObject<object>(result);
-						response = Request.CreateResponse(HttpStatusCode.OK, obj);
-						return response;
-					case UPSERT:
-						if (value.Arguments[0].value != null) {
-							guid = value.Arguments[0].value.ToString();
-						} else {
-							guid = null;
-						}
-						entityName = (string)value.Arguments[1].value;
-						container = JsonConvert.DeserializeObject<EntityContainer>((string)value.Arguments[2].value);
-						asUserid = (string)value.Arguments[3].value;
-						result = JsonConvert.SerializeObject(MyCrm.Content.UpsertEntity(entityName, container, asUserid, guid));
-						obj = JsonConvert.DeserializeObject<object>(result);
-						response = Request.CreateResponse(HttpStatusCode.OK, obj);
-						return response;
-					case UPSERT_MANY:
-						if (value.Arguments[0].value != null) {
-							guid = value.Arguments[0].value.ToString();
-						} else {
-							guid = null;
-						}
-						entityName = (string)value.Arguments[1].value;
-						containers = JsonConvert.DeserializeObject<EntityContainers>((string)value.Arguments[2].value);
-						asUserid = (string)value.Arguments[3].value;
-						result = JsonConvert.SerializeObject(MyCrm.Content.UpsertEntities(entityName, containers, asUserid, guid));
-						obj = JsonConvert.DeserializeObject<object>(result);
-						response = Request.CreateResponse(HttpStatusCode.OK, obj);
-						return response;
-					case ASSIGN:
-						entityName = (string)value.Arguments[0].value;
-						string entityid = (string)value.Arguments[1].value;
-						string userid = (string)value.Arguments[2].value;
-						asUserid = (string)value.Arguments[3].value;
-						result = JsonConvert.SerializeObject(MyCrm.Content.AssignEntity(entityName, entityid, userid, asUserid));
-						obj = JsonConvert.DeserializeObject<object>(result);
-						response = Request.CreateResponse(HttpStatusCode.OK, obj);
-						return response;
-					case ASSIGN_MANY:
-						entityName = (string)value.Arguments[0].value;
-						List<string> ids = (List<string>)value.Arguments[1].value;
-						userid = (string)value.Arguments[2].value;
-						asUserid = (string)value.Arguments[3].value;
-						result = JsonConvert.SerializeObject(MyCrm.Content.AssignEntities(entityName, ids, userid, asUserid));
-						obj = JsonConvert.DeserializeObject<object>(result);
-						response = Request.CreateResponse(HttpStatusCode.OK, obj);
-						return response;
-					case ASSOCIATE:
-						string relationshipschema = (string)value.Arguments[0].value;
-						string targetentityname = (string)value.Arguments[1].value;
-						string sourceentityname = (string)value.Arguments[2].value;
-						Guid sourceid = new Guid((string)value.Arguments[3].value);
-						Guid targetid = new Guid((string)value.Arguments[4].value);
-						result = JsonConvert.SerializeObject(MyCrm.Content.AssociateEntity(relationshipschema, targetentityname, sourceentityname
-							, targetid, sourceid));
-						obj = JsonConvert.DeserializeObject<object>(result);
-						response = Request.CreateResponse(HttpStatusCode.OK, obj);
-						return response;
-					case ASSOCIATE_MANY:
-						relationshipschema = (string)value.Arguments[0].value;
-						targetentityname = (string)value.Arguments[1].value;
-						sourceentityname = (string)value.Arguments[2].value;
-						List<string> sourceidstrings = (List<string>)value.Arguments[3].value;
-						List<Guid> guids = new List<Guid>();
-						foreach (string id in sourceidstrings) {
-							guids.Add(new Guid(id));
-						}
-						targetid = new Guid((string)value.Arguments[4].value);
-						result = JsonConvert.SerializeObject(MyCrm.Content.AssociateEntities(relationshipschema, targetentityname, sourceentityname
-							, targetid, guids));
-						obj = JsonConvert.DeserializeObject<object>(result);
-						response = Request.CreateResponse(HttpStatusCode.OK, obj);
-						return response;
-					case DELETE:
-						entityName = (string)value.Arguments[0].value;
-						entityid = (string)value.Arguments[1].value;
-						asUserid = (string)value.Arguments[2].value;
-						result = JsonConvert.SerializeObject(MyCrm.Content.DeleteEntity(entityName, entityid, asUserid));
-						obj = JsonConvert.DeserializeObject<object>(result);
-						response = Request.CreateResponse(HttpStatusCode.OK, obj);
-						return response;
-					case DELETE_MANY:
-						entityName = (string)value.Arguments[0].value;
-						List<string> entityids = (List<string>)value.Arguments[1].value;
-						asUserid = (string)value.Arguments[2].value;
-						result = JsonConvert.SerializeObject(MyCrm.Content.DeleteManyWithResult(entityName, entityids, asUserid));
-						obj = JsonConvert.DeserializeObject<object>(result);
-						response = Request.CreateResponse(HttpStatusCode.OK, obj);
-						return response;
-					case DISSASSOCIATE:
-						relationshipschema = (string)value.Arguments[0].value;
-						targetentityname = (string)value.Arguments[1].value;
-						sourceentityname = (string)value.Arguments[2].value;
-						string sid = (string)value.Arguments[4].value;
-						targetid = new Guid((string)value.Arguments[4].value);
-						result = JsonConvert.SerializeObject(MyCrm.Content.DisAssociateEntity(relationshipschema, targetentityname, sourceentityname
-							, targetid, sid));
-						obj = JsonConvert.DeserializeObject<object>(result);
-						response = Request.CreateResponse(HttpStatusCode.OK, obj);
-						return response;
-					case DISSASSOCIATE_MANY:
-						relationshipschema = (string)value.Arguments[0].value;
-						targetentityname = (string)value.Arguments[1].value;
-						sourceentityname = (string)value.Arguments[2].value;
-						sourceidstrings = (List<string>)value.Arguments[3].value;
-						guids = new List<Guid>();
-						foreach (string id in sourceidstrings) {
-							guids.Add(new Guid(id));
-						}
-						targetid = new Guid((string)value.Arguments[4].value);
-						result = JsonConvert.SerializeObject(MyCrm.Content.DisAssociateEntities(relationshipschema, targetentityname, sourceentityname
-							, targetid, guids));
-						obj = JsonConvert.DeserializeObject<object>(result);
-						response = Request.CreateResponse(HttpStatusCode.OK, obj);
-						return response;
-					case SET_STATE:
-						entityName = (string)value.Arguments[0].value;
-						sid = (string)value.Arguments[1].value;
-						int newstate = (int)value.Arguments[2].value;
-						int newstatus = (int)value.Arguments[3].value;
-						asUserid = (string)value.Arguments[4].value;
-						result = JsonConvert.SerializeObject(MyCrm.Content.SetState(entityName, sid, newstate, newstatus, asUserid));
-						obj = JsonConvert.DeserializeObject<object>(result);
-						response = Request.CreateResponse(HttpStatusCode.OK, obj);
-						return response;
-					case SET_STATE_MANY:
-						entityName = (string)value.Arguments[0].value;
-						ids = (List<string>)value.Arguments[1].value;
-						newstate = (int)value.Arguments[2].value;
-						newstatus = (int)value.Arguments[3].value;
-						asUserid = (string)value.Arguments[4].value;
-						result = JsonConvert.SerializeObject(MyCrm.Content.SetStateOnMultiple(entityName, ids, newstate, newstatus, asUserid));
-						obj = JsonConvert.DeserializeObject<object>(result);
-						response = Request.CreateResponse(HttpStatusCode.OK, obj);
-						return response;
-				}
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

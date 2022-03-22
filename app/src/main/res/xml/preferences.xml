@@ -26,6 +26,15 @@
         <SwitchPreference
             android:foreground="#000000"
             android:theme="@style/AppTheme"
+            app:key="@string/prefkey_notification_importance"
+            app:defaultValue="true"
+            android:fontFamily="casual"
+            android:summary="@string/pref_notif_importance_summary"
+            app:title="@string/pref_notif_importance_title" />
+
+        <SwitchPreference
+            android:foreground="#000000"
+            android:theme="@style/AppTheme"
             app:key="CONFIRM_END"
             app:defaultValue="@string/default_auto_end_trip_value"
             android:fontFamily="casual"

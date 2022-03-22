@@ -1,39 +1,73 @@
 package com.fimbleenterprises.medimileage;
+
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
 import android.util.Log;
 
-import com.fimbleenterprises.medimileage.objects_and_containers.RecentOrSavedTrip;
-import com.fimbleenterprises.medimileage.services.MyLocationService;
 import com.fimbleenterprises.medimileage.objects_and_containers.AccountAddresses;
 import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
+import com.fimbleenterprises.medimileage.objects_and_containers.RecentOrSavedTrip;
 import com.fimbleenterprises.medimileage.objects_and_containers.TripEntry;
 import com.fimbleenterprises.medimileage.objects_and_containers.UserAddresses;
+import com.fimbleenterprises.medimileage.services.MyLocationService;
 
+import org.jetbrains.annotations.NonNls;
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 import java.util.Locale;
 
-import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_IS_ME;
-import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_JSON;
-import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_SYSTEMUSERID;
-import static com.fimbleenterprises.medimileage.MySQLiteHelper.TABLE_USERS;
-import static com.fimbleenterprises.medimileage.MySQLiteHelper.*;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.ALL_TRIPENTRY_COLUMNS;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_ACTS_GSON;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_ADDY_GSON;
 import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_DATETIME;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_DIST;
 import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_DISTANCE;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_EDITED;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_EMAIL;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_FROM_LAT;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_FROM_LON;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_GUID;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_GU_USERNAME;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_HAS_ASSOCIATIONS;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_ID;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_IS_MANUAL;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_IS_ME;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_IS_SUBMITTED;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_JSON;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_LATITUDE;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_LONGITUDE;
 import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_MILIS;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_NAME;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_OBJECTIVE;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_RATE;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_SPEED;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_SYSTEMUSERID;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_TITLE;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_TO_LAT;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_TO_LON;
 import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_TRIPCODE;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_TRIP_GUID;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_TRIP_MINDER_KILLED;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_USER_STARTED_TRIP;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.COLUMN_USER_STOPPED_TRIP;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.TABLE_ADDYS;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.TABLE_FULL_TRIP;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.TABLE_MY_ACCOUNTS;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.TABLE_RECENT_OR_SAVED_TRIPS;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.TABLE_TRIP_ENTRIES;
+import static com.fimbleenterprises.medimileage.MySQLiteHelper.TABLE_USERS;
 
 @SuppressLint("LongLogTag")
+@SuppressWarnings("unused")
 public class MySqlDatasource {
     // Database fields
+    @NonNls
     public static SQLiteDatabase database;
     private MySQLiteHelper dbHelper;
     Context context;
@@ -104,8 +138,7 @@ public class MySqlDatasource {
     }
 
     int getColumnIndex(String colName, Cursor cursor) {
-        int index = cursor.getColumnIndex(colName);
-        return index;
+        return cursor.getColumnIndex(colName);
     }
 
     public boolean saveUser(MediUser user) {
@@ -123,14 +156,7 @@ public class MySqlDatasource {
 
     public boolean updateUser(MediUser user) {
 
-        boolean result = true;
         try {
-            /*
-            COLUMN_ID + " integer primary key autoincrement, " +
-            COLUMN_JSON + " text, " +
-            COLUMN_SYSTEMUSERID + " text, " +
-            COLUMN_IS_ME + " integer);";    // Database creation sql statement
-             */
             ContentValues values = new ContentValues();
             values.put(COLUMN_JSON, user.toGson());
             values.put(COLUMN_SYSTEMUSERID, user.systemuserid);
@@ -139,11 +165,9 @@ public class MySqlDatasource {
             return (database.update(TABLE_USERS, values, COLUMN_IS_ME + "= 1", null) > 0);
 
         } catch (SQLException e) {
-            result = false;
             e.printStackTrace();
+            return false;
         }
-        Log.i(TAG, "updateUser " + result);
-        return result;
     }
 
     public boolean createUser(MediUser user) {
@@ -164,20 +188,18 @@ public class MySqlDatasource {
         }
     }
 
-    public boolean updateAccounts(AccountAddresses accounts) {
-
-        boolean result = true;
+    public int updateAccounts(AccountAddresses accounts) {
+        int result = 0;
         try {
             ContentValues values = new ContentValues();
             values.put(COLUMN_ACTS_GSON, accounts.toGson());
 
-            return database.update(TABLE_MY_ACCOUNTS, values, null, null) > 0;
+            result = database.update(TABLE_MY_ACCOUNTS, values, null, null);
 
         } catch (SQLException e) {
-            result = false;
             e.printStackTrace();
         }
-        Log.i(TAG, "updateAccounts " + result);
+        Log.i(TAG, "updateAccounts|" + result);
         return result;
     }
 
@@ -198,26 +220,15 @@ public class MySqlDatasource {
     }
 
     public boolean updateUserAddys(UserAddresses addresses) {
-
-        boolean result = true;
         try {
-            /*
-            COLUMN_ID + " integer primary key autoincrement, " +
-            COLUMN_JSON + " text, " +
-            COLUMN_SYSTEMUSERID + " text, " +
-            COLUMN_IS_ME + " integer);";    // Database creation sql statement
-             */
             ContentValues values = new ContentValues();
             values.put(COLUMN_ADDY_GSON, addresses.toGson());
-
             return database.update(TABLE_ADDYS, values, null, null) > 0;
-
         } catch (SQLException e) {
-            result = false;
             e.printStackTrace();
         }
-        Log.i(TAG, "updateAccounts " + result);
-        return result;
+        Log.i(TAG, "updateAccounts " + false);
+        return false;
     }
 
     public boolean createUserAddys(UserAddresses addresses) {
@@ -238,10 +249,8 @@ public class MySqlDatasource {
 
     public UserAddresses getUserAddys() {
 
-        String sql = COLUMN_ADDY_GSON;
-
-        Cursor cursor = database.rawQuery("SELECT " + sql + " FROM " + TABLE_ADDYS, null);
-        UserAddresses addresses = null;
+        Cursor cursor = database.rawQuery("SELECT " + COLUMN_ADDY_GSON + " FROM " + TABLE_ADDYS, null);
+        UserAddresses addresses;
         cursor.moveToFirst();
         if (cursor.getCount() > 0) {
             String gson = cursor.getString(getColumnIndex(COLUMN_ADDY_GSON, cursor));
@@ -266,7 +275,7 @@ public class MySqlDatasource {
 
         Cursor cursor = database.rawQuery("SELECT " + sql + " FROM " + TABLE_USERS + " WHERE "
                 + COLUMN_IS_ME + " = ?", new String[] {"1"});
-        MediUser user = null;
+        MediUser user;
         cursor.moveToFirst();
         if (cursor.getCount() > 0) {
             String json = cursor.getString(getColumnIndex(COLUMN_JSON, cursor));
@@ -287,10 +296,8 @@ public class MySqlDatasource {
 
     public AccountAddresses getAccounts() {
 
-        String sql = COLUMN_ACTS_GSON;
-
-        Cursor cursor = database.rawQuery("SELECT " + sql + " FROM " + TABLE_MY_ACCOUNTS, null);
-        AccountAddresses accounts = null;
+        Cursor cursor = database.rawQuery("SELECT " + COLUMN_ACTS_GSON + " FROM " + TABLE_MY_ACCOUNTS, null);
+        AccountAddresses accounts;
         cursor.moveToFirst();
         if (cursor.getCount() > 0) {
             String gson = cursor.getString(getColumnIndex(COLUMN_ACTS_GSON, cursor));
@@ -315,7 +322,7 @@ public class MySqlDatasource {
 
         Cursor cursor = database.rawQuery("SELECT " + sql + " FROM " + TABLE_USERS + " WHERE "
                 + COLUMN_SYSTEMUSERID + " = ?", new String[] { userid });
-        MediUser user = null;
+        MediUser user;
         cursor.moveToFirst();
         if (cursor.getCount() > 0) {
             String gson = cursor.getString(getColumnIndex(COLUMN_JSON, cursor));
@@ -370,7 +377,7 @@ public class MySqlDatasource {
         fullTrip.setTripcode(cursor.getLong(getColumnIndex(COLUMN_TRIPCODE, cursor)));
         fullTrip.setDateTime(cursor.getString(getColumnIndex(COLUMN_DATETIME, cursor)));
         fullTrip.setDistance(cursor.getLong(getColumnIndex(COLUMN_DISTANCE, cursor)));
-        fullTrip.setMilis(cursor.getLong(getColumnIndex(COLUMN_MILIS, cursor)));
+        fullTrip.setMillis(cursor.getLong(getColumnIndex(COLUMN_MILIS, cursor)));
         fullTrip.setEmail(cursor.getString(getColumnIndex(COLUMN_EMAIL, cursor)));
         fullTrip.setGu_username(cursor.getString(getColumnIndex(COLUMN_GU_USERNAME, cursor)));
         fullTrip.setObjective(cursor.getString(getColumnIndex(COLUMN_OBJECTIVE, cursor)));
@@ -431,9 +438,8 @@ public class MySqlDatasource {
     /**
      * Creates a new RecentOrSavedTrip in the database.
      * @param trip A valid RecentOrSavedTrip object.
-     * @return True if successful.
      */
-    public boolean createNewRecentOrSavedTrip(RecentOrSavedTrip trip, boolean overwrite) {
+    public void createNewRecentOrSavedTrip(RecentOrSavedTrip trip, boolean overwrite) {
 
         // If we find a trip with the same name already saved then we will want to delete it after
         // we confirm this one has been saved.
@@ -449,7 +455,7 @@ public class MySqlDatasource {
             }
         }
 
-        boolean result = true;
+        boolean result;
         try {
             ContentValues values = new ContentValues();
             values.put(COLUMN_NAME, trip.name);
@@ -459,7 +465,6 @@ public class MySqlDatasource {
             values.put(COLUMN_FROM_LAT, trip.fromLat);
             values.put(COLUMN_FROM_LON, trip.fromLon);
 
-            result = (database.insert(TABLE_RECENT_OR_SAVED_TRIPS, null, values) > 0);
             Log.i(TAG, "RecentOrSavedTrip row was created.");
 
             // Remove existing trip in the recents list now that we have saved this one.
@@ -469,20 +474,16 @@ public class MySqlDatasource {
             }
 
         } catch (SQLException e) {
-            result = false;
             e.printStackTrace();
         }
-        return result;
     }
 
     /**
      * Updates an existing RecentOrSavedTrip in teh database.
-     * @param trip
-     * @return
      */
-    public boolean updateRecentOrSavedtrip(RecentOrSavedTrip trip) {
+    public boolean updateRecentOrSavedTrip(RecentOrSavedTrip trip) {
 
-        boolean result = true;
+        boolean result;
         try {
             ContentValues values = new ContentValues();
             values.put(COLUMN_NAME, trip.name);
@@ -545,7 +546,6 @@ public class MySqlDatasource {
 
     /**
      * Returns the latest non-manual, recorded trip based on tripcode.
-     * @return
      */
     public FullTrip getLatestNonManualTrip() {
         ArrayList<FullTrip> trips = getNonManualTrips();
@@ -607,7 +607,7 @@ public class MySqlDatasource {
     public ArrayList<FullTrip> getTrips(int monthNum, int year, boolean isSubmitted) {
         ArrayList<FullTrip> trips = new ArrayList<>();
 
-        String sql = "" +
+        @NonNls String sql = "" +
                 "SELECT * " +
                 "FROM fulltrips " +
                 "ORDER BY tripcode desc";
@@ -640,114 +640,9 @@ public class MySqlDatasource {
             titles[index] = c.getString(0);
             index++;
         }
+        c.close();
         return titles;
     }
-
-    /*public ArrayList<CachedTrip> getCachedTrips() {
-        Cursor c = database.query(TABLE_TRIP_CACHE, new String[] { COLUMN_TRIP_CACHE_ID, COLUMN_TRIP_CACHE_JSON, COLUMN_TRIP_CACHE_TRIPCODE }, null, null,
-                null, null, null);
-        ArrayList<CachedTrip> trips = new ArrayList<>();
-        while (c.moveToNext()) {
-            CachedTrip trip = new CachedTrip(c.getString(1));
-            trips.add(trip);
-        }
-        return trips;
-    }
-
-    public boolean deleteOldestCachedTrip() {
-        boolean result;
-        CachedTrip oldestTrip = getOldestCachedTrip();
-        String whereClause = COLUMN_TRIPCODE + " = ?";
-        String[] whereArgs = {String.valueOf(oldestTrip.tripcode)};
-        result = (database.delete(TABLE_TRIP_CACHE, whereClause, whereArgs)) > 0;
-        Log.i(TAG, "deleteOldestTrip " + result);
-        return result;
-    }
-
-    public boolean deleteCachedTrip(CachedTrip trip) {
-        boolean result;
-        String whereClause = COLUMN_TRIP_CACHE_TRIPCODE + " = ?";
-        String[] whereArgs = {String.valueOf(trip.tripcode)};
-        result = (database.delete(TABLE_TRIP_CACHE, whereClause, whereArgs)) > 0;
-        Log.i(TAG, "deleteCachedTrip " + result);
-        return result;
-    }
-
-    public boolean deleteCachedTrip(long tripcode) {
-        boolean result;
-        String whereClause = COLUMN_TRIP_CACHE_TRIPCODE + " = ?";
-        String[] whereArgs = {String.valueOf(tripcode)};
-        result = (database.delete(TABLE_TRIP_CACHE, whereClause, whereArgs)) > 0;
-        Log.i(TAG, "deleteCachedTrip " + result);
-        return result;
-    }
-
-    public CachedTrip getOldestCachedTrip() {
-
-        String sql = "" +
-                "SELECT " + COLUMN_TRIP_CACHE_JSON + " " +
-                "FROM " + TABLE_TRIP_CACHE + " " +
-                "ORDER BY " + COLUMN_TRIP_CACHE_TRIPCODE + " desc";
-
-        Cursor c = database.rawQuery(sql, null);
-
-        while (c.moveToNext()) {
-            CachedTrip trip = new CachedTrip(c.getString(0));
-            c.close();
-            return trip;
-        }
-
-        c.close();
-        return null;
-    }
-
-    public boolean createNewTrip(CachedTrip trip) {
-        boolean result = true;
-        try {
-            ContentValues values = new ContentValues();
-            values.put(COLUMN_TRIP_CACHE_TRIPCODE, trip.tripcode);
-            values.put(COLUMN_TRIP_CACHE_JSON, trip.toGson());
-
-            result = (database.insert(TABLE_TRIP_CACHE, null, values) > 0);
-            Log.i(TAG, "createCachedTrip Created.");
-
-        } catch (SQLException e) {
-            result = false;
-            e.printStackTrace();
-        }
-        return result;
-    }
-
-    public CachedTrip getCachedTrip(long tripcode) {
-
-        String sql = "" +
-                "SELECT " + COLUMN_TRIP_CACHE_JSON + " " +
-                "FROM " + TABLE_TRIP_CACHE + " " +
-                "WHERE " + COLUMN_TRIP_CACHE_TRIPCODE + " = " + tripcode + ";";
-
-        Cursor c = database.rawQuery(sql, null);
-
-        while (c.moveToNext()) {
-            CachedTrip trip = new CachedTrip(c.getString(0));
-            c.close();
-            return trip;
-        }
-
-        c.close();
-        return null;
-    }
-
-    public int countCachedTrips() {
-
-        String sql = "" +
-                "SELECT " + COLUMN_TRIP_CACHE_JSON + " " +
-                "FROM " + TABLE_TRIP_CACHE + " " +
-                "ORDER BY " + COLUMN_TRIP_CACHE_TRIPCODE + " desc";
-
-        Cursor c = database.rawQuery(sql, null);
-
-        return c.getCount();
-    }*/
 
     public boolean fullTripExists(long tripcode) {
         boolean result;
@@ -758,14 +653,14 @@ public class MySqlDatasource {
 
     public boolean updateFulltrip(FullTrip trip) {
 
-        boolean result = true;
+        boolean result;
         try {
             ContentValues values = new ContentValues();
             values.put(COLUMN_TITLE, trip.getTitle());
             values.put(COLUMN_TRIPCODE, trip.getTripcode());
             values.put(COLUMN_DATETIME, trip.getDateTime().toString());
             values.put(COLUMN_DISTANCE, trip.getDistance());
-            values.put(COLUMN_MILIS, trip.getMilis());
+            values.put(COLUMN_MILIS, trip.getMillis());
             values.put(COLUMN_EMAIL, trip.getEmail());
             values.put(COLUMN_GU_USERNAME, trip.getGu_username());
             values.put(COLUMN_OBJECTIVE, trip.getObjective());
@@ -834,35 +729,37 @@ public class MySqlDatasource {
 
     /**
      * Deletes trip entries that do not have a corresponding full trip entry
-     * @return The amount of entries removed.
      */
-    @SuppressLint("StaticFieldLeak")
     public void deleteUnreferencedTripEntries(final MyInterfaces.TripDeleteCallback callback) {
 
-        new AsyncTask<Integer, Integer, Integer>() {
-            boolean wasFaulted = false;
-
+        new MyAsyncTask() {
+            boolean wasFaulted;
+            int deletions;
+            @Override
+            public void onPreExecute() { }
 
             @Override
-            protected Integer doInBackground(Integer... ints) {
+            public void doInBackground() {
                 try {
-                    return deleteUnreferencedTripEntriesWorker();
+                    deletions = deleteUnreferencedTripEntriesWorker();
                 } catch (Exception e) {
                     e.printStackTrace();
                     callback.onFailure(e.getMessage());
                     wasFaulted = true;
-                    return 0;
                 }
             }
 
             @Override
-            protected void onPostExecute(Integer i) {
-                super.onPostExecute(i);
+            public void onProgress(Object msg) { }
+
+            @Override
+            public void onPostExecute() {
                 if (! wasFaulted) {
-                    callback.onSuccess(i);
+                    callback.onSuccess(deletions);
                 }
             }
-        }.execute(null, null, null);
+
+        }.execute();
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -873,43 +770,46 @@ public class MySqlDatasource {
             return;
         }
 
-        new AsyncTask<Integer, Integer, Integer>() {
-            boolean wasFaulted = false;
+        new MyAsyncTask() {
+            boolean wasFaulted;
+            int deleted;
+            @Override
+            public void onPreExecute() { }
 
             @Override
-            protected Integer doInBackground(Integer... ints) {
+            public void doInBackground() {
                 try {
-                    ArrayList<FullTrip> trips = new ArrayList<>();
+                    ArrayList<FullTrip> trips;
                     if (justCurrentMonth) {
                         trips = getTrips(DateTime.now().getMonthOfYear(), DateTime.now().getYear());
                     } else {
                         trips = getTrips();
                     }
-                    int deleteCount = 0;
                     for (FullTrip trip : trips) {
                         if (trip.getDistanceInMiles() < 1f && ! trip.getIsRunning()) {
                             if (deleteFulltrip(trip.getTripcode(), true)) {
-                                deleteCount++;
+                                deleted++;
                             }
                         }
                     }
-                    return deleteCount;
                 } catch (Exception e) {
                     e.printStackTrace();
                     callback.onFailure(e.getMessage());
                     wasFaulted = true;
-                    return 0;
                 }
             }
 
             @Override
-            protected void onPostExecute(Integer i) {
-                super.onPostExecute(i);
+            public void onProgress(Object msg) { }
+
+            @Override
+            public void onPostExecute() {
                 if (! wasFaulted) {
-                    callback.onSuccess(i);
+                    callback.onSuccess(deleted);
                 }
             }
-        }.execute(null, null, null);
+
+        }.execute();
     }
 
     /**
@@ -953,14 +853,14 @@ public class MySqlDatasource {
     }
 
     public boolean createFullTrip(FullTrip trip) {
-        boolean result = true;
+        boolean result;
         try {
             ContentValues values = new ContentValues();
             values.put(COLUMN_TITLE, trip.getTitle());
             values.put(COLUMN_TRIPCODE, trip.getTripcode());
             values.put(COLUMN_DATETIME, trip.getDateTime().toString());
             values.put(COLUMN_DISTANCE, trip.getDistance());
-            values.put(COLUMN_MILIS, trip.getMilis());
+            values.put(COLUMN_MILIS, trip.getMillis());
             values.put(COLUMN_EMAIL, trip.getEmail());
             values.put(COLUMN_GU_USERNAME, trip.getGu_username());
             values.put(COLUMN_OBJECTIVE, trip.getObjective());
@@ -997,18 +897,16 @@ public class MySqlDatasource {
 
     /**
      * Creates the full trip in the database but NOT the entries.  This is a fast operation.
-     * @param trip
-     * @return
      */
     public boolean createNewTrip(FullTrip trip) {
-        boolean result = true;
+        boolean result;
         try {
             ContentValues values = new ContentValues();
             values.put(COLUMN_TITLE, trip.getTitle());
             values.put(COLUMN_TRIPCODE, trip.getTripcode());
             values.put(COLUMN_DATETIME, trip.getDateTime().toString());
             values.put(COLUMN_DISTANCE, trip.getDistance());
-            values.put(COLUMN_MILIS, trip.getMilis());
+            values.put(COLUMN_MILIS, trip.getMillis());
             values.put(COLUMN_EMAIL, trip.getEmail());
             values.put(COLUMN_GU_USERNAME, trip.getGu_username());
             values.put(COLUMN_OBJECTIVE, trip.getObjective());
@@ -1079,7 +977,7 @@ public class MySqlDatasource {
 
     public boolean updateTripEntry(TripEntry tripEntry) {
 
-        boolean result = true;
+        boolean result;
         try {
             ContentValues values = new ContentValues();
             values.put(COLUMN_TRIPCODE, tripEntry.getTripcode());
@@ -1108,7 +1006,7 @@ public class MySqlDatasource {
     }
 
     public boolean createTripEntry(TripEntry tripEntry) {
-        boolean result = true;
+        boolean result;
         try {
             ContentValues values = new ContentValues();
             values.put(COLUMN_TRIPCODE, tripEntry.getTripcode());

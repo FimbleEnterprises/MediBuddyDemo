@@ -20,7 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
-import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyUpdate;
+import com.fimbleenterprises.medimileage.objects_and_containers.MediBuddyUpdate;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -72,11 +72,11 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
     private InputStream input = null;
     private String downloadFailureReason = "";
     private boolean cancelRequested = false;
-    MileBuddyUpdate update;
+    MediBuddyUpdate update;
     MyPreferencesHelper options;
     boolean silently;
 
-    public UpdateDownloader(Activity activity, MileBuddyUpdate update, boolean silently) {
+    public UpdateDownloader(Activity activity, MediBuddyUpdate update, boolean silently) {
         this.activity = activity;
         this.options = new MyPreferencesHelper(activity);
         this.silently = silently;
@@ -254,7 +254,7 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
                 update.version + ".apk");
         if (file.exists()) {
             options.clearMileBuddyUpdate();
-            options.setMilebuddyUpdate(update.json);
+            options.setMediBuddyUpdate(update.json);
         }
 
         DOWNLOADING = false;
@@ -273,7 +273,7 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
         } else {
             myProgressDialog.setContentText("A new version is available!");
             Log.i(TAG, "onPostExecute | Downloaded!  Will update preferences that a download is available for the next restart!");
-            options.setMilebuddyUpdate(update.json);
+            options.setMediBuddyUpdate(update.json);
             install(!silently, activity, update);
             myProgressDialog.dismiss();
         }
@@ -323,7 +323,7 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
         return true;
     }
 
-    public static void install(boolean show, final Activity activity, final MileBuddyUpdate update) {
+    public static void install(boolean show, final Activity activity, final MediBuddyUpdate update) {
 
         final MyPreferencesHelper options = new MyPreferencesHelper(activity);
 
@@ -336,15 +336,15 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
                 @Override
                 public void onCancel(DialogInterface dialogInterface) {
                     try {
-                        MileBuddyUpdate.deleteAllLocallyAvailableUpdates();
+                        MediBuddyUpdate.deleteAllLocallyAvailableUpdates();
                     } catch (Exception e) {
                         Toast.makeText(activity, "Failed to remove local updates.  Call Matt!", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
             TextView txtChangeLog = dialog.findViewById(R.id.txtChangelog);
-            txtChangeLog.setText("Ver: " + options.getMileBuddyUpdate().version + "\n"
-                    + options.getMileBuddyUpdate().changelog);
+            txtChangeLog.setText("Ver: " + options.getMediBuddyUpdate().version + "\n"
+                    + options.getMediBuddyUpdate().changelog);
             Button btnInstall = dialog.findViewById(R.id.btnInstall);
             btnInstall.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -365,7 +365,7 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
                     if (!Helpers.Files.copy(originalFile, tempApp)) {
                         Toast.makeText(activity, "Failed to install (the copy part failed, dawg).", Toast.LENGTH_SHORT).show();
                         Log.w(TAG, "install: Failed to copy the update file to a temp location for installation");
-                        MileBuddyUpdate.deleteAllLocallyAvailableUpdates();
+                        MediBuddyUpdate.deleteAllLocallyAvailableUpdates();
                         return;
                     } else {
                         Log.i(TAG, "install Ready to install!");
@@ -373,7 +373,7 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
 
                     // delete the downloaded, original file since it should now have been copied to
                     // a temporary location.
-                    MileBuddyUpdate.deleteAllLocallyAvailableUpdates();
+                    MediBuddyUpdate.deleteAllLocallyAvailableUpdates();
 
                     // Install the app according to the OS' best practices.
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -398,7 +398,7 @@ public class UpdateDownloader extends AsyncTask<String, String, String> {
                 public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
                     if (keyCode == KeyEvent.KEYCODE_BACK) {
                         dialog.dismiss();
-                        MileBuddyUpdate.deleteAllLocallyAvailableUpdates();
+                        MediBuddyUpdate.deleteAllLocallyAvailableUpdates();
                         return true;
                     } else {
                         return false;

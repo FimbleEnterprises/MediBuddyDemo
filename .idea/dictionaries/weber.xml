@@ -1,18 +1,48 @@
 <component name="ProjectDictionaryState">
   <dictionary name="weber">
     <words>
+      <w>actv</w>
+      <w>addys</w>
+      <w>assignto</w>
+      <w>asuser</w>
+      <w>autobackup</w>
+      <w>businessunit</w>
+      <w>businessunitid</w>
       <w>companywide</w>
       <w>entityid</w>
+      <w>entityname</w>
       <w>flowmeter</w>
       <w>flowmeters</w>
       <w>fucky</w>
+      <w>fulltrip</w>
+      <w>fulltripid</w>
+      <w>fulltrips</w>
       <w>lastmonth</w>
+      <w>lasttripautokilled</w>
       <w>listview</w>
+      <w>longi</w>
+      <w>medi</w>
+      <w>medibuddy</w>
+      <w>mins</w>
+      <w>msus</w>
+      <w>notif</w>
+      <w>ownerid</w>
       <w>parentcustomerid</w>
+      <w>prefkey</w>
+      <w>prename</w>
+      <w>prog</w>
       <w>recents</w>
       <w>recordurl</w>
+      <w>searchsp</w>
+      <w>syncd</w>
       <w>thismonth</w>
       <w>thisweek</w>
+      <w>toggler</w>
+      <w>tripcode</w>
+      <w>tripdate</w>
+      <w>tripname</w>
+      <w>tripnames</w>
+      <w>unsubmitted</w>
     </words>
   </dictionary>
 </component>

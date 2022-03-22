@@ -2,15 +2,10 @@ package com.fimbleenterprises.medimileage.objects_and_containers;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 import com.fimbleenterprises.medimileage.MySqlDatasource;
 
-import org.joda.time.DateTime;
-
 import java.util.ArrayList;
-
-import javax.sql.DataSource;
 
 /**
  * Used to allow the user to create favorite manual trips or recall recently created manual trips.
@@ -89,6 +84,6 @@ public class RecentOrSavedTrip implements Parcelable {
     }
 
     public boolean save() {
-        return new MySqlDatasource().updateRecentOrSavedtrip(this);
+        return new MySqlDatasource().updateRecentOrSavedTrip(this);
     }
 }

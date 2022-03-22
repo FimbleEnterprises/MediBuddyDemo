@@ -23,7 +23,7 @@ import com.fimbleenterprises.medimileage.Helpers;
 import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics;
-import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyUpdate;
+import com.fimbleenterprises.medimileage.objects_and_containers.MediBuddyUpdate;
 import com.fimbleenterprises.medimileage.MyInterfaces;
 import com.fimbleenterprises.medimileage.objects_and_containers.Opportunities;
 import com.fimbleenterprises.medimileage.services.MyLocationService;
@@ -525,7 +525,7 @@ public class SettingsActivity extends AppCompatActivity {
                 public boolean onPreferenceClick(Preference preference) {
                     if (checkStoragePermission()) {
                         try {
-                            MileBuddyUpdate.deleteAllLocallyAvailableUpdates();
+                            MediBuddyUpdate.deleteAllLocallyAvailableUpdates();
                             Toast.makeText(getContext(), "Deleted local backups", Toast.LENGTH_SHORT).show();
                         } catch (Exception e) {
                             Toast.makeText(getContext(), "Failed to delete local backups!\n"

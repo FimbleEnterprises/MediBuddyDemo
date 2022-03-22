@@ -45,7 +45,7 @@ import com.fimbleenterprises.medimileage.objects_and_containers.AggregateStats;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.ExcelSpreadsheet;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
-import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyUpdate;
+import com.fimbleenterprises.medimileage.objects_and_containers.MediBuddyUpdate;
 import com.fimbleenterprises.medimileage.objects_and_containers.MileageUser;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
 import com.fimbleenterprises.medimileage.activities.ui.drawer.mileage.MileageFragment;
@@ -656,9 +656,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         // If an update has been previously downloaded prompt the user to install it
         if (options.updateIsAvailableLocally()) {
-            MileBuddyUpdate mileBuddyUpdate = options.getMileBuddyUpdate();
-            if (mileBuddyUpdate.version > Helpers.Application.getAppVersion(getApplicationContext())) {
-                UpdateDownloader.install(true, this, options.getMileBuddyUpdate());
+            MediBuddyUpdate mediBuddyUpdate = options.getMediBuddyUpdate();
+            if (mediBuddyUpdate.version > Helpers.Application.getAppVersion(getApplicationContext())) {
+                UpdateDownloader.install(true, this, options.getMediBuddyUpdate());
                 Log.i(TAG, "checkForUpdate Update is available and ready to be installed.");
                 return;
             }
@@ -675,11 +675,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         updater.checkForUpdate(new MileBuddyUpdater.UpdateCheckListener() {
             @Override
-            public void onAvailable(MileBuddyUpdate updateObject) {
+            public void onAvailable(MediBuddyUpdate updateObject) {
 
                 Log.i(TAG, "onAvailable Update is available ver: " + updateObject.version);
                 myProgressDialog.dismiss();
-                options.setMilebuddyUpdate(updateObject.json);
+                options.setMediBuddyUpdate(updateObject.json);
                 new UpdateDownloader(activity, updateObject, silently).run();
                 Toast.makeText(activity, "An update is available.  It will be downloaded in " +
                         "the background for next time you start MileBuddy.", Toast.LENGTH_SHORT).show();

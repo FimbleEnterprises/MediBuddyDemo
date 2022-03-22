@@ -9,14 +9,14 @@ import com.fimbleenterprises.medimileage.objects_and_containers.AccountAddresses
 import com.fimbleenterprises.medimileage.objects_and_containers.Contacts;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
 import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
-import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyUpdate;
+import com.fimbleenterprises.medimileage.objects_and_containers.MediBuddyUpdate;
 import com.fimbleenterprises.medimileage.objects_and_containers.Opportunities;
 import com.fimbleenterprises.medimileage.objects_and_containers.SavedParkingSpot;
 import com.fimbleenterprises.medimileage.objects_and_containers.Territories;
-import com.fimbleenterprises.medimileage.objects_and_containers.Territories.Territory;
 import com.fimbleenterprises.medimileage.objects_and_containers.UserAddresses;
 import com.google.gson.Gson;
 
+import org.jetbrains.annotations.NonNls;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.json.JSONObject;
@@ -25,14 +25,16 @@ import java.io.File;
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
+@NonNls
+@SuppressWarnings("unused")
 public class MyPreferencesHelper {
 
     private static final String TAG = "MySettingsHelper";
     public static final String DB_PATH = "DB_PATH";
     public static final String CACHED_USERNAME = "CACHED_USERNAME";
     public static final String CACHED_PASSWORD = "CACHED_PASSWORD";
-    public static final String SHOW_GOOGLE_POLY = "SHOW_GOOGLE_POLY";
     public static final String SHOW_GOOGLE_SUGGESTED = "SHOW_GOOGLE_SUGGESTED";
     public static final String REIMBURSEMENT_RATE = "REIMBURSEMENT_RATE";
     public static final String LAST_PAGE = "LAST_PAGE";
@@ -47,7 +49,7 @@ public class MyPreferencesHelper {
     public static final String NAME_TRIP_ON_START = "NAME_TRIP_ON_START";
     public static final String DEBUG_MODE = "DEBUG_MODE";
     public static final String MAP_MODE = "MAP_MODE";
-    public static final String MILEBUDDY_UPDATE_JSON = "MILEBUDDY_UPDATE_JSON";
+    public static final String MEDIBUDDY_UPDATE_JSON = "MILEBUDDY_UPDATE_JSON";
     public static final String FCM_TOKEN = "FCM_TOKEN";
     public static final String LAST_UPDATED_ACT_ADDYS = "LAST_UPDATED_ACT_ADDYS";
     public static final String LAST_UPDATED_USER_ADDYS = "LAST_UPDATED_USER_ADDYS";
@@ -56,11 +58,9 @@ public class MyPreferencesHelper {
     public static final String ALL_ADDRESSES_JSON = "ALL_ADDRESSES_JSON";
     public static final String DISTANCE_THRESHOLD = "DISTANCE_THRESHOLD";
     public static final String EXPLICIT_MODE = "EXPLICIT_MODE";
-    public static final String SET_DEFAULTS = "SET_DEFAULTS";
     public static final String SERVER_BASE_URL = "SERVER_BASE_URL";
     public static final String OPPORTUNITIES_JSON = "OPPORTUNITIES_JSON";
     public static final String SHOW_OPPORTUNITY_MGR = "SHOW_OPPORTUNITY_MGR";
-    public static final String LAST_ACCOUNT_SELECTED = "LAST_ACCOUNT_SELECTED";
     public static final String SEARCH_SP_ENABLED = "SEARCH_SP_ENABLED";
     public static final String DEFAULT_SEARCH_PAGE = "DEFAULT_SEARCH_PAGE";
     public static final String DEFAULT_TERRITORY_PAGE = "DEFAULT_TERRITORY_PAGE";
@@ -75,7 +75,6 @@ public class MyPreferencesHelper {
 
     public static final String RECEIPT_FORMAT_PNG = ".png";
     public static final String RECEIPT_FORMAT_JPEG = ".jpeg";
-    public static final String RECEIPT_FORMAT_TXT = ".txt";
     private static final String LAST_CPY_WIDE_PAGE = "LAST_CPY_WIDE_PAGE";
     private static final String CACHED_ACCOUNTS_DATE = "CACHED_ACCOUNTS_DATE";
     private static final String CACHED_CONTACTS_DATE = "CACHED_CONTACTS_DATE";
@@ -99,35 +98,15 @@ public class MyPreferencesHelper {
     }
 
     public void setDefaults() {
-        prefs.edit().clear().commit();
+        prefs.edit().clear().apply();
     }
-
-/*    public void setLastAccountSelected(CrmEntities.Accounts.Account account) {
-
-        if (account == null) {
-            prefs.edit().remove(LAST_ACCOUNT_SELECTED).commit();
-            return;
-        }
-
-        prefs.edit().putString(LAST_ACCOUNT_SELECTED, account.toGson()).commit();
-    }
-
-    public CrmEntities.Accounts.Account getLastAccountSelected() {
-        String gsonVal = prefs.getString(LAST_ACCOUNT_SELECTED, null);
-        if (gsonVal == null) {
-            return null;
-        } else {
-            Gson gson = new Gson();
-            return gson.fromJson(gsonVal, CrmEntities.Accounts.Account.class);
-        }
-    }*/
 
     /**
      * Sets the last used page of the search results pager.
      * @param val The index to save.
      */
     public void setLastSearchTab(int val) {
-        prefs.edit().putInt(LAST_SEARCH_TAB, val).commit();
+        prefs.edit().putInt(LAST_SEARCH_TAB, val).apply();
     }
 
     /**
@@ -139,11 +118,10 @@ public class MyPreferencesHelper {
     }
 
     /**
-     * Allows SharePoint to be one of the search clients.
-     * @param val
+     * Allows SharePoint to be one of the search true.
      */
-    public void setEnableSpSearch(Boolean val) {
-        prefs.edit().putBoolean(SEARCH_SP_ENABLED, val).commit();
+    public void setEnableSpSearch(boolean val) {
+        prefs.edit().putBoolean(SEARCH_SP_ENABLED, val).apply();
     }
 
     public Boolean getEnableSpSearch() {
@@ -151,7 +129,7 @@ public class MyPreferencesHelper {
     }
 
     public void setServerBaseUrl(String url) {
-        prefs.edit().putString(SERVER_BASE_URL, url).commit();
+        prefs.edit().putString(SERVER_BASE_URL, url).apply();
     }
 
     public String getServerBaseUrl() {
@@ -164,9 +142,9 @@ public class MyPreferencesHelper {
      */
     public void setParkingSpot(SavedParkingSpot spot) {
         if (spot == null) {
-            prefs.edit().remove(PARKING_SPOT).commit();
+            prefs.edit().remove(PARKING_SPOT).apply();
         } else {
-            prefs.edit().putString(PARKING_SPOT, new Gson().toJson(spot)).commit();
+            prefs.edit().putString(PARKING_SPOT, new Gson().toJson(spot)).apply();
         }
     }
 
@@ -188,7 +166,6 @@ public class MyPreferencesHelper {
 
     /**
      * If enabled the MyLocationService will constantly save the last recorded location as a parking spot.
-     * @return
      */
     public boolean getAutoSaveParkingSpots() {
         return prefs.getBoolean(AUTO_SAVE_PARKING_SPOT, false);
@@ -196,10 +173,9 @@ public class MyPreferencesHelper {
 
     /**
      * Enables the automatic saving of the last trip's last entry as a parking spot.
-     * @param value
      */
     public void setAutoSaveParkingSpot(Boolean value) {
-        prefs.edit().putBoolean(AUTO_SAVE_PARKING_SPOT, value).commit();
+        prefs.edit().putBoolean(AUTO_SAVE_PARKING_SPOT, value).apply();
     }
 
     public boolean showOpportunityOptions() {
@@ -207,11 +183,31 @@ public class MyPreferencesHelper {
     }
 
     public void setShowOpportunityMgr(Boolean value) {
-        prefs.edit().putBoolean(SHOW_OPPORTUNITY_MGR, value).commit();
+        prefs.edit().putBoolean(SHOW_OPPORTUNITY_MGR, value).apply();
+    }
+
+    /**
+     * If true is supplied, notifications will be created using <b>NotificationManager.HIGH_IMPORTANCE</b>
+     * else they will be created using <b>NotificationManager.LOW_IMPORTANCE</b>.
+     * @param isHighImportance Whether to use <b>NotificationManager.HIGH_IMPORTANCE</b> or
+     *                         <b>NotificationManager.LOW_IMPORTANCE</b>
+     */
+    public void useHighNotificationImportance(boolean isHighImportance) {
+        prefs.edit().putBoolean(context.getString(R.string.prefkey_notification_importance)
+                , isHighImportance).apply();
+    }
+
+    /**
+     * If true, notifications will be created using <b>NotificationManager.HIGH_IMPORTANCE</b>
+     * else they will be created using <b>NotificationManager.LOW_IMPORTANCE</b>.
+     */
+    public boolean useHighNotificationImportance() {
+        return prefs.getBoolean(context.getString(R.string.prefkey_notification_importance)
+                , false);
     }
 
     public void isExplicitMode(boolean value) {
-        prefs.edit().putBoolean(EXPLICIT_MODE, value).commit();
+        prefs.edit().putBoolean(EXPLICIT_MODE, value).apply();
     }
 
     public boolean getShouldUpdateUserAddys() {
@@ -241,16 +237,31 @@ public class MyPreferencesHelper {
     }
 
     public void setShowUsageMenuItem(boolean val) {
-        prefs.edit().putBoolean(SHOW_USAGE_MENU_ITEM, val).commit();
+        prefs.edit().putBoolean(SHOW_USAGE_MENU_ITEM, val).apply();
     }
 
-    public double getDistanceThreshold() {
+    /**
+     * Opportunities can be associated with trips if the opportunity's account is within a
+     * certain distance from the start or end points of a trip.  This is that distance threshold.
+     * @return The distance threshold to use when determining if the opportunity should be
+     *         associated with the trip.
+     */
+    public double getOppDistanceThresholdInMeters() {
         String dist = prefs.getString(DISTANCE_THRESHOLD, "1609");
+        assert dist != null;
         return Double.parseDouble(dist);
     }
 
-    public double getDistanceThresholdInMiles() {
-        double dist = Double.parseDouble(prefs.getString(DISTANCE_THRESHOLD, "1609"));
+    /**
+     * Opportunities can be associated with trips if the opportunity's account is within a
+     * certain distance from the start or end points of a trip.  This is that distance threshold.
+     * @return The distance threshold to use when determining if the opportunity should be
+     *         associated with the trip.
+     */
+    public double getOppDistanceThresholdInMiles() {
+        String strDist = prefs.getString(DISTANCE_THRESHOLD, "1609");
+        assert strDist != null;
+        double dist = Double.parseDouble(strDist);
         return Helpers.Geo.convertMetersToMiles(dist, 1);
     }
 
@@ -259,7 +270,7 @@ public class MyPreferencesHelper {
     }
 
     public void setDefaultSearchPage(int pageindex) {
-        prefs.edit().putInt(DEFAULT_SEARCH_PAGE, pageindex).commit();
+        prefs.edit().putInt(DEFAULT_SEARCH_PAGE, pageindex).apply();
     }
 
     /**
@@ -271,36 +282,40 @@ public class MyPreferencesHelper {
 
     /**
      * Sets the initial starting pager page for the TerritoryData activity.
-     * @param val
      */
     public void setDefaultTerritoryPage(int val) {
-        prefs.edit().putInt(DEFAULT_TERRITORY_PAGE, val).commit();
+        prefs.edit().putInt(DEFAULT_TERRITORY_PAGE, val).apply();
     }
 
     /**
      * Gets the initial pager page for the TerritoryData activity.
-     * @return
      */
     public int getDefaultAccountPage() {
-        return Integer.parseInt(prefs.getString(DEFAULT_ACCOUNT_PAGE, "2"));
+        String strInt = prefs.getString(DEFAULT_ACCOUNT_PAGE, "2");
+        assert strInt != null;
+        return Integer.parseInt(strInt);
     }
 
     /**
      * Sets the initial starting pager page for the AccountData activity.
-     * @param val
      */
     public void setDefaultAccountPage(int val) {
-        prefs.edit().putString(DEFAULT_ACCOUNT_PAGE, Integer.toString(val)).commit();
+        prefs.edit().putString(DEFAULT_ACCOUNT_PAGE, Integer.toString(val)).apply();
     }
 
     /**
      * Sets the initial starting pager page for the AccountData activity.
-     * @param val
      */
     public void setDefaultAccountPage(String val) {
-        prefs.edit().putString(DEFAULT_ACCOUNT_PAGE, val).commit();
+        prefs.edit().putString(DEFAULT_ACCOUNT_PAGE, val).apply();
     }
 
+    /**
+     * It is possible to cache all account addresses in CRM locally in shared prefs as JSON.  This
+     * will attempt to retrieve that JSON and convert it into a CrmAddresses object.
+     * @return A CrmAddresses object or null.
+     */
+    @Nullable
     public CrmEntities.CrmAddresses getAllSavedCrmAddresses() {
         String json = prefs.getString(ALL_ADDRESSES_JSON, null);
         if (json != null) {
@@ -310,10 +325,16 @@ public class MyPreferencesHelper {
         }
     }
 
+    /**
+     * Saves addresses as JSON to shared prefs.
+     */
     public void saveAllCrmAddresses(CrmEntities.CrmAddresses addresses) {
-        prefs.edit().putString(ALL_ADDRESSES_JSON, addresses.toGson()).commit();
+        prefs.edit().putString(ALL_ADDRESSES_JSON, addresses.toGson()).apply();
     }
 
+    /**
+     * @return getAllSavedCrmAddresses() != null
+     */
     public boolean hasSavedAddresses() {
         return (getAllSavedCrmAddresses() != null);
     }
@@ -322,11 +343,17 @@ public class MyPreferencesHelper {
         return (getSavedOpportunities() != null);
     }
 
+    /**
+     * Checks if the supplied CrmAddress exists locally within the cached CrmAddresses on the device.
+     * Will return false if there are no cached addresses.
+     */
     public boolean addressIsSaved(CrmEntities.CrmAddresses.CrmAddress address) {
         CrmEntities.CrmAddresses addresses = this.getAllSavedCrmAddresses();
-        for (CrmEntities.CrmAddresses.CrmAddress addy : addresses.list) {
-            if (addy.accountid.equals(address.accountid)) {
-                return true;
+        if (addresses != null) {
+            for (CrmEntities.CrmAddresses.CrmAddress addy : addresses.list) {
+                if (addy.accountid.equals(address.accountid)) {
+                    return true;
+                }
             }
         }
         return false;
@@ -350,22 +377,22 @@ public class MyPreferencesHelper {
      * @param receiptFormat "A string representing an appropriate extension (.png, .jpeg or .txt)
      */
     public void setReceiptFormat(String receiptFormat) {
-        prefs.edit().putString(RECEIPT_FORMATS, receiptFormat).commit();
+        prefs.edit().putString(RECEIPT_FORMATS, receiptFormat).apply();
     }
 
     /**
      * Sets the default receipt format to .png
      */
     public void setDefaultReceiptFormat() {
-        prefs.edit().putString(RECEIPT_FORMATS, RECEIPT_FORMAT_PNG).commit();
+        prefs.edit().putString(RECEIPT_FORMATS, RECEIPT_FORMAT_PNG).apply();
     }
 
     public void updateLastUpdatedUserAddys() {
-        prefs.edit().putString(LAST_UPDATED_USER_ADDYS, DateTime.now().toString()).commit();
+        prefs.edit().putString(LAST_UPDATED_USER_ADDYS, DateTime.now().toString()).apply();
     }
 
     public void updateLastUpdatedActAddys() {
-        prefs.edit().putString(LAST_UPDATED_ACT_ADDYS, DateTime.now().toString()).commit();
+        prefs.edit().putString(LAST_UPDATED_ACT_ADDYS, DateTime.now().toString()).apply();
     }
 
     public String getFcmToken() {
@@ -373,7 +400,7 @@ public class MyPreferencesHelper {
     }
 
     public void setFcmToken(String token) {
-        prefs.edit().putString(FCM_TOKEN, token).commit();
+        prefs.edit().putString(FCM_TOKEN, token).apply();
     }
 
     public String getDbPath() {
@@ -381,7 +408,7 @@ public class MyPreferencesHelper {
     }
 
     public void setDbPath(String path) {
-        prefs.edit().putString(DB_PATH, path).commit();
+        prefs.edit().putString(DB_PATH, path).apply();
     }
 
     public String getCachedUsername() {
@@ -389,7 +416,7 @@ public class MyPreferencesHelper {
     }
 
     public void setCachedUsername(String username) {
-        prefs.edit().putString(CACHED_USERNAME, username).commit();
+        prefs.edit().putString(CACHED_USERNAME, username).apply();
     }
 
     public String getCachedPassword() {
@@ -397,12 +424,12 @@ public class MyPreferencesHelper {
     }
 
     public void setCachedPassword(String password) {
-        prefs.edit().putString(CACHED_PASSWORD, password).commit();
+        prefs.edit().putString(CACHED_PASSWORD, password).apply();
     }
 
     public void clearCachedCredentials() {
-        prefs.edit().putString(CACHED_USERNAME, null).commit();
-        prefs.edit().putString(CACHED_PASSWORD, null).commit();
+        prefs.edit().putString(CACHED_USERNAME, null).apply();
+        prefs.edit().putString(CACHED_PASSWORD, null).apply();
     }
 
     public boolean hasCachedCredentials() {
@@ -415,17 +442,16 @@ public class MyPreferencesHelper {
     }
 
     public void setShowHelp_GoogleSuggestedDistance(boolean checked) {
-        prefs.edit().putBoolean(SHOW_GOOGLE_SUGGESTED, checked).commit();
+        prefs.edit().putBoolean(SHOW_GOOGLE_SUGGESTED, checked).apply();
     }
 
     public void setReimbursementRate(float rate) {
-        prefs.edit().putFloat(REIMBURSEMENT_RATE, rate).commit();
+        prefs.edit().putFloat(REIMBURSEMENT_RATE, rate).apply();
         Log.i(TAG, "setReimbursementRate : " + prefs.getFloat(REIMBURSEMENT_RATE, 0f));
     }
 
     public float getReimbursementRate() {
-        float val = prefs.getFloat(REIMBURSEMENT_RATE, 0);
-        return val;
+        return prefs.getFloat(REIMBURSEMENT_RATE, 0);
     }
 
     public String getPrettyReimbursementRate() {
@@ -438,11 +464,11 @@ public class MyPreferencesHelper {
     }
 
     public void saveOpportunities(Opportunities opportunities) {
-        prefs.edit().putString(OPPORTUNITIES_JSON, opportunities.toGson()).commit();
+        prefs.edit().putString(OPPORTUNITIES_JSON, opportunities.toGson()).apply();
     }
 
     public void setLastPage(int lastPage) {
-        prefs.edit().putInt(LAST_PAGE, 0).commit();
+        prefs.edit().putInt(LAST_PAGE, 0).apply();
     }
 
     public int getLastPage() {
@@ -450,8 +476,8 @@ public class MyPreferencesHelper {
     }
 
     public void logout() {
-        prefs.edit().remove(CACHED_USERNAME).commit();
-        prefs.edit().remove(CACHED_PASSWORD).commit();
+        prefs.edit().remove(CACHED_USERNAME).apply();
+        prefs.edit().remove(CACHED_PASSWORD).apply();
         MediUser.deleteUsers();
         MySqlDatasource ds = new MySqlDatasource();
         ds.deleteAllTripData();
@@ -465,7 +491,7 @@ public class MyPreferencesHelper {
 
     public void lastTripAutoKilled(boolean value) {
         Log.i(TAG, "setLastTripAutoKilled: " + value);
-        prefs.edit().putBoolean(LAST_TRIP_AUTO_KILLED, value).commit();
+        prefs.edit().putBoolean(LAST_TRIP_AUTO_KILLED, value).apply();
     }
 
     public boolean authenticateFragIsVisible() {
@@ -473,7 +499,7 @@ public class MyPreferencesHelper {
     }
 
     public void authenticateFragIsVisible(boolean isShowing) {
-        prefs.edit().putBoolean(AUTH_SHOWING, isShowing).commit();
+        prefs.edit().putBoolean(AUTH_SHOWING, isShowing).apply();
     }
 
     public boolean autoSubmitOnTripEnded() {
@@ -481,7 +507,7 @@ public class MyPreferencesHelper {
     }
 
     public void setAutosubmitOnTripEnd(boolean isShowing) {
-        prefs.edit().putBoolean(SUBMIT_ON_END, isShowing).commit();
+        prefs.edit().putBoolean(SUBMIT_ON_END, isShowing).apply();
     }
 
     public boolean getTripEndReminder() {
@@ -489,11 +515,11 @@ public class MyPreferencesHelper {
     }
 
     public void setTripEndReminder(boolean val) {
-        prefs.edit().putBoolean(TRIP_MINDER, val).commit();
+        prefs.edit().putBoolean(TRIP_MINDER, val).apply();
     }
 
     public void setMapMode(int mapMode) {
-        prefs.edit().putInt(MAP_MODE, mapMode).commit();
+        prefs.edit().putInt(MAP_MODE, mapMode).apply();
     }
 
     public int getMapMode() {
@@ -505,11 +531,12 @@ public class MyPreferencesHelper {
      */
     public int getTripMinderIntervalMillis() {
         String val = prefs.getString(TRIP_MINDER_INTERVAL, context.getString(R.string.default_trip_minder_interval));
+        assert val != null;
         return (Integer.parseInt(val));
     }
 
     public void setTripMinderIntervalMillis(int millis) {
-        prefs.edit().putString(TRIP_MINDER_INTERVAL, Integer.toString(millis)).commit();
+        prefs.edit().putString(TRIP_MINDER_INTERVAL, Integer.toString(millis)).apply();
     }
 
     public boolean getConfirmTripEnd() {
@@ -517,7 +544,7 @@ public class MyPreferencesHelper {
     }
 
     public void setConfirmTripEnd(boolean val) {
-        prefs.edit().putBoolean(CONFIRM_END, val).commit();
+        prefs.edit().putBoolean(CONFIRM_END, val).apply();
     }
 
     public boolean getCheckForUpdates() {
@@ -525,7 +552,7 @@ public class MyPreferencesHelper {
     }
 
     public void setCheckForUpdates(boolean val) {
-        prefs.edit().putBoolean(CHECK_FOR_UPDATES, val).commit();
+        prefs.edit().putBoolean(CHECK_FOR_UPDATES, val).apply();
     }
 
     /**
@@ -537,14 +564,15 @@ public class MyPreferencesHelper {
      */
     public boolean updateIsAvailableLocally() {
 
-        MileBuddyUpdate update = null;
+        MediBuddyUpdate update = null;
 
-        String val = prefs.getString(MILEBUDDY_UPDATE_JSON, null);
+        String val = prefs.getString(MEDIBUDDY_UPDATE_JSON, null);
         if (val != null) {
             try {
-                JSONObject json = new JSONObject(prefs.getString(MILEBUDDY_UPDATE_JSON, null));
-                if (json != null) {
-                    update = new MileBuddyUpdate(json);
+                String updateJsonString = prefs.getString(MEDIBUDDY_UPDATE_JSON, null);
+                if (updateJsonString != null) {
+                    JSONObject json = new JSONObject(updateJsonString);
+                    update = new MediBuddyUpdate(json);
                 }
             } catch (Exception e) {
                 Log.w(TAG, "updateIsAvailableLocally: Failed checking for a local update!");
@@ -561,7 +589,7 @@ public class MyPreferencesHelper {
                     "Checking if the actual file exists...");
             File file = new File(Helpers.Files.AppUpdates.getDirectory().getPath(), update.version + ".apk");
             if (file.exists()) {
-                Log.i(TAG, "updateIsAvailableLocally File is available!");
+                Log.i(TAG, "updateIsAvailableLocally|File is available!");
                 return true;
             } else {
                 Log.w(TAG, "updateIsAvailableLocally: File does not exist!  Clearing preferences " +
@@ -577,26 +605,32 @@ public class MyPreferencesHelper {
         }
     }
 
-    public MileBuddyUpdate getMileBuddyUpdate() {
-        MileBuddyUpdate update = null;
+    /**
+     * Checks if a MediBuddyUpdate object has been serialized and stored in shared prefs and if so
+     * deserializes it and returns it.  Returns null if not found/something goes wrong.
+     */
+    @Nullable
+    public MediBuddyUpdate getMediBuddyUpdate() {
+        MediBuddyUpdate update = null;
         try {
-            update = new MileBuddyUpdate(new JSONObject(prefs.getString(MILEBUDDY_UPDATE_JSON, null)));
+            String json = prefs.getString(MEDIBUDDY_UPDATE_JSON, null);
+            if (json != null) { update = new MediBuddyUpdate(new JSONObject(json)); }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return update;
     }
 
-    public void setMilebuddyUpdate(String update) {
+    public void setMediBuddyUpdate(String update) {
         if (update == null) {
-            prefs.edit().remove(MILEBUDDY_UPDATE_JSON).commit();
+            prefs.edit().remove(MEDIBUDDY_UPDATE_JSON).apply();
         } else {
-            prefs.edit().putString(MILEBUDDY_UPDATE_JSON, update).commit();
+            prefs.edit().putString(MEDIBUDDY_UPDATE_JSON, update).apply();
         }
     }
 
     public void clearMileBuddyUpdate() {
-        prefs.edit().remove(MILEBUDDY_UPDATE_JSON).commit();
+        prefs.edit().remove(MEDIBUDDY_UPDATE_JSON).apply();
     }
 
     public boolean getNameTripOnStart() {
@@ -604,11 +638,11 @@ public class MyPreferencesHelper {
     }
 
     public void setNameTripOnStart(boolean val) {
-        prefs.edit().putBoolean(NAME_TRIP_ON_START, val).commit();
+        prefs.edit().putBoolean(NAME_TRIP_ON_START, val).apply();
     }
 
     public void setDebugMode(boolean val) {
-        prefs.edit().putBoolean(DEBUG_MODE, val).commit();
+        prefs.edit().putBoolean(DEBUG_MODE, val).apply();
     }
 
     public boolean getDebugMode() {
@@ -617,17 +651,15 @@ public class MyPreferencesHelper {
 
     /**
      * Sets the last selected page of the territory data activity.
-     * @param pageIndex
      */
     public void setLastTerritoryTab(int pageIndex) {
-        prefs.edit().putInt(LAST_TERRITORY_TAB, pageIndex).commit();
+        prefs.edit().putInt(LAST_TERRITORY_TAB, pageIndex).apply();
         Log.i(TAG, "setLastTerritoryTab " + pageIndex);
     }
 
     /**
      * Gets the last selected page of the territory data activity.  Defaults to the user's (now kinda
      * deprecated) default territory page.
-     * @return
      */
     public int getLastTerritoryTab() {
         int defaultTerrPage = 0;
@@ -648,7 +680,7 @@ public class MyPreferencesHelper {
     }
 
     public void setLastAccountPage(int pos) {
-        prefs.edit().putInt(LAST_ACCOUNT_PAGE, pos).commit();
+        prefs.edit().putInt(LAST_ACCOUNT_PAGE, pos).apply();
         Log.i(TAG, "setLastAccountPage " + pos);
     }
 
@@ -661,7 +693,6 @@ public class MyPreferencesHelper {
     /**
      * Gets whether or not the user has disabled the ability to use the volume buttons to skip
      * categories in supported lists.
-     * @return
      */
     public boolean volumeButtonsCanScroll() {
         return prefs.getBoolean(context.getString(R.string.VOLUME_BUTTON_SCROLLS), true);
@@ -670,14 +701,13 @@ public class MyPreferencesHelper {
     /**
      * Sets whether or not the user has disabled the ability to use the volume buttons to skip
      * categories in supported lists.
-     * @return
      */
     public void volumeButtonsCanScroll(boolean val) {
         prefs.edit().putBoolean(context.getString(R.string.VOLUME_BUTTON_SCROLLS), val).apply();
     }
 
     public void setLastCpyWidePage(int pos) {
-        prefs.edit().putInt(LAST_CPY_WIDE_PAGE, pos).commit();
+        prefs.edit().putInt(LAST_CPY_WIDE_PAGE, pos).apply();
         Log.i(TAG, "setLastCpyWidePage " + pos);
     }
 
@@ -690,8 +720,8 @@ public class MyPreferencesHelper {
     }
 
     public void cacheAccounts(CrmEntities.Accounts accounts) {
-        prefs.edit().putString(CACHED_ACCOUNT_LIST, new Gson().toJson(accounts)).commit();
-        prefs.edit().putLong(CACHED_ACCOUNTS_DATE, DateTime.now().getMillis()).commit();
+        prefs.edit().putString(CACHED_ACCOUNT_LIST, new Gson().toJson(accounts)).apply();
+        prefs.edit().putLong(CACHED_ACCOUNTS_DATE, DateTime.now().getMillis()).apply();
     }
 
     public boolean hasCachedAccounts() {
@@ -717,8 +747,8 @@ public class MyPreferencesHelper {
     }
 
     public void cacheContacts(Contacts contacts) {
-        prefs.edit().putString(CACHED_CONTACT_LIST, new Gson().toJson(contacts)).commit();
-        prefs.edit().putLong(CACHED_CONTACTS_DATE, DateTime.now().getMillis()).commit();
+        prefs.edit().putString(CACHED_CONTACT_LIST, new Gson().toJson(contacts)).apply();
+        prefs.edit().putLong(CACHED_CONTACTS_DATE, DateTime.now().getMillis()).apply();
     }
 
     public boolean hasCachedContacts() {
@@ -737,24 +767,27 @@ public class MyPreferencesHelper {
 
     public Territories getCachedTerritories() {
         if (hasCachedTerritories()) {
-            String gson = prefs.getString(CACHED_TERRITORIES_LIST, null);
-            Territories terrs = new Gson().fromJson(gson, Territories.class);
-            return terrs;
+            try {
+                String gson = prefs.getString(CACHED_TERRITORIES_LIST, null);
+                return new Gson().fromJson(gson, Territories.class);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         return null;
     }
 
     public void cacheTerritories(Territories territories) {
         String json = new Gson().toJson(territories);
-        prefs.edit().putString(CACHED_TERRITORIES_LIST, json).commit();
-        prefs.edit().putLong(CACHED_TERRITORIES_DATE, DateTime.now().getMillis()).commit();
+        prefs.edit().putString(CACHED_TERRITORIES_LIST, json).apply();
+        prefs.edit().putLong(CACHED_TERRITORIES_DATE, DateTime.now().getMillis()).apply();
     }
 
     public void cacheTerritories(ArrayList<Territories.Territory> territories) {
         Territories t = new Territories();
         t.list = territories;
-        prefs.edit().putString(CACHED_TERRITORIES_LIST, new Gson().toJson(territories)).commit();
-        prefs.edit().putLong(CACHED_TERRITORIES_DATE, DateTime.now().getMillis()).commit();
+        prefs.edit().putString(CACHED_TERRITORIES_LIST, new Gson().toJson(territories)).apply();
+        prefs.edit().putLong(CACHED_TERRITORIES_DATE, DateTime.now().getMillis()).apply();
     }
 
     public boolean hasCachedTerritories() {

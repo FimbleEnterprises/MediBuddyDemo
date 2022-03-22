@@ -36,13 +36,13 @@ import com.fimbleenterprises.medimileage.MyLinearSmoothScroller;
 import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.MyViewPager;
 import com.fimbleenterprises.medimileage.R;
+import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseTerritory;
 import com.fimbleenterprises.medimileage.activities.ui.views.MyUnderlineEditText;
 import com.fimbleenterprises.medimileage.adapters.BasicObjectRecyclerAdapter;
 import com.fimbleenterprises.medimileage.adapters.LandingPageRecyclerAdapter;
 import com.fimbleenterprises.medimileage.adapters.OrderLineRecyclerAdapter;
 import com.fimbleenterprises.medimileage.dialogs.ContactActions;
 import com.fimbleenterprises.medimileage.dialogs.MonthYearPickerDialog;
-import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseTerritory;
 import com.fimbleenterprises.medimileage.objects_and_containers.AggregatedSales;
 import com.fimbleenterprises.medimileage.objects_and_containers.BasicObjects;
 import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
@@ -59,7 +59,6 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
-import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
 import org.jetbrains.annotations.NonNls;
 import org.joda.time.DateTime;
@@ -80,16 +79,18 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.PagerTitleStrip;
 import cz.msebera.android.httpclient.Header;
 
+import static com.fimbleenterprises.medimileage.CrmQueries.Tickets.ANY;
+import static com.fimbleenterprises.medimileage.CrmQueries.Tickets.CLOSED;
+import static com.fimbleenterprises.medimileage.CrmQueries.Tickets.OPEN;
 import static com.fimbleenterprises.medimileage.activities.BasicEntityActivity.ENTITYID;
 import static com.fimbleenterprises.medimileage.activities.BasicEntityActivity.ENTITY_LOGICAL_NAME;
 import static com.fimbleenterprises.medimileage.activities.BasicEntityActivity.REQUEST_BASIC;
 import static com.fimbleenterprises.medimileage.activities.BasicEntityActivity.SEND_EMAIL;
-import static com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseTerritory.*;
+import static com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseTerritory.CACHED_TERRITORIES;
+import static com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseTerritory.CURRENT_TERRITORY;
+import static com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseTerritory.TERRITORY_RESULT;
 import static com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.OrderProducts;
 import static com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.OrderProducts.OrderProduct;
-import static com.fimbleenterprises.medimileage.CrmQueries.Tickets.ANY;
-import static com.fimbleenterprises.medimileage.CrmQueries.Tickets.CLOSED;
-import static com.fimbleenterprises.medimileage.CrmQueries.Tickets.OPEN;
 
 public class Activity_CompanyWideData extends AppCompatActivity {
 
@@ -1298,25 +1299,30 @@ public class Activity_CompanyWideData extends AppCompatActivity {
         @Override
         public void onStop() {
             super.onStop();
+            requireActivity().unregisterReceiver(menuSelectionReceiver);
+            requireActivity().unregisterReceiver(territoryChangedReceiver);
+            requireActivity().unregisterReceiver(volumeButtonClickReceiver);
+            Log.i(TAG, "onStop | Unregistered receivers");
+        }
 
+        @Override
+        public void onStart() {
+            super.onStart();
+            requireActivity().registerReceiver(territoryChangedReceiver, new IntentFilter(TERRITORY_RESULT));
+            requireActivity().registerReceiver(menuSelectionReceiver, new IntentFilter(MENU_SELECTION));
+            requireActivity().registerReceiver(volumeButtonClickReceiver, new IntentFilter(VOLUME_CLICKED));
+            Log.i(TAG, "onStart | Registered receivers");
         }
 
         @Override
         public void onDestroyView() {
             super.onDestroyView();
-            requireActivity().unregisterReceiver(menuSelectionReceiver);
-            requireActivity().unregisterReceiver(territoryChangedReceiver);
-            requireActivity().unregisterReceiver(volumeButtonClickReceiver);
-
-            Log.i(TAG, "onDestroyView | Unregistered receivers");
+            Log.i(TAG, "onDestroyView ");
         }
 
         @Override
         public void onResume() {
-            requireActivity().registerReceiver(territoryChangedReceiver, new IntentFilter(TERRITORY_RESULT));
-            requireActivity().registerReceiver(menuSelectionReceiver, new IntentFilter(MENU_SELECTION));
-            requireActivity().registerReceiver(volumeButtonClickReceiver, new IntentFilter(VOLUME_CLICKED));
-            Log.i(TAG, "onResume | Registered receivers");
+            Log.i(TAG, "onResume ");
             super.onResume();
         }
 
@@ -2041,7 +2047,8 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             });
 
             dialog.setCancelable(true);
-            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            Objects.requireNonNull(dialog.getWindow(), getString(R.string.error_opp_dialog_is_null))
+                    .setBackgroundDrawableResource(android.R.color.transparent);
             dialog.show();
         }
 
@@ -2050,9 +2057,9 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 @Override
                 public void onComplete(Object result) {
                     Log.i(TAG, "onComplete ");
-                    final Helpers.Notifications notifications = new Helpers.Notifications(getContext());
-                    notifications.create("Opportunity note created",
-                            "Your note was added to the opportunity!", false);
+                    final Helpers.Notifications notifications = new Helpers.Notifications(requireContext());
+                    notifications.create(getString(R.string.notification_title_opp_note_created),
+                            getString(R.string.notification_body_note_added), false);
                     notifications.show();
                     notifications.setAutoCancel(6000);
                 }
@@ -2073,8 +2080,6 @@ public class Activity_CompanyWideData extends AppCompatActivity {
     }
 
     public static class Frag_Cases extends Fragment {
-        @NonNls
-        public static final String ARG_SECTION_NUMBER = "section_number";
         public View rootView;
         public RecyclerView listview;
         RefreshLayout refreshLayout;
@@ -2094,28 +2099,20 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             listview = rootView.findViewById(R.id.casesRecyclerview);
             refreshLayout = rootView.findViewById(R.id.refreshLayout);
             refreshLayout.setEnableLoadMore(false);
-            refreshLayout.setOnRefreshListener(new OnRefreshListener() {
-                @Override
-                public void onRefresh(@NonNull RefreshLayout refreshLayout) {
-                    getTickets();
-                }
-            });
+            refreshLayout.setOnRefreshListener(listener -> getTickets());
             super.onCreateView(inflater, container, savedInstanceState);
 
             fab = rootView.findViewById(R.id.floatingActionButton);
-            fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent = new Intent(FAB_CLICKED);
-                    getActivity().sendBroadcast(intent);
-                }
+            fab.setOnClickListener(v -> {
+                Intent intent = new Intent(FAB_CLICKED);
+                requireActivity().sendBroadcast(intent);
             });
 
             casesReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     Log.i(TAG, "onReceive Received month and year broadcast! (cases frag)");
-                    mViewPager.getAdapter().notifyDataSetChanged();
+                    Objects.requireNonNull(mViewPager.getAdapter()).notifyDataSetChanged();
                     getTickets();
                 }
             };
@@ -2148,11 +2145,8 @@ public class Activity_CompanyWideData extends AppCompatActivity {
 
         void getTickets() {
             refreshLayout.autoRefreshAnimationOnly();
-            String query = null;
-
             curTerritory = globalTerritory;
-
-            query = CrmQueries.Tickets.getIncidents(case_status, case_state, 6);
+            String query = CrmQueries.Tickets.getIncidents(case_status, case_state, 6);
 
             ArrayList<Requests.Argument> args = new ArrayList<>();
             args.add(new Requests.Argument("query", query));
@@ -2185,26 +2179,23 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                 adapter = new BasicObjectRecyclerAdapter(getContext(), objects);
                 listview.setLayoutManager(new LinearLayoutManager(getContext()));
                 listview.setAdapter(adapter);
-                adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
-                    @Override
-                    public void onItemClick(View view, int position) {
-                        BasicObjects.BasicObject object = objects.get(position);
-                        Tickets.Ticket ticket = (Tickets.Ticket) object.object;
-                        Intent intent = new Intent(getContext(), BasicEntityActivity.class);
-                        intent.putExtra(BasicEntityActivity.GSON_STRING, ticket.toBasicEntity().toGson());
-                        intent.putExtra(BasicEntityActivity.ENTITYID, ticket.entityid);
-                        intent.putExtra(BasicEntityActivity.CURRENT_TERRITORY, globalTerritory);
-                        intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "incident");
-                        intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Ticket " + ticket.ticketnumber);
-                        startActivityForResult(intent, REQUEST_BASIC);
+                adapter.setClickListener(((view, position) -> {
+                    BasicObjects.BasicObject object = objects.get(position);
+                    Tickets.Ticket ticket = (Tickets.Ticket) object.object;
+                    Intent intent = new Intent(getContext(), BasicEntityActivity.class);
+                    intent.putExtra(BasicEntityActivity.GSON_STRING, ticket.toBasicEntity().toGson());
+                    intent.putExtra(BasicEntityActivity.ENTITYID, ticket.entityid);
+                    intent.putExtra(BasicEntityActivity.CURRENT_TERRITORY, globalTerritory);
+                    intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "incident");
+                    intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Ticket " + ticket.ticketnumber);
+                    startActivityForResult(intent, REQUEST_BASIC);
 
-                        try {
-                            MileBuddyMetrics.updateMetric(getContext(), MileBuddyMetrics.MetricName.LAST_OPENED_TICKET, DateTime.now());
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                    try {
+                        MileBuddyMetrics.updateMetric(getContext(), MileBuddyMetrics.MetricName.LAST_OPENED_TICKET, DateTime.now());
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                });
+                }));
 
                 txtNoTickets.setVisibility(objects.size() == 0 ? View.VISIBLE : View.GONE);
 
@@ -2219,24 +2210,37 @@ public class Activity_CompanyWideData extends AppCompatActivity {
         @Override
         public void onResume() {
             super.onResume();
+            Log.i(TAG, "onResume ");
+        }
+
+        @Override
+        public void onStart() {
+            super.onStart();
             IntentFilter filter = new IntentFilter(MENU_SELECTION);
             filter.addAction(MENU_SELECTION);
-            getActivity().registerReceiver(casesReceiver, filter);
-            getActivity().registerReceiver(territoryChangeReceiver, new IntentFilter(MENU_SELECTION));
-            Log.i(TAG, "onResume Registered the cases receiver");
+            requireActivity().registerReceiver(casesReceiver, filter);
+            requireActivity().registerReceiver(territoryChangeReceiver, new IntentFilter(MENU_SELECTION));
+            Log.i(TAG, "onStart | Registered the cases receivers");
+        }
+
+        @Override
+        public void onStop() {
+            super.onStop();
+            requireActivity().unregisterReceiver(casesReceiver);
+            requireActivity().unregisterReceiver(territoryChangeReceiver);
+            Log.i(TAG, "onStop | Unregistered the cases receivers");
         }
 
         @Override
         public void onPause() {
             super.onPause();
+            Log.i(TAG, "onPause ");
         }
 
         @Override
         public void onDestroyView() {
             super.onDestroyView();
-            getActivity().unregisterReceiver(casesReceiver);
-            getActivity().unregisterReceiver(territoryChangeReceiver);
-            Log.i(TAG, "onPause Unregistered the cases receiver");
+            Log.i(TAG, "onDestroyView ");
         }
     }
 
@@ -2264,36 +2268,26 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             listview = rootView.findViewById(R.id.casesRecyclerview);
             refreshLayout = rootView.findViewById(R.id.refreshLayout);
             refreshLayout.setEnableLoadMore(false);
-            refreshLayout.setOnRefreshListener(new OnRefreshListener() {
-                @Override
-                public void onRefresh(@NonNull RefreshLayout refreshLayout) {
-                    getAccounts();
-                }
-            });
+            refreshLayout.setOnRefreshListener(refreshLayout1 -> getAccounts());
             super.onCreateView(inflater, container, savedInstanceState);
 
             txtNoAccounts = rootView.findViewById(R.id.txtNoAgreements);
 
             fab = rootView.findViewById(R.id.floatingActionButton);
             fab.setVisibility(View.GONE); // Nothing to filter (yet) so hide.
-            /*fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent = new Intent(FAB_CLICKED);
-                    getActivity().sendBroadcast(intent);
-                }
-            });*/
 
             accountsReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     Log.i(TAG, "onReceive Received month and year broadcast! (cases frag)");
-                    mViewPager.getAdapter().notifyDataSetChanged();
+                    Objects.requireNonNull(mViewPager.getAdapter()).notifyDataSetChanged();
                     getAccounts();
                 }
             };
 
             layoutFilter = rootView.findViewById(R.id.layoutFilter);
+
+            // Text filter for accounts
             txtFilter = rootView.findViewById(R.id.edittextFilter);
             txtFilter.addTextChangedListener(new TextWatcher() {
                 @Override
@@ -2317,11 +2311,13 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                     // Filter text present
                     if (charSequence != null && charSequence.length() > 0) {
                         filter = charSequence.toString().toLowerCase();
-
                         for (CrmEntities.Accounts.Account account : accounts.list) {
                             try { // Lazy try/catch - I guess I am concerned with account number being null.
                                 if (account.accountName.toLowerCase().contains(filter) || account.accountnumber.contains(filter)) {
-                                    BasicObjects.BasicObject object = new BasicObjects.BasicObject(account.accountnumber, account.customerTypeFormatted, account);
+                                    BasicObjects.BasicObject object = new BasicObjects.BasicObject(
+                                            account.accountnumber,
+                                            account.customerTypeFormatted,
+                                            account);
                                     object.middleText = account.accountName;
                                     object.iconResource = R.drawable.maps_hospital_32x37;
                                     adapter.mData.add(object);
@@ -2340,6 +2336,10 @@ public class Activity_CompanyWideData extends AppCompatActivity {
                     }
                 }
 
+                // I spent some time debating myself whether or not to call the blanket notifyDataSetChanged()
+                // method as opposed to coming up with a more targeted way to add/remove items from the
+                // adapter's dataset and I decided that would be unnecessarily complex.
+                @SuppressLint("NotifyDataSetChanged")
                 @Override
                 public void afterTextChanged(Editable editable) {
                     // Notify the list that the data has changed
@@ -2407,19 +2407,11 @@ public class Activity_CompanyWideData extends AppCompatActivity {
         }
 
         void populateList() {
-            populateList(null);
-        }
-
-        void populateList(String filter) {
 
             objects.clear();
 
             if (accounts != null) {
-
-                int lastStatusCode = -1;
-
                 for (CrmEntities.Accounts.Account account : accounts.list) {
-
                     // Add the ticket as a BasicObject
                     BasicObjects.BasicObject object = new BasicObjects.BasicObject(account.accountnumber, account.customerTypeFormatted, account);
                     object.middleText = account.accountName;
@@ -2431,18 +2423,15 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             adapter = new BasicObjectRecyclerAdapter(getContext(), objects);
             listview.setLayoutManager(new LinearLayoutManager(getContext()));
             listview.setAdapter(adapter);
-            adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
-                @Override
-                public void onItemClick(View view, int position) {
-                    BasicObjects.BasicObject object = objects.get(position);
-                    CrmEntities.Accounts.Account account = (CrmEntities.Accounts.Account) object.object;
+            adapter.setClickListener(((view, position) -> {
+                BasicObjects.BasicObject object = objects.get(position);
+                CrmEntities.Accounts.Account account = (CrmEntities.Accounts.Account) object.object;
 
-                    Intent intent = new Intent(getContext(), Activity_AccountData.class);
-                    intent.setAction(Activity_AccountData.GO_TO_ACCOUNT);
-                    intent.putExtra(Activity_AccountData.GO_TO_ACCOUNT_OBJECT, account);
-                    startActivity(intent);
-                }
-            });
+                Intent intent = new Intent(getContext(), Activity_AccountData.class);
+                intent.setAction(Activity_AccountData.GO_TO_ACCOUNT);
+                intent.putExtra(Activity_AccountData.GO_TO_ACCOUNT_OBJECT, account);
+                startActivity(intent);
+            }));
 
             txtNoAccounts.setVisibility(objects.size() == 0 ? View.VISIBLE : View.GONE);
 
@@ -2506,26 +2495,18 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             refreshLayout = rootView.findViewById(R.id.refreshLayout);
             refreshLayout.setEnableLoadMore(false);
             fab = rootView.findViewById(R.id.floatingActionButton);
-            fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent = new Intent(FAB_CLICKED);
-                    requireActivity().sendBroadcast(intent);
-                }
+            fab.setOnClickListener(view -> {
+                Intent intent = new Intent(FAB_CLICKED);
+                requireActivity().sendBroadcast(intent);
             });
-            refreshLayout.setOnRefreshListener(new OnRefreshListener() {
-                @Override
-                public void onRefresh(@NonNull RefreshLayout refreshLayout) {
-                    getServiceAgreements();
-                }
-            });
+            refreshLayout.setOnRefreshListener(refreshLayout -> getServiceAgreements());
             super.onCreateView(inflater, container, savedInstanceState);
 
             agreementFilterReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     Log.i(TAG, "onReceive Received an agreements filter broadcast! (service agreements frag)");
-                    mViewPager.getAdapter().notifyDataSetChanged();
+                    Objects.requireNonNull(mViewPager.getAdapter()).notifyDataSetChanged();
                     getServiceAgreements();
                 }
             };
@@ -2594,14 +2575,18 @@ public class Activity_CompanyWideData extends AppCompatActivity {
 
             if (serviceAgreements != null) {
 
-                int lastStatusCode = -1;
-
                 for (CrmEntities.ServiceAgreements.ServiceAgreement agreement : serviceAgreements.list) {
 
                     // Add the ticket as a BasicObject
-                    BasicObjects.BasicObject object = new BasicObjects.BasicObject(agreement._msus_customer_valueFormattedValue,
-                            agreement._msus_product_valueFormattedValue + "\ns/n: " + agreement.msus_serialnumber, agreement);
-                    object.middleText = "Expires: " + agreement.getPrettyEnddate();
+                    BasicObjects.BasicObject object =
+                            new BasicObjects.BasicObject(
+                                    agreement._msus_customer_valueFormattedValue
+                                    , getString(
+                                        R.string.service_agreement_basic_object_bottom_text,
+                                        agreement._msus_product_valueFormattedValue,
+                                        agreement.msus_serialnumber)
+                                    , agreement);
+                    object.middleText = getString(R.string.service_agreement_basic_object_middle_text);
                     object.iconResource = R.drawable.contract32;
                     objects.add(object);
                 }
@@ -2610,40 +2595,28 @@ public class Activity_CompanyWideData extends AppCompatActivity {
             adapter = new BasicObjectRecyclerAdapter(getContext(), objects);
             listview.setLayoutManager(new LinearLayoutManager(getContext()));
             listview.setAdapter(adapter);
-            adapter.setClickListener(new BasicObjectRecyclerAdapter.ItemClickListener() {
-                @Override
-                public void onItemClick(View view, int position) {
-                    BasicObjects.BasicObject object = objects.get(position);
-                    CrmEntities.ServiceAgreements.ServiceAgreement agreement = (CrmEntities.ServiceAgreements.ServiceAgreement) object.object;
-                    Intent intent = new Intent(getContext(), BasicEntityActivity.class);
-                    intent.putExtra(BasicEntityActivity.GSON_STRING, agreement.toBasicEntity().toGson());
-                    intent.putExtra(BasicEntityActivity.ENTITYID, agreement.entityid);
-                    // intent.putExtra(BasicEntityActivity.HIDE_MENU, true);
-                    intent.putExtra(BasicEntityActivity.CURRENT_TERRITORY, globalTerritory);
-                    intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "msus_medistimserviceagreement");
-                    intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Service agreement " + agreement.msus_name);
-                    startActivityForResult(intent, REQUEST_BASIC);
-                }
-            });
+            adapter.setClickListener(((view, position) -> {
+                BasicObjects.BasicObject object = objects.get(position);
+                CrmEntities.ServiceAgreements.ServiceAgreement agreement = (CrmEntities.ServiceAgreements.ServiceAgreement) object.object;
+                Intent intent = new Intent(getContext(), BasicEntityActivity.class);
+                intent.putExtra(BasicEntityActivity.GSON_STRING, agreement.toBasicEntity().toGson());
+                intent.putExtra(BasicEntityActivity.ENTITYID, agreement.entityid);
+                // intent.putExtra(BasicEntityActivity.HIDE_MENU, true);
+                intent.putExtra(BasicEntityActivity.CURRENT_TERRITORY, globalTerritory);
+                intent.putExtra(BasicEntityActivity.ENTITY_LOGICAL_NAME, "msus_medistimserviceagreement");
+                intent.putExtra(BasicEntityActivity.ACTIVITY_TITLE, "Service agreement " + agreement.msus_name);
+                startActivityForResult(intent, REQUEST_BASIC);
+            }));
 
             txtNoAgreements.setVisibility(objects.size() == 0 ? View.VISIBLE : View.GONE);
 
-            try {
-                refreshLayout.finishRefresh();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
+            Objects.requireNonNull(refreshLayout.finishRefresh());
         }
 
         @Override
         public void onResume() {
             super.onResume();
-            IntentFilter filter = new IntentFilter(MENU_SELECTION);
-            filter.addAction(MENU_SELECTION);
-            requireActivity().registerReceiver(agreementFilterReceiver, filter);
-            requireActivity().registerReceiver(territoryChangedReceiver, new IntentFilter(MENU_SELECTION));
-            Log.i(TAG, "onResume Registered the cases receiver");
+            Log.i(TAG, "onResume ");
         }
 
         @Override
@@ -2652,11 +2625,27 @@ public class Activity_CompanyWideData extends AppCompatActivity {
         }
 
         @Override
-        public void onDestroyView() {
-            super.onDestroyView();
+        public void onStart() {
+            super.onStart();
+            IntentFilter filter = new IntentFilter(MENU_SELECTION);
+            filter.addAction(MENU_SELECTION);
+            requireActivity().registerReceiver(agreementFilterReceiver, filter);
+            requireActivity().registerReceiver(territoryChangedReceiver, new IntentFilter(MENU_SELECTION));
+            Log.i(TAG, "onStart | Registered the cases receiver");
+        }
+
+        @Override
+        public void onStop() {
+            super.onStop();
             requireActivity().unregisterReceiver(agreementFilterReceiver);
             requireActivity().unregisterReceiver(territoryChangedReceiver);
-            Log.i(TAG, "onPause Unregistered the cases receiver");
+            Log.i(TAG, "onStop | Unregistered the cases receiver");
+        }
+
+        @Override
+        public void onDestroyView() {
+            super.onDestroyView();
+            Log.i(TAG, "onDestroyView ");
         }
     }
 

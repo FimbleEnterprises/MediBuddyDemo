@@ -99,9 +99,9 @@ public class UserAddresses {
         MySqlDatasource ds = new MySqlDatasource();
         try {
             if (ds.getUserAddys() == null) {
-                ds.createUserAddys(this);
+                Log.i(TAG, "save|created:"+ds.createUserAddys(this));
             } else {
-                ds.updateUserAddys(this);
+                Log.i(TAG, "save|updated:"+ds.updateUserAddys(this));
             }
             new MyPreferencesHelper(MyApp.getAppContext()).updateLastUpdatedUserAddys();
         } catch (Exception e) {

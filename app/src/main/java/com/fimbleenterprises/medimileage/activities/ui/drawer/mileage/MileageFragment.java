@@ -3,17 +3,14 @@ package com.fimbleenterprises.medimileage.activities.ui.drawer.mileage;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -22,13 +19,10 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -36,66 +30,44 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelProviders;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import cz.msebera.android.httpclient.Header;
-
 import com.bumptech.glide.Glide;
-import com.fimbleenterprises.medimileage.MyApp;
-import com.fimbleenterprises.medimileage.activities.Activity_ManualTrip;
 import com.fimbleenterprises.medimileage.Crm;
-import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
-import com.fimbleenterprises.medimileage.dialogs.DatePickerFragment;
-import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
-import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseOpportunity;
-import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseRep;
+import com.fimbleenterprises.medimileage.CrmQueries;
 import com.fimbleenterprises.medimileage.Helpers;
-import com.fimbleenterprises.medimileage.objects_and_containers.LocationContainer;
-import com.fimbleenterprises.medimileage.activities.MainActivity;
-import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
-import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics;
-import com.fimbleenterprises.medimileage.dialogs.MonthYearPickerDialog;
-import com.fimbleenterprises.medimileage.activities.ui.views.MyAnimatedNumberTextView;
-import com.fimbleenterprises.medimileage.objects_and_containers.Opportunities;
-import com.fimbleenterprises.medimileage.objects_and_containers.custom_exceptions.CrmRequestExceptions;
-import com.fimbleenterprises.medimileage.services.MyAttachmentUploadService;
+import com.fimbleenterprises.medimileage.MyApp;
+import com.fimbleenterprises.medimileage.MyAsyncTask;
 import com.fimbleenterprises.medimileage.MyInterfaces;
-import com.fimbleenterprises.medimileage.services.MyLocationService;
-import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
 import com.fimbleenterprises.medimileage.MyPreferencesHelper;
 import com.fimbleenterprises.medimileage.MySpeedoGauge;
 import com.fimbleenterprises.medimileage.MySqlDatasource;
-import com.fimbleenterprises.medimileage.dialogs.MyYesNoDialog;
-import com.fimbleenterprises.medimileage.CrmQueries;
-import com.fimbleenterprises.medimileage.QueryFactory;
-import com.fimbleenterprises.medimileage.QueryFactory.Filter;
 import com.fimbleenterprises.medimileage.R;
+import com.fimbleenterprises.medimileage.TripAssociationManager;
+import com.fimbleenterprises.medimileage.activities.Activity_ManualTrip;
+import com.fimbleenterprises.medimileage.activities.ViewTripActivity;
+import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseOpportunity;
+import com.fimbleenterprises.medimileage.activities.fullscreen_pickers.FullscreenActivityChooseRep;
+import com.fimbleenterprises.medimileage.activities.ui.views.MyAnimatedNumberTextView;
+import com.fimbleenterprises.medimileage.adapters.TripListRecyclerAdapter;
+import com.fimbleenterprises.medimileage.dialogs.DatePickerFragment;
+import com.fimbleenterprises.medimileage.dialogs.MonthYearPickerDialog;
+import com.fimbleenterprises.medimileage.dialogs.MyProgressDialog;
+import com.fimbleenterprises.medimileage.dialogs.MyYesNoDialog;
+import com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities;
+import com.fimbleenterprises.medimileage.objects_and_containers.FullTrip;
+import com.fimbleenterprises.medimileage.objects_and_containers.LocationContainer;
+import com.fimbleenterprises.medimileage.objects_and_containers.MediUser;
+import com.fimbleenterprises.medimileage.objects_and_containers.MileBuddyMetrics;
+import com.fimbleenterprises.medimileage.objects_and_containers.Opportunities;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests;
 import com.fimbleenterprises.medimileage.objects_and_containers.Requests.Request;
-import com.fimbleenterprises.medimileage.TripAssociationManager;
-import com.fimbleenterprises.medimileage.adapters.TripListRecyclerAdapter;
-import com.fimbleenterprises.medimileage.activities.ViewTripActivity;
-
-import static com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.TripAssociations;
-import static com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.TripAssociations.TripAssociation;
-import static com.fimbleenterprises.medimileage.MyApp.LocationPermissionResult;
-
+import com.fimbleenterprises.medimileage.objects_and_containers.custom_exceptions.CrmRequestExceptions;
+import com.fimbleenterprises.medimileage.services.MyLocationService;
 import com.fimbleenterprises.medimileage.services.ServerTripSyncService;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.scwang.smart.refresh.header.MaterialHeader;
 import com.scwang.smart.refresh.layout.api.RefreshLayout;
-import com.scwang.smart.refresh.layout.listener.OnLoadMoreListener;
-import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
+import org.jetbrains.annotations.NonNls;
 import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -107,6 +79,19 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import cz.msebera.android.httpclient.Header;
+
+import static com.fimbleenterprises.medimileage.MyApp.LocationPermissionResult;
+import static com.fimbleenterprises.medimileage.objects_and_containers.CrmEntities.TripAssociations;
 
 public class MileageFragment extends Fragment implements TripListRecyclerAdapter.ItemClickListener {
 
@@ -114,16 +99,18 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     public static final int PERMISSION_START_TRIP = 1;
     public static final int PERMISSION_MAKE_TRIP = 2;
     public static final int PERMISSION_UPDATE = 3;
-    public static final int PERMISSION_FLOATY = 4;
 
+    @NonNls
     public static final String GENERIC_RECEIVER_ACTION = "GENERIC_RECEIVER_ACTION";
+    @NonNls
     public static final String MAKE_RECEIPT = "MAKE_RECEIPT";
+    @NonNls
     public static final String REIMBURSEMENT_EMAIL = "receipts@concur.com";
+    @NonNls
     public static final String START_STOP_TRIP_INTENT = "START_STOP_TRIP_INTENT";
 
     private static final String TAG = "MileageFragment";
     private static final int SHOW_CLICK_HERE_TRIP_COUNT_THRESHOLD = 8;
-    private MileageViewModel mileageViewModel;
     BroadcastReceiver locReceiver;
     BroadcastReceiver miscReceiver;
     IntentFilter allPurposeFilter = new IntentFilter(GENERIC_RECEIVER_ACTION);
@@ -131,13 +118,12 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     TripListRecyclerAdapter adapter;
     ArrayList<FullTrip> locallySavedTrips = new ArrayList<>();
     RecyclerView recyclerView;
-    public static int SERVICE_ID = 200;
-    IntentFilter locFilter = new IntentFilter(MyLocationService.LOCATION_EVENT);
+    IntentFilter locIntentFilter = new IntentFilter(MyLocationService.LOCATION_EVENT);
     public static final int DEFAULT_FONT_COLOR = -1979711488;
     MyPreferencesHelper options;
     ImageView emptyTripList;
     boolean isStarting = true;
-    public static View rootView;
+    public View rootView;
     Dialog dialogTripOptions;
     RelativeLayout tripStatusContainer;
     MyProgressDialog progressDialog;
@@ -151,7 +137,6 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     TextView txtDuration;
     ToggleButton toggleEditButton;
     Button btnDeleteTrips;
-    Button btnSubmitTrips;
     ImageView gif_view;
     Button btnAddManualTrip;
     Button btnCreateReceipt;
@@ -161,12 +146,11 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     Handler tripDurationHandler = new Handler();
     Runnable mtdTogglerRunner;
     Handler mtdTogglerHandler = new Handler();
-    boolean isShowingMilesTotal = false;
+    boolean isShowingTotalMiles;
 
     FullTrip tripToReassign;
 
     double lastMtdValue;
-    private double lastMtdMilesValue = 0;
     MyAnimatedNumberTextView animatedNumberTextView;
 
     // Filter to listen for rep chooser result broadcasts.
@@ -192,6 +176,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 FullTrip createdTrip = data.getParcelableExtra(Activity_ManualTrip.ADD_MANUAL_TRIP);
                 try {
                     if (options.autoSubmitOnTripEnded()) {
+                        assert createdTrip != null;
                         submitTrip(createdTrip);
                     }
                 } catch (UnsupportedEncodingException e) {
@@ -200,7 +185,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 }
             } else {
                 populateTripList();
-                Toast.makeText(getContext(), "Trip was created.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.toast_created_trip), Toast.LENGTH_SHORT).show();
             }
         } else if (resultCode == Activity.RESULT_CANCELED) {
             if (data != null && data.getAction() != null) {
@@ -208,22 +193,26 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                     if (data.hasExtra(Activity_ManualTrip.ERROR_MESSAGE)) {
                         String err = data.getStringExtra(Activity_ManualTrip.ERROR_MESSAGE);
                         if (err != null) {
-                            Toast.makeText(getContext(), "Failed to create manual trip!", Toast.LENGTH_SHORT).show();
-                            Toast.makeText(getContext(), err, Toast.LENGTH_LONG).show();
-                        }
-                    }
-                }
-            }
-        }
+                            String msg = getString(R.string.toast_failed_to_create_trip);
+                            for (Toast toast : Arrays.asList(
+                                    Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT)
+                                    , Toast.makeText(getContext(), err, Toast.LENGTH_LONG))) {
+                                toast.show();
+                            } // show toast for each error returned
+                        } // error returned in intent has message
+                    } // error returned in intent
+                } // action == manual trip created
+            } // intent has data and action
+        } // result == cancelled
 
     }
 
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case PERMISSION_START_TRIP:
                 if (checkLocationPermission() != LocationPermissionResult.FULL) {
-                    Toast.makeText(getContext(), "Location permission must be: " +
-                            "\"Allow all the time\"", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getString(R.string.toast_permission_msg)
+                            , Toast.LENGTH_SHORT).show();
                     break;
                 }
                 startStopTrip();
@@ -240,15 +229,14 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                     Intent intent = new Intent(getContext(), Activity_ManualTrip.class);
                     startActivityForResult(intent, 0);
                 }
-
+                break;
         }
     }
 
     public View onCreateView(@NonNull final LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        mileageViewModel = ViewModelProviders.of(this).get(MileageViewModel.class);
 
-        options = new MyPreferencesHelper(getContext());
+        options = new MyPreferencesHelper();
         options.authenticateFragIsVisible(false);
 
         // Log a metric
@@ -257,197 +245,121 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         final View root = inflater.inflate(R.layout.frag_mileage, container, false);
         rootView = root;
 
-        progressDialog = new MyProgressDialog(getContext(), "Working...");
+        progressDialog = new MyProgressDialog(getContext(), getString(R.string.progress_working));
 
-        locFilter.addAction(MyLocationService.STOP_TRIP_ACTION);
-        locFilter.addAction(MyLocationService.SERVICE_STARTED);
-        locFilter.addAction(MyLocationService.SERVICE_STOPPING);
-        locFilter.addAction(MyLocationService.SERVICE_STOPPED);
-        locFilter.addAction(MyLocationService.NOT_MOVING);
+        locIntentFilter.addAction(MyLocationService.STOP_TRIP_ACTION);
+        locIntentFilter.addAction(MyLocationService.SERVICE_STARTED);
+        locIntentFilter.addAction(MyLocationService.SERVICE_STOPPING);
+        locIntentFilter.addAction(MyLocationService.SERVICE_STOPPED);
+        locIntentFilter.addAction(MyLocationService.NOT_MOVING);
+
         emptyTripList = root.findViewById(R.id.image_no_trips);
         gif_view = root.findViewById(R.id.gifview);
         gauge = root.findViewById(R.id.speedo);
-
         tripStatusContainer = root.findViewById(R.id.tripStatusContainer);
         txtStatus = root.findViewById(R.id.txtTripStatus);
         txtDistance = root.findViewById(R.id.txtDistance);
         txtSpeed = root.findViewById(R.id.txtSpeed);
         txtDuration = root.findViewById(R.id.txtTime);
         txtReimbursement = root.findViewById(R.id.txtReimbursement);
-
         txtMtd = root.findViewById(R.id.txtMtdValue);
-        txtMtd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                stopMtdTogglerRunner();
-                startMtdTogglerRunner();
-                /*if (!animatedNumberTextView.isRunning) {
-                    txtMtd.setText("---");
-                    lastMtdValue = 1;
-                    populateTripList();
-                }*/
-            }
+        txtMtd.setOnClickListener(v -> {
+            stopMtdTogglerRunner();
+            startMtdTogglerRunner();
         });
-
         txtMilesTotal = root.findViewById(R.id.txtMilesTotal);
-        txtMilesTotal.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                stopMtdTogglerRunner();
-                startMtdTogglerRunner();
-                /*if (!animatedNumberTextView.isRunning) {
-                    txtMtd.setText("---");
-                    lastMtdValue = 1;
-                    populateTripList();
-                }*/
-            }
+        txtMilesTotal.setOnClickListener(v -> {
+            stopMtdTogglerRunner();
+            startMtdTogglerRunner();
         });
-
         btnSync = root.findViewById(R.id.button_sync);
-        btnSync.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                try {
-                    Intent intent = new Intent(getContext(), ServerTripSyncService.class);
-                    getContext().startForegroundService(intent);
-                    // syncTrips();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+        btnSync.setOnClickListener(v -> {
+            try {
+                Intent syncTripServiceIntent =
+                        new Intent(getContext(), ServerTripSyncService.class);
+                requireContext().startForegroundService(syncTripServiceIntent);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         });
-
         btnStartStop = root.findViewById(R.id.btnStartStopTrip);
-        btnStartStop.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (options.getNameTripOnStart() && !MyLocationService.isRunning) {
-                    showNameTrip();
-                } else {
-                    startStopTrip();
-                }
+        btnStartStop.setOnClickListener(v -> {
+            if (options.getNameTripOnStart() && !MyLocationService.isRunning) {
+                showNameTrip();
+            } else {
+                startStopTrip();
             }
         });
-
         toggleEditButton = root.findViewById(R.id.tgglebtn_editTrips);
-        toggleEditButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
-                setEditMode(isChecked);
-            }
-        });
-
+        toggleEditButton.setOnCheckedChangeListener((buttonView, isChecked) -> setEditMode(isChecked));
         btnDeleteTrips = root.findViewById(R.id.btn_deleteSelectedTrips);
-        btnDeleteTrips.setOnClickListener(new View.OnClickListener() {
+        btnDeleteTrips.setOnClickListener(v -> MyYesNoDialog.show(getContext(), new MyYesNoDialog.YesNoListener() {
             @Override
-            public void onClick(View view) {
-                MyYesNoDialog.show(getContext(), "Are you sure you want to delete these trips?"
-                        , new MyYesNoDialog.YesNoListener() {
-                    @Override
-                    public void onYes() {
-                        deleteSelected();
-                        populateTripList();
-                    }
-
-                    @Override
-                    public void onNo() {
-                        Toast.makeText(getContext(), "Cancelled", Toast.LENGTH_SHORT).show();
-                    }
-                });
+            public void onYes() {
+                deleteSelected();
+                populateTripList();
             }
-        });
 
+            @Override
+            public void onNo() {
+                Toast.makeText(getContext(), getString(R.string.cancelled), Toast.LENGTH_SHORT).show();
+            }
+        }));
         btnAddManualTrip = root.findViewById(R.id.button_add_manual);
-        btnAddManualTrip.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                // Check permission and request if not present
-                if (checkLocationPermission() == LocationPermissionResult.NONE) {
-
-                    boolean showRational = shouldShowRequestPermissionRationale(
-                            Manifest.permission.ACCESS_FINE_LOCATION);
-                    if (!showRational) {
-                        final Dialog dialog = new Dialog(getActivity());
-                        final Context c = getActivity();
-                        dialog.setContentView(R.layout.generic_app_dialog);
-                        TextView txtMain = dialog.findViewById(R.id.txtMainText);
-                        txtMain.setText("You restrictive sunovabitch!  " +
-                                "You need to allow MileBuddy access to your device's location.\n\n" +
-                                "How else can we do this whole mileage tracking thing?!");
-                        Button btnOkay = dialog.findViewById(R.id.btnOkay);
-                        btnOkay.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                Helpers.Application.openAppSettings(getContext());
-                                dialog.dismiss();
-                            }
-                        });
-                        dialog.setTitle("Permissions");
-                        dialog.setCancelable(true);
-                        dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
-                            @Override
-                            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-                                if (keyCode != KeyEvent.KEYCODE_BACK) {
-                                    Helpers.Application.openAppSettings(getContext());
-                                }
-                                dialog.dismiss();
-                                return true;
-                            }
-                        });
-                        dialog.show();
-                    } else {
-                        requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}
-                                , PERMISSION_MAKE_TRIP);
-                    }
-                    return;
+        btnAddManualTrip.setOnClickListener(v -> {
+            // Check permission and request if not present
+            if (checkLocationPermission() == LocationPermissionResult.NONE) {
+                boolean showRational = shouldShowRequestPermissionRationale(
+                        Manifest.permission.ACCESS_FINE_LOCATION);
+                if (!showRational) {
+                    final Dialog dialog = new Dialog(requireActivity());
+                    dialog.setContentView(R.layout.generic_app_dialog);
+                    TextView txtMain = dialog.findViewById(R.id.txtMainText);
+                    txtMain.setText(getString(R.string.location_permissions_not_correct));
+                    Button btnOkay = dialog.findViewById(R.id.btnOkay);
+                    btnOkay.setOnClickListener(v1 -> {
+                        Helpers.Application.openAppSettings(requireContext());
+                        dialog.dismiss();
+                    });
+                    dialog.setTitle(getString(R.string.permissions));
+                    dialog.setCancelable(true);
+                    dialog.setOnKeyListener((dg, keyCode, event) -> {
+                        if (keyCode != KeyEvent.KEYCODE_BACK) {
+                            Helpers.Application.openAppSettings(requireContext());
+                        }
+                        dg.dismiss();
+                        return true;
+                    });
+                    dialog.show();
                 } else {
-                    Intent intent = new Intent(getContext(), Activity_ManualTrip.class);
-                    startActivityForResult(intent, 0);
+                    requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}
+                            , PERMISSION_MAKE_TRIP);
                 }
+            } else {
+                Intent intent = new Intent(getContext(), Activity_ManualTrip.class);
+                startActivityForResult(intent, 0);
             }
         });
-
         btnCreateReceipt = root.findViewById(R.id.button_get_receipt);
-        btnCreateReceipt.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (!checkStoragePermission()) {
-                    requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}
-                            , PERMISSION_MAKE_RECEIPT);
-                    return;
-                } else {
-                    showReceiptDialog();
-                }
+        btnCreateReceipt.setOnClickListener(v -> {
+            if (!checkStoragePermission()) {
+                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}
+                        , PERMISSION_MAKE_RECEIPT);
+            } else {
+                showReceiptDialog();
             }
         });
-
-        int defaultColor = txtStatus.getCurrentTextColor();
-        Log.i(TAG, "onCreateView " + defaultColor);
-
         // set up the RecyclerView
         recyclerView = root.findViewById(R.id.rvTrips);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
-        btnStartStop.setText((MyLocationService.isRunning) ? "Stop trip" : "Start new trip");
-        tripStatusContainer.setVisibility((MyLocationService.isRunning) ? View.VISIBLE : View.GONE);
-
-        RefreshLayout refreshLayout = (RefreshLayout) root.findViewById(R.id.refreshLayout);
-        refreshLayout.setRefreshHeader(new MaterialHeader(getContext()));
+        RefreshLayout refreshLayout = root.findViewById(R.id.refreshLayout);
+        refreshLayout.setRefreshHeader(new MaterialHeader(requireContext()));
         refreshLayout.setEnableLoadMore(true);
-        refreshLayout.setOnRefreshListener(new OnRefreshListener() {
-            @Override
-            public void onRefresh(RefreshLayout refreshlayout) {
-                refreshlayout.finishRefresh(500/*,false*/);
-                populateTripList();
-            }
+        refreshLayout.setOnRefreshListener(layout -> {
+            layout.finishRefresh(500);
+            populateTripList();
         });
-        refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
-            @Override
-            public void onLoadMore(RefreshLayout refreshlayout) {
-                refreshlayout.finishLoadMore(500/*,false*/);
-            }
-        });
+        refreshLayout.setOnLoadMoreListener(layout -> layout.finishLoadMore(500));
 
         // Update the current user silently just in case something has changed
         if (MediUser.getMe() != null && MediUser.getMe().email != null) {
@@ -466,40 +378,42 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             public void onReceive(final Context context, Intent intent) {
                 if (intent != null) {
 
-                    if (intent.getAction().equals(MyAttachmentUploadService.ATTACHMENT_SERVICE_STARTED)) {
-                        return;
-                    }
-
                     if (options.isExplicitMode()) {
-                        btnStartStop.setText((MyLocationService.isRunning) ? "FUCKING STOP" : "FUCKING GO");
+                        btnStartStop.setText((MyLocationService.isRunning) ?
+                                getString(R.string.fucking_stop) : getString(R.string.fucking_go));
                     } else {
-                        btnStartStop.setText((MyLocationService.isRunning) ? "STOP" : "GO");
+                        btnStartStop.setText((MyLocationService.isRunning) ?
+                                getString(R.string.stop) : getString(R.string.go));
                     }
                     btnSync.setTextColor((MyLocationService.isRunning) ? Color.GRAY : Color.BLUE);
-                    btnSync.setEnabled((MyLocationService.isRunning) ? false : true);
+                    btnSync.setEnabled(!MyLocationService.isRunning);
                     tripStatusContainer.setVisibility((MyLocationService.isRunning) ? View.VISIBLE : View.GONE);
-                    txtDuration.setText(MyLocationService.getTripDuration() + " mins");
+                    txtDuration.setText(getString(R.string.trip_duration, MyLocationService.getTripDuration()));
 
                     // NEW LOCATION INFORMATION RECEIVED
                     if (intent.getParcelableExtra(MyLocationService.LOCATION_CHANGED) != null) {
-                        LocationContainer update = intent.getParcelableExtra(MyLocationService.LOCATION_CHANGED);
+                        LocationContainer update =
+                                intent.getParcelableExtra(MyLocationService.LOCATION_CHANGED);
                         Log.d(TAG, "onReceive Location broadcast received!");
 
                         if (MyLocationService.isRunning) {
-                            txtStatus.setText("Trip is running");
+                            txtStatus.setText(getString(R.string.trip_running));
                             txtStatus.setTextColor(Color.GREEN);
-                            txtReimbursement.setText(update.fullTrip.calculatePrettyReimbursement());
+                            txtReimbursement.setText(Objects.requireNonNull(update).fullTrip.calculatePrettyReimbursement());
                             Helpers.Animations.pulseAnimation(txtStatus, 1.00f, 1.25f, 9000, 150);
                             if (isStarting) {
                                 showGif(false);
                                 isStarting = false;
                             }
                         } else {
-                            txtStatus.setText("Trip not started");
+                            txtStatus.setText(getString(R.string.trip_not_started));
                             txtStatus.setTextColor(DEFAULT_FONT_COLOR);
                         }
 
-                        txtDistance.setText(Helpers.Geo.convertMetersToMiles(update.fullTrip.getDistance(), 2) + " miles");
+                        float miles =
+                                Helpers.Geo.convertMetersToMiles(Objects.requireNonNull(update)
+                                        .fullTrip.getDistance(), 1);
+                        txtDistance.setText(getString(R.string.distance, Float.toString(miles)));
                         txtSpeed.setText(update.tripEntry.getSpeedInMph(true));
                         gauge.setSpeed(update.tripEntry.getMph());
 
@@ -511,13 +425,13 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                     // SERVICE HAS STARTED
                     if (intent.getAction() != null && intent.getAction().equals(MyLocationService.SERVICE_STARTED)) {
                         btnSync.setEnabled(false);
-                        txtStatus.setText("Start driving!");
-                        txtDistance.setText("0 miles");
-                        txtSpeed.setText("0 mph");
+                        txtStatus.setText(getString(R.string.start_driving));
+                        txtDistance.setText(getString(R.string.x_miles, 0));
+                        txtSpeed.setText(getString(R.string.x_mph, 0));
                         isStarting = true;
                         tripStatusContainer.setVisibility(View.VISIBLE);
                         txtStatus.setTextColor(Color.BLUE);
-                        txtReimbursement.setText("$0.00");
+                        txtReimbursement.setText(getString(R.string.x_dollars, 0));
                         Helpers.Animations.pulseAnimation(txtStatus, 1.00f, 1.25f, 9000, 450);
                         Log.i(TAG, "onReceive | trip starting broadcast received.");
                         manageDefaultImage();
@@ -528,24 +442,24 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
                     // SERVICE IS STOPPING
                     if (intent.getAction() != null && intent.getAction().equals(MyLocationService.SERVICE_STOPPED)) {
-                        txtStatus.setText("Trip is stopping");
+                        txtStatus.setText(getString(R.string.trip_stopping));
                         Log.i(TAG, "onReceive  | trip stopping broadcast received");
                     }
 
                     // SERVICE IS ENDED
                     if (intent.getAction() != null && intent.getAction().equals(MyLocationService.SERVICE_STOPPED)) {
-                        txtStatus.setText("Trip is stopped.");
+                        txtStatus.setText(getString(R.string.trip_stopped));
                         txtStatus.setTextColor(Color.RED);
                         tripStatusContainer.setVisibility(View.GONE);
                         Log.i(TAG, "onReceive | trip stopped broadcast received.");
-                        adapter.notifyDataSetChanged();
                         populateTripList();
                         manageDefaultImage();
                         Log.i(TAG, "onReceive | trip stopping broadcast received.");
 
                         if (intent.getParcelableExtra(MyLocationService.FINAL_LOCATION) != null) {
-                            FullTrip trip = intent.getParcelableExtra(MyLocationService.FINAL_LOCATION);
-                            Log.i(TAG, "onReceive " + trip.toString());
+                            FullTrip trip =
+                                    intent.getParcelableExtra(MyLocationService.FINAL_LOCATION);
+                            Log.i(TAG, "onReceive " + Objects.requireNonNull(trip));
 
                             if (options.autoSubmitOnTripEnded()) {
                                 try {
@@ -562,7 +476,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
                     // USER IS NOT MOVING
                     if (intent.getAction() != null && intent.getAction().equals(MyLocationService.NOT_MOVING)) {
-                        txtSpeed.setText("0 mph");
+                        txtSpeed.setText(getString(R.string.x_mph, 0));
                         Log.i(TAG, "onReceive: Got a stopped moving broadcast!");
                     }
 
@@ -575,8 +489,8 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             public void onReceive(Context context, Intent intent) {
                 if (intent != null) {
                     // Handle an intent received for creating a new receipt.
-                    if (intent.getBooleanExtra(MAKE_RECEIPT, false))  {
-                        if (intent.getBooleanExtra(MAKE_RECEIPT, false) == true) {
+                    if (intent.getBooleanExtra(MAKE_RECEIPT, false)) {
+                        if (Objects.requireNonNull(intent).getBooleanExtra(MAKE_RECEIPT, false)) {
                             showReceiptDialog();
                         }
                     }
@@ -599,9 +513,12 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 Log.i(TAG, "onReceive Rep chosen receiver was triggered!");
                 if (data != null && data.hasExtra(FullscreenActivityChooseRep.CHOICE_RESULT)) {
                     if (tripToReassign != null) {
-                        MediUser chosenUser = data.getParcelableExtra(FullscreenActivityChooseRep.CHOICE_RESULT);
+                        MediUser chosenUser =
+                                data.getParcelableExtra(FullscreenActivityChooseRep.CHOICE_RESULT);
                         if (chosenUser != null) {
-                            final MyProgressDialog progressDialog = new MyProgressDialog(getContext(), "Reassigning trip to " + chosenUser.fullname);
+                            final MyProgressDialog progressDialog =
+                                    new MyProgressDialog(getContext()
+                                            , getString(R.string.reassign_trip_to_x, chosenUser.fullname));
                             progressDialog.show();
 
                             Request request = new Request(Request.Function.ASSIGN);
@@ -615,7 +532,8 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                                 public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                                     MySqlDatasource ds = new MySqlDatasource(getContext());
                                     ds.deleteFulltrip(tripToReassign.getTripcode(), true);
-                                    Toast.makeText(getContext(), "Trip was reassigned", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), getString(R.string.trip_was_reassigned)
+                                            , Toast.LENGTH_SHORT).show();
                                     populateTripList();
                                     progressDialog.dismiss();
                                     tripToReassign = null;
@@ -623,7 +541,8 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
                                 @Override
                                 public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                                    Toast.makeText(getContext(), "Failed to reassign trip\n" + error.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                                    Toast.makeText(getContext(), getString(R.string.toast_failed_reassign_trip,
+                                            error.getLocalizedMessage()), Toast.LENGTH_LONG).show();
                                     populateTripList();
                                     progressDialog.dismiss();
                                     tripToReassign = null;
@@ -650,77 +569,63 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
                     if (intent.hasExtra(ServerTripSyncService.STARTED)) {
                         progressDialog = new MyProgressDialog(getContext());
-                        progressDialog.setTitleText("Syncing Trips");
-                        progressDialog.setContentText("Syncing trips with CRM server...");
+                        progressDialog.setTitleText(getString(R.string.syncing_trips_title));
+                        progressDialog.setContentText(getString(R.string.syncing_trips_body));
                         progressDialog.show();
                     } else if (intent.hasExtra(ServerTripSyncService.PROGRESS)) {
                         Log.i(TAG, "onReceive (trip sync service broadcast) | progress intent");
-                        int curVal = intent.getIntegerArrayListExtra(ServerTripSyncService.PROGRESS).get(0);
-                        int totalVal = intent.getIntegerArrayListExtra(ServerTripSyncService.PROGRESS).get(1);
-                        progressDialog.setContentText("Updating local trip " + curVal + " of " + totalVal);
+                        int curVal =
+                                Objects.requireNonNull(intent.getIntegerArrayListExtra(ServerTripSyncService.PROGRESS)).get(0);
+                        int totalVal =
+                                Objects.requireNonNull(intent.getIntegerArrayListExtra(ServerTripSyncService.PROGRESS)).get(1);
+                        progressDialog.setTitleText(getString(R.string.syncing_trips_title));
+                        progressDialog.setContentText(getString(R.string.prog_x_of_y, curVal, totalVal));
                     } else if (intent.hasExtra(ServerTripSyncService.COMPLETED)) {
                         Log.i(TAG, "onReceive (trip sync service broadcast) | completed intent");
-                            progressDialog.dismiss();
-                            populateTripList();
+                        progressDialog.dismiss();
+                        populateTripList();
                     } else if (intent.hasExtra(ServerTripSyncService.FAILED)) {
                         Log.i(TAG, "onReceive (trip sync service broadcast) | failed intent");
-                            progressDialog.dismiss();
-                            populateTripList();
+                        progressDialog.dismiss();
+                        populateTripList();
                     }
                 }
             }
         };
 
-        getActivity().registerReceiver(repChosenReceiver, repChosenFilter);
+        requireActivity().registerReceiver(repChosenReceiver, repChosenFilter);
 
-        root.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                //At this point the layout is complete and the dimensions and any child views are known.
-                Log.i(TAG, "onGlobalLayout");
+        root.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+            //At this point the layout is complete and the dimensions and any child views are known.
+            Log.i(TAG, "onGlobalLayout");
 
-                // This check is here because having it in onResume() it would often result in showing
-                // a dialog when the service isn't actually running and then will only go away if
-                // manually dismissed (clicking/back pressed etc.).
-                if (getContext() != null) {
-                    if (ServerTripSyncService.isRunning) {
-                        if (progressDialog != null && !progressDialog.isShowing()) {
-                            progressDialog.setTitleText("Syncing trips");
-                            progressDialog.setContentText("-= Syncing trips with the CRM server =-");
-                            progressDialog.show();
-                        } else {
-                            progressDialog = new MyProgressDialog(getContext());
-                            progressDialog.setTitleText("Syncing trips");
-                            progressDialog.setContentText("|| Syncing trips with the CRM server ||");
-                            progressDialog.show();
-                        }
-                    } else {
-                        if (progressDialog != null) {
-                            progressDialog.dismiss();
-                        }
+            // This check is here because having it in onResume() it would often result in showing
+            // a dialog when the service isn't actually running and then will only go away if
+            // manually dismissed (clicking/back pressed etc.).
+            if (getContext() != null) {
+                if (ServerTripSyncService.isRunning) {
+                    if (progressDialog == null || progressDialog.isShowing()) {
+                        progressDialog = new MyProgressDialog(getContext());
+                    }
+                    progressDialog.setTitleText(getString(R.string.syncing_trips_title));
+                    progressDialog.setContentText(getString(R.string.syncing_trips_body));
+                    progressDialog.show();
+                } else {
+                    if (progressDialog != null) {
+                        progressDialog.dismiss();
                     }
                 }
-
             }
         });
-
-
-        // setEditMode(false);
 
         if (!MediUser.isLoggedIn()) {
             Log.i(TAG, "onCreateView | NOT LOGGED IN!");
-            getActivity().finishAffinity();
+            requireActivity().finishAffinity();
             return root;
         }
 
-        mileageViewModel = new ViewModelProvider(this).get(MileageViewModel.class);
-        MyLocationService.mileageFragment = this;
-        mileageViewModel.getLocationContainer().observe(getActivity(), new Observer<LocationContainer>() {
-            @Override
-            public void onChanged(LocationContainer container) {
-                Log.i(TAG, "onChanged | " + container.speed + " mph");
-            }
-        });
+        btnStartStop.setText((MyLocationService.isRunning) ? getString(R.string.stop_trip) : getString(R.string.start_trip));
+        tripStatusContainer.setVisibility((MyLocationService.isRunning) ? View.VISIBLE : View.GONE);
 
         return root;
     }
@@ -739,43 +644,40 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 @Override
                 public void onSuccess(int entriesDeleted) {
                     if (entriesDeleted > 0) {
-                        Toast.makeText(getContext(), "Cleaned up unreferenced trips.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.toast_cleaned_unref_trips)
+                                , Toast.LENGTH_SHORT).show();
                     }
-                    adapter.notifyDataSetChanged();
                 }
 
                 @Override
                 public void onFailure(String message) {
-                    Toast.makeText(getContext(), "Something went wrong cleaning unreferenced trips.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getString(R.string.toast_failed_to_clean_unref_trips)
+                            , Toast.LENGTH_SHORT).show();
                 }
             });
 
-            getActivity().registerReceiver(locReceiver, locFilter);
+            requireActivity().registerReceiver(locReceiver, locIntentFilter);
             Log.i(TAG, "onStart Registered the location receiver");
             Log.i(TAG, "onStart Registered the back press receiver.");
 
             if (MyLocationService.isRunning) {
-                txtStatus.setText("Trip is running");
+                txtStatus.setText(getString(R.string.trip_running));
                 MyLocationService.sendUpdateBroadcast(getContext());
                 startTripDurationRunner();
             } else {
-                txtStatus.setText("Trip not started");
+                txtStatus.setText(getString(R.string.trip_not_started));
             }
 
-            this.getView().setFocusableInTouchMode(true);
-            this.getView().requestFocus();
-            this.getView().setOnKeyListener(new View.OnKeyListener() {
-                @Override
-                public boolean onKey(View v, int keyCode, KeyEvent event) {
-                    if (keyCode == KeyEvent.KEYCODE_BACK) {
-                        if (adapter.isInEditMode) {
-                            // adapter.setEditModeEnabled(false);
-                            setEditMode(false);
-                            return true;
-                        }
+            this.requireView().setFocusableInTouchMode(true);
+            this.requireView().requestFocus();
+            this.requireView().setOnKeyListener((view, keyCode, event) -> {
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    if (adapter.isInEditMode) {
+                        setEditMode(false);
+                        return true;
                     }
-                    return false;
                 }
+                return false;
             });
 
             datasource.deleteEmptyTrips(true, new MyInterfaces.TripDeleteCallback() {
@@ -783,114 +685,32 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 public void onSuccess(int entriesDeleted) {
                     if (entriesDeleted > 0) {
                         Log.w(TAG, "onSuccess: Deleted " + entriesDeleted + " empty trips.");
-                        Toast.makeText(getContext(), "Removed " + entriesDeleted + " empty trips.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.x_entries_deleted
+                                , entriesDeleted), Toast.LENGTH_SHORT).show();
                         populateTripList();
                     }
                 }
 
                 @Override
                 public void onFailure(String message) {
-                    Toast.makeText(getContext(), "Failed to delete empty trips\n" + message, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getString(R.string.failed_to_delete_trip, message)
+                            , Toast.LENGTH_SHORT).show();
                 }
             });
         } else {
             if (options.getDebugMode()) {
-                Toast.makeText(getContext(), "User is not yet saved and doesn't exist!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.user_not_exist), Toast.LENGTH_SHORT).show();
             }
         }
 
-        // int vals[] = { 13, 2, 64, 41, 1, 19, 24 }; // 43
-        // int vals[] = { 2, 2, 64, 41, 1, 19, 24 }; // 43
-        // int vals[] = { 2, 2, 64, 41, 25, 19, 24 }; // 60
-        int vals[] = { 13, 2, 64, 41, 41, 40, 19, 24 }; // 54
-
-        try {
-            arrayGame(vals, true);
-            arrayGame(vals, false);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    /**
-     * Sums the second highest and the second lowest elements of an array.
-     * @param vals The array to parse (must have at least 4 elements).
-     * @param ignoreDuplicateValues A lazy, fast method that can get screwed up if duplicate values
-     *                              are present at the beginning or end of the array.
-     * @return The sum of the second largest and second smallest elements.
-     * @throws Exception Exceptions can be thrown for multiple reasons - see exception text.
-     */
-    int arrayGame(int[] vals, boolean ignoreDuplicateValues) throws Exception {
-
-        // Need at least four elements in the array
-        if (vals.length < 4) {
-            throw new Exception("You must supply an array with at least four elements.");
-        }
-
-        // Sort the array from lowest to highest
-        Arrays.sort(vals);
-
-        // If we do not care about leading or trailing duplicates (e.g. { 2, 2, 53, 21, 88, 21 } )
-        if (ignoreDuplicateValues) {
-
-            // Grab the second from first and second from last values in the sorted array
-            int secondLowest = vals[1]; // probably
-            int secondHighest = vals[vals.length - 2]; // probably
-
-            // Sum and return.
-            Log.i(TAG, "arrayGame | lazy method | " + ((secondLowest) + (secondHighest)));
-            return  (secondLowest) + (secondHighest);
-        }
-
-        int lowest, highest, secondLowest, secondHighest;
-
-        // Can assume first and last values are lowest and highest respectively in this sorted array.
-        lowest = vals[0];
-        highest = vals[vals.length - 1];
-
-        // safest initial value (like negative whatever the maximum integer value can be)
-        secondHighest = Integer.MIN_VALUE;
-
-        // Do our second iteration
-        for (int i = 0; i < vals.length; i++) {
-            // Ignoring the highest value, find the next highest value
-            if (vals[i] != highest) {
-                secondHighest = Math.max(secondHighest, vals[i]);
-            }
-        }
-
-        // If var is still our initial value, something has almost certainly gone horribly wrong.
-        if (secondHighest == Integer.MIN_VALUE) {
-            throw new Exception("Could not determine a second largest value!");
-        }
-
-        // Safeset initial value
-        secondLowest = Integer.MAX_VALUE;
-
-        // Do our third and final iteration
-        for (int i = 0; i < vals.length; i++) {
-            if(vals[i] != lowest) {
-                secondLowest = Math.min(secondLowest, vals[i]);
-            }
-        }
-
-        // If var is still our initial value, something has almost certainly gone horribly wrong.
-        if (secondLowest == Integer.MAX_VALUE) {
-            throw new Exception("Could not determine a second smallest value!");
-        }
-
-        // Sum and return
-        Log.i(TAG, "arrayGame | verbose method | " + ((secondLowest) + (secondHighest)));
-        return secondLowest + secondHighest;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         try {
-            getActivity().unregisterReceiver(repChosenReceiver);
-            Log.i(TAG, "onDestroy Unregistered the rep chosen receiver");
+            requireActivity().unregisterReceiver(repChosenReceiver);
+            Log.i(TAG, "onDestroy | Unregistered the rep chosen receiver");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -901,12 +721,12 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         super.onStop();
         try {
             // Unregister broadcast receivers.
-            getActivity().unregisterReceiver(locReceiver);
-            getContext().unregisterReceiver(miscReceiver);
-            getContext().unregisterReceiver(tripSyncReceiver);
+            requireActivity().unregisterReceiver(locReceiver);
+            requireActivity().unregisterReceiver(miscReceiver);
+            requireActivity().unregisterReceiver(tripSyncReceiver);
 
             tripDurationHandler.removeCallbacks(tripDurationRunner);
-            Log.i(TAG, "onStop Unregistered the location receiver");
+            Log.i(TAG, "onStop | Unregistered the location receiver");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -920,7 +740,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         if (!MediUser.isLoggedIn()) {
             try {
                 options.logout();
-                getActivity().finishAffinity();
+                requireActivity().finishAffinity();
                 return;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -936,8 +756,8 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         startMtdTogglerRunner();
 
         try {
-            getContext().registerReceiver(miscReceiver, allPurposeFilter);
-            getContext().registerReceiver(tripSyncReceiver, tripSyncFilter);
+            requireActivity().registerReceiver(miscReceiver, allPurposeFilter);
+            requireActivity().registerReceiver(tripSyncReceiver, tripSyncFilter);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -985,7 +805,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                     @Override
                     public void run() {
                         try {
-                            txtDuration.setText(MyLocationService.getTripDuration() + " mins");
+                            txtDuration.setText(getString(R.string.x_mins, MyLocationService.getTripDuration()));
                             tripDurationHandler.postDelayed(this, 1000);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -999,55 +819,54 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         }
     }
 
+    /**
+     * This is a runnable that toggles between showing MTD mileage and the reimbursement from that mileage.
+     * The transition between is animated.
+     */
     void startMtdTogglerRunner() {
-        mtdTogglerRunner = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (isShowingMilesTotal) {
-                        Helpers.Animations.fadeOut(txtMilesTotal, 250, new Animation.AnimationListener() {
-                            @Override
-                            public void onAnimationStart(Animation animation) {
-                                isShowingMilesTotal = false;
-                                Helpers.Animations.fadeIn(txtMtd, 250);
-                            }
+        mtdTogglerRunner = () -> {
+            try {
+                if (isShowingTotalMiles) {
+                    Helpers.Animations.fadeOut(txtMilesTotal, 250, new Animation.AnimationListener() {
+                        @Override
+                        public void onAnimationStart(Animation animation) {
+                            isShowingTotalMiles = false;
+                            Helpers.Animations.fadeIn(txtMtd, 250);
+                        }
 
-                            @Override
-                            public void onAnimationEnd(Animation animation) {
-                                txtMilesTotal.setVisibility(View.INVISIBLE);
-                                txtMtd.setVisibility(View.VISIBLE);
-                                mtdTogglerHandler.postDelayed(mtdTogglerRunner, 5000);
-                            }
+                        @Override
+                        public void onAnimationEnd(Animation animation) {
+                            txtMilesTotal.setVisibility(View.INVISIBLE);
+                            txtMtd.setVisibility(View.VISIBLE);
+                            mtdTogglerHandler.postDelayed(mtdTogglerRunner, 5000);
+                        }
 
-                            @Override
-                            public void onAnimationRepeat(Animation animation) {
+                        @Override
+                        public void onAnimationRepeat(Animation animation) {
+                        }
+                    });
+                } else {
+                    Helpers.Animations.fadeOut(txtMtd, 250, new Animation.AnimationListener() {
+                        @Override
+                        public void onAnimationStart(Animation animation) {
+                            isShowingTotalMiles = true;
+                            Helpers.Animations.fadeIn(txtMilesTotal, 250);
+                        }
 
-                            }
-                        });
-                    } else {
-                        Helpers.Animations.fadeOut(txtMtd, 250, new Animation.AnimationListener() {
-                            @Override
-                            public void onAnimationStart(Animation animation) {
-                                isShowingMilesTotal = true;
-                                Helpers.Animations.fadeIn(txtMilesTotal, 250);
-                            }
+                        @Override
+                        public void onAnimationEnd(Animation animation) {
+                            txtMilesTotal.setVisibility(View.VISIBLE);
+                            txtMtd.setVisibility(View.INVISIBLE);
+                            mtdTogglerHandler.postDelayed(mtdTogglerRunner, 5000);
+                        }
 
-                            @Override
-                            public void onAnimationEnd(Animation animation) {
-                                txtMilesTotal.setVisibility(View.VISIBLE);
-                                txtMtd.setVisibility(View.INVISIBLE);
-                                mtdTogglerHandler.postDelayed(mtdTogglerRunner, 5000);
-                            }
-
-                            @Override
-                            public void onAnimationRepeat(Animation animation) {
-
-                            }
-                        });
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                        @Override
+                        public void onAnimationRepeat(Animation animation) {
+                        }
+                    });
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         };
         mtdTogglerRunner.run();
@@ -1059,29 +878,34 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
     void startStopTrip(@Nullable String tripname) {
         if (MediUser.getMe(getContext()) == null) {
-            NavController navController = Navigation.findNavController(getActivity(), R.id.nav_host_fragment);
+            NavController navController =
+                    Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
             navController.navigate(R.id.action_HomeFragment_to_HomeSecondFragment);
-            Toast.makeText(getContext(), "Need to login", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.toast_need_to_login), Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (MyLocationService.isRunning) {
             if (MyLocationService.tripIsValid()) {
                 if (options.getConfirmTripEnd()) {
-                    MyYesNoDialog.show(getContext(), "Are you sure you want to stop this trip?",
+                    MyYesNoDialog.show(getContext(), getString(R.string.are_you_sure_stop_trip),
                             new MyYesNoDialog.YesNoListener() {
                                 @Override
                                 public void onYes() {
                                     MyLocationService.userStoppedTrip = true;
-                                    getContext().stopService(new Intent(getContext(), MyLocationService.class));
+                                    requireContext().stopService(new Intent(getContext(), MyLocationService.class));
                                 }
-                                @Override public void onNo() {} });
+
+                                @Override
+                                public void onNo() {
+                                }
+                            });
                 } else {
                     MyLocationService.userStoppedTrip = true;
-                    getContext().stopService(new Intent(getContext(), MyLocationService.class));
+                    requireContext().stopService(new Intent(getContext(), MyLocationService.class));
                 }
             } else {
-                getContext().stopService(new Intent(getContext(), MyLocationService.class));
+                requireContext().stopService(new Intent(getContext(), MyLocationService.class));
             }
         } else {
             if (options.getReimbursementRate() == 0) {
@@ -1095,14 +919,14 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 if (validateLocPermissions()) {
                     // Set up the visuals
                     tripStatusContainer.setVisibility(View.VISIBLE);
-                    btnStartStop.setText("STOP");
+                    btnStartStop.setText(getString(R.string.stop));
                     showGif(true);
 
                     // Start the actual service
                     Intent intent = new Intent(getContext(), MyLocationService.class);
                     intent.putExtra(MyLocationService.TRIP_PRENAME, tripname);
                     intent.putExtra(MyLocationService.USER_STARTED_TRIP_FLAG, true);
-                    getContext().startForegroundService(intent);
+                    requireContext().startForegroundService(intent);
                     Log.d(TAG, "startMyLocService Sent start request...");
                     startTripDurationRunner();
                 }
@@ -1119,7 +943,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
     public boolean validateLocPermissions() {
         String[] permissions;
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_BACKGROUND_LOCATION};
         } else {
@@ -1128,43 +952,30 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
         if (checkLocationPermission() != LocationPermissionResult.FULL) {
 
-            boolean showRational = shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION);
+            boolean showRational =
+                    shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION);
             if (showRational && checkLocationPermission() == LocationPermissionResult.NONE) {
-                final Dialog dialog = new Dialog(getActivity());
-                final Context c = getActivity();
+                final Dialog dialog = new Dialog(requireActivity());
                 dialog.setContentView(R.layout.generic_app_dialog);
                 TextView txtMain = dialog.findViewById(R.id.txtMainText);
-                txtMain.setText("You restrictive sunovabitch!  " +
-                        "You need to allow MileBuddy access to your device's location.\n\n" +
-                        "How else can we do this whole mileage tracking thing?!");
+                txtMain.setText(getString(R.string.location_permissions_not_correct));
                 Button btnOkay = dialog.findViewById(R.id.btnOkay);
-                btnOkay.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        Helpers.Application.openAppSettings(getContext());
-                        dialog.dismiss();
-                    }
+                btnOkay.setOnClickListener(v -> {
+                    Helpers.Application.openAppSettings(requireContext());
+                    dialog.dismiss();
                 });
-                dialog.setTitle("Permissions");
+                dialog.setTitle(getString(R.string.permissions));
                 dialog.setCancelable(true);
-                dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
-                    @Override
-                    public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-                        if (keyCode == KeyEvent.KEYCODE_BACK) {
-                            dialog.dismiss();
-                            return true;
-                        } else {
-                            Helpers.Application.openAppSettings(getContext());
-                            dialog.dismiss();
-                            return true;
-                        }
+                dialog.setOnKeyListener((dg, keyCode, event) -> {
+                    if (keyCode != KeyEvent.KEYCODE_BACK) {
+                        Helpers.Application.openAppSettings(requireContext());
                     }
+                    dialog.dismiss();
+                    return true;
                 });
                 dialog.show();
-                requestPermissions(permissions, PERMISSION_START_TRIP);
-            } else {
-                requestPermissions(permissions, PERMISSION_START_TRIP);
             }
+            requestPermissions(permissions, PERMISSION_START_TRIP);
             return false;
         } else {
             return true;
@@ -1173,7 +984,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
     public void showGif(boolean showStartupAnimation) {
 
-        int drawable = -1;
+        int drawable;
 
         if (showStartupAnimation) {
             drawable = R.drawable.car2_static;
@@ -1181,87 +992,74 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             drawable = R.drawable.car2;
         }
 
-        Uri path = Uri.parse("android.resource://com.fimbleenterprises.medimileage/" + drawable);
+        Uri path = Uri.parse(getString(R.string.car_gif_uri) + drawable);
         ImageView imageView = rootView.findViewById(R.id.gifview);
-        Glide.with(getContext()).load(path).into(imageView);
+        Glide.with(requireContext()).load(path).into(imageView);
 
     }
 
     void editTrip(final FullTrip clickedTrip) {
-        final Dialog dialog = new Dialog(getContext());
-        final Context c = getContext();
+        final Dialog dialog = new Dialog(requireContext());
         dialog.setContentView(R.layout.edit_trip);
         final Button btnChangeDate = dialog.findViewById(R.id.btnChangeDate);
         btnChangeDate.setText(clickedTrip.getPrettyDate());
         Button btnSaveTrip = dialog.findViewById(R.id.btnSaveEdits);
-        final AutoCompleteTextView txtName = dialog.findViewById(R.id.autocomplete_EditText_NameTrip);
+        final AutoCompleteTextView txtName =
+                dialog.findViewById(R.id.autocomplete_EditText_NameTrip);
         final EditText txtDistance = dialog.findViewById(R.id.editTxt_Distance);
         final float originalMiles = clickedTrip.getDistanceInMiles();
         final long originalDate = clickedTrip.getDateTime().getMillis();
         final long[] newDate = {originalDate};
-        txtDistance.setText(Float.toString(originalMiles));
+        txtDistance.setText(getString(R.string.original_miles, originalMiles));
 
         String[] tripnames = datasource.getTripNames();
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>
-                (getContext(), android.R.layout.select_dialog_item, tripnames);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>
+                (requireContext(), android.R.layout.select_dialog_item, tripnames);
         txtName.setThreshold(1);
         txtName.setAdapter(adapter);
         txtName.setText(clickedTrip.getTitle());
-        dialog.setTitle("Edit Trip");
+        dialog.setTitle(getString(R.string.edit_trip));
         dialog.setCancelable(true);
 
-        btnSaveTrip.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                float newMiles = Float.parseFloat(txtDistance.getText().toString());
+        btnSaveTrip.setOnClickListener(v -> {
+            float newMiles = Float.parseFloat(txtDistance.getText().toString());
 
 
-                if (originalMiles != newMiles || originalDate != newDate[0]) {
-                    clickedTrip.setIsEdited(true);
-                    clickedTrip.setDistance(Helpers.Geo.convertMilesToMeters(newMiles, 1));
-                    clickedTrip.setMilis(newDate[0]);
-                    clickedTrip.setDateTime(new DateTime(newDate[0]));
-                    clickedTrip.save();
-                }
+            if (originalMiles != newMiles) {
+                clickedTrip.setIsEdited(true);
+                clickedTrip.setDistance(Helpers.Geo.convertMilesToMeters(newMiles, 1));
+                clickedTrip.setMillis(newDate[0]);
+                clickedTrip.setDateTime(new DateTime(newDate[0]));
+                clickedTrip.save();
+            }
 
-                Log.i(TAG, "onClick Renaming trip..." + clickedTrip.getTitle());
-                if (txtName.getText().length() > 0) {
-                    clickedTrip.setTitle(txtName.getText().toString());
-                    clickedTrip.save();
-                }
+            Log.i(TAG, "onClick Renaming trip..." + clickedTrip.getTitle());
+            if (txtName.getText().length() > 0) {
+                clickedTrip.setTitle(txtName.getText().toString());
+                clickedTrip.save();
+            }
 
-                populateTripList();
-                dialog.dismiss();
-                dialogTripOptions.dismiss();
+            populateTripList();
+            dialog.dismiss();
+            dialogTripOptions.dismiss();
+        });
+        dialog.setOnKeyListener((dialog1, keyCode, event) -> {
+            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                dialog1.dismiss();
+                return true;
+            } else {
+                return false;
             }
         });
 
-        dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
-            @Override
-            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-                if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    dialog.dismiss();
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        });
-
-        btnChangeDate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                DialogFragment newFragment = new DatePickerFragment(new MyInterfaces.DateSelector() {
-                    @Override
-                    public void onDateSelected(DateTime selectedDate, String selectedDateStr) {
+        btnChangeDate.setOnClickListener(v -> {
+            DatePickerFragment newFragment =
+                    new DatePickerFragment((selectedDate, selectedDateStr) -> {
                         btnChangeDate.setText(selectedDateStr);
                         clickedTrip.setDateTime(selectedDate);
-                    }
-                });
-                ((DatePickerFragment) newFragment).setShowDate(clickedTrip.getDateTime());
-                newFragment.show(getActivity().getSupportFragmentManager(), "datePicker");
-            }
+                    });
+            newFragment.setShowDate(clickedTrip.getDateTime());
+            newFragment.show(requireActivity().getSupportFragmentManager(), "datePicker");
         });
         dialog.show();
     }
@@ -1315,63 +1113,63 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         }
     }
 
-    @SuppressLint("StaticFieldLeak")
     void deleteSelected() {
-        new AsyncTask<String, String, String>() {
-            int deletedTrips = 0;
+
+        new MyAsyncTask() {
+            int deletedTrips;
 
             @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-                showProgress(true, "Deleting trips...");
+            public void onPreExecute() {
+                showProgress(true, getString(R.string.deleting_trips));
             }
 
             @Override
-            protected String doInBackground(String... strings) {
+            public void doInBackground() {
                 MySqlDatasource ds = new MySqlDatasource();
                 for (FullTrip trip : adapter.mData) {
                     if (trip.isChecked) {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                         if (ds.deleteFulltrip(trip.getTripcode(), true)) {
                             deletedTrips++;
-                        }
-                    }
-                }
-                return null;
+                            reportProgress(getString(R.string.deleted_x_trips, deletedTrips));
+                        } // if successful
+                    } // if checked
+                } // each trip
+            } // doInBackground
+
+            @Override
+            public void onProgress(Object msg) {
+                showProgress(true, msg.toString());
             }
 
             @Override
-            protected void onPostExecute(String s) {
+            public void onPostExecute() {
                 showProgress(false, null);
                 populateTripList();
-                adapter.notifyDataSetChanged();
                 setEditMode(false);
-                Toast.makeText(getContext(), "Deleted " + deletedTrips + " trips.", Toast.LENGTH_SHORT).show();
-                super.onPostExecute(s);
+                Toast.makeText(getContext(), getString(R.string.deleted_x_trips, deletedTrips)
+                        , Toast.LENGTH_SHORT).show();
             }
-        }.execute(null, null, null);
-    }
 
-    int countSelectedTrips() {
-        int count = 0;
-        for (FullTrip trip : adapter.mData) {
-            if (trip.isChecked) {
-                count++;
-            }
-        }
-        return count;
+        }.execute();
+
     }
 
     void setMileageRate() throws UnsupportedEncodingException {
 
         final MyProgressDialog dialog = new MyProgressDialog(getContext(),
-                "Updating reimbursement rate...");
+                getString(R.string.getting_reimbursement_rate));
         dialog.show();
 
         MyLocationService.setReimbursementRate(new MyInterfaces.ReimbursementRateCallback() {
             @Override
             public void onSuccess(float rate) {
                 dialog.dismiss();
-                Toast.makeText(getContext(), "Success!\nRate: " + options.getPrettyReimbursementRate()
+                Toast.makeText(getContext(), getString(R.string.toast_updated_rate, options.getReimbursementRate())
                         , Toast.LENGTH_SHORT).show();
             }
 
@@ -1401,13 +1199,13 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
         boolean wasKilled = options.lastTripAutoKilled();
         boolean isRunning = MyLocationService.isRunning;
-        if (wasKilled && ! isRunning) {
+        if (wasKilled && !isRunning) {
             Log.i(TAG, "onReceive: Last trip was auto-killed and the service is not running!");
             tripStatusContainer.setVisibility(View.GONE);
             if (options.isExplicitMode()) {
-                btnStartStop.setText("FUCKING GO");
+                btnStartStop.setText(getString(R.string.go));
             } else {
-                btnStartStop.setText("START NEW TRIP");
+                btnStartStop.setText(getString(R.string.start_trip));
             }
             options.lastTripAutoKilled(false);
         }
@@ -1417,7 +1215,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         txtMilesTotal.setText("---");
 
         locallySavedTrips = new ArrayList<>();
-        ArrayList<FullTrip> tempList = new ArrayList<>();
+        ArrayList<FullTrip> tempList;
         Log.i(TAG, "populateTripList Getting trips from database...");
         tempList = datasource.getTrips();
         Log.i(TAG, "populateTripList Trips retrieved from database");
@@ -1446,26 +1244,30 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
         Log.i(TAG, "populateTripList: Preparing the dividers and trips...");
         for (int i = 0; i < (locallySavedTrips.size()); i++) {
-            int tripDayOfYear = Helpers.DatesAndTimes.returnDayOfYear(locallySavedTrips.get(i).getDateTime());
-            int tripWeekOfYear = Helpers.DatesAndTimes.returnWeekOfYear(locallySavedTrips.get(i).getDateTime());
-            int tripMonthOfYear = Helpers.DatesAndTimes.returnMonthOfYear(locallySavedTrips.get(i).getDateTime());
+            int tripDayOfYear =
+                    Helpers.DatesAndTimes.returnDayOfYear(locallySavedTrips.get(i).getDateTime());
+            int tripWeekOfYear =
+                    Helpers.DatesAndTimes.returnWeekOfYear(locallySavedTrips.get(i).getDateTime());
+            int tripMonthOfYear =
+                    Helpers.DatesAndTimes.returnMonthOfYear(locallySavedTrips.get(i).getDateTime());
 
             // Trip was today
             if (tripDayOfYear == todayDayOfYear) {
-                if (addedTodayHeader == false) {
+                if (!addedTodayHeader) {
                     FullTrip headerObj = new FullTrip();
                     headerObj.isSeparator = true;
-                    headerObj.setTitle(options.isExplicitMode() ? getActivity().getString(R.string.triplist_today_explicit) : getActivity().getString(R.string.today));
+                    headerObj.setTitle(options.isExplicitMode() ? requireContext().getString(R.string
+                            .triplist_today_explicit) : requireContext().getString(R.string.today));
                     triplist.add(headerObj);
                     addedTodayHeader = true;
                     Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Today' - This will not be added again!");
                 }
                 // Trip was yesterday
             } else if (tripDayOfYear == (todayDayOfYear - 1)) {
-                if (addedYesterdayHeader == false) {
+                if (!addedYesterdayHeader) {
                     FullTrip headerObj = new FullTrip();
                     headerObj.isSeparator = true;
-                    headerObj.setTitle(options.isExplicitMode() ? getActivity().getString(R.string.triplist_yesterday_explicit) : getActivity().getString(R.string.yesterday));
+                    headerObj.setTitle(options.isExplicitMode() ? requireContext().getString(R.string.triplist_yesterday_explicit) : requireContext().getString(R.string.yesterday));
                     triplist.add(headerObj);
                     addedYesterdayHeader = true;
                     Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Yesterday' - This will not be added again!");
@@ -1473,10 +1275,10 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
                 // Trip was this week
             } else if (tripWeekOfYear == todayWeekOfYear) {
-                if (addedThisWeekHeader == false) {
+                if (!addedThisWeekHeader) {
                     FullTrip headerObj = new FullTrip();
                     headerObj.isSeparator = true;
-                    headerObj.setTitle(options.isExplicitMode() ? getActivity().getString(R.string.triplist_this_week_explicit) : getActivity().getString(R.string.this_week));
+                    headerObj.setTitle(options.isExplicitMode() ? requireContext().getString(R.string.triplist_this_week_explicit) : requireContext().getString(R.string.this_week));
                     triplist.add(headerObj);
                     addedThisWeekHeader = true;
                     Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'This week' - This will not be added again!");
@@ -1484,10 +1286,10 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
                 // Trip was this month
             } else if (tripMonthOfYear == todayMonthOfYear) {
-                if (addedThisMonthHeader == false) {
+                if (!addedThisMonthHeader) {
                     FullTrip headerObj = new FullTrip();
                     headerObj.isSeparator = true;
-                    headerObj.setTitle(options.isExplicitMode() ? getActivity().getString(R.string.triplist_this_month_explicit) : getActivity().getString(R.string.triplist_this_month));
+                    headerObj.setTitle(options.isExplicitMode() ? requireContext().getString(R.string.triplist_this_month_explicit) : requireContext().getString(R.string.triplist_this_month));
                     triplist.add(headerObj);
                     addedThisMonthHeader = true;
                     Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'This month' - This will not be added again!");
@@ -1495,10 +1297,10 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
                 // Trip was older than this month
             } else if (tripMonthOfYear < todayMonthOfYear) {
-                if (addedOlderHeader == false) {
+                if (!addedOlderHeader) {
                     FullTrip headerObj = new FullTrip();
                     headerObj.isSeparator = true;
-                    headerObj.setTitle(options.isExplicitMode() ? getActivity().getString(R.string.triplist_last_month_and_older_explicit) : getActivity().getString(R.string.last_month_and_older));
+                    headerObj.setTitle(options.isExplicitMode() ? requireContext().getString(R.string.triplist_last_month_and_older_explicit) : requireContext().getString(R.string.last_month_and_older));
                     triplist.add(headerObj);
                     addedOlderHeader = true;
                     Log.d(TAG + "getAllFullTrips", "Added a header object to the array that will eventually be a header childView in the list view named, 'Older' - This will not be added again!");
@@ -1533,7 +1335,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
         mtdMilesTotal = Helpers.Numbers.formatAsZeroDecimalPointNumber(mtdMilesTotal);
         mtdTotal += Helpers.Numbers.formatAsTwoDecimalPointNumber(
-                mtdMilesTotal * options.getReimbursementRate()) ;
+                mtdMilesTotal * options.getReimbursementRate());
 
         animatedNumberTextView = new MyAnimatedNumberTextView(getContext(), txtMtd);
         if (lastMtdValue > 0) {
@@ -1543,9 +1345,9 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         }
 
         lastMtdValue = Math.round(mtdTotal);
-        lastMtdMilesValue = Helpers.Numbers.formatAsOneDecimalPointNumber(mtdMilesTotal);
+        double lastMtdMilesValue = Helpers.Numbers.formatAsOneDecimalPointNumber(mtdMilesTotal);
 
-        txtMilesTotal.setText(Helpers.Numbers.formatAsZeroDecimalPointNumber(lastMtdMilesValue) + " mi");
+        txtMilesTotal.setText(getString(R.string.x_miles, Helpers.Numbers.formatAsZeroDecimalPointNumber(lastMtdMilesValue)));
 
         manageDefaultImage();
 
@@ -1556,6 +1358,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 Log.i(TAG, "onSuccess Deleted " + entriesDeleted + " empty trips.");
                 manageDefaultImage();
             }
+
             @Override
             public void onFailure(String message) {
                 Log.i(TAG, "onFailure Failed to delete empty trips\n" + message);
@@ -1569,104 +1372,86 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
     void showTripOptions(final FullTrip clickedTrip) {
         // custom dialog
-        final Dialog dialog = new Dialog(getContext());
+        final Dialog dialog = new Dialog(requireContext());
         dialog.setContentView(R.layout.trip_options_minimalist);
-        dialog.setTitle("Trip Options");
+        dialog.setTitle(getString(R.string.trip_options));
         Button btnEditTrip = dialog.findViewById(R.id.edit_trip);
         Button btnDeleteTrip = dialog.findViewById(R.id.btnDelete);
         // Hidden - having this button here doesn't fit with the current design and flow
         Button btnOpportunity = dialog.findViewById(R.id.btn_opportunities);
-        /*TableRow tableRow = dialog.findViewById(R.id.tableRowopp);
-        tableRow.setVisibility(clickedTrip.hasAssociations() ? View.VISIBLE : View.GONE);
-        btnOpportunity.setEnabled(clickedTrip.getIsSubmitted());*/
-        btnOpportunity.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                if (clickedTrip.getIsSubmitted()) {
-                    Intent intent = new Intent(getContext(), FullscreenActivityChooseOpportunity.class);
-                    intent.putExtra(FullscreenActivityChooseOpportunity.FULLTRIP, clickedTrip);
-                    startActivityForResult(intent, FullscreenActivityChooseOpportunity.REQUESTCODE);
-                } else {
-                    Toast.makeText(getContext(), "You have to submit this trip first.", Toast.LENGTH_SHORT).show();
-                }
+        btnOpportunity.setOnClickListener(v -> {
+            if (clickedTrip.getIsSubmitted()) {
+                Intent intent = new Intent(getContext(), FullscreenActivityChooseOpportunity.class);
+                intent.putExtra(FullscreenActivityChooseOpportunity.FULLTRIP, clickedTrip);
+                startActivityForResult(intent, FullscreenActivityChooseOpportunity.REQUESTCODE);
+            } else {
+                Toast.makeText(getContext(), getString(R.string.toast_you_must_submit)
+                        , Toast.LENGTH_SHORT).show();
             }
         });
         Button btnSubmit = dialog.findViewById(R.id.btnSubmit);
-        btnSubmit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                try {
-                    dialog.dismiss();
+        btnSubmit.setOnClickListener(v -> {
+            try {
+                dialog.dismiss();
 
-                    if (clickedTrip.getDistanceInMiles() <= 2) {
-                        datasource.deleteEmptyTrips(true, new MyInterfaces.TripDeleteCallback() {
-                            @Override
-                            public void onSuccess(int entriesDeleted) {
-                                if (entriesDeleted > 0) {
-                                    Log.w(TAG, "onSuccess: Deleted " + entriesDeleted + " empty trips.");
-                                    Toast.makeText(getContext(), "Removed " + entriesDeleted + " empty trips.", Toast.LENGTH_SHORT).show();
-                                    populateTripList();
-                                }
+                if (clickedTrip.getDistanceInMiles() <= 2) {
+                    datasource.deleteEmptyTrips(true, new MyInterfaces.TripDeleteCallback() {
+                        @Override
+                        public void onSuccess(int entriesDeleted) {
+                            if (entriesDeleted > 0) {
+                                Log.w(TAG, "onSuccess: Deleted " + entriesDeleted + " empty trips.");
+                                Toast.makeText(getContext(), getString(R.string.remove_x_trips
+                                        , entriesDeleted), Toast.LENGTH_SHORT).show();
+                                populateTripList();
                             }
+                        }
 
-                            @Override
-                            public void onFailure(String message) {
-                                Toast.makeText(getContext(), "Failed to delete empty trips\n" + message, Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
-
-                    isTripSubmitted(clickedTrip);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                        @Override
+                        public void onFailure(String message) {
+                            Toast.makeText(getContext(), getString(R.string.failed_to_delete_trip
+                                    , message), Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
-                Log.i(TAG, "onClick Prepared trip for CRM");
+                isTripSubmitted(clickedTrip);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+            Log.i(TAG, "onClick Prepared trip for CRM");
         });
 
         Button btnRecall = dialog.findViewById(R.id.unsubmit_trip);
-        btnRecall.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                try {
-                    dialog.dismiss();
-                    unsubmitTrip(clickedTrip);
-                } catch (UnsupportedEncodingException e) {
-                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
-                    e.printStackTrace();
-                }
+        btnRecall.setOnClickListener(v -> {
+            try {
+                dialog.dismiss();
+                unsubmitTrip(clickedTrip);
+            } catch (UnsupportedEncodingException e) {
+                Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
             }
         });
 
         Button btn_ViewTrip = dialog.findViewById(R.id.view_trip);
-        btn_ViewTrip.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getContext(), ViewTripActivity.class);
-                intent.putExtra(ViewTripActivity.CLICKED_TRIP, clickedTrip);
-                startActivity(intent);
-                dialog.dismiss();
-            }
+        btn_ViewTrip.setOnClickListener(v -> {
+            Intent intent = new Intent(getContext(), ViewTripActivity.class);
+            intent.putExtra(ViewTripActivity.CLICKED_TRIP, clickedTrip);
+            startActivity(intent);
+            dialog.dismiss();
         });
 
-        btnEditTrip.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                editTrip(clickedTrip);
-                dialog.dismiss();
-            }
+        btnEditTrip.setOnClickListener(v -> {
+            editTrip(clickedTrip);
+            dialog.dismiss();
         });
 
-        btnDeleteTrip.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                MyYesNoDialog.show(getContext(), "Are you sure you want to delete this trip?",
+        btnDeleteTrip.setOnClickListener(v ->
+                MyYesNoDialog.show(getContext(), getString(R.string.are_you_sure_delete_trips_yn),
                         new MyYesNoDialog.YesNoListener() {
                             @Override
                             public void onYes() {
                                 if (datasource.deleteFulltrip(clickedTrip.getTripcode(), true)) {
-                                    Toast.makeText(getContext(), "Deleted trip.", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), getString(R.string.toast_trips_deleted)
+                                            , Toast.LENGTH_SHORT).show();
                                     populateTripList();
                                     dialog.dismiss();
                                 }
@@ -1674,53 +1459,52 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
                             @Override
                             public void onNo() {
-                                Toast.makeText(getContext(), "Cancelled", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getContext(), getString(R.string.cancelled)
+                                        , Toast.LENGTH_SHORT).show();
                                 dialog.dismiss();
                             }
-                        });
-            }
-        });
+                        }));
 
         btnEditTrip.setEnabled(!clickedTrip.getIsSubmitted());
 
         Button btnReassign = dialog.findViewById(R.id.assign_trip);
         btnReassign.setEnabled(MediUser.getMe().isAdmin());
-        btnReassign.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                if (!clickedTrip.getIsSubmitted()) {
-                    Toast.makeText(getContext(), "Trip must be submitted before it can be reassigned!", Toast.LENGTH_LONG).show();
-                    return;
-                }
-
-                tripToReassign = clickedTrip;
-                dialog.dismiss();
-                FullscreenActivityChooseRep.showRepChooser((MainActivity)getActivity(), MediUser.getMe());
+        btnReassign.setOnClickListener(v -> {
+            if (!clickedTrip.getIsSubmitted()) {
+                Toast.makeText(getContext(), getString(R.string.toast_you_must_submit)
+                        , Toast.LENGTH_LONG).show();
+                return;
             }
+
+            tripToReassign = clickedTrip;
+            dialog.dismiss();
+            FullscreenActivityChooseRep.showRepChooser(requireActivity(), MediUser.getMe());
         });
 
         if (options.isExplicitMode()) {
-            btn_ViewTrip.setText(getActivity().getString(R.string.tripOptions_view_explicit));
-            btnSubmit.setText(getActivity().getString(R.string.tripOptions_submit_explicit));
-            btnRecall.setText(getActivity().getString(R.string.tripOptions_recall_explicit));
-            btnEditTrip.setText(getActivity().getString(R.string.tripOptions_edit_explicit));
-            btnDeleteTrip.setText(getActivity().getString(R.string.tripOptions_delete_explicit));
+            btn_ViewTrip.setText(requireContext().getString(R.string.tripOptions_view_explicit));
+            btnSubmit.setText(requireContext().getString(R.string.tripOptions_submit_explicit));
+            btnRecall.setText(requireContext().getString(R.string.tripOptions_recall_explicit));
+            btnEditTrip.setText(requireContext().getString(R.string.tripOptions_edit_explicit));
+            btnDeleteTrip.setText(requireContext().getString(R.string.tripOptions_delete_explicit));
         } else {
-            btn_ViewTrip.setText(getActivity().getString(R.string.tripOptions_view));
-            btnSubmit.setText(getActivity().getString(R.string.tripOptions_submit));
-            btnRecall.setText(getActivity().getString(R.string.tripOptions_recall));
-            btnEditTrip.setText(getActivity().getString(R.string.tripOptions_edit));
-            btnDeleteTrip.setText(getActivity().getString(R.string.tripOptions_delete));
+            btn_ViewTrip.setText(requireContext().getString(R.string.tripOptions_view));
+            btnSubmit.setText(requireContext().getString(R.string.tripOptions_submit));
+            btnRecall.setText(requireContext().getString(R.string.tripOptions_recall));
+            btnEditTrip.setText(requireContext().getString(R.string.tripOptions_edit));
+            btnDeleteTrip.setText(requireContext().getString(R.string.tripOptions_delete));
         }
 
         dialogTripOptions = dialog;
         dialog.show();
     }
 
+    /**
+     * Algorithm to determine whether or not to show "Click Here" image just above start trip btn.
+     */
     void manageDefaultImage() {
         setEditMode(false);
-        if (! MyLocationService.isRunning) {
+        if (!MyLocationService.isRunning) {
             emptyTripList.setVisibility((locallySavedTrips == null || locallySavedTrips.size()
                     <= SHOW_CLICK_HERE_TRIP_COUNT_THRESHOLD) ? View.VISIBLE : View.GONE);
         } else {
@@ -1731,6 +1515,10 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
     }
 
+    /**
+     * Not too happy with how this worked out but it tries to evaluate all trips proximity to
+     * opportunities in CRM.
+     */
     void parseTripsForAssociations() {
 
         String query = CrmQueries.TripAssociation.getAssociationsLastXMonths(3);
@@ -1750,7 +1538,6 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                     for (FullTrip trip : locallySavedTrips) {
                         if (associations.getAssociation(trip) != null) {
                             Log.i(TAG, "onSuccess Found an association!");
-                            TripAssociation association = associations.getAssociation(trip);
                             trip.hasAssociations(true);
                             trip.save();
                         }
@@ -1775,30 +1562,8 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     }
 
     public void getAllAccountAddresses() {
-        Requests.Argument argument = new Requests.Argument("query", CrmQueries.Addresses.getAllAccountAddresses());
-        ArrayList<Requests.Argument> args = new ArrayList<>();
-        args.add(argument);
-        Request request = new Request(Request.Function.GET, args);
-        Crm crm = new Crm();
-        crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                // Construct an array of CrmAddresses
-                String response = new String(responseBody);
-                CrmEntities.CrmAddresses addresses = new CrmEntities.CrmAddresses(response);
-                options.saveAllCrmAddresses(addresses);
-                Log.i(TAG, "onSuccess response: " + response.length());
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                Log.w(TAG, "onFailure: error: " + error.getLocalizedMessage());
-            }
-        });
-    }
-
-    public void getAllOpportunityAddresses() {
-        Requests.Argument argument = new Requests.Argument("query", CrmQueries.Addresses.getAllAccountAddresses());
+        Requests.Argument argument =
+                new Requests.Argument("query", CrmQueries.Addresses.getAllAccountAddresses());
         ArrayList<Requests.Argument> args = new ArrayList<>();
         args.add(argument);
         Request request = new Request(Request.Function.GET, args);
@@ -1821,23 +1586,26 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     }
 
     public LocationPermissionResult checkLocationPermission() {
-        boolean result = true;
-        String permission = "android.permission.ACCESS_FINE_LOCATION";
-        String bgPermission = "android.permission.ACCESS_BACKGROUND_LOCATION";
-        int res1 = getActivity().checkCallingOrSelfPermission(permission);
-        int res2 = getActivity().checkCallingOrSelfPermission(bgPermission);
 
+        // Check if device has permission for fine and bg locations.
+        int permFineLoc = requireActivity().checkCallingOrSelfPermission(Helpers
+                .Permissions.Permission.ACCESS_FINE_LOCATION);
+        int permBgLoc = requireActivity().checkCallingOrSelfPermission(Helpers
+                .Permissions.Permission.ACCESS_BACKGROUND_LOCATION);
+
+        // Convert the results to a LocationPermissionResult object
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (res1 == PackageManager.PERMISSION_GRANTED && res2 == PackageManager.PERMISSION_GRANTED) {
+            if (permFineLoc == PackageManager.PERMISSION_GRANTED &&
+                    permBgLoc == PackageManager.PERMISSION_GRANTED) {
                 return MyApp.LocationPermissionResult.FULL;
-            } else if (res1 == PackageManager.PERMISSION_GRANTED && res2 != PackageManager.PERMISSION_GRANTED ||
-                    res2 == PackageManager.PERMISSION_GRANTED && res1 != PackageManager.PERMISSION_GRANTED) {
+            } else if (permFineLoc == PackageManager.PERMISSION_GRANTED ||
+                    permBgLoc == PackageManager.PERMISSION_GRANTED) {
                 return LocationPermissionResult.PARTIAL;
             } else {
                 return LocationPermissionResult.NONE;
             }
         } else {
-            if (res1 == PackageManager.PERMISSION_GRANTED) {
+            if (permFineLoc == PackageManager.PERMISSION_GRANTED) {
                 return LocationPermissionResult.FULL;
             } else {
                 return LocationPermissionResult.NONE;
@@ -1847,27 +1615,32 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
 
     public boolean checkStoragePermission() {
         String permission = Manifest.permission.WRITE_EXTERNAL_STORAGE;
-        int res = getActivity().checkCallingOrSelfPermission(permission);
+        int res = requireActivity().checkCallingOrSelfPermission(permission);
         return (res == PackageManager.PERMISSION_GRANTED);
     }
 
-    public void syncTrips() throws UnsupportedEncodingException {
+    /**
+     * Deprecated - Now using a dedicated service to perform trip sync.
+     */
+    @SuppressWarnings("unused")
+    public void syncTrips() {
 
-        final MyProgressDialog dialog = new MyProgressDialog(getContext(), "Getting submitted trips from server...",
-                MyProgressDialog.PROGRESS_TYPE);
+        final MyProgressDialog dialog = new MyProgressDialog(getContext(), getString(R.string
+                .getting_server_trips), MyProgressDialog.PROGRESS_TYPE);
         dialog.show();
         Log.i(TAG, "syncTrips Beginning sync...");
 
         Crm crm = new Crm();
         Request request = new Request();
         request.function = Request.Function.GET.name();
-        request.arguments.add(new Requests.Argument("query", CrmQueries.Trips.getAllTripsByOwnerForLastXmonths(2, MediUser.getMe().systemuserid)));
+        request.arguments.add(new Requests.Argument("query", CrmQueries.Trips
+                .getAllTripsByOwnerForLastXmonths(2, MediUser.getMe().systemuserid)));
 
         // Log a metric
-        MileBuddyMetrics.updateMetric(getContext(), MileBuddyMetrics.MetricName.LAST_ACCESSED_MILEAGE_SYNC, DateTime.now());
+        MileBuddyMetrics.updateMetric(getContext(), MileBuddyMetrics.MetricName
+                .LAST_ACCESSED_MILEAGE_SYNC, DateTime.now());
 
         crm.makeCrmRequest(getContext(), request, Crm.Timeout.LONG, new AsyncHttpResponseHandler() {
-            @SuppressLint("StaticFieldLeak")
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
 
@@ -1887,45 +1660,44 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 }
 
                 // Loop through the server trips and compare to locals.
-                new AsyncTask<String, String, String>() {
-                        @Override
-                        protected void onPreExecute() {
-                            super.onPreExecute();
-                        }
+                new MyAsyncTask(getString(R.string.syncing_trips_thread_name)) {
+                    @Override
+                    public void onPreExecute() {
+                    }
 
-                        @Override
-                        protected String doInBackground(String... strings) {
-                            ArrayList<FullTrip> serverTrips = FullTrip.createTripsFromCrmJson(response);
-                            int totalTrips = serverTrips.size();
-                            int i = 1;
-                            for (FullTrip serverTrip : serverTrips) {
-                                Log.i(TAG, "onSuccess Updating local trip with server trip...");
-                                publishProgress(Integer.toString(i), Integer.toString(totalTrips), null);
-                                updateLocalTrip(serverTrip);
-                                i++;
-                            }
-                            return null;
+                    @Override
+                    public void doInBackground() {
+                        ArrayList<FullTrip> serverTrips = FullTrip.createTripsFromCrmJson(response);
+                        int totalTrips = serverTrips.size();
+                        int i = 1;
+                        for (FullTrip serverTrip : serverTrips) {
+                            Log.i(TAG, "onSuccess Updating local trip with server trip...");
+                            reportProgress(new int[]{i, totalTrips});
+                            updateLocalTrip(serverTrip);
+                            i++;
                         }
+                    }
 
-                        @Override
-                        protected void onProgressUpdate(String... values) {
-                            int curVal = Integer.parseInt(values[0]);
-                            int totalVal = Integer.parseInt(values[1]);
-                            dialog.setContentText("Updating local trip " + curVal + " of " + totalVal);
-                            if (curVal == totalVal - 1) {
-                                dialog.setContentText("Redrawing the list.  Stand by...");
-                            }
-                            super.onProgressUpdate(values);
+                    @Override
+                    public void onProgress(Object msg) {
+                        int[] p = (int[]) msg;
+                        int curVal = p[0];
+                        int totalVal = p[1];
+                        dialog.setContentText(getString(R.string.syncd_x_of_y, curVal, totalVal));
+                        if (curVal == totalVal - 1) {
+                            dialog.setContentText(getString(R.string.refreshing_list));
                         }
+                    }
 
-                        @Override
-                            protected void onPostExecute(String s) {
-                                super.onPostExecute(s);
-                                Log.i(TAG, "onSuccess Local trips were synced");
-                                populateTripList();
-                                dialog.dismiss();
-                            }
-                    }.execute(null, null, null);
+                    @Override
+                    public void onPostExecute() {
+                        Log.i(TAG, "onSuccess Local trips were synced");
+                        populateTripList();
+                        dialog.dismiss();
+                    }
+
+                }.execute();
+
             }
 
             @Override
@@ -1940,81 +1712,18 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
      * Overwrites or creates a local trip with the server-side version
      *
      * @param serverTrip A FullTrip constructed using server-side json
-     * @return A boolean indicating success.
      */
-    boolean updateLocalTrip(FullTrip serverTrip) {
+    void updateLocalTrip(FullTrip serverTrip) {
         for (FullTrip trip : locallySavedTrips) {
             if (trip.getTripcode() == serverTrip.getTripcode()) {
                 trip = serverTrip;
                 trip.save();
                 Log.i(TAG, "updateLocalTrip Local trip was updated.");
-                return true;
+                return;
             }
         }
         serverTrip.save();
         Log.i(TAG, "updateLocalTrip Local trip was created.");
-        return true;
-    }
-
-    public void confirmSubmittedTrips() throws UnsupportedEncodingException {
-
-        Crm crm = new Crm();
-
-        final MyProgressDialog dialog = new MyProgressDialog(getContext(), "Syncing trips...",
-                MyProgressDialog.PROGRESS_TYPE);
-        dialog.show();
-
-        for (final FullTrip trip : locallySavedTrips) {
-            Toast.makeText(getContext(), "Syncing trip list...", Toast.LENGTH_SHORT).show();
-            Log.i(TAG, "syncTrips tripcode: " + trip.getTripcode() + " has guid: " + trip.getTripGuid());
-
-            if (trip.getDateTime().getYear() == DateTime.now().getYear()) {
-                if (trip.getDateTime().getMonthOfYear() == DateTime.now().getMonthOfYear()) {
-                    if (trip.getIsSubmitted()) {
-                        Log.i(TAG, "syncTrips Found a trip from this month");
-
-                        QueryFactory queryFactory = new QueryFactory("msus_fulltrip");
-                        queryFactory.addColumn("msus_fulltripid");
-                        queryFactory.addColumn("msus_tripcode");
-                        Filter filter = new Filter(Filter.FilterType.AND);
-                        filter.addCondition(new Filter.FilterCondition("msus_tripcode", Filter.Operator.EQUALS,
-                                Long.toString(trip.getTripcode())));
-                        queryFactory.setFilter(filter);
-                        String query = queryFactory.construct();
-
-                        Request request = new Request();
-                        request.function = Request.Function.GET.name();
-                        request.arguments.add(new Requests.Argument("getshit", query));
-
-                        crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
-                            @Override
-                            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                                String result = new String(responseBody);
-                                Log.i(TAG, "onSuccess " + result);
-                                try {
-                                    String guid = new JSONObject(result).getJSONArray("value").getJSONObject(0).getString("msus_fulltripid");
-                                    trip.setTripGuid(guid);
-                                    trip.setIsSubmitted(true);
-                                    trip.save();
-                                    dialog.dismiss();
-                                } catch (JSONException e) {
-                                    dialog.dismiss();
-                                    e.printStackTrace();
-                                }
-                            }
-
-                            @Override
-                            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                                Log.w(TAG, "onFailure: " + error.getMessage());
-                                Toast.makeText(getContext(), error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            }
-                        });
-                    }
-                }
-            }
-        }
-        populateTripList();
     }
 
     public void isTripSubmitted(final FullTrip clickedTrip) {
@@ -2027,7 +1736,8 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         request.function = Request.Function.GET.name();
         request.arguments.add(new Requests.Argument("query", query));
 
-        final MyProgressDialog dialog = new MyProgressDialog(getContext(), "Checking if trip is already submitted...", MyProgressDialog.PROGRESS_TYPE);
+        final MyProgressDialog dialog = new MyProgressDialog(getContext(), getString(R.string
+                .check_trip_submitted), MyProgressDialog.PROGRESS_TYPE);
         dialog.show();
 
         crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
@@ -2042,21 +1752,24 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                         clickedTrip.setIsSubmitted(true);
                         clickedTrip.save();
                         populateTripList();
-                        Toast.makeText(getContext(), "Trip was updated", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), getString(R.string.toast_trip_updated)
+                                , Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
 
                         TripAssociationManager.manageTripAssociations(clickedTrip, new MyInterfaces.CreateManyListener() {
                             @Override
                             public void onResult(CrmEntities.CreateManyResponses responses) {
                                 if (options.getDebugMode()) {
-                                    Toast.makeText(getContext(), "Created " + responses.responses.size() + " associations", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), getString(R.string.created_x_associations
+                                            , responses.responses.size()), Toast.LENGTH_SHORT).show();
                                 }
                             }
 
                             @Override
                             public void onError(String msg) {
                                 if (options.getDebugMode()) {
-                                    Toast.makeText(getContext(), "Failed to do trip associations\n" + msg, Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), getString(R.string
+                                            .failed_to_associate_x_trips, msg), Toast.LENGTH_SHORT).show();
                                 }
                             }
                         });
@@ -2067,7 +1780,8 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                             submitTrip(clickedTrip);
                         } catch (Exception e) {
                             dialog.dismiss();
-                            Toast.makeText(getContext(), "Failed to submit trip", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), getString(R.string
+                                    .toast_failed_to_submit_trip), Toast.LENGTH_SHORT).show();
                             e.printStackTrace();
                         }
                     }
@@ -2082,7 +1796,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
                 Log.w(TAG, "onFailure: " + error.getMessage());
-                Toast.makeText(getContext(), "Failed to verify this trip's existance", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.toast_failed_to_verify_trip), Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             }
         });
@@ -2094,11 +1808,12 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         Request request = clickedTrip.packageForCrm();
 
         if (request == null) {
-            Toast.makeText(getContext(), "This trip is invalid!", Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), getString(R.string.toast_trip_invalid), Toast.LENGTH_LONG).show();
             return;
         }
 
-        final MyProgressDialog dialog = new MyProgressDialog(getContext(), "Submitting trip...", MyProgressDialog.PROGRESS_TYPE);
+        final MyProgressDialog dialog = new MyProgressDialog(getContext(), getString(R.string
+                .submitting_trip), MyProgressDialog.PROGRESS_TYPE);
         dialog.show();
 
         Log.i(TAG, "submitTrip JSON LENGTH: " + clickedTrip.tripEntriesJson.length());
@@ -2118,14 +1833,16 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                             @Override
                             public void onResult(CrmEntities.CreateManyResponses responses) {
                                 if (options.getDebugMode()) {
-                                    Toast.makeText(getContext(), "Created " + responses.responses.size() + " associations.", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), getString(R.string.created_x_associations
+                                            , responses.responses.size()), Toast.LENGTH_SHORT).show();
                                 }
                             }
 
                             @Override
                             public void onError(String msg) {
                                 if (options.getDebugMode()) {
-                                    Toast.makeText(getContext(), "Failed to associate trips\n" + msg, Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getContext(), getString(R.string
+                                            .failed_to_associate_x_trips, msg), Toast.LENGTH_SHORT).show();
                                 }
                             }
                         });
@@ -2136,7 +1853,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                     e.printStackTrace();
                 }
                 Log.i(TAG, "onSuccess " + new String(responseBody));
-                Toast.makeText(getContext(), "Trip was submitted", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.toast_trip_submitted), Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             }
 
@@ -2144,14 +1861,14 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
 
                 if (error.getClass() == CrmRequestExceptions.NullRequestException.class) {
-                    Toast.makeText(getContext(), "I think there is something wrong with the trip.  It feels invalid!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), getString(R.string.toast_trip_probably_invalid)
+                            , Toast.LENGTH_LONG).show();
                     Toast.makeText(getContext(), error.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-                    dialog.dismiss();
                 } else {
                     Log.w(TAG, "onFailure: " + new String(responseBody));
                     Toast.makeText(getContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
-                    dialog.dismiss();
                 }
+                dialog.dismiss();
             }
         });
     }
@@ -2168,7 +1885,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         request.arguments.add(new Requests.Argument("asuserid", MediUser.getMe().systemuserid));
 
         final MyProgressDialog dialog = new MyProgressDialog(getContext(),
-                "Recalling trip...", MyProgressDialog.PROGRESS_TYPE);
+                getString(R.string.recalling_trip), MyProgressDialog.PROGRESS_TYPE);
         dialog.show();
 
         crm.makeCrmRequest(getContext(), request, new AsyncHttpResponseHandler() {
@@ -2177,7 +1894,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                 String result = new String(responseBody);
                 try {
                     JSONObject object = new JSONObject(result);
-                    if (object.getBoolean("WasSuccessful") == true ||
+                    if (object.getBoolean("WasSuccessful") ||
                             object.getString("ResponseMessage").toLowerCase().contains("not exist")) {
                         clickedTrip.setIsSubmitted(false);
                         clickedTrip.hasAssociations(false);
@@ -2191,29 +1908,13 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
                     e.printStackTrace();
                 }
                 Log.i(TAG, "onSuccess " + new String(responseBody));
-                Toast.makeText(getContext(), "Trip was recalled", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.toast_recalled_trip), Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
-                // Trip associations are removed at the server by a workflow when the associated trip or opportunity are modified (removed)
-                /*TripAssociationManager.removeAssociations(tripGuid, new MyInterfaces.DeleteManyListener() {
-                    @Override
-                    public void onResult(CrmEntities.DeleteManyResponses responses) {
-                        if (options.getDebugMode()) {
-                            Toast.makeText(getContext(), "Removed " + responses.responses.size() + " associations", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-
-                    @Override
-                    public void onError(String msg) {
-                        if (options.getDebugMode()) {
-                            Toast.makeText(getContext(), "Failed to disassociate accounts\n" + msg, Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });*/
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                Log.w(TAG, "onFailure: " + new String(error.getMessage()));
+                Log.w(TAG, "onFailure: " + error.getMessage());
                 Toast.makeText(getContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             }
@@ -2229,39 +1930,33 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             names[i] = fullTrips.get(i).getTitle();
         }
 
-        final Dialog dialog = new Dialog(getContext());
+        final Dialog dialog = new Dialog(requireContext());
 
         dialog.setContentView(R.layout.rename_trip);
         final AutoCompleteTextView actv = dialog.findViewById(R.id.autocomplete_EditText_NameTrip);
         Button startButton = dialog.findViewById(R.id.btnSaveEdits);
         dialog.setCancelable(true);
-        startButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (actv.getText().length() > 0) {
-                    startStopTrip(actv.getText().toString());
-                } else {
-                    startStopTrip();
-                }
-                dialog.dismiss();
+        startButton.setOnClickListener(v -> {
+            if (actv.getText().length() > 0) {
+                startStopTrip(actv.getText().toString());
+            } else {
+                startStopTrip();
             }
+            dialog.dismiss();
         });
 
-        dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
-            @Override
-            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-                if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    dialog.dismiss();
-                    return true;
-                } else {
-                    return false;
-                }
+        dialog.setOnKeyListener((d, keyCode, event) -> {
+            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                dialog.dismiss();
+                return true;
+            } else {
+                return false;
             }
         });
 
         //Creating the instance of ArrayAdapter containing list of fruit names
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>
-                (getContext(), android.R.layout.select_dialog_item, names);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>
+                (requireContext(), android.R.layout.select_dialog_item, names);
         //Getting the instance of AutoCompleteTextView
         actv.setThreshold(0);//will start working from first character
         actv.setAdapter(adapter);//setting the adapter data into the AutoCompleteTextView
@@ -2271,49 +1966,32 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     }
 
     void showReceiptDialog() {
-        showReceiptDialog(MediUser.getMe().systemuserid);
-    }
-
-    void showReceiptDialog(String userid) {
-        final Dialog dialog = new Dialog(getContext());
-        final Context c = getContext();
+        final Dialog dialog = new Dialog(requireContext());
         dialog.setContentView(R.layout.make_receipt);
         dialog.setCancelable(true);
         Button btnThisMonth = dialog.findViewById(R.id.btnThisMonth);
         Button btnLastMonth = dialog.findViewById(R.id.btnLastMonth);
         Button btnChoose = dialog.findViewById(R.id.btnChooseMonth);
 
-        btnThisMonth.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                doActualReceipt(DateTime.now().getMonthOfYear(), DateTime.now().getYear());
-                dialog.dismiss();
-            }
+        btnThisMonth.setOnClickListener(v -> {
+            doActualReceipt(DateTime.now().getMonthOfYear(), DateTime.now().getYear());
+            dialog.dismiss();
         });
-        btnLastMonth.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                DateTime lastMonth = DateTime.now().minusMonths(1);
-                doActualReceipt(lastMonth.getMonthOfYear(), lastMonth.getYear());
-                dialog.dismiss();
-            }
+        btnLastMonth.setOnClickListener(v -> {
+            DateTime lastMonth = DateTime.now().minusMonths(1);
+            doActualReceipt(lastMonth.getMonthOfYear(), lastMonth.getYear());
+            dialog.dismiss();
         });
-        btnChoose.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showReceiptMonthPicker();
-                dialog.dismiss();
-            }
+        btnChoose.setOnClickListener(v -> {
+            showReceiptMonthPicker();
+            dialog.dismiss();
         });
-        dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
-            @Override
-            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-                if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    dialog.dismiss();
-                    return true;
-                } else {
-                    return false;
-                }
+        dialog.setOnKeyListener((d, keyCode, event) -> {
+            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                d.dismiss();
+                return true;
+            } else {
+                return false;
             }
         });
         dialog.show();
@@ -2328,14 +2006,14 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         File receipt = makeReceiptFile(month, year);
         if (receipt != null) {
             MediUser me = MediUser.getMe();
-            String[] recips = new String[2];
-            recips[0] = me.email;
-            recips[1] = REIMBURSEMENT_EMAIL;
-            Helpers.Email.sendEmail(recips, String.valueOf(R.string.receipt_mail_body),
-                    String.valueOf(R.string.receipt_mail_subject_preamble) + " (" + month + "/" + year + ")"
+            String[] recipients = new String[2];
+            recipients[0] = me.email;
+            recipients[1] = REIMBURSEMENT_EMAIL;
+            Helpers.Email.sendEmail(recipients, getString(R.string.receipt_mail_body),
+                    getString(R.string.receipt_mail_subject, month, year)
                     , getContext(), receipt, false);
         } else {
-            Toast.makeText(getContext(), "No trips found for that month/year."
+            Toast.makeText(getContext(), getString(R.string.toast_no_trips_found)
                     , Toast.LENGTH_SHORT).show();
         }
     }
@@ -2343,13 +2021,11 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     public File makeReceiptFile(int monthNum, int year) {
         MySqlDatasource ds = new MySqlDatasource();
         List<FullTrip> allTrips = ds.getTrips(monthNum, year, true);
-        String fName = "mileage_receipt_month_" + DateTime.now().getMonthOfYear() + "_year_" +
-                DateTime.now().getYear() + ".txt";
+        String fName = getString(R.string.receipt_filename, monthNum, year);
         File txtFile = new File(Helpers.Files.ReceiptTempFiles.getDirectory(), fName);
-        File finalReceiptFile = null;
+        File finalReceiptFile;
 
-        float total = 0f;
-        float tripAmt = 0f;
+        float tripAmt;
         int tripCount = 0;
         float totalMiles = 0f;
 
@@ -2357,57 +2033,62 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
             FileOutputStream stream = new FileOutputStream(txtFile);
             StringBuilder stringBuilder = new StringBuilder();
             try {
-                stringBuilder.append("----------------------------------------\n");
-                stringBuilder.append(("Mileage Report (" + MediUser.getMe().fullname + ")\n"));
-                stringBuilder.append("----------------------------------------\n\n");
+                stringBuilder.append(getString(R.string.receipt_line1));
+                stringBuilder.append((getString(R.string.receipt_line2, MediUser.getMe().fullname)));
+                stringBuilder.append(getString(R.string.receipt_line3));
                 for (FullTrip trip : allTrips) {
                     if (trip.getIsSubmitted()) {
                         tripCount += 1;
                         tripAmt = trip.calculateReimbursement();
-                        total += tripAmt;
                         totalMiles += trip.getDistanceInMiles();
-                        stringBuilder.append("* Trip: " + Helpers.DatesAndTimes.getPrettyDate(trip.getDateTime()) + "\n\t" +
-                                "Distance:" + trip.getDistanceInMiles() + "\n\t" +
-                                "Reimbursement: " + Helpers.Numbers.convertToCurrency(tripAmt) + "\n\t" +
-                                "Is edited: " + trip.getIsEdited() + "\n\t" +
-                                "Is manual: " + trip.getIsManualTrip() + "\n\n");
+
+                        stringBuilder.append(getString(R.string.receipt_trip_line1
+                                , Helpers.DatesAndTimes.getPrettyDate(trip.getDateTime())));
+                        stringBuilder.append(getString(R.string.receipt_trip_line2
+                                , trip.getDistanceInMiles()));
+                        stringBuilder.append(getString(R.string.receipt_trip_line3
+                                , Helpers.Numbers.convertToCurrency(tripAmt)));
+                        stringBuilder.append(getString(R.string.receipt_trip_line4
+                                , Boolean.toString(trip.getIsEdited())));
+                        stringBuilder.append(getString(R.string.receipt_trip_line5
+                                , Boolean.toString(trip.getIsManualTrip())));
                     }
                 }
 
-                totalMiles = Helpers.Numbers.formatAsZeroDecimalPointNumber(totalMiles, RoundingMode.HALF_UP);
-                stringBuilder.append("\n\n Trip count: " + tripCount);
-                stringBuilder.append("\n Total reimbursement: " + Helpers.Numbers.convertToCurrency(totalMiles * options.getReimbursementRate()));
-                stringBuilder.append("\n Total miles: " + totalMiles);
+                totalMiles =
+                        Helpers.Numbers.formatAsZeroDecimalPointNumber(totalMiles, RoundingMode.HALF_UP);
+                stringBuilder.append(getString(R.string.receipt_line4, tripCount));
+                stringBuilder.append(getString(R.string.receipt_line5, Helpers.Numbers
+                        .convertToCurrency(totalMiles * options.getReimbursementRate())));
+                stringBuilder.append(getString(R.string.receipt_line6, totalMiles));
 
                 stream.write(stringBuilder.toString().getBytes());
+            } catch (Exception e) {
+                e.printStackTrace();
             } finally {
                 stream.close();
             }
 
             try {
                 if (options.getReceiptFormat().equals(MyPreferencesHelper.RECEIPT_FORMAT_PNG)) {
-                    finalReceiptFile = Helpers.Bitmaps.createPngFileFromString(stringBuilder.toString(), fName);
+                    finalReceiptFile =
+                            Helpers.Bitmaps.createPngFileFromString(stringBuilder.toString(), fName);
                 } else if (options.getReceiptFormat().equals(MyPreferencesHelper.RECEIPT_FORMAT_JPEG)) {
-                    finalReceiptFile = Helpers.Bitmaps.createJpegFileFromString(stringBuilder.toString(), fName);
+                    finalReceiptFile =
+                            Helpers.Bitmaps.createJpegFileFromString(stringBuilder.toString(), fName);
                 } else {
                     finalReceiptFile = txtFile;
                 }
                 return finalReceiptFile;
             } catch (Exception e) {
                 e.printStackTrace();
-                Toast.makeText(getContext(), "Failed to make an image file.  Text file will have to do!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.toast_failed_to_create_reciept_image)
+                        , Toast.LENGTH_SHORT).show();
                 return txtFile;
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-        }
-
-        if (tripCount > 0 && finalReceiptFile != null) {
-            return finalReceiptFile;
-        } else if (tripCount > 0 && finalReceiptFile == null) {
-            return txtFile;
-        } else {
             return null;
         }
     }
@@ -2415,12 +2096,7 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
     @SuppressLint("NewApi")
     private void showReceiptMonthPicker() {
         MonthYearPickerDialog mpd = new MonthYearPickerDialog();
-        mpd.setListener(new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                confirmReceipt(month, year);
-            }
-        });
+        mpd.setListener(((view, year, month, dayOfMonth) -> confirmReceipt(month, year)));
         mpd.show(getParentFragmentManager(), "MonthYearPickerDialog");
     }
 
@@ -2435,17 +2111,13 @@ public class MileageFragment extends Fragment implements TripListRecyclerAdapter
         }
 
         if (subbed == 0) {
-            Toast.makeText(getContext(), "No trips found for that month/year.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.toast_no_trips_found), Toast.LENGTH_SHORT).show();
             return;
         }
 
         if ((subbed > 0)) {
             doActualReceipt(month, year);
         }
-    }
-
-    interface LocalTripsUpdatedListener {
-        void onFinished();
     }
 
 }

@@ -2,10 +2,15 @@ package com.fimbleenterprises.medimileage;
 
 import android.util.Log;
 
+import org.jetbrains.annotations.NonNls;
+
 import java.util.ArrayList;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+@NonNls
+@SuppressWarnings({"SpellCheckingInspection","unused"})
 public class QueryFactory {
     private static final String TAG = "QueryFactory";
     private String entityName;
@@ -14,17 +19,17 @@ public class QueryFactory {
     public ArrayList<LinkEntity> linkEntities = new ArrayList<>();
     public ArrayList<SortClause> sortClauses = new ArrayList<>();
     public Filter filter;
-    private boolean distinct = false;
+    private boolean distinct;
 
+    @NonNull
     @Override
     public String toString() {
         return "Entity: " + this.entityName + ", Columns: " + this.columns.size() + ", Links: "
                 + this.linkEntities.size();
     }
 
-    public QueryFactory(String entity) {
+    public QueryFactory(@NonNls String entity) {
         entityName = entity;
-        this.columns = new ArrayList<>();
         setEntity(entity);
     }
 
@@ -80,18 +85,18 @@ public class QueryFactory {
     }
 
     public String construct() {
-        String columnsString = "";
-        String orderClausesString = "";
+        StringBuilder columnsString = new StringBuilder();
+        StringBuilder orderClausesString = new StringBuilder();
         String filterString = "";
-        String linkEntitiesString = "";
+        StringBuilder linkEntitiesString = new StringBuilder();
 
         for (EntityColumn column : this.columns) {
-            columnsString += column.toEncodedString();
+            columnsString.append(column.toEncodedString());
         }
 
         if (sortClauses != null && sortClauses.size() > 0) {
             for (SortClause clause : sortClauses) {
-                orderClausesString += clause.toEncodedString();
+                orderClausesString.append(clause.toEncodedString());
             }
         }
 
@@ -101,21 +106,21 @@ public class QueryFactory {
 
         if (linkEntities != null && linkEntities.size() > 0) {
             for (LinkEntity link : linkEntities) {
-                linkEntitiesString += link.toEncodedString();
+                linkEntitiesString.append(link.toEncodedString());
             }
         }
 
-        String query = this.preamble + columnsString + orderClausesString + filterString
+        return this.preamble + columnsString + orderClausesString + filterString
                 + linkEntitiesString + "%3C%2Fentity%3E%3C%2Ffetch%3E";
-
-        return query;
     }
 
     private void setEntity(String entity) {
         this.entityName = entity;
 
         preamble = "/api/data/v8.2/" + EntityNames.getPluralEntityName(entity)
-                + "?fetchXml=%3Cfetch%20version%3D%221.0%22%20output-format%3D%22xml-platform%22%20mapping%3D%22logical%22%20distinct%3D%22" + Boolean.toString(distinct) + "%22%3E%3Centity%20name%3D%22" + entity + "%22%3E";
+                + "?fetchXml=%3Cfetch%20version%3D%221.0%22%20output-format%3D%22xml" +
+                "-platform%22%20mapping%3D%22logical%22%20distinct%3D%22" + distinct +
+                "%22%3E%3Centity%20name%3D%22" + entity + "%22%3E";
     }
 
     public void addLinkEntity(LinkEntity linkEntity) {
@@ -130,6 +135,7 @@ public class QueryFactory {
         return entityName;
     }
 
+    @NonNls
     public void addColumn(String columnName) {
         this.columns.add(new EntityColumn(columnName));
     }
@@ -164,17 +170,18 @@ public class QueryFactory {
 
     public static class SortClause {
 
+        @NonNull
         @Override
         public String toString() {
             return this.clausePosition + ", Descending: " + this.isDescending;
         }
 
         public enum ClausePosition {
-            ONE, TWO;
+            ONE, TWO
         }
 
         String attribute;
-        boolean isDescending = false;
+        boolean isDescending;
         ClausePosition clausePosition;
 
         public SortClause(String attribute, boolean isDescending, ClausePosition position) {
@@ -184,8 +191,8 @@ public class QueryFactory {
         }
 
         public String toEncodedString() {
-            String encoded = "%3Corder%20attribute%3D%22" + attribute + "%22%20descending%3D%22" + isDescending + "%22%20%2F%3E";
-            return encoded;
+            return "%3Corder%20attribute%3D%22" + attribute + "%22%20descending%3D%22" +
+                    isDescending + "%22%20%2F%3E";
         }
     }
 
@@ -200,6 +207,7 @@ public class QueryFactory {
             return "%3Cattribute%20name%3D%22" + this.columnName + "%22%20%2F%3E";
         }
 
+        @NonNull
         @Override
         public String toString() {
             return this.columnName;
@@ -213,9 +221,10 @@ public class QueryFactory {
         String alias;
         String fullString;
         Filter filter;
-        boolean isOuterLink = false;
+        boolean isOuterLink;
         ArrayList<EntityColumn> columns = new ArrayList<>();
 
+        @NonNull
         @Override
         public String toString() {
             return this.entityName + " , From: " + this.from + " To: " + this.to
@@ -278,7 +287,7 @@ public class QueryFactory {
 
         public String toEncodedString() {
 
-            String encoded = "";
+            String encoded;
 
             if (fullString != null) {
                 encoded = "%3Clink-entity%20" + this.fullString + "%3E";
@@ -297,10 +306,10 @@ public class QueryFactory {
                 }
             }
 
-            String columns = "";
+            StringBuilder columns = new StringBuilder();
             if (this.columns.size() > 0) {
                 for (EntityColumn column : this.columns) {
-                    columns += column.toEncodedString();
+                    columns.append(column.toEncodedString());
                 }
             }
 
@@ -321,6 +330,7 @@ public class QueryFactory {
         public ArrayList<FilterCondition> conditions;
         public ArrayList<Filter> filters = new ArrayList<>();
 
+        @NonNull
         @Override
         public String toString() {
             return "Type: " + this.type.name();
@@ -355,7 +365,7 @@ public class QueryFactory {
         }
 
         public enum FilterType {
-            AND, OR;
+            AND, OR
         }
 
         public String getType() {
@@ -415,7 +425,7 @@ public class QueryFactory {
                 EQUALS, NOT_EQUALS, GREATER_THAN_OR_EQUAL_TO, LESS_THAN_OR_EQUAL_TO, LESS_THAN,
                 GREATER_THAN, ON_OR_AFTER, ON_OR_BEFORE, TODAY, THIS_WEEK, THIS_MONTH, THIS_YEAR,
                 CONTAINS, NOT_CONTAINS, CONTAINS_DATA, NOT_CONTAINS_DATA, ENDS_WITH, STARTS_WITH,
-                AND, OR, IN_FISCAL_PERIOD, IN_FISCAL_YEAR;
+                AND, OR, IN_FISCAL_PERIOD, IN_FISCAL_YEAR
             }
 
             public String getOperator() {
@@ -424,8 +434,6 @@ public class QueryFactory {
 
             public static String get(Operands operand) {
                 switch (operand) {
-                    case EQUALS:
-                        return " eq ";
                     case NOT_EQUALS:
                         return " ne ";
                     case GREATER_THAN_OR_EQUAL_TO:
@@ -466,6 +474,7 @@ public class QueryFactory {
             }
         }
 
+        @NonNls
         public static class FilterCondition  {
             String attribute;
             private Operator operator;
@@ -473,6 +482,7 @@ public class QueryFactory {
             String value;
             String uiType;
 
+            @NonNull
             @Override
             public String toString() {
                 return "Field: " + this.attribute + ", Operator: " + this.getStrOperator() + ", Value: " + value;
@@ -493,7 +503,7 @@ public class QueryFactory {
                 this.uiType = uiType;
             }
 
-            public FilterCondition(String attribute, String operator, @Nullable String value) {
+            public FilterCondition(@NonNls String attribute, String operator, @NonNls @Nullable String value) {
                 this.attribute = attribute;
                 this.strOperator = operator;
                 this.value = value;
@@ -516,7 +526,7 @@ public class QueryFactory {
             }
 
             public String toEncodedString() {
-                String encoded;
+                @NonNls String encoded;
                 String uiString = (this.uiType == null) ? "" : "uitype%3D%22" + this.uiType + "%22%20";
 
                 // If the operator is, "Contains" or "Not Contains" then surround the value with the % character)
@@ -538,19 +548,18 @@ public class QueryFactory {
         }
 
         public String toEncodedString() {
-            String conditions = "";
-            String filters = "";
-            String subConditions = "";
+            StringBuilder conditions = new StringBuilder();
+            StringBuilder subConditions = new StringBuilder();
 
             for (FilterCondition filterCondition : this.conditions) {
-                conditions += filterCondition.toEncodedString();
+                conditions.append(filterCondition.toEncodedString());
             }
 
             for(Filter filter : this.filters) {
-                subConditions += filter.toEncodedString();
+                subConditions.append(filter.toEncodedString());
             }
 
-            String encoded = "";
+            String encoded;
             if (this.filters != null && this.filters.size() > 0) {
                 encoded = "%3Cfilter%20type%3D%22" + getType() + "%22%3E" + conditions + subConditions + "%3C%2Ffilter%3E";
             } else {
@@ -586,38 +595,40 @@ public class QueryFactory {
         public static final String SALESLITERATUREITEM = "salesliteratureitem";
 
         public static String getPrettyName(String entityLogicalName) {
-            if (entityLogicalName.equals(ACCOUNT)) {
-                return "Account";
-            } else if (entityLogicalName.equals(CASE)) {
-                return "Ticket/Case";
-            } else if (entityLogicalName.equals(CUSTOMER_INVENTORY)) {
-                return "Customer inventory";
-            } else if (entityLogicalName.equals(CONTACT)) {
-                return "Contact";
-            } else if (entityLogicalName.equals(ONHAND_INVENTORY)) {
-                return "On-hand Inventory";
-            } else if (entityLogicalName.equals(OPPORTUNITIY)) {
-                return "Opportunity";
-            } else {
-                return entityLogicalName;
+            switch (entityLogicalName) {
+                case ACCOUNT:
+                    return "Account";
+                case CASE:
+                    return "Ticket/Case";
+                case CUSTOMER_INVENTORY:
+                    return "Customer inventory";
+                case CONTACT:
+                    return "Contact";
+                case ONHAND_INVENTORY:
+                    return "On-hand Inventory";
+                case OPPORTUNITIY:
+                    return "Opportunity";
+                default:
+                    return entityLogicalName;
             }
         }
 
         public static String getPluralEntityName(String entityLogicalName) {
-            if (entityLogicalName.equals(EntityNames.CUSTOMER_INVENTORY)) {
-                return "col_customerinventories";
-            } else if (entityLogicalName.equals(EntityNames.OPPORTUNITIY)) {
-                return "opportunities";
-            }  else if (entityLogicalName.equals(EntityNames.SALESLITERATURE)) {
-                return "salesliteratures";
-            } else if (entityLogicalName.equals(EntityNames.SALESLITERATUREITEM)) {
-                return "salesliteratureitems";
-            } else if (entityLogicalName.equals(EntityNames.TERRITORY)) {
-                return "territories";
-            } else if (entityLogicalName.equals(EntityNames.CUSTOMERADDRESS)) {
-                return "customeraddresses";
-            } else {
-                return entityLogicalName + "s";
+            switch (entityLogicalName) {
+                case EntityNames.CUSTOMER_INVENTORY:
+                    return "col_customerinventories";
+                case EntityNames.OPPORTUNITIY:
+                    return "opportunities";
+                case EntityNames.SALESLITERATURE:
+                    return "salesliteratures";
+                case EntityNames.SALESLITERATUREITEM:
+                    return "salesliteratureitems";
+                case EntityNames.TERRITORY:
+                    return "territories";
+                case EntityNames.CUSTOMERADDRESS:
+                    return "customeraddresses";
+                default:
+                    return entityLogicalName + "s";
             }
         }
     }
@@ -638,5 +649,4 @@ public class QueryFactory {
         public static final String MANAGER_TO_USER = "name=\"systemuser\" from=\"systemuserid\" to=\"parentsystemuserid\" visible=\"false\" link-type=\"outer\" alias=\"a_af5d32e9bffd4f9ea21ec50f8501a7ea\"";
     }
 
-// QueryFactory
 }

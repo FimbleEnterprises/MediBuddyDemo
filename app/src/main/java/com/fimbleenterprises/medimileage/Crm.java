@@ -20,8 +20,8 @@ public class Crm {
     // public static final String DEFAULT_BASE_URL = MyApp.getAppContext().getString(R.string.base_server_url);
     // private static final String FCM_URL = "https://mediproxyrestapi.azurewebsites.net/api/crm/Fcm/";
     // public static final String BASE_URL = "http://192.168.16.135:44341/";
-    private static AsyncHttpClient client = new AsyncHttpClient();
-    private MyPreferencesHelper options;
+    private static final AsyncHttpClient client = new AsyncHttpClient();
+    private final MyPreferencesHelper options;
 
     public Crm() {
         options = new MyPreferencesHelper(MyApp.getAppContext());
@@ -43,9 +43,9 @@ public class Crm {
                     Log.d(TAG, "onSuccess " + strResponse);
 
                     // Added 1.5 - was authenticating everyone prior
-                    if (strResponse != null && strResponse.equals(TRUE)) {
+                    if (strResponse.equals(TRUE)) {
                         result.onSuccess();
-                    } else if (strResponse != null && strResponse.equals(FALSE)) {
+                    } else if (strResponse.equals(FALSE)) {
                         result.onFailure();
                     } else {
                         result.onError("UNKNOWN ERROR", null);
@@ -280,7 +280,7 @@ public class Crm {
     }
 
     public static int tryGetEntityTypeCodeFromLogicalName(String entityLogicalName) {
-        if (entityLogicalName.toLowerCase().equals("opportunity")) {
+        if (entityLogicalName.toLowerCase().equals(MyApp.getAppContext().getString(R.string.entity_name_opportunity))) {
             return ETC_OPPORTUNITY;
         } else if (entityLogicalName.toLowerCase().equals("incident")) {
             return ETC_INCIDENT;
