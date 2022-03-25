@@ -211,13 +211,14 @@
         android:title="Other"
         android:fontFamily="casual">
 
-        <SwitchPreference
+        <!--<SwitchPreference
             android:foreground="#000000"
             android:theme="@style/AppTheme"
             app:key="SHOW_USAGE_MENU_ITEM"
             android:fontFamily="casual"
             app:defaultValue="false"
-            app:title="@string/settings_show_usage_menu_item" />
+            android:enabled="false"
+            app:title="@string/settings_show_usage_menu_item" />-->
 
         <SwitchPreference
             android:foreground="#000000"
@@ -282,7 +283,7 @@
             android:entries="@array/distance_threshold_entries"
             android:entryValues="@array/distance_threshold_values" />
 
-        <EditTextPreference
+        <!--<EditTextPreference
             android:foreground="#000000"
             android:theme="@style/AppTheme"
             app:key="SERVER_BASE_URL"
@@ -290,7 +291,7 @@
             app:isPreferenceVisible="true"
             android:defaultValue="@string/default_base_server_url"
             app:summary="@string/change_server_addy_description"
-            app:title="@string/change_server_addy" />
+            app:title="@string/change_server_addy" />-->
 
         <Preference
             android:foreground="#000000"
@@ -352,6 +353,7 @@
                 android:theme="@style/AppTheme"
                 app:key="MASQUERADE_AS"
                 android:fontFamily="casual"
+                android:enabled="false"
                 app:isPreferenceVisible="true"
                 app:summary="@string/settings_experimental_menu_masquerade_summary"
                 app:title="@string/settings_experimental_menu_masquerade_title" />
@@ -361,6 +363,7 @@
                 android:theme="@style/AppTheme"
                 app:key="CREATE_RECEIPT_FOR_USER"
                 android:fontFamily="casual"
+                android:enabled="false"
                 app:isPreferenceVisible="true"
                 app:summary="@string/prefs_create_receipt_for_user_description"
                 app:title="@string/prefs_create_receipt_for_user_title" />

@@ -9,6 +9,7 @@
       <w>businessunit</w>
       <w>businessunitid</w>
       <w>companywide</w>
+      <w>createquote</w>
       <w>entityid</w>
       <w>entityname</w>
       <w>flowmeter</w>
@@ -19,10 +20,12 @@
       <w>fulltrips</w>
       <w>lastmonth</w>
       <w>lasttripautokilled</w>
+      <w>lattitude</w>
       <w>listview</w>
       <w>longi</w>
       <w>medi</w>
       <w>medibuddy</w>
+      <w>milis</w>
       <w>mins</w>
       <w>msus</w>
       <w>notif</w>
@@ -43,6 +46,7 @@
       <w>tripname</w>
       <w>tripnames</w>
       <w>unsubmitted</w>
+      <w>updatequote</w>
     </words>
   </dictionary>
 </component>

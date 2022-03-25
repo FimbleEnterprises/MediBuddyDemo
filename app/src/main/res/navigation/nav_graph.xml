@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/FirstFragment"
-        android:name="com.fimbleenterprises.medimileage.FirstFragment"
+        android:name="com.fimbleenterprises.demobuddy.FirstFragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_first">
 
@@ -17,7 +17,7 @@
     </fragment>
     <fragment
         android:id="@+id/SecondFragment"
-        android:name="com.fimbleenterprises.medimileage.SecondFragment"
+        android:name="com.fimbleenterprises.demobuddy.SecondFragment"
         android:label="@string/second_fragment_label"
         tools:layout="@layout/fragment_second">
 
@@ -27,7 +27,7 @@
     </fragment>
     <fragment
         android:id="@+id/First2Fragment"
-        android:name="com.fimbleenterprises.medimileage.First2Fragment"
+        android:name="com.fimbleenterprises.demobuddy.First2Fragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_first2">
 
@@ -37,7 +37,7 @@
     </fragment>
     <fragment
         android:id="@+id/Second2Fragment"
-        android:name="com.fimbleenterprises.medimileage.Second2Fragment"
+        android:name="com.fimbleenterprises.demobuddy.Second2Fragment"
         android:label="@string/second_fragment_label"
         tools:layout="@layout/fragment_second2">
 
@@ -47,7 +47,7 @@
     </fragment>
     <fragment
         android:id="@+id/First3Fragment"
-        android:name="com.fimbleenterprises.medimileage.First3Fragment"
+        android:name="com.fimbleenterprises.demobuddy.First3Fragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_first3">
 
@@ -57,7 +57,7 @@
     </fragment>
     <fragment
         android:id="@+id/Second3Fragment"
-        android:name="com.fimbleenterprises.medimileage.Second3Fragment"
+        android:name="com.fimbleenterprises.demobuddy.Second3Fragment"
         android:label="@string/second_fragment_label"
         tools:layout="@layout/fragment_second3">
 
@@ -67,7 +67,7 @@
     </fragment>
     <fragment
         android:id="@+id/First4Fragment"
-        android:name="com.fimbleenterprises.medimileage.activities.First4Fragment"
+        android:name="com.fimbleenterprises.demobuddy.activities.First4Fragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_first4">
 
@@ -77,7 +77,7 @@
     </fragment>
     <fragment
         android:id="@+id/Second4Fragment"
-        android:name="com.fimbleenterprises.medimileage.activities.Second4Fragment"
+        android:name="com.fimbleenterprises.demobuddy.activities.Second4Fragment"
         android:label="@string/second_fragment_label"
         tools:layout="@layout/fragment_second4">
 
@@ -87,7 +87,7 @@
     </fragment>
     <fragment
         android:id="@+id/First5Fragment"
-        android:name="com.fimbleenterprises.medimileage.activities.First5Fragment"
+        android:name="com.fimbleenterprises.demobuddy.activities.First5Fragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_first5">
 
@@ -97,7 +97,7 @@
     </fragment>
     <fragment
         android:id="@+id/Second5Fragment"
-        android:name="com.fimbleenterprises.medimileage.activities.Second5Fragment"
+        android:name="com.fimbleenterprises.demobuddy.activities.Second5Fragment"
         android:label="@string/second_fragment_label"
         tools:layout="@layout/fragment_second5">
 
@@ -107,7 +107,7 @@
     </fragment>
     <fragment
         android:id="@+id/First6Fragment"
-        android:name="com.fimbleenterprises.medimileage.activities.First6Fragment"
+        android:name="com.fimbleenterprises.demobuddy.activities.First6Fragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_first6">
 
@@ -117,7 +117,7 @@
     </fragment>
     <fragment
         android:id="@+id/Second6Fragment"
-        android:name="com.fimbleenterprises.medimileage.activities.Second6Fragment"
+        android:name="com.fimbleenterprises.demobuddy.activities.Second6Fragment"
         android:label="@string/second_fragment_label"
         tools:layout="@layout/fragment_second6">
 

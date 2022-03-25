@@ -10,7 +10,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:507659974524:android:c2e00dc055afef56bdd6f9",
         "android_client_info": {
-          "package_name": "com.fimbleenterprises.medimileage"
+          "package_name": "com.fimbleenterprises.demobuddy"
         }
       },
       "oauth_client": [
@@ -18,7 +18,7 @@
           "client_id": "507659974524-509e2vvkibdhpt8oabj3jdc987fe34be.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.fimbleenterprises.medimileage",
+            "package_name": "com.fimbleenterprises.demobuddy",
             "certificate_hash": "ac9433e784dc3f5e643cf897d0ab5198bf0fe609"
           }
         },

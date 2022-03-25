@@ -1,6 +1,0 @@
-<root>
-    <item
-        name='android.content.Intent android.content.Intent putExtra(java.lang.String, java.lang.String)'>
-        <annotation name='org.jetbrains.annotations.NonNls' />
-    </item>
-</root>

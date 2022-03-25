@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/nav_home"
-        android:name="com.fimbleenterprises.medimileage.activities.ui.drawer.mileage.MileageFragment"
+        android:name="com.fimbleenterprises.demobuddy.activities.ui.drawer.mileage.MileageFragment"
         android:label="@string/menu_home"
         tools:layout="@layout/fragment_mileage">
 
@@ -18,7 +18,7 @@
 
     <fragment
         android:id="@+id/nav_authentication"
-        android:name="com.fimbleenterprises.medimileage.activities.ui.drawer.authentication.AuthenticationFragment"
+        android:name="com.fimbleenterprises.demobuddy.activities.ui.drawer.authentication.AuthenticationFragment"
         android:label="@string/menu_authentication"
         tools:layout="@layout/fragment_authentication">
 
@@ -29,7 +29,7 @@
 
     <fragment
         android:id="@+id/nav_settings"
-        android:name="com.fimbleenterprises.medimileage.activities.ui.drawer.settings.mileage.SettingsActivity$SettingsFragment"
+        android:name="com.fimbleenterprises.demobuddy.activities.ui.drawer.settings.mileage.SettingsActivity$SettingsFragment"
         android:label="Settings">
 
         <action
@@ -39,7 +39,7 @@
 
     <fragment
         android:id="@+id/nav_user_trips"
-        android:name="com.fimbleenterprises.medimileage.activities.UserTripsActivity"
+        android:name="com.fimbleenterprises.demobuddy.activities.UserTripsActivity"
         android:label="User trips">
 
         <action

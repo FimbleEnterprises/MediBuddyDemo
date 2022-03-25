@@ -5,11 +5,11 @@
     android:layout_height="match_parent"
     tools:context=".activities.fullscreen_pickers.FullscreenAccountTerritoryPicker">
 
-    <com.fimbleenterprises.medimileage.MyExpandableListview
+    <com.fimbleenterprises.demobuddy.MyExpandableListview
         android:id="@+id/expandableListview"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-    </com.fimbleenterprises.medimileage.MyExpandableListview>
+    </com.fimbleenterprises.demobuddy.MyExpandableListview>
 
     <ExpandableListView
         android:layout_width="wrap_content"

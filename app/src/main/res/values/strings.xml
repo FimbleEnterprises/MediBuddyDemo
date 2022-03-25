@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MediBuddy</string>
+    <string name="app_name">DemoBuddy</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Android Studio</string>
@@ -565,7 +565,7 @@
     <string name="toast_need_to_login">Need to login</string>
     <string name="are_you_sure_stop_trip">Are you sure you want to stop this trip?</string>
     <string name="car_gif_uri">android.resource://com.fimbleenterprises.medimileage/</string>
-    <string name="original_miles">%1$d</string>
+    <string name="original_miles">%1$.2f</string>
     <string name="edit_trip">Edit Trip</string>
     <string name="deleting_trips">Deleting trips…</string>
     <string name="deleted_x_trips">Deleted %1$d trips.</string>
@@ -625,5 +625,6 @@
     <string name="forget_to_stop_trip">Did you forget to end your trip?</string>
     <string name="toast_db_was_backed_up">Database was backed up.</string>
     <string name="entity_name_business_unit">businessunit</string>
+    <string name="is_driving">%1$s (driving)</string>
 
 </resources>

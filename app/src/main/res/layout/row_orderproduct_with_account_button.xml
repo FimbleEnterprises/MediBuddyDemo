@@ -55,7 +55,7 @@
         android:textSize="16sp"
         android:textStyle="bold" />
 
-    <com.fimbleenterprises.medimileage.activities.ui.views.MyHyperlinkTextview
+    <com.fimbleenterprises.demobuddy.activities.ui.views.MyHyperlinkTextview
         android:id="@+id/txt_customerName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

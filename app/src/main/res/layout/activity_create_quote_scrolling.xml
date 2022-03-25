@@ -21,7 +21,7 @@
         android:padding="3dp"
         android:weightSum=".1">
 
-        <com.fimbleenterprises.medimileage.MyViewPager
+        <com.fimbleenterprises.demobuddy.MyViewPager
             android:id="@+id/main_pager_yo"
             android:layout_width="match_parent"
             android:layout_height="220dp"
@@ -40,7 +40,7 @@
                 android:paddingBottom="2dp"
                 android:textColor="#302F2F" />
 
-        </com.fimbleenterprises.medimileage.MyViewPager>
+        </com.fimbleenterprises.demobuddy.MyViewPager>
 
     </LinearLayout>
 

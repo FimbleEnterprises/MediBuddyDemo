@@ -469,7 +469,7 @@
 
                 </TableLayout>
 
-                <com.fimbleenterprises.medimileage.activities.ui.views.NonScrollRecyclerView
+                <com.fimbleenterprises.demobuddy.activities.ui.views.NonScrollRecyclerView
                     android:id="@+id/notesRecyclerView"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"

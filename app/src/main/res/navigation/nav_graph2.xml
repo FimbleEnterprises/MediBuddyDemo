@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/FirstFragment"
-        android:name="com.fimbleenterprises.medimileage.activities.FirstFragment"
+        android:name="com.fimbleenterprises.demobuddy.activities.FirstFragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_first">
 
@@ -17,7 +17,7 @@
     </fragment>
     <fragment
         android:id="@+id/Second2Fragment"
-        android:name="com.fimbleenterprises.medimileage.activities.Second2Fragment"
+        android:name="com.fimbleenterprises.demobuddy.activities.Second2Fragment"
         android:label="@string/second_fragment_label"
         tools:layout="@layout/fragment_second2">
 

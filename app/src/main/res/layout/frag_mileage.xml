@@ -71,7 +71,7 @@
                         android:layout_centerVertical="true"
                         mlns:visibility="gone" />
 
-                    <com.fimbleenterprises.medimileage.MySpeedoGauge
+                    <com.fimbleenterprises.demobuddy.MySpeedoGauge
                         android:id="@+id/speedo"
                         android:layout_width="128dp"
                         android:layout_height="96dp"

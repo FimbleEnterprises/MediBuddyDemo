@@ -41,7 +41,7 @@
         android:background="#FDFAFA"
         android:padding="3dp">
 
-        <com.fimbleenterprises.medimileage.MyViewPager
+        <com.fimbleenterprises.demobuddy.MyViewPager
             android:id="@+id/main_pager_yo_sales_perf"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -60,7 +60,7 @@
                 android:paddingBottom="2dp"
                 android:textColor="#302F2F" />
 
-        </com.fimbleenterprises.medimileage.MyViewPager>
+        </com.fimbleenterprises.demobuddy.MyViewPager>
 
     </LinearLayout>
 

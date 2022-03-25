@@ -9,7 +9,7 @@
     android:clickable="false"
     android:focusable="false">
 
-    <com.fimbleenterprises.medimileage.activities.ui.views.MyHyperlinkTextview
+    <com.fimbleenterprises.demobuddy.activities.ui.views.MyHyperlinkTextview
         android:id="@+id/txtLabelLinkButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
